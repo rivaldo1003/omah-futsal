@@ -1,0 +1,262 @@
+/* Dashboard Styles - Compact & Clean */
+.top-nav {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 25px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.welcome-section h2 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 1.4rem;
+}
+
+.welcome-section p {
+    color: #7f8c8d;
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.date-badge {
+    background: #3498db;
+    color: white;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Stat Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #eee;
+    transition: all 0.3s ease;
+    height: 100%;
+    text-align: center;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin: 0 auto 15px;
+}
+
+.stat-icon.teams { background: #e3f2fd; color: #1976d2; }
+.stat-icon.players { background: #e8f5e9; color: #2e7d32; }
+.stat-icon.matches { background: #ffebee; color: #c62828; }
+.stat-icon.completed { background: #fff8e1; color: #f57c00; }
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.stat-title {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Recent Matches */
+.match-item {
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    transition: background 0.3s;
+}
+
+.match-item:hover {
+    background: #f8f9fa;
+}
+
+.match-date {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-bottom: 10px;
+}
+
+.match-score {
+    background: #f8f9fa;
+    padding: 8px 15px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 1.1rem;
+    min-width: 100px;
+    text-align: center;
+}
+
+.match-score.completed { background: #e8f5e9; color: #2e7d32; }
+.match-score.upcoming { background: #fff8e1; color: #f57c00; }
+.match-score.ongoing { background: #ffeaea; color: #c62828; }
+
+.team-name {
+    font-weight: 500;
+    color: #2c3e50;
+    font-size: 1rem;
+}
+
+.match-status {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-completed { background: #2e7d32; color: white; }
+.status-ongoing { background: #c62828; color: white; }
+.status-upcoming { background: #f57c00; color: white; }
+
+/* Quick Actions */
+.action-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid transparent;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    height: 100%;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.action-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    border-color: #3498db;
+}
+
+.action-card i {
+    font-size: 2rem;
+    margin-bottom: 12px;
+    display: block;
+}
+
+.action-card h5 {
+    color: #2c3e50;
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 1rem;
+}
+
+.action-card p {
+    color: #7f8c8d;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+/* Status Items */
+.status-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.status-item:last-child {
+    border-bottom: none;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+/* Activity Items */
+.activity-item {
+    background: white;
+    padding: 15px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    border-left: 3px solid #3498db;
+    display: flex;
+    align-items: center;
+}
+
+.activity-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin-right: 15px;
+}
+
+.activity-icon.team { background: #e3f2fd; color: #1976d2; }
+.activity-icon.player { background: #e8f5e9; color: #2e7d32; }
+
+/* Buttons */
+.btn {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* No Data States */
+.no-data {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.no-data i {
+    font-size: 2.5rem;
+    color: #bdc3c7;
+    margin-bottom: 15px;
+}
+
+.no-data p {
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .top-nav {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .stat-card {
+        padding: 15px;
+    }
+    
+    .stat-number {
+        font-size: 1.5rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+    }
+}

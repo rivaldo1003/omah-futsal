@@ -1,0 +1,442 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\HeroSetting;
+use Illuminate\Http\Request;
+use App\Models\Game;
+use App\Models\Team;
+use App\Models\Player;
+use App\Models\Standing;
+use App\Models\Tournament;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
+
+class HomeController extends Controller
+{
+
+    private function getFallbackTopScorers()
+    {
+        return Player::with('team')
+            ->orderBy('goals', 'desc')
+            ->limit(5)
+            ->get()
+            ->map(function ($player) {
+                $player->goals = $player->goals ?? 0;
+                $player->yellow_cards = $player->yellow_cards ?? 0;
+                $player->red_cards = $player->red_cards ?? 0;
+                return $player;
+            });
+    }
+    public function index()
+    {
+        // ==============================
+        // GET HERO SETTINGS
+        // ==============================
+        $heroSetting = HeroSetting::first();
+
+        // Jika tidak ada setting, buat default
+        if (!$heroSetting) {
+            $heroSetting = (object) [
+                'title' => 'OFS Champions League 2025',
+                'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
+                'is_active' => true,
+                'background_type' => 'gradient',
+                'background_color' => null,
+                'background_image' => null,
+                'text_color' => '#ffffff'
+            ];
+        }
+
+        // DEBUG: Cek semua tournaments
+        $allTournaments = Tournament::all();
+
+        // Get active tournament - coba ambil tournament apapun yang ada
+        $activeTournament = Tournament::where('status', 'ongoing')->first();
+
+        // Jika tidak ada tournament ongoing, ambil yang upcoming
+        if (!$activeTournament) {
+            $activeTournament = Tournament::where('status', 'upcoming')->first();
+        }
+
+        // Jika masih tidak ada, ambil tournament apapun
+        if (!$activeTournament) {
+            $activeTournament = Tournament::first();
+        }
+
+        // Get today's matches
+        $todayMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->whereDate('match_date', Carbon::today())
+            ->orderBy('time_start')
+            ->get();
+
+        // Get upcoming matches (next 5)
+        $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->where('status', 'upcoming')
+            ->whereDate('match_date', '>=', Carbon::today())
+            ->orderBy('match_date')
+            ->orderBy('time_start')
+            ->limit(5)
+            ->get();
+
+        // Get recent results (last 5 completed matches) - Filter per tournament
+        if ($activeTournament) {
+            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+                ->where('tournament_id', $activeTournament->id)
+                ->where('status', 'completed')
+                ->orderBy('match_date', 'desc')
+                ->orderBy('time_start', 'desc')
+                ->limit(5)
+                ->get();
+        } else {
+            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+                ->where('status', 'completed')
+                ->orderBy('match_date', 'desc')
+                ->orderBy('time_start', 'desc')
+                ->limit(5)
+                ->get();
+        }
+
+        // ==============================
+        // GET TOP SCORERS PER TOURNAMENT
+        // ==============================
+        // ==============================
+// GET TOP SCORERS PER TOURNAMENT
+// ==============================
+        $topScorers = collect();
+
+        if ($activeTournament) {
+            try {
+                $tournamentId = $activeTournament->id;
+
+                // Gunakan Eloquent dengan relations
+                $players = Player::with([
+                    'team',
+                    'matchEvents' => function ($query) use ($tournamentId) {
+                        $query->whereHas('match', function ($q) use ($tournamentId) {
+                            $q->where('tournament_id', $tournamentId);
+                        });
+                    }
+                ])->get();
+
+                // Hitung gol per tournament
+                $playersWithTournamentStats = $players->map(function ($player) use ($tournamentId) {
+                    $tournamentGoals = $player->matchEvents
+                        ->where('event_type', 'goal')
+                        ->where('is_own_goal', false)
+                        ->count();
+
+                    $tournamentYellowCards = $player->matchEvents
+                        ->where('event_type', 'yellow_card')
+                        ->count();
+
+                    $tournamentRedCards = $player->matchEvents
+                        ->where('event_type', 'red_card')
+                        ->count();
+
+                    $player->goals = $tournamentGoals;
+                    $player->yellow_cards = $tournamentYellowCards;
+                    $player->red_cards = $tournamentRedCards;
+
+                    return $player;
+                })
+                    ->filter(function ($player) {
+                        return $player->goals > 0; // Hanya pemain yang punya gol
+                    })
+                    ->sortByDesc('goals')
+                    ->take(5);
+
+                $topScorers = $playersWithTournamentStats;
+
+            } catch (\Exception $e) {
+                \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
+                $topScorers = $this->getFallbackTopScorers();
+            }
+        } else {
+            $topScorers = $this->getFallbackTopScorers();
+        }
+
+        // GET STANDINGS dengan semua tim termasuk yang belum bermain
+        $standings = $this->getAllGroupStandingsFixed($activeTournament);
+
+        // Statistics for hero section
+        $teams = Team::all();
+        $matchesCount = Game::count();
+        $totalGoals = Player::sum('goals');
+
+        // Calculate days left for active tournament
+        $daysLeft = 0;
+        if ($activeTournament) {
+            $endDate = Carbon::parse($activeTournament->end_date);
+            $daysLeft = max(0, Carbon::now()->diffInDays($endDate, false));
+        }
+
+        // DEBUG: Kirim data debug ke view
+        $debugInfo = [
+            'has_active_tournament' => $activeTournament ? 'YES' : 'NO',
+            'tournament_name' => $activeTournament ? $activeTournament->name : 'No Tournament',
+            'tournament_status' => $activeTournament ? $activeTournament->status : 'N/A',
+            'total_tournaments' => $allTournaments->count(),
+            'standings_count' => is_array($standings) ? count($standings) : 0,
+            'teams_in_tournament' => $activeTournament ?
+                DB::table('team_tournament')->where('tournament_id', $activeTournament->id)->count() : 0,
+            'top_scorers_count' => $topScorers->count(),
+            'top_scorers_has_tournament_data' => $topScorers->first() && isset($topScorers->first()->tournament_goals) ? 'YES' : 'NO',
+            'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A'
+        ];
+
+        return view('home', compact(
+            'heroSetting', // <-- TAMBAH INI DI COMPACT
+            'activeTournament',
+            'todayMatches',
+            'upcomingMatches',
+            'recentResults',
+            'topScorers',
+            'standings',
+            'teams',
+            'matchesCount',
+            'totalGoals',
+            'daysLeft',
+            'debugInfo'
+        ));
+    }
+
+    /**
+     * FIXED: Get all group standings including teams that haven't played yet
+     */
+    private function getAllGroupStandingsFixed($activeTournament = null)
+    {
+        if (!$activeTournament) {
+            // DEBUG: Log jika tidak ada tournament
+            \Log::info('No active tournament found in getAllGroupStandingsFixed');
+            return [];
+        }
+
+        $tournamentId = $activeTournament->id;
+
+        try {
+            // DEBUG: Cek apakah ada data di team_tournament
+            $teamTournamentCount = DB::table('team_tournament')
+                ->where('tournament_id', $tournamentId)
+                ->count();
+
+            \Log::info("Team tournament count for tournament {$tournamentId}: {$teamTournamentCount}");
+
+            if ($teamTournamentCount === 0) {
+                // Coba ambil data dari standings langsung
+                return $this->getStandingsDirectly($tournamentId);
+            }
+
+            // 1. Get all teams in this tournament from team_tournament table
+            $teamsInTournament = DB::table('team_tournament')
+                ->join('teams', 'team_tournament.team_id', '=', 'teams.id')
+                ->where('team_tournament.tournament_id', $tournamentId)
+                ->select(
+                    'teams.id as team_id',
+                    'teams.name as team_name',
+                    'teams.logo as team_logo',
+                    'team_tournament.group_name',
+                    'team_tournament.seed'
+                )
+                ->get();
+
+            // 2. Get existing standings
+            $existingStandings = Standing::with('team')
+                ->where('tournament_id', $tournamentId)
+                ->get()
+                ->keyBy('team_id');
+
+            // 3. Group teams by group
+            $groupedTeams = [];
+
+            foreach ($teamsInTournament as $teamTournament) {
+                $group = $teamTournament->group_name;
+
+                if (empty($group)) {
+                    $group = 'Ungrouped';
+                }
+
+                if (!isset($groupedTeams[$group])) {
+                    $groupedTeams[$group] = [];
+                }
+
+                // Check if team has existing standings
+                if ($existingStandings->has($teamTournament->team_id)) {
+                    $standing = $existingStandings[$teamTournament->team_id];
+                    // Tambahkan properti tambahan jika belum ada
+                    $standing->team_name = $teamTournament->team_name;
+                    $standing->team_logo = $teamTournament->team_logo;
+                    $standing->is_default = false;
+                } else {
+                    // Create default standing
+                    $standing = (object) [
+                        'team_id' => $teamTournament->team_id,
+                        'team_name' => $teamTournament->team_name,
+                        'team_logo' => $teamTournament->team_logo,
+                        'tournament_id' => $tournamentId,
+                        'group_name' => $group,
+                        'matches_played' => 0,
+                        'wins' => 0,
+                        'draws' => 0,
+                        'losses' => 0,
+                        'goals_for' => 0,
+                        'goals_against' => 0,
+                        'goal_difference' => 0,
+                        'points' => 0,
+                        'is_default' => true,
+                        'team' => (object) [
+                            'id' => $teamTournament->team_id,
+                            'name' => $teamTournament->team_name,
+                            'logo' => $teamTournament->team_logo
+                        ]
+                    ];
+                }
+
+                $groupedTeams[$group][] = $standing;
+            }
+
+            // 4. Sort each group
+            foreach ($groupedTeams as $group => $standings) {
+                usort($groupedTeams[$group], function ($a, $b) {
+                    // Sort by: points > GD > GF > wins
+                    if ($b->points != $a->points) {
+                        return $b->points - $a->points;
+                    }
+                    if ($b->goal_difference != $a->goal_difference) {
+                        return $b->goal_difference - $a->goal_difference;
+                    }
+                    if ($b->goals_for != $a->goals_for) {
+                        return $b->goals_for - $a->goals_for;
+                    }
+                    return $b->wins - $a->wins;
+                });
+            }
+
+            // 5. Sort groups alphabetically, tapi keluarkan 'Ungrouped' terakhir
+            uksort($groupedTeams, function ($a, $b) {
+                if ($a === 'Ungrouped')
+                    return 1;
+                if ($b === 'Ungrouped')
+                    return -1;
+                return strcmp($a, $b);
+            });
+
+            \Log::info("Grouped standings created with " . count($groupedTeams) . " groups");
+            return $groupedTeams;
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getAllGroupStandingsFixed: ' . $e->getMessage());
+            // Fallback ke method simple
+            return $this->getStandingsDirectly($tournamentId);
+        }
+    }
+
+    /**
+     * Get standings directly without team_tournament
+     */
+    private function getStandingsDirectly($tournamentId)
+    {
+        try {
+            $standings = Standing::with([
+                'team' => function ($query) {
+                    $query->select('id', 'name', 'logo');
+                }
+            ])
+                ->where('tournament_id', $tournamentId)
+                ->orderBy('group_name')
+                ->orderBy('points', 'desc')
+                ->orderBy('goal_difference', 'desc')
+                ->orderBy('goals_for', 'desc')
+                ->get();
+
+            if ($standings->isEmpty()) {
+                \Log::info("No standings found for tournament {$tournamentId}");
+                return [];
+            }
+
+            $grouped = $standings->groupBy('group_name')->toArray();
+            \Log::info("Direct standings found: " . count($grouped) . " groups");
+
+            return $grouped;
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getStandingsDirectly: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    /**
+     * Method paling sederhana untuk testing
+     */
+    private function getStandingsSimple()
+    {
+        try {
+            // Coba ambil data standings apapun yang ada
+            $standings = Standing::with('team')
+                ->orderBy('group_name')
+                ->orderBy('points', 'desc')
+                ->limit(20)
+                ->get();
+
+            if ($standings->isEmpty()) {
+                // Coba create dummy data untuk testing
+                $teams = Team::limit(8)->get();
+                $dummyStandings = [];
+                $groups = ['A', 'B'];
+
+                foreach ($teams as $index => $team) {
+                    $group = $groups[$index % 2];
+                    $dummyStandings[] = (object) [
+                        'team_id' => $team->id,
+                        'team_name' => $team->name,
+                        'team' => $team,
+                        'tournament_id' => 1,
+                        'group_name' => $group,
+                        'matches_played' => rand(0, 3),
+                        'wins' => rand(0, 2),
+                        'draws' => rand(0, 1),
+                        'losses' => rand(0, 2),
+                        'goals_for' => rand(0, 10),
+                        'goals_against' => rand(0, 10),
+                        'goal_difference' => rand(-5, 5),
+                        'points' => rand(0, 9),
+                        'is_default' => false
+                    ];
+                }
+
+                // Group dummy data
+                $grouped = collect($dummyStandings)->groupBy('group_name')->toArray();
+                return $grouped;
+            }
+
+            return $standings->groupBy('group_name')->toArray();
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getStandingsSimple: ' . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function adminDashboard()
+    {
+        $totalTeams = Team::count();
+        $totalPlayers = Player::count();
+        $totalMatches = Game::count();
+        $completedMatches = Game::where('status', 'completed')->count();
+
+        $recentMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->orderBy('match_date', 'desc')
+            ->limit(5)
+            ->get();
+
+        return view('admin.dashboard', compact(
+            'totalTeams',
+            'totalPlayers',
+            'totalMatches',
+            'completedMatches',
+            'recentMatches'
+        ));
+    }
+
+    // ... method lainnya tetap sama ...
+}
