@@ -27,7 +27,23 @@ class GameController extends Controller
         $tournamentId = $request->input('tournament_id');
 
         $query = Game::with(['homeTeam', 'awayTeam', 'tournament'])
-            ->orderBy('match_date', 'desc')
+            // Urutan khusus: ongoing dulu, lalu upcoming terdekat, baru completed
+            ->orderByRaw("
+            CASE 
+                WHEN status = 'ongoing' THEN 1
+                WHEN status = 'upcoming' THEN 2
+                WHEN status = 'completed' THEN 3
+                ELSE 4
+            END
+        ")
+            // Untuk upcoming: tanggal terdekat dulu (asc)
+            // Untuk completed: tanggal terbaru dulu (desc)
+            ->orderByRaw("
+            CASE 
+                WHEN status = 'upcoming' THEN match_date
+                ELSE '9999-12-31' -- Untuk non-upcoming, tetap urut berdasarkan status
+            END ASC
+        ")
             ->orderBy('time_start');
 
         // Filter by tournament
