@@ -1075,7 +1075,7 @@
             flex-shrink: 0;
         }
 
-        .rank-1 {
+        /* .rank-1 {
             background: linear-gradient(135deg, #FFD700, #FFA500);
             color: #333;
         }
@@ -1093,7 +1093,7 @@
         .rank-4 {
             background: linear-gradient(135deg, #64748b, #475569);
             color: white;
-        }
+        } */
 
         /* Goals count */
         .goals-count {
@@ -1427,71 +1427,71 @@
     <!-- Hero Section -->
     @if($heroSetting->is_active)
         <div class="hero-section" style="
-            @if($heroSetting->background_type === 'gradient')
-                background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-            @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-                background-color: {{ $heroSetting->background_color }};
-            @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-                background-size: cover;
-                background-position: center;
-                @if($heroSetting->overlay_opacity > 0)
-                    position: relative;
-                @endif
-            @else
-                background: linear-gradient(135deg, #0f172a, #1e293b);
-            @endif
-            color: {{ $heroSetting->text_color }};
-            position: relative;
-            overflow: hidden;
-        ">
+                            @if($heroSetting->background_type === 'gradient')
+                                background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                            @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                                background-color: {{ $heroSetting->background_color }};
+                            @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                                background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                                background-size: cover;
+                                background-position: center;
+                                @if($heroSetting->overlay_opacity > 0)
+                                    position: relative;
+                                @endif
+                            @else
+                                background: linear-gradient(135deg, #0f172a, #1e293b);
+                            @endif
+                            color: {{ $heroSetting->text_color }};
+                            position: relative;
+                            overflow: hidden;
+                        ">
             @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
                 <!-- Overlay untuk image background -->
                 <div class="hero-overlay" style="
-                        position: absolute;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                        z-index: 1;
-                    "></div>
+                                                        position: absolute;
+                                                        top: 0;
+                                                        left: 0;
+                                                        width: 100%;
+                                                        height: 100%;
+                                                        background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                                                        z-index: 1;
+                                                    "></div>
             @endif
 
             <div class="container" style="position: relative; z-index: 2;">
                 <div class="row align-items-center justify-content-center text-center">
                     <div class="col-lg-8">
                         <h1 class="tournament-title" style="
-                            color: {{ $heroSetting->text_color }};
-                            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-                        ">
+                                            color: {{ $heroSetting->text_color }};
+                                            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                                        ">
                             <i class="bi bi-trophy-fill"></i> {{ $heroSetting->title }}
                         </h1>
                         <p class="hero-subtitle" style="
-                            color: {{ $heroSetting->text_color }};
-                            opacity: 0.9;
-                            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-                            margin-left: auto;
-                            margin-right: auto;
-                        ">
+                                            color: {{ $heroSetting->text_color }};
+                                            opacity: 0.9;
+                                            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                                            margin-left: auto;
+                                            margin-right: auto;
+                                        ">
                             {{ $heroSetting->subtitle }}
                         </p>
 
                         @if($heroSetting->cta_button_text)
                             <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
                                 style="
-                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                                        border: none;
-                                        padding: 12px 30px;
-                                        border-radius: 8px;
-                                        font-weight: 600;
-                                        text-decoration: none;
-                                        display: inline-block;
-                                        margin-top: 20px;
-                                        transition: all 0.3s ease;
-                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                                    "
+                                                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                                                        border: none;
+                                                                        padding: 12px 30px;
+                                                                        border-radius: 8px;
+                                                                        font-weight: 600;
+                                                                        text-decoration: none;
+                                                                        display: inline-block;
+                                                                        margin-top: 20px;
+                                                                        transition: all 0.3s ease;
+                                                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                                                    "
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                                 <i class="bi bi-arrow-right-circle me-2"></i>
@@ -1504,26 +1504,26 @@
 
             <!-- Animated elements -->
             <div class="hero-particles" style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 1;
-                opacity: 0.3;
-            ">
+                                position: absolute;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                pointer-events: none;
+                                z-index: 1;
+                                opacity: 0.3;
+                            ">
                 @for($i = 1; $i <= 15; $i++)
                     <div class="particle" style="
-                            position: absolute;
-                            width: {{ rand(2, 5) }}px;
-                            height: {{ rand(2, 5) }}px;
-                            background-color: {{ $heroSetting->text_color }};
-                            border-radius: 50%;
-                            top: {{ rand(0, 100) }}%;
-                            left: {{ rand(0, 100) }}%;
-                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                        "></div>
+                                                            position: absolute;
+                                                            width: {{ rand(2, 5) }}px;
+                                                            height: {{ rand(2, 5) }}px;
+                                                            background-color: {{ $heroSetting->text_color }};
+                                                            border-radius: 50%;
+                                                            top: {{ rand(0, 100) }}%;
+                                                            left: {{ rand(0, 100) }}%;
+                                                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                                                        "></div>
                 @endfor
             </div>
         </div>
@@ -1576,11 +1576,13 @@
                                         <div class="score-container">
                                             @if($match->status == 'completed')
                                                 <div class="score-badge">{{ $match->home_score ?? 0 }} -
-                                                    {{ $match->away_score ?? 0 }}</div>
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
                                                 <span class="match-status">FT</span>
                                             @elseif($match->status == 'ongoing')
                                                 <div class="score-badge live">{{ $match->home_score ?? 0 }} -
-                                                    {{ $match->away_score ?? 0 }}</div>
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
                                                 <span class="match-status text-danger">LIVE</span>
                                             @else
                                                 <div class="score-badge bg-secondary">VS</div>
@@ -1810,124 +1812,126 @@
                                                 </thead>
                                                 <tbody>
                                                     @foreach($groupStandings as $index => $standing)
-                                                                                                    @php
-                                                                                                        $team = $standing->team ?? null;
-                                                                                                        $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                                                                        $teamLogo = $team->logo ?? null;
-                                                                                                        $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+                                                        @php
+                                                            $team = $standing->team ?? null;
+                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                            $teamLogo = $team->logo ?? null;
+                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
 
-                                                                                                        // Abbreviation for logo
-                                                                                                        $teamAbbr = '';
-                                                                                                        if (!empty($teamName)) {
-                                                                                                            $words = explode(' ', $teamName);
-                                                                                                            if (count($words) >= 2) {
-                                                                                                                $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                                                                                            } else {
-                                                                                                                $teamAbbr = strtoupper(substr($teamName, 0, 2));
-                                                                                                            }
-                                                                                                        }
+                                                            // Abbreviation for logo
+                                                            $teamAbbr = '';
+                                                            if (!empty($teamName)) {
+                                                                $words = explode(' ', $teamName);
+                                                                if (count($words) >= 2) {
+                                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                } else {
+                                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                }
+                                                            }
 
-                                                                                                        // Goal difference
-                                                                                                        $gdValue = $standing->goal_difference ?? 0;
-                                                                                                        $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
-                                                                                                    @endphp
-                                                                                                    <tr
-                                                                                                        class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                                                                        <td class="text-center align-middle">
-                                                                                                            <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                                                                                {{ $index + 1 }}
-                                                                                                            </div>
-                                                                                                        </td>
-                                                                                                        <td class="align-middle">
-                                                                                                            <div class="d-flex align-items-center">
-                                                                                                                <div class="team-logo-container" style="
-                                                            width: 32px;
-                                                            height: 32px;
-                                                            background: white;
-                                                            border-radius: 5px;
-                                                            display: flex;
-                                                            align-items: center;
-                                                            justify-content: center;
-                                                            overflow: hidden;
-                                                            margin-right: 0.6rem;
-                                                            flex-shrink: 0;
-                                                            border: 1px solid #e2e8f0;
-                                                        ">
-                                                                                                                    @php
-                                                                                                                        $logoExists = false;
-
-                                                                                                                        if ($teamLogo) {
-                                                                                                                            if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                                                                                                $logoExists = true;
-                                                                                                                            } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                                                                                                $logoExists = true;
-                                                                                                                            }
-                                                                                                                        }
-                                                                                                                    @endphp
-
-                                                                                                                    @if($logoExists)
-                                                                                                                        <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                                                                            alt="{{ $teamName }}"
-                                                                                                                            style="width: 100%; height: 100%; object-fit: cover;">
-                                                                                                                    @else
-                                                                                                                        <span
-                                                                                                                            style="font-weight: bold; color: #333; font-size: 0.8rem;">
-                                                                                                                            {{ $teamAbbr }}
-                                                                                                                        </span>
-                                                                                                                    @endif
-                                                                                                                </div>
-
-                                                                                                                <div class="text-truncate">
-                                                                                                                    <strong class="d-block text-truncate"
-                                                                                                                        style="font-size: 0.85rem;">
-                                                                                                                        {{ Str::limit($teamName, 15) }}
-                                                                                                                    </strong>
-                                                                                                                    @if($index < 2 && $hasPlayed)
-                                                                                                                        <small class="badge bg-success"
-                                                                                                                            style="font-size: 0.6rem; padding: 1px 4px;">Q</small>
-                                                                                                                    @endif
-                                                                                                                </div>
-                                                                                                            </div>
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                                                            {{ $standing->matches_played ?? 0 }}
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle fw-bold text-success"
-                                                                                                            style="font-size: 0.9rem;">
-                                                                                                            {{ $standing->wins ?? 0 }}
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                                                                            {{ $standing->draws ?? 0 }}
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle text-danger"
-                                                                                                            style="font-size: 0.9rem;">
-                                                                                                            {{ $standing->losses ?? 0 }}
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                                                            <span style="
-                                                                                                            display: inline-block;
-                                                                                                            padding: 2px 6px;
-                                                                                                            border-radius: 4px;
-                                                                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                                                            min-width: 40px;
+                                                            // Goal difference
+                                                            $gdValue = $standing->goal_difference ?? 0;
+                                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                        @endphp
+                                                        <tr
+                                                            class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                            <td class="text-center align-middle">
+                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                    {{ $index + 1 }}
+                                                                </div>
+                                                            </td>
+                                                            <td class="align-middle">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="team-logo-container" style="
+                                                                                                            width: 32px;
+                                                                                                            height: 32px;
+                                                                                                            background: white;
+                                                                                                            border-radius: 5px;
+                                                                                                            display: flex;
+                                                                                                            align-items: center;
+                                                                                                            justify-content: center;
+                                                                                                            overflow: hidden;
+                                                                                                            margin-right: 0.6rem;
+                                                                                                            flex-shrink: 0;
+                                                                                                            border: 1px solid #e2e8f0;
                                                                                                         ">
-                                                                                                                {{ $gdDisplay }}
-                                                                                                            </span>
-                                                                                                        </td>
-                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                                                            <span style="
-                                                                                                            display: inline-block;
-                                                                                                            padding: 2px 8px;
-                                                                                                            border-radius: 4px;
-                                                                                                            background-color: rgba(59, 130, 246, 0.1);
-                                                                                                            color: #1d4ed8;
-                                                                                                            min-width: 40px;
-                                                                                                        ">
-                                                                                                                {{ $standing->points ?? 0 }}
-                                                                                                            </span>
-                                                                                                        </td>
-                                                                                                    </tr>
+                                                                        @php
+                                                                            $logoExists = false;
+
+                                                                            if ($teamLogo) {
+                                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                    $logoExists = true;
+                                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                    $logoExists = true;
+                                                                                }
+                                                                            }
+                                                                        @endphp
+
+                                                                        @if($logoExists)
+                                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                alt="{{ $teamName }}"
+                                                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                                                        @else
+                                                                            <span
+                                                                                style="font-weight: bold; color: #333; font-size: 0.8rem;">
+                                                                                {{ $teamAbbr }}
+                                                                            </span>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <div class="text-truncate">
+                                                                        <strong class="d-block text-truncate"
+                                                                            style="font-size: 0.85rem;">
+                                                                            {{ Str::limit($teamName, 15) }}
+                                                                        </strong>
+                                                                        @if($index < 2 && $hasPlayed)
+                                                                            <small class="badge bg-success"
+                                                                                style="font-size: 0.6rem; padding: 1px 4px;">Q</small>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                {{ $standing->matches_played ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold text-success"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->wins ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                {{ $standing->draws ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle text-danger"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->losses ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                                                                                                            display: inline-block;
+                                                                                                                                                            padding: 2px 6px;
+                                                                                                                                                            border-radius: 4px;
+                                                                                                                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                                                                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                                                                                                            min-width: 40px;
+                                                                                                                                                        ">
+                                                                    {{ $gdDisplay }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                                                                                                            display: inline-block;
+                                                                                                                                                            padding: 2px 8px;
+                                                                                                                                                            border-radius: 4px;
+                                                                                                                                                            background-color: rgba(59, 130, 246, 0.1);
+                                                                                                                                                            color: #1d4ed8;
+                                                                                                                                                            min-width: 40px;
+                                                                                                                                                        ">
+                                                                    {{ $standing->points ?? 0 }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
