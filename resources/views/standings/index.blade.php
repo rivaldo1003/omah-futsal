@@ -421,12 +421,12 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .compact-table thead th:nth-child(5),
+            /* .compact-table thead th:nth-child(5),
             .compact-table thead th:nth-child(6),
             .compact-table tbody td:nth-child(5),
             .compact-table tbody td:nth-child(6) {
                 display: none;
-            }
+            } */
 
             .team-info-compact {
                 min-width: auto;
@@ -442,12 +442,12 @@
                 grid-template-columns: 1fr;
             }
 
-            .compact-table thead th:nth-child(4),
+            /* .compact-table thead th:nth-child(4),
             .compact-table thead th:nth-child(7),
             .compact-table tbody td:nth-child(4),
             .compact-table tbody td:nth-child(7) {
                 display: none;
-            }
+            } */
 
             .group-header-compact {
                 flex-direction: column;
