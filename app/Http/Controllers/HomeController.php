@@ -98,10 +98,7 @@ class HomeController extends Controller
         }
 
         // ==============================
-        // GET TOP SCORERS PER TOURNAMENT
-        // ==============================
-        // ==============================
-// GET TOP SCORERS PER TOURNAMENT
+// GET TOP SCORERS PER TOURNAMENT - DENGAN PERINGKAT YANG SAMA
 // ==============================
         $topScorers = collect();
 
@@ -109,52 +106,97 @@ class HomeController extends Controller
             try {
                 $tournamentId = $activeTournament->id;
 
-                // Gunakan Eloquent dengan relations
-                $players = Player::with([
-                    'team',
-                    'matchEvents' => function ($query) use ($tournamentId) {
-                        $query->whereHas('match', function ($q) use ($tournamentId) {
-                            $q->where('tournament_id', $tournamentId);
-                        });
-                    }
-                ])->get();
-
-                // Hitung gol per tournament
-                $playersWithTournamentStats = $players->map(function ($player) use ($tournamentId) {
-                    $tournamentGoals = $player->matchEvents
-                        ->where('event_type', 'goal')
-                        ->where('is_own_goal', false)
-                        ->count();
-
-                    $tournamentYellowCards = $player->matchEvents
-                        ->where('event_type', 'yellow_card')
-                        ->count();
-
-                    $tournamentRedCards = $player->matchEvents
-                        ->where('event_type', 'red_card')
-                        ->count();
-
-                    $player->goals = $tournamentGoals;
-                    $player->yellow_cards = $tournamentYellowCards;
-                    $player->red_cards = $tournamentRedCards;
-
-                    return $player;
-                })
-                    ->filter(function ($player) {
-                        return $player->goals > 0; // Hanya pemain yang punya gol
+                // Hitung gol, assist, dan kartu per pemain dalam tournament
+                $playerStats = DB::table('players')
+                    ->select([
+                        'players.id',
+                        'players.name',
+                        'players.jersey_number',
+                        'players.position',
+                        'players.team_id',
+                        'teams.name as team_name',
+                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "goal" AND me.is_own_goal = 0 THEN me.id END) as goals'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "assist" THEN me.id END) as assists'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "yellow_card" THEN me.id END) as yellow_cards'),
+                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "red_card" THEN me.id END) as red_cards')
+                    ])
+                    ->join('teams', 'players.team_id', '=', 'teams.id')
+                    ->join('team_tournament', 'teams.id', '=', 'team_tournament.team_id')
+                    ->leftJoin('match_events as me', 'players.id', '=', 'me.player_id')
+                    ->leftJoin('games', function ($join) use ($tournamentId) {
+                        $join->on('me.game_id', '=', 'games.id')
+                            ->where('games.tournament_id', '=', $tournamentId);
                     })
-                    ->sortByDesc('goals')
-                    ->take(5);
+                    ->where('team_tournament.tournament_id', $tournamentId)
+                    ->groupBy(
+                        'players.id',
+                        'players.name',
+                        'players.jersey_number',
+                        'players.position',
+                        'players.team_id',
+                        'teams.name'
+                    )
+                    ->having('goals', '>', 0) // Hanya yang punya gol
+                    ->orderBy('goals', 'DESC')
+                    ->orderBy('assists', 'DESC')
+                    ->orderBy('yellow_cards', 'ASC') // Kartu lebih sedikit lebih baik
+                    ->orderBy('red_cards', 'ASC')    // Kartu merah lebih sedikit lebih baik
+                    ->orderBy('players.name', 'ASC') // Jika semua sama, urutkan nama
+                    ->limit(10)
+                    ->get();
 
-                $topScorers = $playersWithTournamentStats;
+                // Tambahkan peringkat dengan tie-handling
+                $rank = 1;
+                $previousGoals = null;
+                $skipRank = 0;
+
+                $topScorers = $playerStats->map(function ($player, $index) use (&$rank, &$previousGoals, &$skipRank) {
+                    // Jika gol sama dengan sebelumnya, gunakan peringkat yang sama
+                    if ($previousGoals !== null && $player->goals == $previousGoals) {
+                        $skipRank++; // Tidak naikkan peringkat
+                        $player->rank = $rank - 1;
+                    } else {
+                        $rank += $skipRank; // Naikkan peringkat dengan skip
+                        $skipRank = 1; // Reset skip
+                        $player->rank = $rank;
+                        $rank++; // Siap untuk pemain berikutnya
+                    }
+
+                    $previousGoals = $player->goals;
+
+                    // Konversi ke object yang bisa digunakan di view
+                    return (object) [
+                        'id' => $player->id,
+                        'name' => $player->name,
+                        'jersey_number' => $player->jersey_number,
+                        'position' => $player->position,
+                        'team_id' => $player->team_id,
+                        'team_name' => $player->team_name,
+                        'goals' => $player->goals,
+                        'assists' => $player->assists,
+                        'yellow_cards' => $player->yellow_cards,
+                        'red_cards' => $player->red_cards,
+                        'rank' => $player->rank, // Peringkat setelah tie-handling
+                        'display_rank' => $player->rank // Untuk ditampilkan
+                    ];
+                })->take(5); // Ambil 5 teratas
+
+                \Log::info('Top Scorers with Ranks:', [
+                    'players' => $topScorers->map(function ($p) {
+                        return $p->name . ' - ' . $p->goals . ' gol (Rank: ' . $p->rank . ')';
+                    })->toArray()
+                ]);
 
             } catch (\Exception $e) {
                 \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
-                $topScorers = $this->getFallbackTopScorers();
+                $topScorers = $this->getFallbackTopScorersWithRank();
             }
         } else {
-            $topScorers = $this->getFallbackTopScorers();
+            $topScorers = $this->getFallbackTopScorersWithRank();
         }
+
+        // Pastikan diurutkan benar sebelum dikirim ke view
+        $topScorers = $topScorers->sortByDesc('goals')->values();
 
         // GET STANDINGS dengan semua tim termasuk yang belum bermain
         $standings = $this->getAllGroupStandingsFixed($activeTournament);
@@ -199,6 +241,49 @@ class HomeController extends Controller
             'daysLeft',
             'debugInfo'
         ));
+    }
+
+    private function getFallbackTopScorersWithRank()
+    {
+        $players = Player::with('team')
+            ->orderBy('goals', 'desc')
+            ->orderBy('assists', 'desc')
+            ->orderBy('yellow_cards', 'asc')
+            ->orderBy('red_cards', 'asc')
+            ->orderBy('name', 'asc')
+            ->limit(5)
+            ->get();
+
+        // Tambahkan ranking dengan tie-handling
+        $rank = 1;
+        $previousGoals = null;
+        $skipRank = 0;
+
+        return $players->map(function ($player, $index) use (&$rank, &$previousGoals, &$skipRank) {
+            $playerGoals = $player->goals ?? 0;
+
+            if ($previousGoals !== null && $playerGoals == $previousGoals) {
+                $skipRank++;
+                $player->rank = $rank - 1;
+            } else {
+                $rank += $skipRank;
+                $skipRank = 1;
+                $player->rank = $rank;
+                $rank++;
+            }
+
+            $previousGoals = $playerGoals;
+
+            // Set default values
+            $player->goals = $playerGoals;
+            $player->assists = $player->assists ?? 0;
+            $player->yellow_cards = $player->yellow_cards ?? 0;
+            $player->red_cards = $player->red_cards ?? 0;
+            $player->team_name = $player->team->name ?? 'No Team';
+            $player->display_rank = $player->rank;
+
+            return $player;
+        });
     }
 
     /**

@@ -264,7 +264,7 @@
 
         /* Score Section - Mobile Friendly */
         .score-badge {
-            background: linear-gradient(135deg, var(--accent-color), #60a5fa);
+            background: linear-gradient(135deg, var(--accent-color), #1c71d8);
             color: white;
             padding: 0.5rem 0.8rem;
             border-radius: 8px;
@@ -280,9 +280,17 @@
         }
 
         @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.8; }
-            100% { opacity: 1; }
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
         }
 
         .match-status {
@@ -363,18 +371,18 @@
             height: 32px;
             border-radius: 8px;
             display: flex;
-            align-items: center;
-            justify-content: center;
+            align-items: start;
+            justify-content: start;
             font-weight: 700;
             font-size: 0.9rem;
             margin-right: 8px;
             flex-shrink: 0;
         }
 
-        .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; }
-        .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }
-        .rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: white; }
-        .rank-other { background: linear-gradient(135deg, #64748b, #475569); color: white; }
+        /*.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; }*/
+        /*.rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }*/
+        /*.rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: white; }*/
+        /*.rank-other { background: linear-gradient(135deg, #64748b, #475569); color: white; }*/
 
         .group-title {
             color: var(--accent-color);
@@ -545,6 +553,198 @@
             transition: color 0.2s;
         }
 
+        /* Hero Section Styles - PERBAIKAN */
+        .hero-section {
+            padding: 80px 0;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .tournament-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            line-height: 1.3;
+            text-align: center;
+        }
+
+        .hero-subtitle {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 0 auto 30px;
+            text-align: center;
+            color: #cbd5e1;
+            opacity: 0.9;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100vh) translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        .hero-cta-button {
+            transition: all 0.3s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .hero-cta-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+            text-decoration: none !important;
+        }
+
+        .hero-cta-button:active {
+            transform: translateY(0) !important;
+        }
+
+        /* Hapus atau komen CSS hero section yang konflik di bagian lain */
+        /*
+.hero-section {
+    background: linear-gradient(135deg, #0f172a, #1e293b);
+    color: white;
+    padding: 2rem 0;
+    margin-bottom: 1.5rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.tournament-title {
+    font-weight: 700;
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+    background: linear-gradient(135deg, #ffffff, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    text-align: center;
+    line-height: 1.3;
+}
+
+.hero-subtitle {
+    font-size: 0.95rem;
+    opacity: 0.9;
+    max-width: 100%;
+    margin: 0 auto 1.5rem;
+    text-align: center;
+    color: #cbd5e1;
+    padding: 0 10px;
+}
+*/
+
+        /* Responsive styles */
+        @media (max-width: 992px) {
+            .hero-section {
+                padding: 70px 0;
+                min-height: 350px;
+            }
+
+            .tournament-title {
+                font-size: 2.2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+                max-width: 600px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+                min-height: 300px;
+                text-align: center;
+            }
+
+            .tournament-title {
+                font-size: 2rem;
+                margin-bottom: 15px;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+                margin-bottom: 20px;
+            }
+
+            .hero-cta-button {
+                padding: 10px 25px !important;
+                font-size: 1rem !important;
+            }
+        }
+
+        /* Pastikan container hero-section memiliki display flex yang benar */
+        .hero-section .container {
+            width: 100%;
+            max-width: 1140px;
+            margin: 0 auto;
+        }
+
+        /* Pastikan row dan col di tengah */
+        .hero-section .row.justify-content-center {
+            justify-content: center !important;
+        }
+
+        .hero-section .text-center {
+            text-align: center !important;
+        }
+
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 50px 0;
+                min-height: 250px;
+            }
+
+            .tournament-title {
+                font-size: 1.8rem;
+                margin-bottom: 12px;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+                margin-bottom: 15px;
+            }
+
+
+
+            .hero-cta-button {
+                padding: 8px 20px !important;
+                font-size: 0.95rem !important;
+            }
+        }
+
         .copyright {
             color: #94a3b8;
             font-size: 0.8rem;
@@ -576,84 +776,510 @@
 
         /* Responsive Breakpoints */
         @media (min-width: 576px) {
-            body { font-size: 15.5px; }
-            
-            .tournament-title { font-size: 2rem; }
-            
-            .hero-subtitle { font-size: 1rem; }
-            
-            .card-header { padding: 1.1rem; }
-            
-            .card-body { padding: 1.5rem; }
-            
-            .teams-container { flex-direction: row; gap: 1rem; }
-            
-            .team-container { width: auto; flex: 1; }
-            
-            .team-home { text-align: right; }
-            
-            .team-away { text-align: left; }
-            
-            .score-container { order: 0; margin-bottom: 0; }
-            
-            .table th, .table td { padding: 0.6rem 0.4rem; }
+            body {
+                font-size: 15.5px;
+            }
+
+            .tournament-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .card-header {
+                padding: 1.1rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .teams-container {
+                flex-direction: row;
+                gap: 1rem;
+            }
+
+            .team-container {
+                width: auto;
+                flex: 1;
+            }
+
+            .team-home {
+                text-align: right;
+            }
+
+            .team-away {
+                text-align: left;
+            }
+
+            .score-container {
+                order: 0;
+                margin-bottom: 0;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.6rem 0.4rem;
+            }
         }
 
         @media (min-width: 768px) {
-            body { font-size: 16px; }
-            
+            body {
+                font-size: 16px;
+            }
+
             .navbar-collapse {
                 margin-top: 0;
                 background: transparent;
                 box-shadow: none;
             }
-            
+
             .nav-link {
                 padding: 0.6rem 1rem !important;
                 margin: 0 3px;
                 width: auto;
             }
-            
+
             .btn-login-nav,
             .admin-badge,
             .btn-logout-nav {
                 width: auto;
                 margin: 0;
             }
-            
-            .hero-section { padding: 3rem 0 2.5rem; }
-            
-            .tournament-title { font-size: 2.2rem; }
-            
-            .brand-main { font-size: 1.3rem; }
-            
-            .brand-logo { width: 40px; height: 40px; }
-            
-            .teams-container { gap: 1.5rem; }
-            
-            .score-badge { 
-                min-width: 90px; 
-                padding: 0.7rem 1.2rem; 
-                font-size: 1.4rem; 
+
+            .hero-section {
+                padding: 3rem 0 2.5rem;
             }
-            
-            .table { font-size: 0.9rem; }
+
+            .tournament-title {
+                font-size: 2.2rem;
+            }
+
+            .brand-main {
+                font-size: 1.3rem;
+            }
+
+            .brand-logo {
+                width: 40px;
+                height: 40px;
+            }
+
+            .teams-container {
+                gap: 1.5rem;
+            }
+
+            .score-badge {
+                min-width: 90px;
+                padding: 0.7rem 1.2rem;
+                font-size: 1.4rem;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+        }
+
+        /* ========================================= */
+        /* CSS BARU UNTUK TOP SCORERS - AWAL */
+        /* ========================================= */
+
+        /* Rank Badge khusus untuk Top Scorers */
+        .top-scorer-rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        /* Warna untuk ranking khusus top scorers */
+        .top-scorer-rank-1 {
+            background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+            color: #333 !important;
+        }
+
+        .top-scorer-rank-2 {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9) !important;
+            color: white !important;
+        }
+
+        .top-scorer-rank-3 {
+            background: linear-gradient(135deg, #CD7F32, #A0522D) !important;
+            color: white !important;
+        }
+
+        .top-scorer-rank-4 {
+            background: linear-gradient(135deg, #64748b, #475569) !important;
+            color: white !important;
+        }
+
+        /* Player card untuk top scorers */
+        .top-scorer-player-card {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .top-scorer-player-card:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .top-scorer-player-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .top-scorer-player-info h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .top-scorer-player-team {
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        /* Goals count untuk top scorers */
+        .top-scorer-goals-count {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Cards count untuk top scorers */
+        .top-scorer-cards-count {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Responsive untuk top scorers */
+        @media (max-width: 576px) {
+            .top-scorer-player-card {
+                padding: 0.6rem;
+            }
+
+            .top-scorer-rank-badge {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+                margin-right: 8px;
+            }
+
+            .top-scorer-player-info h6 {
+                font-size: 0.85rem;
+            }
+
+            .top-scorer-player-team {
+                font-size: 0.7rem;
+            }
+
+            .top-scorer-goals-count {
+                font-size: 0.8rem;
+                min-width: 55px;
+                padding: 0.25rem 0.5rem;
+            }
+        }
+
+        /* ========================================= */
+        /* CSS BARU UNTUK TOP SCORERS - AKHIR */
+        /* ========================================= */
+
+        /* Perbaikan untuk player card */
+        .player-card {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.7rem;
+            transition: all 0.2s;
+        }
+
+        .player-card:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .player-info h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .player-team {
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        /* Rank badge style */
+        .rank-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        .rank-1 {
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #333;
+        }
+
+        .rank-2 {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+            color: white;
+        }
+
+        .rank-3 {
+            background: linear-gradient(135deg, #CD7F32, #A0522D);
+            color: white;
+        }
+
+        .rank-4 {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+
+        /* Goals count */
+        .goals-count {
+            background: linear-gradient(135deg, var(--accent-color), #60a5fa);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            min-width: 60px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Cards count */
+        .cards-count {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            font-size: 0.7rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 576px) {
+            .player-card {
+                padding: 0.6rem;
+                flex-wrap: nowrap;
+            }
+
+            .rank-badge {
+                width: 24px;
+                height: 24px;
+                font-size: 0.7rem;
+                margin-right: 0.5rem;
+            }
+
+            .player-info h6 {
+                font-size: 0.85rem;
+            }
+
+            .player-team {
+                font-size: 0.7rem;
+            }
+
+            .goals-count {
+                font-size: 0.7rem;
+                min-width: 50px;
+                padding: 0.2rem 0.4rem;
+            }
+
+            .cards-count {
+                font-size: 0.65rem;
+            }
+        }
+
+        /* Responsive styles untuk Group Standings di Home */
+        @media (max-width: 768px) {
+            .table-responsive {
+                font-size: 0.8rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.4rem 0.25rem;
+                font-size: 0.8rem;
+            }
+
+            .table th:first-child,
+            .table td:first-child {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            .team-logo-container {
+                width: 28px !important;
+                height: 28px !important;
+                margin-right: 0.5rem !important;
+            }
+
+            .rank-badge {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 0.8rem !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .table-responsive {
+                font-size: 0.75rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.35rem 0.2rem;
+                font-size: 0.75rem;
+            }
+
+            .col-md-6 {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .group-title {
+                font-size: 0.9rem;
+            }
+
+            /* Pastikan semua kolom tetap terlihat di mobile */
+            .table th:nth-child(1),
+            .table td:nth-child(1) {
+                width: 40px;
+            }
+
+            /* # */
+            .table th:nth-child(2),
+            .table td:nth-child(2) {
+                min-width: 120px;
+            }
+
+            /* Team */
+            .table th:nth-child(3),
+            .table td:nth-child(3) {
+                width: 30px;
+            }
+
+            /* P */
+            .table th:nth-child(4),
+            .table td:nth-child(4) {
+                width: 30px;
+            }
+
+            /* W */
+            .table th:nth-child(5),
+            .table td:nth-child(5) {
+                width: 30px;
+            }
+
+            /* D */
+            .table th:nth-child(6),
+            .table td:nth-child(6) {
+                width: 30px;
+            }
+
+            /* L */
+            .table th:nth-child(7),
+            .table td:nth-child(7) {
+                width: 40px;
+            }
+
+            /* GD */
+            .table th:nth-child(8),
+            .table td:nth-child(8) {
+                width: 40px;
+            }
+
+            /* PTS */
         }
 
         @media (min-width: 992px) {
-            .tournament-title { font-size: 2.5rem; }
-            
-            .hero-subtitle { font-size: 1.1rem; max-width: 600px; }
-            
-            .brand-main { font-size: 1.4rem; }
-            
-            .card-header { font-size: 1.1rem; }
-            
-            .match-card { padding: 1.5rem; }
-            
-            .team-name { font-size: 1rem; }
-            
-            .score-badge { min-width: 100px; }
+            .tournament-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+                max-width: 600px;
+            }
+
+            .brand-main {
+                font-size: 1.4rem;
+            }
+
+            .card-header {
+                font-size: 1.1rem;
+            }
+
+            .match-card {
+                padding: 1.5rem;
+            }
+
+            .team-name {
+                font-size: 1rem;
+            }
+
+            .score-badge {
+                min-width: 100px;
+            }
         }
 
         @media (min-width: 1200px) {
@@ -666,34 +1292,41 @@
 
         /* Touch-friendly elements */
         @media (hover: none) and (pointer: coarse) {
-            .btn, .nav-link, .card {
+
+            .btn,
+            .nav-link,
+            .card {
                 min-height: 44px;
             }
-            
+
             .btn-sm {
                 min-height: 36px;
             }
-            
-            .table th, .table td {
+
+            .table th,
+            .table td {
                 padding: 0.6rem 0.4rem;
             }
-            
+
             .match-events {
                 max-height: 250px;
             }
         }
 
+
+
         /* Safe Area for Notches */
-      
+
 
         /* Print Styles */
         @media print {
+
             .navbar,
             .footer,
             .btn {
                 display: none !important;
             }
-            
+
             .card {
                 box-shadow: none;
                 border: 1px solid #ddd;
@@ -716,8 +1349,8 @@
                 </div>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
-                    aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
 
@@ -791,30 +1424,118 @@
             </div>
         </div>
     </nav>
-
     <!-- Hero Section -->
     @if($heroSetting->is_active)
         <div class="hero-section" style="
             @if($heroSetting->background_type === 'gradient')
-                background: linear-gradient(135deg, #0f172a, #1e293b);
+                background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
             @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
                 background-color: {{ $heroSetting->background_color }};
             @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
                 background-image: url('{{ Storage::url($heroSetting->background_image) }}');
                 background-size: cover;
                 background-position: center;
+                @if($heroSetting->overlay_opacity > 0)
+                    position: relative;
+                @endif
             @else
                 background: linear-gradient(135deg, #0f172a, #1e293b);
             @endif
             color: {{ $heroSetting->text_color }};
+            position: relative;
+            overflow: hidden;
         ">
-            <div class="container">
-                <h1 class="tournament-title">
-                    <i class="bi bi-trophy-fill"></i> {{ $heroSetting->title }}
-                </h1>
-                <p class="hero-subtitle" style="color: {{ $heroSetting->text_color }}; opacity: 0.9;">
-                    {{ $heroSetting->subtitle }}
-                </p>
+            @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
+                <!-- Overlay untuk image background -->
+                <div class="hero-overlay" style="
+                        position: absolute;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                        z-index: 1;
+                    "></div>
+            @endif
+
+            <div class="container" style="position: relative; z-index: 2;">
+                <div class="row align-items-center justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="tournament-title" style="
+                            color: {{ $heroSetting->text_color }};
+                            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                        ">
+                            <i class="bi bi-trophy-fill"></i> {{ $heroSetting->title }}
+                        </h1>
+                        <p class="hero-subtitle" style="
+                            color: {{ $heroSetting->text_color }};
+                            opacity: 0.9;
+                            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                            margin-left: auto;
+                            margin-right: auto;
+                        ">
+                            {{ $heroSetting->subtitle }}
+                        </p>
+
+                        @if($heroSetting->cta_button_text)
+                            <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
+                                style="
+                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                        border: none;
+                                        padding: 12px 30px;
+                                        border-radius: 8px;
+                                        font-weight: 600;
+                                        text-decoration: none;
+                                        display: inline-block;
+                                        margin-top: 20px;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                    "
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                {{ $heroSetting->cta_button_text }}
+                            </a>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animated elements -->
+            <div class="hero-particles" style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1;
+                opacity: 0.3;
+            ">
+                @for($i = 1; $i <= 15; $i++)
+                    <div class="particle" style="
+                            position: absolute;
+                            width: {{ rand(2, 5) }}px;
+                            height: {{ rand(2, 5) }}px;
+                            background-color: {{ $heroSetting->text_color }};
+                            border-radius: 50%;
+                            top: {{ rand(0, 100) }}%;
+                            left: {{ rand(0, 100) }}%;
+                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                        "></div>
+                @endfor
+            </div>
+        </div>
+    @else
+        <!-- Hero section hidden message (optional) -->
+        <div class="container mt-4">
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle me-2"></i>
+                Hero section is currently disabled.
+                <a href="{{ route('admin.hero-settings.edit') }}" class="alert-link">
+                    Enable it from admin settings
+                </a>
             </div>
         </div>
     @endif
@@ -854,10 +1575,12 @@
                                         <!-- Score -->
                                         <div class="score-container">
                                             @if($match->status == 'completed')
-                                                <div class="score-badge">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
+                                                <div class="score-badge">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}</div>
                                                 <span class="match-status">FT</span>
                                             @elseif($match->status == 'ongoing')
-                                                <div class="score-badge live">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
+                                                <div class="score-badge live">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}</div>
                                                 <span class="match-status text-danger">LIVE</span>
                                             @else
                                                 <div class="score-badge bg-secondary">VS</div>
@@ -943,7 +1666,8 @@
 
                                 <!-- Action Button -->
                                 <div class="col-12 col-md-2 text-center text-md-end mt-3 mt-md-0">
-                                    <a href="{{ route('matches.show', $match->id) }}" class="btn btn-primary btn-sm w-100 w-md-auto">
+                                    <a href="{{ route('matches.show', $match->id) }}"
+                                        class="btn btn-primary btn-sm w-100 w-md-auto">
                                         <i class="bi bi-eye"></i> Details
                                     </a>
                                 </div>
@@ -984,10 +1708,13 @@
                                                     $homeName = $homeTeam->name ?? 'TBA';
                                                 @endphp
                                                 @if($homeLogo && Storage::disk('public')->exists($homeLogo))
-                                                    <img src="{{ asset('storage/' . $homeLogo) }}" alt="{{ $homeName }}" class="team-logo-small">
+                                                    <img src="{{ asset('storage/' . $homeLogo) }}" alt="{{ $homeName }}"
+                                                        class="team-logo-small">
                                                 @else
-                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light" style="width: 28px; height: 28px; border-radius: 5px;">
-                                                        <span class="fw-bold text-dark">{{ strtoupper(substr($homeName, 0, 1)) }}</span>
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($homeName, 0, 1)) }}</span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -1013,10 +1740,13 @@
                                                     $awayName = $awayTeam->name ?? 'TBA';
                                                 @endphp
                                                 @if($awayLogo && Storage::disk('public')->exists($awayLogo))
-                                                    <img src="{{ asset('storage/' . $awayLogo) }}" alt="{{ $awayName }}" class="team-logo-small">
+                                                    <img src="{{ asset('storage/' . $awayLogo) }}" alt="{{ $awayName }}"
+                                                        class="team-logo-small">
                                                 @else
-                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light" style="width: 28px; height: 28px; border-radius: 5px;">
-                                                        <span class="fw-bold text-dark">{{ strtoupper(substr($awayName, 0, 1)) }}</span>
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($awayName, 0, 1)) }}</span>
                                                     </div>
                                                 @endif
                                             </div>
@@ -1052,9 +1782,10 @@
                 </div>
 
                 <!-- Group Standings -->
+                <!-- Group Standings -->
                 <div class="card">
                     <div class="card-header">
-                        <i class="bi bi-bar-chart-line"></i> Group Standings
+                        <i class="bi bi-bar-chart-line"></i> Group Standing
                     </div>
                     <div class="card-body">
                         <div class="row">
@@ -1063,71 +1794,140 @@
                                     <div class="col-12 col-md-6 mb-4">
                                         <h6 class="group-title">GROUP {{ $group }}</h6>
                                         <div class="table-responsive">
+                                            <!-- GANTI TABEL INI -->
                                             <table class="table table-sm">
                                                 <thead>
                                                     <tr>
-                                                        <th style="width: 50px;">#</th>
+                                                        <th style="width: 40px;">#</th>
                                                         <th>Team</th>
                                                         <th class="text-center">P</th>
+                                                        <th class="text-center">W</th>
+                                                        <th class="text-center">D</th>
+                                                        <th class="text-center">L</th>
+                                                        <th class="text-center">GD</th>
                                                         <th class="text-center">PTS</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach($groupStandings as $index => $standing)
-                                                        @php
-                                                            $team = $standing->team ?? null;
-                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                            $teamLogo = $team->logo ?? null;
-                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
-                                                        @endphp
-                                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                            <td class="align-middle">
-                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                                    {{ $index + 1 }}
-                                                                </div>
-                                                            </td>
-                                                            <td class="align-middle">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="team-logo-container" style="
-                                                                        width: 32px;
-                                                                        height: 32px;
-                                                                        background: white;
-                                                                        border-radius: 5px;
-                                                                        display: flex;
-                                                                        align-items: center;
-                                                                        justify-content: center;
-                                                                        overflow: hidden;
-                                                                        margin-right: 0.6rem;
-                                                                        flex-shrink: 0;
-                                                                    ">
-                                                                        @if($teamLogo && Storage::disk('public')->exists($teamLogo))
-                                                                            <img src="{{ asset('storage/' . $teamLogo) }}" 
-                                                                                 alt="{{ $teamName }}"
-                                                                                 style="width: 100%; height: 100%; object-fit: cover;">
-                                                                        @elseif($teamLogo && filter_var($teamLogo, FILTER_VALIDATE_URL))
-                                                                            <img src="{{ $teamLogo }}" alt="{{ $teamName }}"
-                                                                                 style="width: 100%; height: 100%; object-fit: cover;">
-                                                                        @else
-                                                                            <span style="font-weight: bold; color: #333; font-size: 0.9rem;">
-                                                                                {{ strtoupper(substr($teamName, 0, 1)) }}
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-                                                                    <div class="text-truncate">
-                                                                        <strong class="d-block text-truncate">{{ $teamName }}</strong>
-                                                                        <small class="text-muted">
-                                                                            {{ $standing->wins ?? 0 }}W {{ $standing->draws ?? 0 }}D {{ $standing->losses ?? 0 }}L
-                                                                        </small>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold">
-                                                                {{ $standing->matches_played ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold">
-                                                                {{ $standing->points ?? 0 }}
-                                                            </td>
-                                                        </tr>
+                                                                                                    @php
+                                                                                                        $team = $standing->team ?? null;
+                                                                                                        $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                                                                        $teamLogo = $team->logo ?? null;
+                                                                                                        $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+
+                                                                                                        // Abbreviation for logo
+                                                                                                        $teamAbbr = '';
+                                                                                                        if (!empty($teamName)) {
+                                                                                                            $words = explode(' ', $teamName);
+                                                                                                            if (count($words) >= 2) {
+                                                                                                                $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                                                            } else {
+                                                                                                                $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                                                            }
+                                                                                                        }
+
+                                                                                                        // Goal difference
+                                                                                                        $gdValue = $standing->goal_difference ?? 0;
+                                                                                                        $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                                                                    @endphp
+                                                                                                    <tr
+                                                                                                        class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                                                                        <td class="text-center align-middle">
+                                                                                                            <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                                                                {{ $index + 1 }}
+                                                                                                            </div>
+                                                                                                        </td>
+                                                                                                        <td class="align-middle">
+                                                                                                            <div class="d-flex align-items-center">
+                                                                                                                <div class="team-logo-container" style="
+                                                            width: 32px;
+                                                            height: 32px;
+                                                            background: white;
+                                                            border-radius: 5px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            overflow: hidden;
+                                                            margin-right: 0.6rem;
+                                                            flex-shrink: 0;
+                                                            border: 1px solid #e2e8f0;
+                                                        ">
+                                                                                                                    @php
+                                                                                                                        $logoExists = false;
+
+                                                                                                                        if ($teamLogo) {
+                                                                                                                            if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                                                                $logoExists = true;
+                                                                                                                            } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                                                                $logoExists = true;
+                                                                                                                            }
+                                                                                                                        }
+                                                                                                                    @endphp
+
+                                                                                                                    @if($logoExists)
+                                                                                                                        <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                                                            alt="{{ $teamName }}"
+                                                                                                                            style="width: 100%; height: 100%; object-fit: cover;">
+                                                                                                                    @else
+                                                                                                                        <span
+                                                                                                                            style="font-weight: bold; color: #333; font-size: 0.8rem;">
+                                                                                                                            {{ $teamAbbr }}
+                                                                                                                        </span>
+                                                                                                                    @endif
+                                                                                                                </div>
+
+                                                                                                                <div class="text-truncate">
+                                                                                                                    <strong class="d-block text-truncate"
+                                                                                                                        style="font-size: 0.85rem;">
+                                                                                                                        {{ Str::limit($teamName, 15) }}
+                                                                                                                    </strong>
+                                                                                                                    @if($index < 2 && $hasPlayed)
+                                                                                                                        <small class="badge bg-success"
+                                                                                                                            style="font-size: 0.6rem; padding: 1px 4px;">Q</small>
+                                                                                                                    @endif
+                                                                                                                </div>
+                                                                                                            </div>
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                                                            {{ $standing->matches_played ?? 0 }}
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle fw-bold text-success"
+                                                                                                            style="font-size: 0.9rem;">
+                                                                                                            {{ $standing->wins ?? 0 }}
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                                                            {{ $standing->draws ?? 0 }}
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle text-danger"
+                                                                                                            style="font-size: 0.9rem;">
+                                                                                                            {{ $standing->losses ?? 0 }}
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                                                            <span style="
+                                                                                                            display: inline-block;
+                                                                                                            padding: 2px 6px;
+                                                                                                            border-radius: 4px;
+                                                                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                                                            min-width: 40px;
+                                                                                                        ">
+                                                                                                                {{ $gdDisplay }}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                                                            <span style="
+                                                                                                            display: inline-block;
+                                                                                                            padding: 2px 8px;
+                                                                                                            border-radius: 4px;
+                                                                                                            background-color: rgba(59, 130, 246, 0.1);
+                                                                                                            color: #1d4ed8;
+                                                                                                            min-width: 40px;
+                                                                                                        ">
+                                                                                                                {{ $standing->points ?? 0 }}
+                                                                                                            </span>
+                                                                                                        </td>
+                                                                                                    </tr>
                                                     @endforeach
                                                 </tbody>
                                             </table>
@@ -1154,74 +1954,80 @@
 
             <!-- Right Column -->
             <div class="col-lg-4">
-               <div class="card mb-4">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-trophy"></i>
-            <span>Top Scorers</span>
-            @if($activeTournament)
-                <span class="badge bg-primary">{{ $activeTournament->name }}</span>
-            @endif
-        </div>
-        @if($activeTournament)
-            <small class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
-        @endif
-    </div>
-    <div class="card-body">
-        @if($topScorers->count() > 0)
-            @foreach($topScorers as $index => $player)
-                <div class="player-card">
-                    <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                        {{ $index + 1 }}
-                    </div>
-                    <div class="player-info">
-                        <h6>{{ $player->name ?? 'Unknown Player' }}</h6>
-                        <div class="player-team">
-                            <i class="bi bi-people"></i>
-                            {{ $player->team_name ?? ($player->team->name ?? 'No Team') }}
-                            @if($player->jersey_number)
-                                <span class="badge bg-secondary ms-1">#{{ $player->jersey_number }}</span>
-                            @endif
-                            @if($player->position)
-                                <span class="badge bg-light text-dark ms-1">{{ $player->position }}</span>
+                <!-- Top Scorers -->
+                <!-- Top Scorers -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-trophy"></i>
+                            <span>Top Scorers</span>
+                            @if($activeTournament)
+                                <span class="badge bg-primary">{{ $activeTournament->name }}</span>
                             @endif
                         </div>
+                        @if($activeTournament)
+                            <small
+                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
+                        @endif
                     </div>
-                    <div class="text-end">
-                        <span class="goals-count">{{ $player->goals ?? 0 }} Gol</span>
-                        <div class="cards-count">
-                            @if(($player->yellow_cards ?? 0) > 0)
-                                <span class="text-warning">
-                                    <i class="bi bi-square-fill"></i> {{ $player->yellow_cards }}
-                                </span>
-                            @endif
-                            @if(($player->red_cards ?? 0) > 0)
-                                <span class="text-danger ms-1">
-                                    <i class="bi bi-square-fill"></i> {{ $player->red_cards }}
-                                </span>
-                            @endif
-                        </div>
+                    <div class="card-body">
+                        @if($topScorers->count() > 0)
+                            @foreach($topScorers as $index => $player)
+                                <div class="top-scorer-player-card">
+                                    <!-- Rank Badge - Tampilkan ranking (1, 2, 3, dll) -->
+                                    <div class="top-scorer-rank-badge top-scorer-rank-{{ min($index + 1, 4) }}">
+                                        {{ $index + 1 }}
+                                    </div>
+
+                                    <div class="top-scorer-player-info">
+                                        <h6 class="mb-1">{{ $player->name ?? 'Unknown Player' }}</h6>
+                                        <div class="top-scorer-player-team small text-muted">
+                                            <i class="bi bi-people me-1"></i>
+                                            {{ $player->team_name ?? ($player->team->name ?? 'No Team') }}
+                                            @if(isset($player->jersey_number) && $player->jersey_number)
+                                                <span class="badge bg-secondary ms-1">#{{ $player->jersey_number }}</span>
+                                            @endif
+                                            @if(isset($player->position) && $player->position)
+                                                <span class="badge bg-light text-dark ms-1">{{ $player->position }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end ms-2">
+                                        <span class="top-scorer-goals-count">{{ $player->goals ?? 0 }} Gol</span>
+                                        <div class="top-scorer-cards-count">
+                                            @if(($player->yellow_cards ?? 0) > 0)
+                                                <span class="text-warning me-2">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->yellow_cards }}
+                                                </span>
+                                            @endif
+                                            @if(($player->red_cards ?? 0) > 0)
+                                                <span class="text-danger">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->red_cards }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div class="text-center mt-4">
+                                <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}"
+                                    class="btn btn-success w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i> View All Scorers
+                                </a>
+                            </div>
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-person-x"></i>
+                                <p class="mt-2">No tournament statistics available</p>
+                                @if($activeTournament)
+                                    <small class="text-muted">No goals scored in {{ $activeTournament->name }} yet</small>
+                                @endif
+                            </div>
+                        @endif
                     </div>
                 </div>
-            @endforeach
-            
-            <div class="text-center mt-4">
-                <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}" 
-                   class="btn btn-success w-100">
-                    <i class="bi bi-arrow-right-circle"></i> View All Scorers
-                </a>
-            </div>
-        @else
-            <div class="empty-state">
-                <i class="bi bi-person-x"></i>
-                <p class="mt-2">No tournament statistics available</p>
-                @if($activeTournament)
-                    <small class="text-muted">No goals scored in {{ $activeTournament->name }} yet</small>
-                @endif
-            </div>
-        @endif
-    </div>
-</div>
 
                 <!-- Recent Results -->
                 <div class="card mb-4">
@@ -1349,10 +2155,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Navbar auto-close on mobile
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const navLinks = document.querySelectorAll('.nav-link');
             const navbarCollapse = document.querySelector('.navbar-collapse');
-            
+
             navLinks.forEach(link => {
                 link.addEventListener('click', () => {
                     if (window.innerWidth < 992) {
@@ -1382,11 +2188,11 @@
             function updateSafeArea() {
                 const safeAreaTop = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-top');
                 const safeAreaBottom = getComputedStyle(document.documentElement).getPropertyValue('--safe-area-inset-bottom');
-                
+
                 if (safeAreaTop) {
                     document.documentElement.style.setProperty('--navbar-padding-top', safeAreaTop);
                 }
-                
+
                 if (safeAreaBottom) {
                     document.documentElement.style.setProperty('--footer-padding-bottom', safeAreaBottom);
                 }
@@ -1427,4 +2233,5 @@
         });
     </script>
 </body>
+
 </html>
