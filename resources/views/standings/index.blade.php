@@ -239,15 +239,15 @@
             justify-content: center;
             font-weight: 700;
             font-size: 0.75rem;
-            color: white;
+            color: black;
             margin-right: 0.75rem;
         }
 
-        .pos-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+        /* .pos-1 { background: linear-gradient(135deg, #f59e0b, #d97706); }
         .pos-2 { background: linear-gradient(135deg, #64748b, #475569); }
         .pos-3 { background: linear-gradient(135deg, #92400e, #78350f); }
         .pos-4-6 { background: linear-gradient(135deg, #4b5563, #374151); }
-        .pos-7-10 { background: linear-gradient(135deg, #6b7280, #4b5563); }
+        .pos-7-10 { background: linear-gradient(135deg, #6b7280, #4b5563); } */
 
         /* Team Info Compact */
         .team-info-compact {
