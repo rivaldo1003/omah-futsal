@@ -40,6 +40,17 @@ Route::get('/standings', [StandingController::class, 'publicIndex'])->name('stan
 // Route untuk top scorers
 Route::get('/top-scorers', [TopScorerController::class, 'index'])->name('top-scorers');
 
+// Public routes for highlight
+Route::get('/matches/{match}/highlight', [GameController::class, 'getHighlightInfo'])
+    ->name('matches.highlight');
+
+
+    // routes/web.php
+Route::get('/highlights', [GameController::class, 'highlights'])->name('highlights.index');
+
+ Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYoutubeHighlightInfo'])
+        ->name('matches.youtube-highlight.info');
+
 
 
 
@@ -84,6 +95,29 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/dashboard', [HomeController::class, 'adminDashboard'])->name('dashboard');
     Route::get('/overview', [AdminController::class, 'overview'])->name('overview');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
+
+    // Highlight routes
+    Route::get('/matches/{match}/edit-highlight', [GameController::class, 'editHighlight'])
+    ->name('admin.matches.edit-highlight');
+Route::post('/matches/{match}/upload-highlight', [GameController::class, 'uploadHighlight'])
+    ->name('admin.matches.upload-highlight');
+Route::delete('/matches/{match}/delete-highlight', [GameController::class, 'deleteHighlight'])
+    ->name('admin.matches.delete-highlight');
+Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighlightInfo'])
+    ->name('admin.matches.highlight-info');
+
+
+     // YouTube highlights
+        Route::post('/matches/{match}/youtube-highlight', [GameController::class, 'addYoutubeHighlight'])
+            ->name('matches.youtube-highlight.add');
+        Route::put('/matches/{match}/youtube-highlight', [GameController::class, 'updateYoutubeHighlight'])
+            ->name('matches.youtube-highlight.update');
+        Route::delete('/matches/{match}/youtube-highlight', [GameController::class, 'removeYoutubeHighlight'])
+            ->name('matches.youtube-highlight.remove');
+    
+
+
+    // HERO SETTINGS
 
 
     Route::get('/hero-settings', [HeroSettingController::class, 'edit'])->name('hero-settings.index');
