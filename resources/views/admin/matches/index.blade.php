@@ -424,6 +424,43 @@
     margin-bottom: 1.5rem;
 }
 
+@media (max-width: 768px) {
+
+    /* Tambahkan ini */
+    .modal {
+        z-index: 1050;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .modal-dialog {
+        margin: 0.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Perbaikan untuk input di mobile */
+    .modal-body input[type="url"],
+    .modal-body input[type="text"] {
+        font-size: 16px;
+        /* Mencegah zoom di iOS */
+        width: 100%;
+        height: 44px;
+        /* Minimum touch target size */
+    }
+
+    /* Pastikan tombol mudah diklik */
+    .modal-footer .btn {
+        min-height: 44px;
+        padding: 10px 20px;
+    }
+}
+
 /* Pagination */
 .pagination-container {
     padding: 0.75rem 1rem;
@@ -653,6 +690,36 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+}
+
+/* Tambahkan di bagian atas style */
+.modal-backdrop {
+    z-index: 1040;
+}
+
+/* Pastikan modal bisa discroll di mobile */
+.modal-open {
+    overflow: hidden;
+    position: fixed;
+    width: 100%;
+}
+
+/* Perbaikan untuk iframe YouTube di mobile */
+.modal-body .ratio-16x9 iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    pointer-events: auto;
+}
+
+/* Pastikan semua interactive elements memiliki ukuran minimum untuk touch */
+.btn-small,
+.btn,
+input,
+select,
+textarea {
+    min-height: 44px;
+    min-width: 44px;
 }
 
 /* Additional styles for highlight modals */
@@ -994,103 +1061,101 @@
 
 
 
-                                <!-- YouTube Highlight Modal -->
-                                <div class="modal fade" id="youtubeHighlightModal" tabindex="-1" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">
-                                                    <i class="bi bi-youtube text-danger"></i> YouTube Highlight
-                                                </h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                                    aria-label="Close"></button>
-                                            </div>
-                                            <form id="youtubeHighlightForm">
-                                                @csrf
-                                                <input type="hidden" name="match_id" id="youtubeMatchId">
-                                                <input type="hidden" name="_method" id="youtubeMethod" value="POST">
 
-                                                <div class="modal-body">
-                                                    <div class="alert alert-info mb-3">
-                                                        <i class="bi bi-info-circle"></i>
-                                                        <span id="youtubeModalTeams"></span>
-                                                    </div>
-
-                                                    <!-- Current Highlight (if exists) -->
-                                                    <div id="currentHighlightSection" class="mb-3">
-                                                        <div class="card">
-                                                            <div
-                                                                class="card-header bg-light d-flex justify-content-between align-items-center">
-                                                                <h6 class="mb-0">Current Highlight</h6>
-                                                                <button type="button"
-                                                                    class="btn btn-sm btn-outline-danger"
-                                                                    id="removeHighlightBtn">
-                                                                    <i class="bi bi-trash"></i> Remove Highlight
-                                                                </button>
-                                                            </div>
-                                                            <div class="card-body">
-                                                                <div class="ratio ratio-16x9 mb-2"
-                                                                    id="currentVideoContainer">
-                                                                    <!-- YouTube embed akan dimuat di sini -->
-                                                                </div>
-                                                                <small class="text-muted" id="currentVideoInfo"></small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Add/Update Highlight Form -->
-                                                    <div id="addHighlightForm">
-                                                        <!-- YouTube URL Input -->
-                                                        <div class="mb-3">
-                                                            <label for="youtube_url" class="form-label fw-bold">YouTube
-                                                                URL *</label>
-                                                            <input type="url" name="youtube_url" id="youtube_url"
-                                                                class="form-control"
-                                                                placeholder="https://www.youtube.com/watch?v=..."
-                                                                required>
-                                                            <div class="form-text">
-                                                                <i class="bi bi-info-circle"></i>
-                                                                Supported formats: youtube.com/watch?v=...,
-                                                                youtu.be/..., youtube.com/embed/...
-                                                            </div>
-                                                        </div>
-
-                                                        <!-- Preview (akan muncul setelah URL valid) -->
-                                                        <div id="youtubePreview" class="d-none">
-                                                            <div class="card">
-                                                                <div class="card-header bg-light">
-                                                                    <h6 class="mb-0">Preview</h6>
-                                                                </div>
-                                                                <div class="card-body">
-                                                                    <div class="ratio ratio-16x9 mb-2"
-                                                                        id="previewContainer">
-                                                                        <!-- Preview embed akan dimuat di sini -->
-                                                                    </div>
-                                                                    <small class="text-muted" id="previewInfo"></small>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Status Messages -->
-                                                    <div id="youtubeStatus" class="d-none"></div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-outline-secondary"
-                                                        data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary" id="saveYoutubeBtn">
-                                                        <span id="saveButtonText">Save</span>
-                                                        <span class="spinner-border spinner-border-sm d-none"
-                                                            id="saveSpinner"></span>
-                                                    </button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
                         </td>
                     </tr>
                     @endforeach
+
+                    <!-- YouTube Highlight Modal -->
+                    <div class="modal fade" id="youtubeHighlightModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="bi bi-youtube text-danger"></i> YouTube Highlight
+                                    </h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                        aria-label="Close"></button>
+                                </div>
+                                <form id="youtubeHighlightForm">
+                                    @csrf
+                                    <input type="hidden" name="match_id" id="youtubeMatchId">
+                                    <input type="hidden" name="_method" id="youtubeMethod" value="POST">
+
+                                    <div class="modal-body">
+                                        <div class="alert alert-info mb-3">
+                                            <i class="bi bi-info-circle"></i>
+                                            <span id="youtubeModalTeams"></span>
+                                        </div>
+
+                                        <!-- Current Highlight (if exists) -->
+                                        <div id="currentHighlightSection" class="mb-3">
+                                            <div class="card">
+                                                <div
+                                                    class="card-header bg-light d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">Current Highlight</h6>
+                                                    <button type="button" class="btn btn-sm btn-outline-danger"
+                                                        id="removeHighlightBtn">
+                                                        <i class="bi bi-trash"></i> Remove Highlight
+                                                    </button>
+                                                </div>
+                                                <div class="card-body">
+                                                    <div class="ratio ratio-16x9 mb-2" id="currentVideoContainer">
+                                                        <!-- YouTube embed akan dimuat di sini -->
+                                                    </div>
+                                                    <small class="text-muted" id="currentVideoInfo"></small>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Add/Update Highlight Form -->
+                                        <div id="addHighlightForm">
+                                            <!-- YouTube URL Input -->
+                                            <div class="mb-3">
+                                                <label for="youtube_url" class="form-label fw-bold">YouTube
+                                                    URL *</label>
+                                                <input type="url" name="youtube_url" id="youtube_url"
+                                                    class="form-control"
+                                                    placeholder="https://www.youtube.com/watch?v=..." required>
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Supported formats: youtube.com/watch?v=...,
+                                                    youtu.be/..., youtube.com/embed/...
+                                                </div>
+                                            </div>
+
+                                            <!-- Preview (akan muncul setelah URL valid) -->
+                                            <div id="youtubePreview" class="d-none">
+                                                <div class="card">
+                                                    <div class="card-header bg-light">
+                                                        <h6 class="mb-0">Preview</h6>
+                                                    </div>
+                                                    <div class="card-body">
+                                                        <div class="ratio ratio-16x9 mb-2" id="previewContainer">
+                                                            <!-- Preview embed akan dimuat di sini -->
+                                                        </div>
+                                                        <small class="text-muted" id="previewInfo"></small>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Status Messages -->
+                                        <div id="youtubeStatus" class="d-none"></div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-outline-secondary"
+                                            data-bs-dismiss="modal">Cancel</button>
+                                        <button type="submit" class="btn btn-primary" id="saveYoutubeBtn">
+                                            <span id="saveButtonText">Save</span>
+                                            <span class="spinner-border spinner-border-sm d-none"
+                                                id="saveSpinner"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
                 </tbody>
             </table>
         </div>
@@ -1465,6 +1530,29 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+});
+
+
+document.addEventListener('touchstart', function(e) {
+    // Jika yang diklik adalah backdrop modal
+    if (e.target.classList.contains('modal-backdrop') ||
+        e.target.classList.contains('modal') &&
+        !e.target.classList.contains('modal-dialog')) {
+
+        // Tutup modal yang aktif
+        const activeModal = document.querySelector('.modal.show');
+        if (activeModal) {
+            const modalInstance = bootstrap.Modal.getInstance(activeModal);
+            if (modalInstance) {
+                modalInstance.hide();
+            }
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+    }
+}, {
+    passive: false
 });
 
 // Highlight Upload Functionality
