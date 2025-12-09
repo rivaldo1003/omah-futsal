@@ -1946,10 +1946,10 @@
                                                                 style="font-size: 0.85rem;">
                                                                 {{ Str::limit($teamName, 15) }}
                                                             </strong>
-                                                            @if($index < 2 && $hasPlayed) <small
+                                                            <!-- @if($index < 2 && $hasPlayed) <small
                                                                 class="badge bg-success"
                                                                 style="font-size: 0.6rem; padding: 1px 4px;">Q</small>
-                                                                @endif
+                                                                @endif -->
                                                         </div>
                                                     </div>
                                                 </td>
