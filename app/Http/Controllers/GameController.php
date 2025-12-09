@@ -27,7 +27,6 @@ class GameController extends Controller
         $tournamentId = $request->input('tournament_id');
 
         $query = Game::with(['homeTeam', 'awayTeam', 'tournament'])
-            // Urutan khusus: ongoing dulu, lalu upcoming terdekat, baru completed
             ->orderByRaw("
             CASE 
                 WHEN status = 'ongoing' THEN 1
@@ -36,37 +35,30 @@ class GameController extends Controller
                 ELSE 4
             END
         ")
-            // Untuk upcoming: tanggal terdekat dulu (asc)
-            // Untuk completed: tanggal terbaru dulu (desc)
             ->orderByRaw("
             CASE 
                 WHEN status = 'upcoming' THEN match_date
-                ELSE '9999-12-31' -- Untuk non-upcoming, tetap urut berdasarkan status
+                ELSE '9999-12-31'
             END ASC
         ")
             ->orderBy('time_start');
 
-        // Filter by tournament
         if ($tournamentId && $tournamentId !== 'all') {
             $query->where('tournament_id', $tournamentId);
         }
 
-        // Filter by group
         if ($group && $group !== 'all') {
             $query->where('group_name', $group);
         }
 
-        // Filter by status
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
 
-        // Filter by date
         if ($date) {
             $query->whereDate('match_date', $date);
         }
 
-        // Search
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('homeTeam', function ($q) use ($search) {
@@ -81,7 +73,6 @@ class GameController extends Controller
         $teams = Team::all();
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])->get();
 
-        // Group matches by date for better display
         $groupedMatches = $matches->groupBy(function ($item) {
             return $item->match_date->format('Y-m-d');
         });
@@ -164,22 +155,18 @@ class GameController extends Controller
             ->orderBy('match_date', 'desc')
             ->orderBy('time_start');
 
-        // Filter by tournament
         if ($tournamentId && $tournamentId !== 'all') {
             $query->where('tournament_id', $tournamentId);
         }
 
-        // Filter by status
         if ($status && $status !== 'all') {
             $query->where('status', $status);
         }
 
-        // Filter by group
         if ($group && $group !== 'all') {
             $query->where('group_name', $group);
         }
 
-        // Search
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('homeTeam', function ($q) use ($search) {
@@ -210,35 +197,30 @@ class GameController extends Controller
      */
     public function create(Request $request)
     {
-        // Ambil tournament aktif (upcoming atau ongoing)
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])
             ->orderBy('name')
             ->get();
 
-        // Default pilih tournament pertama atau null
         $selectedTournament = $tournaments->first();
         $tournamentId = $request->input('tournament_id', $selectedTournament?->id);
 
         if ($tournamentId) {
-            // Ambil teams yang terdaftar di tournament ini
             $teams = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId);
             })->orderBy('name')->get();
 
-            // Ambil group yang ada di tournament ini
             $tournament = Tournament::find($tournamentId);
             $groupOptions = [];
             if ($tournament && $tournament->groups_count) {
-                // Generate group options berdasarkan groups_count
                 $groupOptions = array_map(function ($i) {
-                    return chr(64 + $i); // A, B, C, dst
+                    return chr(64 + $i);
                 }, range(1, $tournament->groups_count));
             } else {
-                $groupOptions = ['A', 'B']; // Default
+                $groupOptions = ['A', 'B'];
             }
         } else {
             $teams = collect();
-            $groupOptions = ['A', 'B']; // Default
+            $groupOptions = ['A', 'B'];
         }
 
         $roundTypes = ['group', 'quarterfinal', 'semifinal', 'final', 'third_place'];
@@ -275,7 +257,6 @@ class GameController extends Controller
             'notes' => 'nullable|string',
         ]);
 
-        // Validasi: Cek apakah teams terdaftar di tournament yang dipilih
         $tournament = Tournament::find($request->tournament_id);
 
         $homeTeamInTournament = $tournament->teams()->where('team_id', $request->team_home_id)->exists();
@@ -293,7 +274,6 @@ class GameController extends Controller
                 ->withInput();
         }
 
-        // Untuk group stage: cek apakah teams dalam group yang sama
         if ($request->round_type === 'group') {
             $homeTeamGroup = $tournament->teams()->where('team_id', $request->team_home_id)->first()->pivot->group_name;
             $awayTeamGroup = $tournament->teams()->where('team_id', $request->team_away_id)->first()->pivot->group_name;
@@ -304,7 +284,6 @@ class GameController extends Controller
                     ->withInput();
             }
 
-            // Set group_name otomatis dari group tim
             $request->merge(['group_name' => $homeTeamGroup]);
         }
 
@@ -312,7 +291,6 @@ class GameController extends Controller
             DB::transaction(function () use ($request) {
                 $match = Game::create($request->all());
 
-                // Jika match dibuat sebagai completed, update standings
                 if ($request->status === 'completed' && $request->round_type === 'group') {
                     $this->updateStandings($match);
                 }
@@ -389,17 +367,13 @@ class GameController extends Controller
                 $oldAwayScore = $match->away_score;
                 $oldRoundType = $match->round_type;
 
-                // Update match
                 $match->update($request->all());
 
-                // Handle standings updates
                 if ($oldRoundType === 'group' && $oldStatus === 'completed') {
-                    // Revert old standings first
                     $this->revertStandings($match, $oldHomeScore, $oldAwayScore);
                 }
 
                 if ($request->round_type === 'group' && $request->status === 'completed') {
-                    // Update new standings
                     $this->updateStandings($match);
                 }
             });
@@ -420,7 +394,6 @@ class GameController extends Controller
     {
         try {
             DB::transaction(function () use ($match) {
-                // If match was completed, revert standings before deleting
                 if ($match->status === 'completed' && $match->round_type === 'group') {
                     $this->revertStandings($match);
                 }
@@ -437,7 +410,7 @@ class GameController extends Controller
     }
 
     /**
-     * Update match score (admin only)
+     * Update match score
      */
     public function updateScore(Request $request, Game $match)
     {
@@ -452,21 +425,17 @@ class GameController extends Controller
                 $oldHomeScore = $match->home_score;
                 $oldAwayScore = $match->away_score;
 
-                // Update match
                 $match->update([
                     'home_score' => $request->home_score,
                     'away_score' => $request->away_score,
                     'status' => 'completed'
                 ]);
 
-                // Handle standings
                 if ($match->round_type === 'group') {
                     if ($oldStatus === 'completed') {
-                        // Revert old standings first
                         $this->revertStandings($match, $oldHomeScore, $oldAwayScore);
                     }
 
-                    // Update standings with new scores
                     $this->updateStandings($match);
                 }
             });
@@ -479,11 +448,273 @@ class GameController extends Controller
         }
     }
 
-    // ==================== HELPER METHODS ====================
+    // ==================== YOUTUBE HIGHLIGHTS ====================
 
     /**
-     * Update standings based on match result
+     * Add YouTube highlight to match
      */
+
+     public function highlights()
+    {
+        // PERBAIKAN: Gunakan youtube_id, bukan highlight_video
+        $highlights = Game::whereNotNull('youtube_id')
+            ->where('status', 'completed')
+            ->with(['homeTeam', 'awayTeam', 'tournament'])
+            ->orderBy('youtube_uploaded_at', 'desc')
+            ->paginate(9);
+        
+        // Debug info
+        \Log::info('Highlights count: ' . $highlights->count());
+        \Log::info('SQL Query: ' . \App\Models\Game::whereNotNull('youtube_id')->toSql());
+        
+        return view('highlights.index', compact('highlights'));
+    }
+    public function addYoutubeHighlight(Request $request, $matchId)
+    {
+        $match = Game::find($matchId);
+        
+        if (!$match) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Match not found.'
+            ], 404);
+        }
+
+        // Validate match status
+        if ($match->status !== 'completed') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Highlight can only be added to completed matches.'
+            ], 400);
+        }
+
+        $request->validate([
+            'youtube_url' => 'required|url|max:500',
+        ]);
+
+        $youtubeUrl = $request->input('youtube_url');
+        
+        // Validate YouTube URL format
+        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid YouTube URL format. Please provide a valid YouTube link.'
+            ], 400);
+        }
+
+        $youtubeId = Game::parseYoutubeId($youtubeUrl);
+        
+        if (!$youtubeId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not extract YouTube video ID. Please check the URL format.'
+            ], 400);
+        }
+
+        try {
+            // Optional: Get video duration from YouTube API if you have API key
+            $duration = $this->getYoutubeDuration($youtubeId);
+            
+            $match->update([
+                'youtube_id' => $youtubeId,
+                'youtube_thumbnail' => 'youtube', // Flag untuk menunjukkan ini YouTube
+                'youtube_duration' => $duration,
+                'youtube_uploaded_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'YouTube highlight added successfully!',
+                'data' => [
+                    'youtube_id' => $youtubeId,
+                    'embed_url' => $match->youtube_embed_url,
+                    'watch_url' => $match->youtube_watch_url,
+                    'thumbnail_url' => $match->youtube_thumbnail_url,
+                    'duration' => $match->youtube_duration_formatted,
+                    'uploaded_at' => $match->youtube_uploaded_at->format('Y-m-d H:i:s'),
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error adding YouTube highlight: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Update YouTube highlight
+     */
+    public function updateYoutubeHighlight(Request $request, $matchId)
+    {
+        $match = Game::find($matchId);
+        
+        if (!$match) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Match not found.'
+            ], 404);
+        }
+
+        $request->validate([
+            'youtube_url' => 'required|url|max:500',
+        ]);
+
+        $youtubeUrl = $request->input('youtube_url');
+        
+        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid YouTube URL format.'
+            ], 400);
+        }
+
+        $youtubeId = Game::parseYoutubeId($youtubeUrl);
+        
+        if (!$youtubeId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not extract YouTube video ID.'
+            ], 400);
+        }
+
+        try {
+            $duration = $this->getYoutubeDuration($youtubeId);
+            
+            $match->update([
+                'youtube_id' => $youtubeId,
+                'youtube_thumbnail' => 'youtube',
+                'youtube_duration' => $duration,
+                'youtube_uploaded_at' => now(),
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'YouTube highlight updated successfully!',
+                'data' => [
+                    'youtube_id' => $youtubeId,
+                    'embed_url' => $match->youtube_embed_url,
+                    'thumbnail_url' => $match->youtube_thumbnail_url,
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error updating YouTube highlight: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Remove YouTube highlight
+     */
+    public function removeYoutubeHighlight($matchId)
+    {
+        $match = Game::find($matchId);
+        
+        if (!$match) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Match not found.'
+            ], 404);
+        }
+
+        try {
+            $match->update([
+                'youtube_id' => null,
+                'youtube_thumbnail' => null,
+                'youtube_duration' => null,
+                'youtube_uploaded_at' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'YouTube highlight removed successfully!'
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error removing highlight: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Get YouTube highlight info
+     */
+    public function getYoutubeHighlightInfo($matchId)
+    {
+        $match = Game::find($matchId);
+        
+        if (!$match) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Match not found.'
+            ], 404);
+        }
+        
+        $hasHighlight = !empty($match->youtube_id);
+        
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'has_highlight' => $hasHighlight,
+                'youtube_id' => $match->youtube_id,
+                'embed_url' => $match->youtube_embed_url,
+                'watch_url' => $match->youtube_watch_url,
+                'thumbnail_url' => $match->youtube_thumbnail_url,
+                'duration' => $match->youtube_duration_formatted,
+                'uploaded_at' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->format('Y-m-d H:i:s') : null,
+                'uploaded_relative' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->diffForHumans() : null,
+                'match_info' => [
+                    'id' => $match->id,
+                    'teams' => ($match->homeTeam->name ?? 'Home') . ' vs ' . ($match->awayTeam->name ?? 'Away'),
+                    'date' => $match->match_date->format('Y-m-d'),
+                    'status' => $match->status,
+                    'score' => $match->home_score !== null ? $match->home_score . ' - ' . $match->away_score : null,
+                ]
+            ]
+        ]);
+    }
+
+    /**
+     * Get YouTube duration (optional - requires YouTube Data API v3 key)
+     */
+    private function getYoutubeDuration($videoId)
+    {
+        // Jika Anda punya YouTube Data API v3 key, bisa diimplementasi
+        // Untuk sekarang, return null saja
+        return null;
+        
+        /*
+        $apiKey = config('services.youtube.api_key');
+        if (!$apiKey) return null;
+        
+        try {
+            $url = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&part=contentDetails&key={$apiKey}";
+            $response = @file_get_contents($url);
+            
+            if ($response) {
+                $data = json_decode($response, true);
+                if (isset($data['items'][0]['contentDetails']['duration'])) {
+                    $duration = $data['items'][0]['contentDetails']['duration'];
+                    $interval = new \DateInterval($duration);
+                    return $interval->h * 3600 + $interval->i * 60 + $interval->s;
+                }
+            }
+        } catch (\Exception $e) {
+            // Ignore error
+        }
+        
+        return null;
+        */
+    }
+
+    // ==================== HELPER METHODS ====================
+
     private function updateStandings(Game $match)
     {
         if ($match->round_type !== 'group' || $match->status !== 'completed') {
@@ -495,7 +726,6 @@ class GameController extends Controller
         $groupName = $match->group_name;
         $tournamentId = $match->tournament_id;
 
-        // Get or create standings for both teams
         $homeStanding = Standing::firstOrCreate(
             [
                 'tournament_id' => $tournamentId,
@@ -532,37 +762,30 @@ class GameController extends Controller
             ]
         );
 
-        // Update matches played
         $homeStanding->increment('matches_played');
         $awayStanding->increment('matches_played');
 
-        // Update goals
         $homeStanding->increment('goals_for', $match->home_score);
         $homeStanding->increment('goals_against', $match->away_score);
 
         $awayStanding->increment('goals_for', $match->away_score);
         $awayStanding->increment('goals_against', $match->home_score);
 
-        // Update win/draw/loss and points
         if ($match->home_score > $match->away_score) {
-            // Home team wins
             $homeStanding->increment('wins');
             $homeStanding->increment('points', 3);
             $awayStanding->increment('losses');
         } elseif ($match->home_score < $match->away_score) {
-            // Away team wins
             $awayStanding->increment('wins');
             $awayStanding->increment('points', 3);
             $homeStanding->increment('losses');
         } else {
-            // Draw
             $homeStanding->increment('draws');
             $homeStanding->increment('points', 1);
             $awayStanding->increment('draws');
             $awayStanding->increment('points', 1);
         }
 
-        // Update goal difference
         $homeStanding->update([
             'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against
         ]);
@@ -572,9 +795,6 @@ class GameController extends Controller
         ]);
     }
 
-    /**
-     * Revert standings when match is changed or deleted
-     */
     private function revertStandings(Game $match, $oldHomeScore = null, $oldAwayScore = null)
     {
         if ($match->round_type !== 'group') {
@@ -586,11 +806,9 @@ class GameController extends Controller
         $groupName = $match->group_name;
         $tournamentId = $match->tournament_id;
 
-        // Use provided scores or match scores
         $homeScore = $oldHomeScore ?? $match->home_score;
         $awayScore = $oldAwayScore ?? $match->away_score;
 
-        // Cari standings
         $homeStanding = Standing::where('tournament_id', $tournamentId)
             ->where('team_id', $homeTeamId)
             ->where('group_name', $groupName)
@@ -605,37 +823,30 @@ class GameController extends Controller
             return;
         }
 
-        // Decrement matches played
         $homeStanding->decrement('matches_played');
         $awayStanding->decrement('matches_played');
 
-        // Revert goals
         $homeStanding->decrement('goals_for', $homeScore);
         $homeStanding->decrement('goals_against', $awayScore);
 
         $awayStanding->decrement('goals_for', $awayScore);
         $awayStanding->decrement('goals_against', $homeScore);
 
-        // Revert win/draw/loss and points
         if ($homeScore > $awayScore) {
-            // Home team win reverted
             $homeStanding->decrement('wins');
             $homeStanding->decrement('points', 3);
             $awayStanding->decrement('losses');
         } elseif ($homeScore < $awayScore) {
-            // Away team win reverted
             $awayStanding->decrement('wins');
             $awayStanding->decrement('points', 3);
             $homeStanding->decrement('losses');
         } else {
-            // Draw reverted
             $homeStanding->decrement('draws');
             $homeStanding->decrement('points', 1);
             $awayStanding->decrement('draws');
             $awayStanding->decrement('points', 1);
         }
 
-        // Update goal difference
         $homeStanding->update([
             'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against
         ]);
@@ -644,7 +855,6 @@ class GameController extends Controller
             'goal_difference' => $awayStanding->goals_for - $awayStanding->goals_against
         ]);
 
-        // Delete standings if no matches played
         if ($homeStanding->matches_played <= 0) {
             $homeStanding->delete();
         }
@@ -653,23 +863,17 @@ class GameController extends Controller
         }
     }
 
-    /**
-     * Recalculate all standings for a tournament
-     */
     public function recalculateStandings($tournamentId)
     {
         try {
             DB::transaction(function () use ($tournamentId) {
-                // Delete all standings for this tournament
                 Standing::where('tournament_id', $tournamentId)->delete();
 
-                // Get all completed group matches for this tournament
                 $completedMatches = Game::where('tournament_id', $tournamentId)
                     ->where('round_type', 'group')
                     ->where('status', 'completed')
                     ->get();
 
-                // Recalculate standings from scratch
                 foreach ($completedMatches as $match) {
                     $this->updateStandings($match);
                 }
@@ -682,7 +886,7 @@ class GameController extends Controller
     }
 
     /**
-     * Add event (goal, card) to match
+     * Add event to match
      */
     public function addEvent(Request $request, Game $match)
     {
@@ -697,7 +901,6 @@ class GameController extends Controller
 
         try {
             DB::transaction(function () use ($request, $match) {
-                // Create event
                 $event = MatchEvent::create([
                     'match_id' => $match->id,
                     'player_id' => $request->player_id,
@@ -708,16 +911,11 @@ class GameController extends Controller
                     'is_penalty' => $request->boolean('is_penalty'),
                 ]);
 
-                // If event is a goal, update player's goal count
                 if ($request->event_type === 'goal') {
                     $player = $event->player;
                     $player->increment('goals');
-
-                    // Update match score if needed
-                    // Note: This might need adjustment based on your logic
                 }
 
-                // If event is yellow/red card, update player's card count
                 if ($request->event_type === 'yellow_card') {
                     $event->player->increment('yellow_cards');
                 }
@@ -741,7 +939,6 @@ class GameController extends Controller
     {
         try {
             DB::transaction(function () use ($event) {
-                // Decrement player stats before deleting
                 if ($event->event_type === 'goal') {
                     $event->player->decrement('goals');
                 }
@@ -763,9 +960,6 @@ class GameController extends Controller
         }
     }
 
-    /**
-     * Quick match creation from schedule (batch create)
-     */
     public function createBatch(Request $request)
     {
         $request->validate([
@@ -786,7 +980,6 @@ class GameController extends Controller
             $tournament = Tournament::find($request->tournament_id);
 
             foreach ($request->matches as $matchData) {
-                // Validate teams are in tournament
                 $homeTeamInTournament = $tournament->teams()
                     ->where('team_id', $matchData['team_home_id'])
                     ->exists();
@@ -824,9 +1017,6 @@ class GameController extends Controller
         }
     }
 
-    /**
-     * Get matches by date range (API endpoint)
-     */
     public function getByDateRange(Request $request)
     {
         $request->validate([
@@ -849,9 +1039,6 @@ class GameController extends Controller
         return response()->json($matches);
     }
 
-    /**
-     * Get today's matches (API endpoint)
-     */
     public function getTodayMatches(Request $request)
     {
         $query = Game::with(['homeTeam', 'awayTeam', 'tournament'])
@@ -867,9 +1054,6 @@ class GameController extends Controller
         return response()->json($matches);
     }
 
-    /**
-     * Toggle match status
-     */
     public function toggleStatus(Game $match, $status)
     {
         try {
@@ -878,7 +1062,6 @@ class GameController extends Controller
 
                 $match->update(['status' => $status]);
 
-                // Handle standings for group matches
                 if ($match->round_type === 'group') {
                     if ($oldStatus === 'completed' && $status !== 'completed') {
                         $this->revertStandings($match);

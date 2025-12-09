@@ -227,6 +227,11 @@ class HomeController extends Controller
             'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A'
         ];
 
+        $recentHighlights = Game::whereNotNull('youtube_id')
+        ->with(['homeTeam', 'awayTeam'])
+        ->orderBy('youtube_uploaded_at', 'desc')
+        ->limit(3)
+        ->get();
         return view('home', compact(
             'heroSetting', // <-- TAMBAH INI DI COMPACT
             'activeTournament',
@@ -239,7 +244,8 @@ class HomeController extends Controller
             'matchesCount',
             'totalGoals',
             'daysLeft',
-            'debugInfo'
+            'debugInfo',
+            'recentHighlights'
         ));
     }
 
@@ -453,6 +459,8 @@ class HomeController extends Controller
     /**
      * Method paling sederhana untuk testing
      */
+
+    
     private function getStandingsSimple()
     {
         try {
@@ -522,6 +530,18 @@ class HomeController extends Controller
             'recentMatches'
         ));
     }
+
+    // HomeController.php
+public function highlights()
+{
+    $highlights = Game::with(['homeTeam', 'awayTeam', 'tournament'])
+        ->where('status', 'completed')
+        ->whereNotNull('highlight_video')
+        ->orderBy('match_date', 'desc')
+        ->paginate(12);
+    
+    return view('highlights.index', compact('highlights'));
+}
 
     // ... method lainnya tetap sama ...
 }
