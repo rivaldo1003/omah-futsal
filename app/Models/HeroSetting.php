@@ -13,10 +13,26 @@ class HeroSetting extends Model
         'background_type',
         'background_color',
         'background_image',
-        'text_color'
+        'text_color',
+        'cta_button_text',
+        'cta_button_link',
+        'gradient_start',
+        'gradient_end',
+        'overlay_opacity',
+        'button_color',
+        'button_text_color'
     ];
 
     protected $casts = [
-        'is_active' => 'boolean'
+        'is_active' => 'boolean',
+        'overlay_opacity' => 'integer'
+    ];
+
+    protected $attributes = [
+        'overlay_opacity' => 0,
+        'button_color' => '#3b82f6',
+        'button_text_color' => '#ffffff',
+        'gradient_start' => '#0f172a',
+        'gradient_end' => '#1e293b'
     ];
 }
