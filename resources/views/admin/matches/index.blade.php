@@ -618,6 +618,7 @@
     .pagination-container {
         flex-direction: column;
         gap: 0.75rem;
+        x
     }
 
     .pagination-controls {
@@ -781,8 +782,7 @@ textarea {
     }
 }
 
-/* Tambahkan di AKHIR section @styles, sebelum @endsection */
-/* Fix for iOS Safari modal issues */
+
 @supports (-webkit-touch-callout: none) {
     body.modal-open {
         position: fixed;
@@ -888,7 +888,7 @@ textarea {
     }
 }
 </style>
-@endsection
+
 
 @section('content')
 <nav aria-label="breadcrumb" class="mb-3">
@@ -1530,7 +1530,7 @@ textarea {
 
 @endsection
 
-// Update bagian JavaScript di section scripts:
+
 
 @section('scripts')
 
