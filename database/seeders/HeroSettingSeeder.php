@@ -14,7 +14,7 @@ class HeroSettingSeeder extends Seeder
             'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
             'is_active' => true,
             'background_type' => 'gradient',
-            'text_color' => '#ffffff'
+            'text_color' => '#ffffff',
         ]);
     }
 }

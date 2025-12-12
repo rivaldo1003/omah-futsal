@@ -3,9 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Game;
-use App\Models\Team;
 use App\Models\MatchEvent;
 use App\Models\Standing;
+use App\Models\Team;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -92,7 +92,7 @@ class GameController extends Controller
             'events' => function ($query) {
                 $query->orderBy('minute')->with('player');
             },
-            'events.player.team'
+            'events.player.team',
         ]);
 
         // Get match statistics
@@ -262,13 +262,13 @@ class GameController extends Controller
         $homeTeamInTournament = $tournament->teams()->where('team_id', $request->team_home_id)->exists();
         $awayTeamInTournament = $tournament->teams()->where('team_id', $request->team_away_id)->exists();
 
-        if (!$homeTeamInTournament) {
+        if (! $homeTeamInTournament) {
             return redirect()->back()
                 ->with('error', 'Home team is not registered in selected tournament.')
                 ->withInput();
         }
 
-        if (!$awayTeamInTournament) {
+        if (! $awayTeamInTournament) {
             return redirect()->back()
                 ->with('error', 'Away team is not registered in selected tournament.')
                 ->withInput();
@@ -301,7 +301,7 @@ class GameController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error creating match: ' . $e->getMessage())
+                ->with('error', 'Error creating match: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -382,7 +382,7 @@ class GameController extends Controller
                 ->with('success', 'Match updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating match: ' . $e->getMessage())
+                ->with('error', 'Error updating match: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -405,7 +405,7 @@ class GameController extends Controller
                 ->with('success', 'Match deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting match: ' . $e->getMessage());
+                ->with('error', 'Error deleting match: '.$e->getMessage());
         }
     }
 
@@ -428,7 +428,7 @@ class GameController extends Controller
                 $match->update([
                     'home_score' => $request->home_score,
                     'away_score' => $request->away_score,
-                    'status' => 'completed'
+                    'status' => 'completed',
                 ]);
 
                 if ($match->round_type === 'group') {
@@ -444,7 +444,7 @@ class GameController extends Controller
                 ->with('success', 'Score updated successfully! Standings have been recalculated.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating score: ' . $e->getMessage());
+                ->with('error', 'Error updating score: '.$e->getMessage());
         }
     }
 
@@ -453,8 +453,7 @@ class GameController extends Controller
     /**
      * Add YouTube highlight to match
      */
-
-     public function highlights()
+    public function highlights()
     {
         // PERBAIKAN: Gunakan youtube_id, bukan highlight_video
         $highlights = Game::whereNotNull('youtube_id')
@@ -462,21 +461,22 @@ class GameController extends Controller
             ->with(['homeTeam', 'awayTeam', 'tournament'])
             ->orderBy('youtube_uploaded_at', 'desc')
             ->paginate(9);
-        
+
         // Debug info
-        \Log::info('Highlights count: ' . $highlights->count());
-        \Log::info('SQL Query: ' . \App\Models\Game::whereNotNull('youtube_id')->toSql());
-        
+        \Log::info('Highlights count: '.$highlights->count());
+        \Log::info('SQL Query: '.\App\Models\Game::whereNotNull('youtube_id')->toSql());
+
         return view('highlights.index', compact('highlights'));
     }
+
     public function addYoutubeHighlight(Request $request, $matchId)
     {
         $match = Game::find($matchId);
-        
-        if (!$match) {
+
+        if (! $match) {
             return response()->json([
                 'success' => false,
-                'message' => 'Match not found.'
+                'message' => 'Match not found.',
             ], 404);
         }
 
@@ -484,7 +484,7 @@ class GameController extends Controller
         if ($match->status !== 'completed') {
             return response()->json([
                 'success' => false,
-                'message' => 'Highlight can only be added to completed matches.'
+                'message' => 'Highlight can only be added to completed matches.',
             ], 400);
         }
 
@@ -493,28 +493,28 @@ class GameController extends Controller
         ]);
 
         $youtubeUrl = $request->input('youtube_url');
-        
+
         // Validate YouTube URL format
-        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
+        if (! Game::isValidYoutubeUrl($youtubeUrl)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid YouTube URL format. Please provide a valid YouTube link.'
+                'message' => 'Invalid YouTube URL format. Please provide a valid YouTube link.',
             ], 400);
         }
 
         $youtubeId = Game::parseYoutubeId($youtubeUrl);
-        
-        if (!$youtubeId) {
+
+        if (! $youtubeId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Could not extract YouTube video ID. Please check the URL format.'
+                'message' => 'Could not extract YouTube video ID. Please check the URL format.',
             ], 400);
         }
 
         try {
             // Optional: Get video duration from YouTube API if you have API key
             $duration = $this->getYoutubeDuration($youtubeId);
-            
+
             $match->update([
                 'youtube_id' => $youtubeId,
                 'youtube_thumbnail' => 'youtube', // Flag untuk menunjukkan ini YouTube
@@ -532,13 +532,13 @@ class GameController extends Controller
                     'thumbnail_url' => $match->youtube_thumbnail_url,
                     'duration' => $match->youtube_duration_formatted,
                     'uploaded_at' => $match->youtube_uploaded_at->format('Y-m-d H:i:s'),
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error adding YouTube highlight: ' . $e->getMessage()
+                'message' => 'Error adding YouTube highlight: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -549,11 +549,11 @@ class GameController extends Controller
     public function updateYoutubeHighlight(Request $request, $matchId)
     {
         $match = Game::find($matchId);
-        
-        if (!$match) {
+
+        if (! $match) {
             return response()->json([
                 'success' => false,
-                'message' => 'Match not found.'
+                'message' => 'Match not found.',
             ], 404);
         }
 
@@ -562,26 +562,26 @@ class GameController extends Controller
         ]);
 
         $youtubeUrl = $request->input('youtube_url');
-        
-        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
+
+        if (! Game::isValidYoutubeUrl($youtubeUrl)) {
             return response()->json([
                 'success' => false,
-                'message' => 'Invalid YouTube URL format.'
+                'message' => 'Invalid YouTube URL format.',
             ], 400);
         }
 
         $youtubeId = Game::parseYoutubeId($youtubeUrl);
-        
-        if (!$youtubeId) {
+
+        if (! $youtubeId) {
             return response()->json([
                 'success' => false,
-                'message' => 'Could not extract YouTube video ID.'
+                'message' => 'Could not extract YouTube video ID.',
             ], 400);
         }
 
         try {
             $duration = $this->getYoutubeDuration($youtubeId);
-            
+
             $match->update([
                 'youtube_id' => $youtubeId,
                 'youtube_thumbnail' => 'youtube',
@@ -596,13 +596,13 @@ class GameController extends Controller
                     'youtube_id' => $youtubeId,
                     'embed_url' => $match->youtube_embed_url,
                     'thumbnail_url' => $match->youtube_thumbnail_url,
-                ]
+                ],
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error updating YouTube highlight: ' . $e->getMessage()
+                'message' => 'Error updating YouTube highlight: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -613,11 +613,11 @@ class GameController extends Controller
     public function removeYoutubeHighlight($matchId)
     {
         $match = Game::find($matchId);
-        
-        if (!$match) {
+
+        if (! $match) {
             return response()->json([
                 'success' => false,
-                'message' => 'Match not found.'
+                'message' => 'Match not found.',
             ], 404);
         }
 
@@ -631,13 +631,13 @@ class GameController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'YouTube highlight removed successfully!'
+                'message' => 'YouTube highlight removed successfully!',
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error removing highlight: ' . $e->getMessage()
+                'message' => 'Error removing highlight: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -648,16 +648,16 @@ class GameController extends Controller
     public function getYoutubeHighlightInfo($matchId)
     {
         $match = Game::find($matchId);
-        
-        if (!$match) {
+
+        if (! $match) {
             return response()->json([
                 'success' => false,
-                'message' => 'Match not found.'
+                'message' => 'Match not found.',
             ], 404);
         }
-        
-        $hasHighlight = !empty($match->youtube_id);
-        
+
+        $hasHighlight = ! empty($match->youtube_id);
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -671,12 +671,12 @@ class GameController extends Controller
                 'uploaded_relative' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->diffForHumans() : null,
                 'match_info' => [
                     'id' => $match->id,
-                    'teams' => ($match->homeTeam->name ?? 'Home') . ' vs ' . ($match->awayTeam->name ?? 'Away'),
+                    'teams' => ($match->homeTeam->name ?? 'Home').' vs '.($match->awayTeam->name ?? 'Away'),
                     'date' => $match->match_date->format('Y-m-d'),
                     'status' => $match->status,
-                    'score' => $match->home_score !== null ? $match->home_score . ' - ' . $match->away_score : null,
-                ]
-            ]
+                    'score' => $match->home_score !== null ? $match->home_score.' - '.$match->away_score : null,
+                ],
+            ],
         ]);
     }
 
@@ -688,15 +688,15 @@ class GameController extends Controller
         // Jika Anda punya YouTube Data API v3 key, bisa diimplementasi
         // Untuk sekarang, return null saja
         return null;
-        
+
         /*
         $apiKey = config('services.youtube.api_key');
         if (!$apiKey) return null;
-        
+
         try {
             $url = "https://www.googleapis.com/youtube/v3/videos?id={$videoId}&part=contentDetails&key={$apiKey}";
             $response = @file_get_contents($url);
-            
+
             if ($response) {
                 $data = json_decode($response, true);
                 if (isset($data['items'][0]['contentDetails']['duration'])) {
@@ -708,7 +708,7 @@ class GameController extends Controller
         } catch (\Exception $e) {
             // Ignore error
         }
-        
+
         return null;
         */
     }
@@ -730,7 +730,7 @@ class GameController extends Controller
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $homeTeamId,
-                'group_name' => $groupName
+                'group_name' => $groupName,
             ],
             [
                 'matches_played' => 0,
@@ -748,7 +748,7 @@ class GameController extends Controller
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $awayTeamId,
-                'group_name' => $groupName
+                'group_name' => $groupName,
             ],
             [
                 'matches_played' => 0,
@@ -787,11 +787,11 @@ class GameController extends Controller
         }
 
         $homeStanding->update([
-            'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against
+            'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against,
         ]);
 
         $awayStanding->update([
-            'goal_difference' => $awayStanding->goals_for - $awayStanding->goals_against
+            'goal_difference' => $awayStanding->goals_for - $awayStanding->goals_against,
         ]);
     }
 
@@ -819,7 +819,7 @@ class GameController extends Controller
             ->where('group_name', $groupName)
             ->first();
 
-        if (!$homeStanding || !$awayStanding) {
+        if (! $homeStanding || ! $awayStanding) {
             return;
         }
 
@@ -848,11 +848,11 @@ class GameController extends Controller
         }
 
         $homeStanding->update([
-            'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against
+            'goal_difference' => $homeStanding->goals_for - $homeStanding->goals_against,
         ]);
 
         $awayStanding->update([
-            'goal_difference' => $awayStanding->goals_for - $awayStanding->goals_against
+            'goal_difference' => $awayStanding->goals_for - $awayStanding->goals_against,
         ]);
 
         if ($homeStanding->matches_played <= 0) {
@@ -928,7 +928,7 @@ class GameController extends Controller
                 ->with('success', 'Event added successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error adding event: ' . $e->getMessage());
+                ->with('error', 'Error adding event: '.$e->getMessage());
         }
     }
 
@@ -956,7 +956,7 @@ class GameController extends Controller
                 ->with('success', 'Event deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting event: ' . $e->getMessage());
+                ->with('error', 'Error deleting event: '.$e->getMessage());
         }
     }
 
@@ -987,8 +987,8 @@ class GameController extends Controller
                     ->where('team_id', $matchData['team_away_id'])
                     ->exists();
 
-                if (!$homeTeamInTournament || !$awayTeamInTournament) {
-                    throw new \Exception("One or both teams are not in this tournament");
+                if (! $homeTeamInTournament || ! $awayTeamInTournament) {
+                    throw new \Exception('One or both teams are not in this tournament');
                 }
 
                 Game::create([
@@ -1011,8 +1011,9 @@ class GameController extends Controller
                 ->with('success', 'Batch matches created successfully!');
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Error creating matches: ' . $e->getMessage())
+                ->with('error', 'Error creating matches: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -1075,7 +1076,7 @@ class GameController extends Controller
                 ->with('success', 'Match status updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating match status: ' . $e->getMessage());
+                ->with('error', 'Error updating match status: '.$e->getMessage());
         }
     }
 }

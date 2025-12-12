@@ -34,6 +34,6 @@ return [
             'videos_path' => 'matches/highlights/videos',
             'thumbnails_path' => 'matches/highlights/thumbnails',
             'disk' => 'public',
-        ]
-    ]
+        ],
+    ],
 ];

@@ -2,16 +2,16 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\User;
-use App\Models\Team;
-use App\Models\Player;
-use App\Models\Venue;
-use App\Models\Tournament;
-use App\Models\MatchModel;
-use App\Models\Goal;
 use App\Models\Card;
+use App\Models\Goal;
+use App\Models\MatchModel;
+use App\Models\Player;
 use App\Models\Standing;
+use App\Models\Team;
+use App\Models\Tournament;
+use App\Models\User;
+use App\Models\Venue;
+use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
@@ -33,7 +33,7 @@ class DatabaseSeeder extends Seeder
             'name' => 'Admin Omah Futsal',
             'email' => 'admin@omahfutsal.com',
             'password' => Hash::make('password'),
-            'is_admin' => true
+            'is_admin' => true,
         ]);
 
         // Buat venue (tempat)
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
                 'phone' => '031-5678901',
                 'capacity' => 500,
                 'facilities' => 'AC, Ruang Ganti, Toilet, Kantin',
-                'is_active' => true
+                'is_active' => true,
             ],
             [
                 'name' => 'Lapangan Sintetik Surabaya',
@@ -54,8 +54,8 @@ class DatabaseSeeder extends Seeder
                 'phone' => '031-5678902',
                 'capacity' => 300,
                 'facilities' => 'Lighting, Ruang Ganti',
-                'is_active' => true
-            ]
+                'is_active' => true,
+            ],
         ];
 
         foreach ($venues as $venue) {
@@ -70,7 +70,7 @@ class DatabaseSeeder extends Seeder
             'end_date' => '2024-12-31',
             'status' => 'Ongoing',
             'total_teams' => 6,
-            'description' => 'Turnamen futsal tahunan di Surabaya'
+            'description' => 'Turnamen futsal tahunan di Surabaya',
         ]);
 
         // Buat tim-tim
@@ -80,43 +80,43 @@ class DatabaseSeeder extends Seeder
                 'coach' => 'Ahmad Santoso',
                 'primary_color' => '#1e3a8a',
                 'secondary_color' => '#3b82f6',
-                'description' => 'Tim kuat dari Surabaya Barat'
+                'description' => 'Tim kuat dari Surabaya Barat',
             ],
             [
                 'name' => 'East Java Falcons',
                 'coach' => 'Budi Hartono',
                 'primary_color' => '#dc2626',
                 'secondary_color' => '#ef4444',
-                'description' => 'Tim berani dari Jawa Timur'
+                'description' => 'Tim berani dari Jawa Timur',
             ],
             [
                 'name' => 'Sidoarjo Strikers',
                 'coach' => 'Cahyo Putra',
                 'primary_color' => '#059669',
                 'secondary_color' => '#10b981',
-                'description' => 'Tim cepat dari Sidoarjo'
+                'description' => 'Tim cepat dari Sidoarjo',
             ],
             [
                 'name' => 'Gresik Titans',
                 'coach' => 'Dedi Setiawan',
                 'primary_color' => '#7c3aed',
                 'secondary_color' => '#8b5cf6',
-                'description' => 'Tim kuat dari Gresik'
+                'description' => 'Tim kuat dari Gresik',
             ],
             [
                 'name' => 'Mojokerto Legends',
                 'coach' => 'Eko Prasetyo',
                 'primary_color' => '#ea580c',
                 'secondary_color' => '#f97316',
-                'description' => 'Tim legendaris dari Mojokerto'
+                'description' => 'Tim legendaris dari Mojokerto',
             ],
             [
                 'name' => 'Lamongan Eagles',
                 'coach' => 'Fajar Nugroho',
                 'primary_color' => '#0ea5e9',
                 'secondary_color' => '#38bdf8',
-                'description' => 'Tim tangguh dari Lamongan'
-            ]
+                'description' => 'Tim tangguh dari Lamongan',
+            ],
         ];
 
         $createdTeams = [];
@@ -141,7 +141,7 @@ class DatabaseSeeder extends Seeder
             'Lukman Hakim',
             'Mulyadi',
             'Nugroho',
-            'Oki Setiawan'
+            'Oki Setiawan',
         ];
 
         $positions = ['Kiper', 'Anchor', 'Flank', 'Pivot', 'Universal'];
@@ -153,7 +153,7 @@ class DatabaseSeeder extends Seeder
             for ($i = 1; $i <= 12; $i++) {
                 $player = Player::create([
                     'team_id' => $team->id,
-                    'name' => $playerNames[array_rand($playerNames)] . ' ' . $team->name,
+                    'name' => $playerNames[array_rand($playerNames)].' '.$team->name,
                     'jersey_number' => $i,
                     'position' => $positions[array_rand($positions)],
                     'birth_date' => fake()->dateTimeBetween('-30 years', '-18 years')->format('Y-m-d'),
@@ -165,7 +165,7 @@ class DatabaseSeeder extends Seeder
                     'red_cards' => rand(0, 2),
                     'matches_played' => rand(0, 15),
                     'is_captain' => $i === 1,
-                    'is_active' => true
+                    'is_active' => true,
                 ]);
                 $teamPlayers[] = $player;
                 $allPlayers[] = $player;
@@ -187,7 +187,7 @@ class DatabaseSeeder extends Seeder
                 'home_score' => 3,
                 'away_score' => 2,
                 'status' => 'Completed',
-                'round' => 'Week 1'
+                'round' => 'Week 1',
             ],
             [
                 'home_team_id' => $createdTeams[2]->id,
@@ -199,7 +199,7 @@ class DatabaseSeeder extends Seeder
                 'home_score' => 1,
                 'away_score' => 1,
                 'status' => 'Completed',
-                'round' => 'Week 1'
+                'round' => 'Week 1',
             ],
             [
                 'home_team_id' => $createdTeams[4]->id,
@@ -211,8 +211,8 @@ class DatabaseSeeder extends Seeder
                 'home_score' => null,
                 'away_score' => null,
                 'status' => 'Scheduled',
-                'round' => 'Week 2'
-            ]
+                'round' => 'Week 2',
+            ],
         ];
 
         $createdMatches = [];
@@ -233,7 +233,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $firstMatch->home_team_id,
                 'minute' => 12,
                 'type' => 'Normal',
-                'assist_by' => $homePlayers[1]->id
+                'assist_by' => $homePlayers[1]->id,
             ]);
 
             Goal::create([
@@ -241,7 +241,7 @@ class DatabaseSeeder extends Seeder
                 'player_id' => $homePlayers[2]->id,
                 'team_id' => $firstMatch->home_team_id,
                 'minute' => 35,
-                'type' => 'Penalty'
+                'type' => 'Penalty',
             ]);
 
             Goal::create([
@@ -249,7 +249,7 @@ class DatabaseSeeder extends Seeder
                 'player_id' => $awayPlayers[0]->id,
                 'team_id' => $firstMatch->away_team_id,
                 'minute' => 28,
-                'type' => 'Free Kick'
+                'type' => 'Free Kick',
             ]);
 
             Goal::create([
@@ -258,7 +258,7 @@ class DatabaseSeeder extends Seeder
                 'team_id' => $firstMatch->away_team_id,
                 'minute' => 42,
                 'type' => 'Normal',
-                'assist_by' => $awayPlayers[2]->id
+                'assist_by' => $awayPlayers[2]->id,
             ]);
 
             Goal::create([
@@ -266,7 +266,7 @@ class DatabaseSeeder extends Seeder
                 'player_id' => $homePlayers[3]->id,
                 'team_id' => $firstMatch->home_team_id,
                 'minute' => 67,
-                'type' => 'Normal'
+                'type' => 'Normal',
             ]);
 
             // Kartu untuk match pertama
@@ -275,7 +275,7 @@ class DatabaseSeeder extends Seeder
                 'player_id' => $homePlayers[4]->id,
                 'card_type' => 'Yellow',
                 'minute' => 23,
-                'reason' => 'Tackle keras'
+                'reason' => 'Tackle keras',
             ]);
 
             Card::create([
@@ -283,7 +283,7 @@ class DatabaseSeeder extends Seeder
                 'player_id' => $awayPlayers[3]->id,
                 'card_type' => 'Red',
                 'minute' => 78,
-                'reason' => 'Pelanggaran berbahaya'
+                'reason' => 'Pelanggaran berbahaya',
             ]);
         }
 
@@ -306,22 +306,24 @@ class DatabaseSeeder extends Seeder
                     $goals_for += $match->home_score ?? 0;
                     $goals_against += $match->away_score ?? 0;
 
-                    if ($match->home_score > $match->away_score)
+                    if ($match->home_score > $match->away_score) {
                         $won++;
-                    elseif ($match->home_score == $match->away_score)
+                    } elseif ($match->home_score == $match->away_score) {
                         $drawn++;
-                    else
+                    } else {
                         $lost++;
+                    }
                 } else {
                     $goals_for += $match->away_score ?? 0;
                     $goals_against += $match->home_score ?? 0;
 
-                    if ($match->away_score > $match->home_score)
+                    if ($match->away_score > $match->home_score) {
                         $won++;
-                    elseif ($match->away_score == $match->home_score)
+                    } elseif ($match->away_score == $match->home_score) {
                         $drawn++;
-                    else
+                    } else {
                         $lost++;
+                    }
                 }
             }
 
@@ -335,7 +337,7 @@ class DatabaseSeeder extends Seeder
                 'lost' => $lost,
                 'goals_for' => $goals_for,
                 'goals_against' => $goals_against,
-                'points' => $points
+                'points' => $points,
             ]);
 
             // Buat standings
@@ -350,7 +352,7 @@ class DatabaseSeeder extends Seeder
                 'goals_for' => $goals_for,
                 'goals_against' => $goals_against,
                 'goal_difference' => $goal_difference,
-                'points' => $points
+                'points' => $points,
             ]);
         }
 
@@ -367,10 +369,10 @@ class DatabaseSeeder extends Seeder
 
         $this->command->info('Database seeded successfully!');
         $this->command->info('Admin User: admin@omahfutsal.com / password');
-        $this->command->info('Total Teams: ' . Team::count());
-        $this->command->info('Total Players: ' . Player::count());
-        $this->command->info('Total Matches: ' . MatchModel::count());
-        $this->command->info('Total Goals: ' . Goal::count());
-        $this->command->info('Total Cards: ' . Card::count());
+        $this->command->info('Total Teams: '.Team::count());
+        $this->command->info('Total Players: '.Player::count());
+        $this->command->info('Total Matches: '.MatchModel::count());
+        $this->command->info('Total Goals: '.Goal::count());
+        $this->command->info('Total Cards: '.Card::count());
     }
 }

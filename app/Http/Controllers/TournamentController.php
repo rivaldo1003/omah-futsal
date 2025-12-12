@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Standing;
-use App\Models\Tournament;
 use App\Models\Team;
+use App\Models\Tournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class TournamentController extends Controller
 {
@@ -29,7 +28,7 @@ class TournamentController extends Controller
         $tournament = Tournament::findOrFail($tournamentId);
 
         // Debug 1: Cek tournament
-        \Log::info('Tournament ID: ' . $tournament->id . ', Name: ' . $tournament->name);
+        \Log::info('Tournament ID: '.$tournament->id.', Name: '.$tournament->name);
 
         // Ambil standings yang sudah ada (tim yang sudah bertanding)
         $standings = Standing::where('tournament_id', $tournamentId)
@@ -37,7 +36,7 @@ class TournamentController extends Controller
             ->get();
 
         // Debug 2: Cek standings
-        \Log::info('Standings count: ' . $standings->count());
+        \Log::info('Standings count: '.$standings->count());
 
         // AMBIL SEMUA TIM YANG TERDAFTAR DI TOURNAMENT
         $allRegisteredTeams = DB::table('team_tournament')
@@ -56,13 +55,13 @@ class TournamentController extends Controller
         // Debug 3: Cek data dari team_tournament
         \Log::info('Registered teams query result:', [
             'count' => $allRegisteredTeams->count(),
-            'data' => $allRegisteredTeams->toArray()
+            'data' => $allRegisteredTeams->toArray(),
         ]);
 
         // Tambahkan ini untuk langsung lihat di browser:
         if ($allRegisteredTeams->isEmpty()) {
             dd(
-                'NO TEAMS FOUND in team_tournament for tournament ID: ' . $tournamentId,
+                'NO TEAMS FOUND in team_tournament for tournament ID: '.$tournamentId,
                 'Tournament: ',
                 $tournament
             );
@@ -108,7 +107,7 @@ class TournamentController extends Controller
         dd('Final data for view:', [
             'tournament' => $tournament,
             'allTeamsByGroup' => $allTeamsByGroup,
-            'groupedTeams' => $groupedTeams->toArray()
+            'groupedTeams' => $groupedTeams->toArray(),
         ]);
 
         return view('standings.index', [
@@ -143,7 +142,7 @@ class TournamentController extends Controller
         \Log::info('Tournament create step:', [
             'step' => $step,
             'currentStep' => $currentStep,
-            'session_data' => !empty($tournamentData)
+            'session_data' => ! empty($tournamentData),
         ]);
 
         // Kirim data ke view dengan nama variabel yang konsisten
@@ -151,7 +150,7 @@ class TournamentController extends Controller
             'teams' => $teams,
             'currentStep' => $currentStep,
             'step' => $currentStep,
-            'tournamentData' => $tournamentData
+            'tournamentData' => $tournamentData,
         ]);
     }
 
@@ -176,8 +175,8 @@ class TournamentController extends Controller
         // Log untuk debugging
         \Log::info('Store step data:', [
             'step' => $step,
-            'has_session_data' => !empty($tournamentData),
-            'request_data' => $request->except(['_token'])
+            'has_session_data' => ! empty($tournamentData),
+            'request_data' => $request->except(['_token']),
         ]);
 
         switch ($step) {
@@ -202,7 +201,7 @@ class TournamentController extends Controller
                 // Handle file upload untuk logo
                 if ($request->hasFile('logo')) {
                     $logoFile = $request->file('logo');
-                    $logoName = 'logo_' . Str::random(10) . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
+                    $logoName = 'logo_'.Str::random(10).'_'.time().'.'.$logoFile->getClientOriginalExtension();
                     $logoPath = $logoFile->storeAs('tournament-logos', $logoName, 'public');
                     $validated['logo'] = $logoPath;
                 }
@@ -210,7 +209,7 @@ class TournamentController extends Controller
                 // Handle file upload untuk banner
                 if ($request->hasFile('banner')) {
                     $bannerFile = $request->file('banner');
-                    $bannerName = 'banner_' . Str::random(10) . '_' . time() . '.' . $bannerFile->getClientOriginalExtension();
+                    $bannerName = 'banner_'.Str::random(10).'_'.time().'.'.$bannerFile->getClientOriginalExtension();
                     $bannerPath = $bannerFile->storeAs('tournament-banners', $bannerName, 'public');
                     $validated['banner'] = $bannerPath;
                 }
@@ -240,7 +239,7 @@ class TournamentController extends Controller
                 $groupAssignments = $request->input('group_assignments', '[]');
                 $groupAssignments = json_decode($groupAssignments, true);
 
-                if (!is_array($groupAssignments)) {
+                if (! is_array($groupAssignments)) {
                     return redirect()->back()
                         ->with('error', 'Invalid group assignments data.')
                         ->withInput();
@@ -299,9 +298,9 @@ class TournamentController extends Controller
                     }
                 }
 
-                if (!empty($missingFields)) {
+                if (! empty($missingFields)) {
                     return redirect()->route('admin.tournaments.create.step', ['step' => 1])
-                        ->with('error', 'Missing required fields: ' . implode(', ', $missingFields));
+                        ->with('error', 'Missing required fields: '.implode(', ', $missingFields));
                 }
 
                 try {
@@ -309,7 +308,7 @@ class TournamentController extends Controller
 
                     // Auto-generate slug if empty
                     if (empty($tournamentData['slug'])) {
-                        $tournamentData['slug'] = Str::slug($tournamentData['name']) . '-' . time();
+                        $tournamentData['slug'] = Str::slug($tournamentData['name']).'-'.time();
                     }
 
                     // Prepare settings as JSON
@@ -371,16 +370,16 @@ class TournamentController extends Controller
 
                             $tournament->teams()->attach($teamId, [
                                 'group_name' => $groupName,
-                                'seed' => floor($index / $groupsCount) + 1
+                                'seed' => floor($index / $groupsCount) + 1,
                             ]);
                         }
-                    } elseif (!empty($groupAssignments)) {
+                    } elseif (! empty($groupAssignments)) {
                         // Save manual group assignments
                         foreach ($groupAssignments as $assignment) {
                             if (isset($assignment['team_id'], $assignment['group'], $assignment['seed'])) {
                                 $tournament->teams()->attach($assignment['team_id'], [
                                     'group_name' => $assignment['group'],
-                                    'seed' => $assignment['seed']
+                                    'seed' => $assignment['seed'],
                                 ]);
                             }
                         }
@@ -389,7 +388,7 @@ class TournamentController extends Controller
                         foreach ($selectedTeams as $index => $teamId) {
                             $tournament->teams()->attach($teamId, [
                                 'group_name' => 'A',
-                                'seed' => $index + 1
+                                'seed' => $index + 1,
                             ]);
                         }
                     }
@@ -400,19 +399,19 @@ class TournamentController extends Controller
                     session()->forget('tournament_data');
 
                     return redirect()->route('admin.tournaments.index')
-                        ->with('success', 'Tournament "' . $tournament->name . '" created successfully!')
+                        ->with('success', 'Tournament "'.$tournament->name.'" created successfully!')
                         ->with('tournament_id', $tournament->id);
 
                 } catch (\Exception $e) {
                     DB::rollBack();
 
-                    \Log::error('Tournament creation failed: ' . $e->getMessage(), [
+                    \Log::error('Tournament creation failed: '.$e->getMessage(), [
                         'exception' => $e,
-                        'tournament_data' => $tournamentData
+                        'tournament_data' => $tournamentData,
                     ]);
 
                     return redirect()->route('admin.tournaments.create.step', ['step' => 1])
-                        ->with('error', 'Error creating tournament: ' . $e->getMessage());
+                        ->with('error', 'Error creating tournament: '.$e->getMessage());
                 }
         }
     }
@@ -484,6 +483,7 @@ class TournamentController extends Controller
     public function show(Tournament $tournament)
     {
         $tournament->load(['teams', 'matches.homeTeam', 'matches.awayTeam']);
+
         return view('admin.tournaments.show', compact('tournament'));
     }
 
@@ -504,7 +504,7 @@ class TournamentController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:tournaments,slug,' . $tournament->id,
+            'slug' => 'nullable|string|max:255|unique:tournaments,slug,'.$tournament->id,
             'description' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -534,7 +534,7 @@ class TournamentController extends Controller
                 }
 
                 $logoFile = $request->file('logo');
-                $logoName = 'logo_' . Str::random(10) . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
+                $logoName = 'logo_'.Str::random(10).'_'.time().'.'.$logoFile->getClientOriginalExtension();
                 $logoPath = $logoFile->storeAs('tournament-logos', $logoName, 'public');
                 $validated['logo'] = $logoPath;
             } else {
@@ -550,7 +550,7 @@ class TournamentController extends Controller
                 }
 
                 $bannerFile = $request->file('banner');
-                $bannerName = 'banner_' . Str::random(10) . '_' . time() . '.' . $bannerFile->getClientOriginalExtension();
+                $bannerName = 'banner_'.Str::random(10).'_'.time().'.'.$bannerFile->getClientOriginalExtension();
                 $bannerPath = $bannerFile->storeAs('tournament-banners', $bannerName, 'public');
                 $validated['banner'] = $bannerPath;
             } else {
@@ -570,7 +570,7 @@ class TournamentController extends Controller
             // Update tournament
             $tournament->update([
                 'name' => $validated['name'],
-                'slug' => $validated['slug'] ?? Str::slug($validated['name']) . '-' . time(),
+                'slug' => $validated['slug'] ?? Str::slug($validated['name']).'-'.time(),
                 'description' => $validated['description'] ?? null,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -590,7 +590,7 @@ class TournamentController extends Controller
 
             // Remove teams that are no longer selected
             $teamsToRemove = array_diff($currentTeams, $newTeams);
-            if (!empty($teamsToRemove)) {
+            if (! empty($teamsToRemove)) {
                 DB::table('team_tournament')
                     ->where('tournament_id', $tournament->id)
                     ->whereIn('team_id', $teamsToRemove)
@@ -599,7 +599,7 @@ class TournamentController extends Controller
 
             // Add new teams
             $teamsToAdd = array_diff($newTeams, $currentTeams);
-            if (!empty($teamsToAdd)) {
+            if (! empty($teamsToAdd)) {
                 foreach ($teamsToAdd as $teamId) {
                     // Assign to group if tournament is group type
                     $groupName = 'A';
@@ -613,7 +613,7 @@ class TournamentController extends Controller
 
                     $tournament->teams()->attach($teamId, [
                         'group_name' => $groupName,
-                        'seed' => 1 // Default seed
+                        'seed' => 1, // Default seed
                     ]);
                 }
             }
@@ -621,18 +621,18 @@ class TournamentController extends Controller
             DB::commit();
 
             return redirect()->route('admin.tournaments.index')
-                ->with('success', 'Tournament "' . $tournament->name . '" updated successfully!');
+                ->with('success', 'Tournament "'.$tournament->name.'" updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::error('Tournament update failed: ' . $e->getMessage(), [
+            \Log::error('Tournament update failed: '.$e->getMessage(), [
                 'exception' => $e,
-                'tournament_id' => $tournament->id
+                'tournament_id' => $tournament->id,
             ]);
 
             return redirect()->back()
-                ->with('error', 'Error updating tournament: ' . $e->getMessage())
+                ->with('error', 'Error updating tournament: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -657,7 +657,7 @@ class TournamentController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting tournament: ' . $e->getMessage());
+                ->with('error', 'Error deleting tournament: '.$e->getMessage());
         }
     }
 
@@ -665,6 +665,7 @@ class TournamentController extends Controller
     public function clearSession()
     {
         session()->forget('tournament_data');
+
         return redirect()->route('admin.tournaments.create.step', ['step' => 1])
             ->with('success', 'Session data cleared.');
     }

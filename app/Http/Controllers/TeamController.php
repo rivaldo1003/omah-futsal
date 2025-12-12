@@ -2,13 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Team;
 use App\Models\Player;
+use App\Models\Team;
 use App\Models\Tournament;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Validator; // Tambahkan ini
+use Illuminate\Support\Facades\Storage;
+
+// Tambahkan ini
 
 class TeamController extends Controller
 {
@@ -72,7 +73,7 @@ class TeamController extends Controller
             'player_ids.*' => 'exists:players,id',
             'tournament_ids' => 'nullable|array',
             'tournament_ids.*' => 'exists:tournaments,id',
-            'founded_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1900|max:'.date('Y'),
         ]);
 
         DB::beginTransaction();
@@ -109,7 +110,7 @@ class TeamController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Error creating team: ' . $e->getMessage())
+                ->with('error', 'Error creating team: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -133,24 +134,26 @@ class TeamController extends Controller
 
         // Calculate wins/draws/losses
         foreach ($team->homeMatches->where('status', 'completed') as $match) {
-            if ($match->home_score > $match->away_score)
+            if ($match->home_score > $match->away_score) {
                 $stats['wins']++;
-            elseif ($match->home_score < $match->away_score)
+            } elseif ($match->home_score < $match->away_score) {
                 $stats['losses']++;
-            else
+            } else {
                 $stats['draws']++;
+            }
 
             $stats['goals_for'] += $match->home_score;
             $stats['goals_against'] += $match->away_score;
         }
 
         foreach ($team->awayMatches->where('status', 'completed') as $match) {
-            if ($match->away_score > $match->home_score)
+            if ($match->away_score > $match->home_score) {
                 $stats['wins']++;
-            elseif ($match->away_score < $match->home_score)
+            } elseif ($match->away_score < $match->home_score) {
                 $stats['losses']++;
-            else
+            } else {
                 $stats['draws']++;
+            }
 
             $stats['goals_for'] += $match->away_score;
             $stats['goals_against'] += $match->home_score;
@@ -198,7 +201,7 @@ class TeamController extends Controller
     public function update(Request $request, Team $team)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:teams,name,' . $team->id,
+            'name' => 'required|string|max:255|unique:teams,name,'.$team->id,
             'short_name' => 'nullable|string|max:10',
             'description' => 'nullable|string',
             'coach_name' => 'nullable|string|max:255',
@@ -249,7 +252,7 @@ class TeamController extends Controller
                 'contact_email',
                 'contact_phone',
                 'status',
-                'logo'
+                'logo',
             ]));
 
             // Update team
@@ -264,7 +267,7 @@ class TeamController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Error updating team: ' . $e->getMessage())
+                ->with('error', 'Error updating team: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -300,7 +303,7 @@ class TeamController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting team: ' . $e->getMessage());
+                ->with('error', 'Error deleting team: '.$e->getMessage());
         }
     }
 

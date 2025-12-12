@@ -33,7 +33,7 @@ class Game extends Model
     ];
 
     protected $dates = ['match_date', 'youtube_uploaded_at'];
-    
+
     protected $casts = [
         'match_date' => 'date:Y-m-d',
         'youtube_uploaded_at' => 'datetime',
@@ -78,7 +78,10 @@ class Game extends Model
      */
     public function getYoutubeEmbedUrlAttribute()
     {
-        if (!$this->youtube_id) return null;
+        if (! $this->youtube_id) {
+            return null;
+        }
+
         return "https://www.youtube.com/embed/{$this->youtube_id}?rel=0&showinfo=0&modestbranding=1";
     }
 
@@ -87,7 +90,10 @@ class Game extends Model
      */
     public function getYoutubeWatchUrlAttribute()
     {
-        if (!$this->youtube_id) return null;
+        if (! $this->youtube_id) {
+            return null;
+        }
+
         return "https://www.youtube.com/watch?v={$this->youtube_id}";
     }
 
@@ -96,13 +102,15 @@ class Game extends Model
      */
     public function getYoutubeThumbnailUrlAttribute()
     {
-        if (!$this->youtube_id) return null;
-        
+        if (! $this->youtube_id) {
+            return null;
+        }
+
         // Try different quality thumbnails
         $baseUrl = "https://img.youtube.com/vi/{$this->youtube_id}/";
-        
+
         // Return maxresdefault if available, fallback to hqdefault
-        return $baseUrl . "maxresdefault.jpg";
+        return $baseUrl.'maxresdefault.jpg';
     }
 
     /**
@@ -110,15 +118,17 @@ class Game extends Model
      */
     public function getYoutubeThumbnailFallbackAttribute()
     {
-        if (!$this->youtube_id) return null;
-        
+        if (! $this->youtube_id) {
+            return null;
+        }
+
         $baseUrl = "https://img.youtube.com/vi/{$this->youtube_id}/";
-        
+
         return [
-            'maxres' => $baseUrl . "maxresdefault.jpg",
-            'hq' => $baseUrl . "hqdefault.jpg",
-            'mq' => $baseUrl . "mqdefault.jpg",
-            'sd' => $baseUrl . "sddefault.jpg",
+            'maxres' => $baseUrl.'maxresdefault.jpg',
+            'hq' => $baseUrl.'hqdefault.jpg',
+            'mq' => $baseUrl.'mqdefault.jpg',
+            'sd' => $baseUrl.'sddefault.jpg',
         ];
     }
 
@@ -127,15 +137,18 @@ class Game extends Model
      */
     public function getYoutubeDurationFormattedAttribute()
     {
-        if (!$this->youtube_duration) return null;
-        
+        if (! $this->youtube_duration) {
+            return null;
+        }
+
         $hours = floor($this->youtube_duration / 3600);
         $minutes = floor(($this->youtube_duration % 3600) / 60);
         $seconds = $this->youtube_duration % 60;
-        
+
         if ($hours > 0) {
             return sprintf('%d:%02d:%02d', $hours, $minutes, $seconds);
         }
+
         return sprintf('%d:%02d', $minutes, $seconds);
     }
 
@@ -144,7 +157,10 @@ class Game extends Model
      */
     public function getHighlightUploadedAtFormattedAttribute()
     {
-        if (!$this->youtube_uploaded_at) return null;
+        if (! $this->youtube_uploaded_at) {
+            return null;
+        }
+
         return $this->youtube_uploaded_at->format('d M Y H:i');
     }
 
@@ -153,7 +169,10 @@ class Game extends Model
      */
     public function getHighlightUploadedAtRelativeAttribute()
     {
-        if (!$this->youtube_uploaded_at) return null;
+        if (! $this->youtube_uploaded_at) {
+            return null;
+        }
+
         return $this->youtube_uploaded_at->diffForHumans();
     }
 
@@ -173,13 +192,13 @@ class Game extends Model
         if ($this->youtube_id) {
             return $this->youtube_thumbnail_url;
         }
-        
+
         // Default thumbnail berdasarkan match
         $homeName = $this->homeTeam ? $this->homeTeam->name : 'Home';
         $awayName = $this->awayTeam ? $this->awayTeam->name : 'Away';
         $homeInitial = strtoupper(substr($homeName, 0, 1));
         $awayInitial = strtoupper(substr($awayName, 0, 1));
-        
+
         return "https://ui-avatars.com/api/?name={$homeInitial}+{$awayInitial}&background=1e3a8a&color=fff&size=600&bold=true&font-size=0.5";
     }
 
@@ -196,7 +215,7 @@ class Game extends Model
      */
     public function getHasHighlightAttribute()
     {
-        return !empty($this->youtube_id);
+        return ! empty($this->youtube_id);
     }
 
     /**
@@ -204,11 +223,13 @@ class Game extends Model
      */
     public static function parseYoutubeId($url)
     {
-        if (empty($url)) return null;
-        
+        if (empty($url)) {
+            return null;
+        }
+
         // Remove any query parameters after ? or &
         $url = preg_replace('/\?.*$/', '', $url);
-        
+
         $patterns = [
             // youtube.com/watch?v=XXX
             '/youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/',
@@ -221,13 +242,13 @@ class Game extends Model
             // youtube.com/shorts/XXX
             '/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/',
         ];
-        
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $url, $matches)) {
                 return $matches[1];
             }
         }
-        
+
         return null;
     }
 
@@ -239,13 +260,13 @@ class Game extends Model
         $patterns = [
             '/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+/',
         ];
-        
+
         foreach ($patterns as $pattern) {
             if (preg_match($pattern, $url)) {
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -254,33 +275,35 @@ class Game extends Model
      */
     public function getYoutubeThumbnailsAttribute()
     {
-        if (!$this->youtube_id) return null;
-        
+        if (! $this->youtube_id) {
+            return null;
+        }
+
         $baseUrl = "https://img.youtube.com/vi/{$this->youtube_id}/";
-        
+
         return [
             'maxres' => [
-                'url' => $baseUrl . "maxresdefault.jpg",
+                'url' => $baseUrl.'maxresdefault.jpg',
                 'width' => 1280,
                 'height' => 720,
             ],
             'standard' => [
-                'url' => $baseUrl . "sddefault.jpg",
+                'url' => $baseUrl.'sddefault.jpg',
                 'width' => 640,
                 'height' => 480,
             ],
             'high' => [
-                'url' => $baseUrl . "hqdefault.jpg",
+                'url' => $baseUrl.'hqdefault.jpg',
                 'width' => 480,
                 'height' => 360,
             ],
             'medium' => [
-                'url' => $baseUrl . "mqdefault.jpg",
+                'url' => $baseUrl.'mqdefault.jpg',
                 'width' => 320,
                 'height' => 180,
             ],
             'default' => [
-                'url' => $baseUrl . "default.jpg",
+                'url' => $baseUrl.'default.jpg',
                 'width' => 120,
                 'height' => 90,
             ],
@@ -288,7 +311,7 @@ class Game extends Model
     }
 
     // ========== SCOPES ==========
-    
+
     /**
      * Scope for matches with YouTube highlights
      */
@@ -311,18 +334,18 @@ class Game extends Model
     public function scopeRecentHighlights($query, $limit = 5)
     {
         return $query->whereNotNull('youtube_id')
-                    ->orderBy('youtube_uploaded_at', 'desc')
-                    ->limit($limit);
+            ->orderBy('youtube_uploaded_at', 'desc')
+            ->limit($limit);
     }
 
     // ========== EXISTING METHODS (Tetap Ada) ==========
-    
+
     /**
      * Get match time range
      */
     public function getTimeRangeAttribute()
     {
-        return date('H:i', strtotime($this->time_start)) . ' - ' .
+        return date('H:i', strtotime($this->time_start)).' - '.
                date('H:i', strtotime($this->time_end));
     }
 
@@ -334,6 +357,7 @@ class Game extends Model
         if ($this->status !== 'completed') {
             return 'VS';
         }
+
         return "{$this->home_score} - {$this->away_score}";
     }
 
@@ -343,8 +367,8 @@ class Game extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'upcoming')
-                    ->orderBy('match_date')
-                    ->orderBy('time_start');
+            ->orderBy('match_date')
+            ->orderBy('time_start');
     }
 
     /**
@@ -353,7 +377,7 @@ class Game extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', 'completed')
-                    ->orderBy('match_date', 'desc');
+            ->orderBy('match_date', 'desc');
     }
 
     /**
@@ -383,7 +407,7 @@ class Game extends Model
             'completed' => 'bg-success',
             'postponed' => 'bg-secondary',
         ];
-        
+
         return $colors[$this->status] ?? 'bg-secondary';
     }
 
@@ -402,7 +426,7 @@ class Game extends Model
     {
         $home = $this->homeTeam ? $this->homeTeam->name : 'TBA';
         $away = $this->awayTeam ? $this->awayTeam->name : 'TBA';
-        
+
         return "{$home} vs {$away}";
     }
 
@@ -413,7 +437,7 @@ class Game extends Model
     {
         $date = $this->match_date->format('d M');
         $time = date('H:i', strtotime($this->time_start));
-        
+
         return "{$date} • {$time} • {$this->venue}";
     }
 
@@ -427,6 +451,7 @@ class Game extends Model
         } elseif ($teamId == $this->team_away_id) {
             return $this->away_score ?? 0;
         }
+
         return 0;
     }
 
@@ -435,17 +460,19 @@ class Game extends Model
      */
     public function didTeamWin($teamId)
     {
-        if ($this->status !== 'completed') return false;
-        
+        if ($this->status !== 'completed') {
+            return false;
+        }
+
         $homeGoals = $this->home_score ?? 0;
         $awayGoals = $this->away_score ?? 0;
-        
+
         if ($teamId == $this->team_home_id) {
             return $homeGoals > $awayGoals;
         } elseif ($teamId == $this->team_away_id) {
             return $awayGoals > $homeGoals;
         }
-        
+
         return false;
     }
 
@@ -454,11 +481,13 @@ class Game extends Model
      */
     public function getIsDrawAttribute()
     {
-        if ($this->status !== 'completed') return false;
-        
+        if ($this->status !== 'completed') {
+            return false;
+        }
+
         $homeGoals = $this->home_score ?? 0;
         $awayGoals = $this->away_score ?? 0;
-        
+
         return $homeGoals == $awayGoals;
     }
 }

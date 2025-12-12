@@ -1,12 +1,12 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Api\TournamentApiController;
 use App\Http\Controllers\Api\MatchApiController;
-use App\Http\Controllers\Api\TeamApiController;
 use App\Http\Controllers\Api\PlayerApiController;
 use App\Http\Controllers\Api\StandingApiController;
+use App\Http\Controllers\Api\TeamApiController;
+use App\Http\Controllers\Api\TournamentApiController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------

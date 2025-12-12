@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
 
 class TeamSeeder extends Seeder
 {
@@ -182,11 +181,11 @@ class TeamSeeder extends Seeder
         // Insert data ke database
         DB::table('teams')->insert($teams);
 
-        $this->command->info('✅ Successfully seeded ' . count($teams) . ' teams!');
+        $this->command->info('✅ Successfully seeded '.count($teams).' teams!');
         $this->command->info('📋 Teams list:');
 
         foreach ($teams as $index => $team) {
-            $this->command->info(($index + 1) . '. ' . $team['name'] . ' - Coach: ' . ($team['coach_name'] ?? 'N/A'));
+            $this->command->info(($index + 1).'. '.$team['name'].' - Coach: '.($team['coach_name'] ?? 'N/A'));
         }
     }
 }

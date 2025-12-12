@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Standing extends Model
 {
@@ -62,7 +62,7 @@ class Standing extends Model
     public function updateForm($result)
     {
         $form = $this->form ?? '';
-        $form = substr($form . $result, -5); // Keep only last 5 matches
+        $form = substr($form.$result, -5); // Keep only last 5 matches
         $this->update(['form' => $form]);
     }
 
@@ -72,6 +72,7 @@ class Standing extends Model
     public function getFormArrayAttribute()
     {
         $form = $this->form ?? '';
+
         return str_split(str_pad($form, 5, '-'));
     }
 

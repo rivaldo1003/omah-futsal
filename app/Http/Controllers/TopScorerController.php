@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use App\Models\Tournament;
 use App\Models\Player;
+use App\Models\Tournament;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class TopScorerController extends Controller
 {
@@ -98,14 +97,14 @@ class TopScorerController extends Controller
                     $player->team = (object) [
                         'id' => $player->team_id,
                         'name' => $player->team_name,
-                        'logo' => $player->team_logo
+                        'logo' => $player->team_logo,
                     ];
                 }
 
                 $topScorers = $goalEvents;
 
             } catch (\Exception $e) {
-                \Log::error('Error in TopScorerController: ' . $e->getMessage());
+                \Log::error('Error in TopScorerController: '.$e->getMessage());
 
                 // Fallback: jika error, gunakan data overall
                 $topScorers = Player::with('team')

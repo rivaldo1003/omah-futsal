@@ -2,14 +2,15 @@
 
 namespace App\Console\Commands;
 
-use Illuminate\Console\Command;
-use App\Models\Tournament;
 use App\Models\Standing;
+use App\Models\Tournament;
+use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class InitializeTournamentStandings extends Command
 {
     protected $signature = 'standings:init-tournament {tournament?}';
+
     protected $description = 'Initialize standings for tournament teams';
 
     public function handle()
@@ -18,8 +19,9 @@ class InitializeTournamentStandings extends Command
 
         if ($tournamentId) {
             $tournament = Tournament::find($tournamentId);
-            if (!$tournament) {
-                $this->error("Tournament not found!");
+            if (! $tournament) {
+                $this->error('Tournament not found!');
+
                 return;
             }
             $tournaments = [$tournament];
@@ -43,7 +45,7 @@ class InitializeTournamentStandings extends Command
                     ->where('group_name', $teamTournament->group_name)
                     ->first();
 
-                if (!$existing) {
+                if (! $existing) {
                     Standing::create([
                         'team_id' => $teamTournament->team_id,
                         'tournament_id' => $tournament->id,
@@ -55,7 +57,7 @@ class InitializeTournamentStandings extends Command
                         'goals_for' => 0,
                         'goals_against' => 0,
                         'goal_difference' => 0,
-                        'points' => 0
+                        'points' => 0,
                     ]);
                     $count++;
                 }

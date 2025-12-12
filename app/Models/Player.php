@@ -19,7 +19,7 @@ class Player extends Model
         'goals',
         'assists',
         'yellow_cards',
-        'red_cards'
+        'red_cards',
     ];
 
     // Relasi dengan Team

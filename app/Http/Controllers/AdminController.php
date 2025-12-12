@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\MatchModel;
-use Illuminate\Http\Request;
-use App\Models\Team;
 use App\Models\Player;
-use App\Models\Match;
-use Illuminate\Support\Facades\Auth;
+use App\Models\Team;
+use Illuminate\Http\Request;
 
 class AdminController extends Controller
 {
@@ -15,9 +13,10 @@ class AdminController extends Controller
     {
         // Middleware sederhana
         $this->middleware(function ($request, $next) {
-            if (!session()->has('admin_logged_in')) {
+            if (! session()->has('admin_logged_in')) {
                 return redirect()->route('login');
             }
+
             return $next($request);
         })->except(['login', 'logout']);
     }
@@ -27,6 +26,7 @@ class AdminController extends Controller
         // Login sederhana
         if ($request->password === 'admin123') {
             session(['admin_logged_in' => true]);
+
             return redirect()->route('admin.dashboard');
         }
 
@@ -36,6 +36,7 @@ class AdminController extends Controller
     public function logout()
     {
         session()->forget('admin_logged_in');
+
         return redirect('/');
     }
 
@@ -57,6 +58,7 @@ class AdminController extends Controller
     public function pertandingan()
     {
         $teams = Team::orderBy('name')->get();
+
         return view('admin.pertandingan', compact('teams'));
     }
 
@@ -68,7 +70,7 @@ class AdminController extends Controller
             'match_date' => 'required|date',
             'match_time' => 'required',
             'session' => 'required',
-            'stage' => 'required|in:Group,Semifinal,Final,3rd Place'
+            'stage' => 'required|in:Group,Semifinal,Final,3rd Place',
         ]);
 
         MatchModel::create($request->all());
@@ -85,7 +87,7 @@ class AdminController extends Controller
     {
         $request->validate([
             'name' => 'required|string|max:100',
-            'group' => 'required|in:A,B'
+            'group' => 'required|in:A,B',
         ]);
 
         Team::create($request->only('name', 'group'));
@@ -96,6 +98,7 @@ class AdminController extends Controller
     public function inputPemain()
     {
         $teams = Team::orderBy('name')->get();
+
         return view('admin.pemain', compact('teams'));
     }
 
@@ -104,7 +107,7 @@ class AdminController extends Controller
         $request->validate([
             'team_id' => 'required|exists:teams,id',
             'name' => 'required|string|max:100',
-            'jersey_number' => 'required|integer|min:1|max:99'
+            'jersey_number' => 'required|integer|min:1|max:99',
         ]);
 
         Player::create($request->all());
@@ -115,6 +118,7 @@ class AdminController extends Controller
     public function inputHasil($id)
     {
         $match = MatchModel::with(['homeTeam', 'awayTeam'])->findOrFail($id);
+
         return view('admin.hasil', compact('match'));
     }
 
@@ -124,13 +128,13 @@ class AdminController extends Controller
 
         $request->validate([
             'home_score' => 'required|integer|min:0',
-            'away_score' => 'required|integer|min:0'
+            'away_score' => 'required|integer|min:0',
         ]);
 
         // Update skor
         $match->update([
             'home_score' => $request->home_score,
-            'away_score' => $request->away_score
+            'away_score' => $request->away_score,
         ]);
 
         // Update statistik tim
@@ -195,7 +199,7 @@ class AdminController extends Controller
                 $player->update([
                     'goals' => $player->goals + ($stats['goals'] ?? 0),
                     'yellow_cards' => $player->yellow_cards + ($stats['yellow_cards'] ?? 0),
-                    'red_cards' => $player->red_cards + ($stats['red_cards'] ?? 0)
+                    'red_cards' => $player->red_cards + ($stats['red_cards'] ?? 0),
                 ]);
             }
         }

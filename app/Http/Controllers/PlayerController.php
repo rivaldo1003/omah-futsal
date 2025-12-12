@@ -43,6 +43,7 @@ class PlayerController extends Controller
     public function create()
     {
         $teams = Team::where('status', 'active')->orderBy('name')->get();
+
         return view('admin.players.create', compact('teams'));
     }
 
@@ -80,6 +81,7 @@ class PlayerController extends Controller
     public function show(Player $player)
     {
         $player->load('team');
+
         return view('admin.players.show', compact('player'));
     }
 
@@ -89,6 +91,7 @@ class PlayerController extends Controller
     public function edit(Player $player)
     {
         $teams = Team::where('status', 'active')->orderBy('name')->get();
+
         return view('admin.players.edit', compact('player', 'teams'));
     }
 
@@ -139,7 +142,7 @@ class PlayerController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating player: ' . $e->getMessage())
+                ->with('error', 'Error updating player: '.$e->getMessage())
                 ->withInput();
         }
     }
@@ -157,7 +160,7 @@ class PlayerController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting player: ' . $e->getMessage());
+                ->with('error', 'Error deleting player: '.$e->getMessage());
         }
     }
 }

@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Team;
 use App\Models\Player;
+use App\Models\Team;
 use App\Models\User;
+use Illuminate\Database\Seeder;
 
 class TournamentSeeder extends Seeder
 {
@@ -16,7 +16,7 @@ class TournamentSeeder extends Seeder
             'name' => 'Admin Turnamen',
             'email' => 'admin@tournament.com',
             'password' => bcrypt('password123'),
-            'role' => 'admin'
+            'role' => 'admin',
         ]);
 
         // Teams Grup A
@@ -62,6 +62,7 @@ class TournamentSeeder extends Seeder
     private function getRandomPosition(): string
     {
         $positions = ['GK', 'DF', 'MF', 'FW'];
+
         return $positions[array_rand($positions)];
     }
 }

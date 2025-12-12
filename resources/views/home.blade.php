@@ -36,21 +36,22 @@
         color: #334155;
         line-height: 1.6;
         overflow-x: hidden;
-        font-size: 15px;
+        font-size: 14px;
     }
 
-    /* Container Fixes */
+
+
     .container {
-        padding-left: max(15px, env(safe-area-inset-left));
-        padding-right: max(15px, env(safe-area-inset-right));
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        max-width: 1200px;
     }
 
-    /* Navigation - Fully Responsive */
     .navbar {
         background: var(--nav-bg);
         backdrop-filter: blur(10px);
-        box-shadow: 0 2px 10px var(--nav-shadow);
-        padding: 0.5rem 0;
+        box-shadow: 0 1px 3px var(--nav-shadow);
+        padding: 0.4rem 0;
         position: sticky;
         top: 0;
         z-index: 1040;
@@ -83,83 +84,60 @@
         line-height: 1.2;
     }
 
-    .brand-main {
-        font-size: 1.1rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--primary-color), #60a5fa);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-    }
+
 
     .brand-sub {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         color: #64748b;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
         font-weight: 600;
     }
 
-    /* Mobile First Nav */
     .navbar-toggler {
-        border: 1px solid rgba(59, 130, 246, 0.2);
-        padding: 0.4rem 0.6rem;
-        font-size: 0.9rem;
-    }
-
-    .navbar-collapse {
-        margin-top: 0.5rem;
-        border-radius: 8px;
-        background: var(--nav-bg);
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(59, 130, 246, 0.15);
+        padding: 0.3rem 0.5rem;
+        font-size: 0.85rem;
     }
 
     .nav-link {
         color: #475569 !important;
         font-weight: 600;
-        padding: 0.7rem 1rem !important;
-        border-radius: 6px;
-        margin: 2px 0;
+        padding: 0.5rem 0.8rem !important;
+        border-radius: 4px;
+        margin: 1px 0;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 0.9rem;
+        gap: 6px;
+        font-size: 0.85rem;
     }
 
     .nav-link i {
-        font-size: 1rem;
-        width: 20px;
+        font-size: 0.9rem;
+        width: 18px;
         text-align: center;
     }
 
     .nav-link.active {
-        background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(96, 165, 250, 0.08));
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.05));
         color: var(--accent-color) !important;
     }
 
-    /* Mobile Optimized Buttons */
+    /* Compact Buttons - SAMA DENGAN NEWS */
     .btn {
-        border-radius: 6px;
+        border-radius: 4px;
         font-weight: 600;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 5px;
+        gap: 4px;
     }
 
     .btn-sm {
-        padding: 0.35rem 0.7rem;
-        font-size: 0.85rem;
-    }
-
-    .btn-login-nav,
-    .admin-badge,
-    .btn-logout-nav {
-        width: 100%;
-        margin: 5px 0;
-        justify-content: center;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
     }
 
     /* Hero Section */
@@ -227,7 +205,7 @@
         padding: 1.25rem;
     }
 
-    /* Match Cards - Mobile Optimized */
+    /* Match Cards */
     .match-card {
         background: white;
         border: 1px solid #e2e8f0;
@@ -262,7 +240,7 @@
         line-height: 1.1;
     }
 
-    /* Score Section - Mobile Friendly */
+    /* Score Section */
     .score-badge {
         background: linear-gradient(135deg, var(--accent-color), #1c71d8);
         color: white;
@@ -301,7 +279,7 @@
         display: block;
     }
 
-    /* Match Layout - Stack on Mobile */
+    /* Match Layout */
     .teams-container {
         display: flex;
         flex-direction: column;
@@ -320,7 +298,7 @@
         margin-bottom: 0.5rem;
     }
 
-    /* Match Events - Mobile Scroll */
+    /* Match Events */
     .match-events {
         background: #f8fafc;
         border-radius: 6px;
@@ -337,7 +315,7 @@
         padding: 0 5px;
     }
 
-    /* Tables - Mobile Scroll */
+    /* Tables */
     .table-responsive {
         -webkit-overflow-scrolling: touch;
         overflow-x: auto;
@@ -356,7 +334,7 @@
         white-space: nowrap;
     }
 
-    /* Group Standings - Mobile Grid */
+    /* Group Standings */
     .group-standings {
         margin-bottom: 1.5rem;
     }
@@ -365,24 +343,18 @@
         padding: 0.4rem 0;
     }
 
-    /* Ranking Badge - Mobile */
+    /* Ranking Badge */
     .rank-badge {
         width: 32px;
         height: 32px;
         border-radius: 8px;
         display: flex;
-        align-items: start;
-        justify-content: start;
+        align-items: center;
+        justify-content: center;
         font-weight: 700;
         font-size: 0.9rem;
-        margin-right: 8px;
         flex-shrink: 0;
     }
-
-    /*.rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: #333; }*/
-    /*.rank-2 { background: linear-gradient(135deg, #C0C0C0, #A9A9A9); color: white; }*/
-    /*.rank-3 { background: linear-gradient(135deg, #CD7F32, #A0522D); color: white; }*/
-    /*.rank-other { background: linear-gradient(135deg, #64748b, #475569); color: white; }*/
 
     .group-title {
         color: var(--accent-color);
@@ -393,7 +365,7 @@
         border-bottom: 2px solid #e2e8f0;
     }
 
-    /* Player Cards - Mobile Compact */
+    /* Player Cards */
     .player-card {
         display: flex;
         align-items: center;
@@ -446,7 +418,7 @@
         font-size: 0.75rem;
     }
 
-    /* Upcoming Matches - Mobile Layout */
+    /* Upcoming Matches */
     .upcoming-match-item {
         padding: 0.8rem;
         border: 1px solid #e2e8f0;
@@ -479,7 +451,7 @@
         object-fit: cover;
     }
 
-    /* Recent Results - Mobile */
+    /* Recent Results */
     .recent-result-item {
         padding: 0.8rem;
         border: 1px solid #e2e8f0;
@@ -512,19 +484,19 @@
         border: 1px solid rgba(38, 162, 105, 0.2);
     }
 
-    /* Footer - Mobile */
+    /* Footer - SAMA DENGAN NEWS */
     .footer {
         background: linear-gradient(135deg, #0f172a, #1e293b);
         color: white;
-        padding: 2rem 0 1.2rem;
-        margin-top: 2.5rem;
-        font-size: 0.9rem;
+        padding: 1.5rem 0 1rem;
+        margin-top: 2rem;
+        font-size: 0.8rem;
     }
 
     .footer-title {
         font-weight: 700;
-        margin-bottom: 1rem;
-        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+        font-size: 0.95rem;
         color: #e2e8f0;
     }
 
@@ -532,228 +504,51 @@
         color: #cbd5e1;
         text-decoration: none;
         display: block;
-        margin-bottom: 0.5rem;
-        padding: 0.2rem 0;
+        margin-bottom: 0.3rem;
+        font-size: 0.8rem;
     }
 
     .footer-contact {
         color: #cbd5e1;
-        font-size: 0.85rem;
+        font-size: 0.75rem;
     }
 
     .social-icons {
         display: flex;
-        gap: 10px;
-        margin-top: 1rem;
+        gap: 8px;
+        margin-top: 0.5rem;
     }
 
     .social-icons a {
         color: #cbd5e1;
-        font-size: 1.2rem;
-        transition: color 0.2s;
-    }
-
-    /* Hero Section Styles - PERBAIKAN */
-    .hero-section {
-        padding: 80px 0;
-        position: relative;
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        margin-bottom: 40px;
-        text-align: center;
-    }
-
-    .tournament-title {
-        font-size: 2.5rem;
-        font-weight: 700;
-        margin-bottom: 20px;
-        line-height: 1.3;
-        text-align: center;
-    }
-
-    .hero-subtitle {
-        font-size: 1.1rem;
-        line-height: 1.6;
-        max-width: 800px;
-        margin: 0 auto 30px;
-        text-align: center;
-        color: #cbd5e1;
-        opacity: 0.9;
-    }
-
-    @keyframes float {
-
-        0%,
-        100% {
-            transform: translateY(0);
-        }
-
-        50% {
-            transform: translateY(-10px);
-        }
-    }
-
-    @keyframes float-particle {
-        0% {
-            transform: translateY(0) translateX(0);
-            opacity: 0;
-        }
-
-        10% {
-            opacity: 1;
-        }
-
-        90% {
-            opacity: 1;
-        }
-
-        100% {
-            transform: translateY(-100vh) translateX(20px);
-            opacity: 0;
-        }
-    }
-
-    .hero-cta-button {
-        transition: all 0.3s ease !important;
-        display: inline-flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-    }
-
-    .hero-cta-button:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
-        text-decoration: none !important;
-    }
-
-    .hero-cta-button:active {
-        transform: translateY(0) !important;
-    }
-
-    /* Hapus atau komen CSS hero section yang konflik di bagian lain */
-    /*
-.hero-section {
-    background: linear-gradient(135deg, #0f172a, #1e293b);
-    color: white;
-    padding: 2rem 0;
-    margin-bottom: 1.5rem;
-    position: relative;
-    overflow: hidden;
-}
-
-.tournament-title {
-    font-weight: 700;
-    font-size: 1.8rem;
-    margin-bottom: 0.8rem;
-    background: linear-gradient(135deg, #ffffff, #60a5fa);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    text-align: center;
-    line-height: 1.3;
-}
-
-.hero-subtitle {
-    font-size: 0.95rem;
-    opacity: 0.9;
-    max-width: 100%;
-    margin: 0 auto 1.5rem;
-    text-align: center;
-    color: #cbd5e1;
-    padding: 0 10px;
-}
-*/
-
-    /* Responsive styles */
-    @media (max-width: 992px) {
-        .hero-section {
-            padding: 70px 0;
-            min-height: 350px;
-        }
-
-        .tournament-title {
-            font-size: 2.2rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1rem;
-            max-width: 600px;
-        }
-    }
-
-    @media (max-width: 768px) {
-        .hero-section {
-            padding: 60px 0;
-            min-height: 300px;
-            text-align: center;
-        }
-
-        .tournament-title {
-            font-size: 2rem;
-            margin-bottom: 15px;
-        }
-
-        .hero-subtitle {
-            font-size: 1rem;
-            margin-bottom: 20px;
-        }
-
-        .hero-cta-button {
-            padding: 10px 25px !important;
-            font-size: 1rem !important;
-        }
-    }
-
-    /* Pastikan container hero-section memiliki display flex yang benar */
-    .hero-section .container {
-        width: 100%;
-        max-width: 1140px;
-        margin: 0 auto;
-    }
-
-    /* Pastikan row dan col di tengah */
-    .hero-section .row.justify-content-center {
-        justify-content: center !important;
-    }
-
-    .hero-section .text-center {
-        text-align: center !important;
-    }
-
-    @media (max-width: 576px) {
-        .hero-section {
-            padding: 50px 0;
-            min-height: 250px;
-        }
-
-        .tournament-title {
-            font-size: 1.8rem;
-            margin-bottom: 12px;
-        }
-
-        .hero-subtitle {
-            font-size: 0.95rem;
-            margin-bottom: 15px;
-        }
-
-
-
-        .hero-cta-button {
-            padding: 8px 20px !important;
-            font-size: 0.95rem !important;
-        }
+        font-size: 1rem;
     }
 
     .copyright {
         color: #94a3b8;
-        font-size: 0.8rem;
-        padding-top: 1.2rem;
+        font-size: 0.75rem;
+        padding-top: 1rem;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         text-align: center;
     }
 
-    /* Badges - Mobile */
+    /* Grid System */
+    .main-container {
+        padding-top: 0.5rem;
+    }
+
+    .col-lg-8,
+    .col-lg-4 {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    .row {
+        margin-left: -0.5rem;
+        margin-right: -0.5rem;
+    }
+
+    /* Badges */
     .badge {
         border-radius: 4px;
         font-weight: 600;
@@ -774,7 +569,137 @@
         opacity: 0.6;
     }
 
-    /* Responsive Breakpoints */
+    /* Top Scorers Styles */
+    .top-scorer-rank-badge {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-right: 12px;
+        flex-shrink: 0;
+    }
+
+    .top-scorer-rank-1 {
+        background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+        color: #333 !important;
+    }
+
+    .top-scorer-rank-2 {
+        background: linear-gradient(135deg, #C0C0C0, #A9A9A9) !important;
+        color: white !important;
+    }
+
+    .top-scorer-rank-3 {
+        background: linear-gradient(135deg, #CD7F32, #A0522D) !important;
+        color: white !important;
+    }
+
+    .top-scorer-rank-4 {
+        background: linear-gradient(135deg, #64748b, #475569) !important;
+        color: white !important;
+    }
+
+    .top-scorer-player-card {
+        display: flex;
+        align-items: center;
+        padding: 0.8rem;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
+        transition: all 0.2s;
+    }
+
+    .top-scorer-player-card:hover {
+        background-color: #f8fafc;
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+
+    .top-scorer-player-info {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+
+    .top-scorer-player-info h6 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 0.9rem;
+        color: #334155;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+    }
+
+    .top-scorer-player-team {
+        font-size: 0.75rem;
+        color: #64748b;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.2;
+    }
+
+    .top-scorer-goals-count {
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        font-weight: 700;
+        font-size: 0.85rem;
+        min-width: 60px;
+        text-align: center;
+        display: inline-block;
+    }
+
+    .top-scorer-cards-count {
+        display: flex;
+        gap: 6px;
+        justify-content: flex-end;
+        font-size: 0.7rem;
+        margin-top: 0.25rem;
+    }
+
+    /* Highlight Item Styles */
+    .highlight-item {
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .highlight-item:hover {
+        transform: translateY(-2px);
+    }
+
+    .highlight-thumbnail {
+        transition: transform 0.3s ease;
+    }
+
+    .highlight-thumbnail:hover {
+        transform: scale(1.02);
+    }
+
+    .highlight-thumbnail .bg-primary {
+        transition: all 0.2s ease;
+    }
+
+    .highlight-thumbnail:hover .bg-primary {
+        opacity: 1;
+        transform: scale(1.1);
+    }
+
+    /* Video player in modal */
+    .ratio-16x9 video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Responsive Adjustments */
     @media (min-width: 576px) {
         body {
             font-size: 15.5px;
@@ -830,25 +755,6 @@
             font-size: 16px;
         }
 
-        .navbar-collapse {
-            margin-top: 0;
-            background: transparent;
-            box-shadow: none;
-        }
-
-        .nav-link {
-            padding: 0.6rem 1rem !important;
-            margin: 0 3px;
-            width: auto;
-        }
-
-        .btn-login-nav,
-        .admin-badge,
-        .btn-logout-nav {
-            width: auto;
-            margin: 0;
-        }
-
         .hero-section {
             padding: 3rem 0 2.5rem;
         }
@@ -857,13 +763,15 @@
             font-size: 2.2rem;
         }
 
+        /* 
         .brand-main {
             font-size: 1.3rem;
-        }
+        } */
 
         .brand-logo {
-            width: 40px;
-            height: 40px;
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
         }
 
         .teams-container {
@@ -879,420 +787,12 @@
         .table {
             font-size: 0.9rem;
         }
-    }
 
-    /* ========================================= */
-    /* CSS BARU UNTUK TOP SCORERS - AWAL */
-    /* ========================================= */
-
-    /* Rank Badge khusus untuk Top Scorers */
-    .top-scorer-rank-badge {
-        width: 32px;
-        height: 32px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.9rem;
-        margin-right: 12px;
-        flex-shrink: 0;
-    }
-
-    /* Warna untuk ranking khusus top scorers */
-    .top-scorer-rank-1 {
-        background: linear-gradient(135deg, #FFD700, #FFA500) !important;
-        color: #333 !important;
-    }
-
-    .top-scorer-rank-2 {
-        background: linear-gradient(135deg, #C0C0C0, #A9A9A9) !important;
-        color: white !important;
-    }
-
-    .top-scorer-rank-3 {
-        background: linear-gradient(135deg, #CD7F32, #A0522D) !important;
-        color: white !important;
-    }
-
-    .top-scorer-rank-4 {
-        background: linear-gradient(135deg, #64748b, #475569) !important;
-        color: white !important;
-    }
-
-    /* Player card untuk top scorers */
-    .top-scorer-player-card {
-        display: flex;
-        align-items: center;
-        padding: 0.8rem;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        margin-bottom: 0.75rem;
-        transition: all 0.2s;
-    }
-
-    .top-scorer-player-card:hover {
-        background-color: #f8fafc;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .top-scorer-player-info {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .top-scorer-player-info h6 {
-        margin: 0;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #334155;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
-    }
-
-    .top-scorer-player-team {
-        font-size: 0.75rem;
-        color: #64748b;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
-    }
-
-    /* Goals count untuk top scorers */
-    .top-scorer-goals-count {
-        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
-        color: white;
-        padding: 0.3rem 0.6rem;
-        border-radius: 6px;
-        font-weight: 700;
-        font-size: 0.85rem;
-        min-width: 60px;
-        text-align: center;
-        display: inline-block;
-    }
-
-    /* Cards count untuk top scorers */
-    .top-scorer-cards-count {
-        display: flex;
-        gap: 6px;
-        justify-content: flex-end;
-        font-size: 0.7rem;
-        margin-top: 0.25rem;
-    }
-
-    /* Responsive untuk top scorers */
-    @media (max-width: 576px) {
-        .top-scorer-player-card {
-            padding: 0.6rem;
-        }
-
-        .top-scorer-rank-badge {
-            width: 28px;
-            height: 28px;
-            font-size: 0.8rem;
-            margin-right: 8px;
-        }
-
-        .top-scorer-player-info h6 {
-            font-size: 0.85rem;
-        }
-
-        .top-scorer-player-team {
-            font-size: 0.7rem;
-        }
-
-        .top-scorer-goals-count {
-            font-size: 0.8rem;
-            min-width: 55px;
-            padding: 0.25rem 0.5rem;
-        }
-    }
-
-    /* ========================================= */
-    /* CSS BARU UNTUK TOP SCORERS - AKHIR */
-    /* ========================================= */
-
-    /* Perbaikan untuk player card */
-    .player-card {
-        display: flex;
-        align-items: center;
-        padding: 0.8rem;
-        background: white;
-        border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        margin-bottom: 0.7rem;
-        transition: all 0.2s;
-    }
-
-    .player-card:hover {
-        background-color: #f8fafc;
-        transform: translateY(-1px);
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    }
-
-    .player-info {
-        flex: 1;
-        min-width: 0;
-        overflow: hidden;
-    }
-
-    .player-info h6 {
-        margin: 0;
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: #334155;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
-    }
-
-    .player-team {
-        font-size: 0.75rem;
-        color: #64748b;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        line-height: 1.2;
-    }
-
-    /* Rank badge style */
-    .rank-badge {
-        width: 28px;
-        height: 28px;
-        border-radius: 6px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 0.8rem;
-        flex-shrink: 0;
-    }
-
-    /* .rank-1 {
-            background: linear-gradient(135deg, #FFD700, #FFA500);
-            color: #333;
-        }
-
-        .rank-2 {
-            background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
-            color: white;
-        }
-
-        .rank-3 {
-            background: linear-gradient(135deg, #CD7F32, #A0522D);
-            color: white;
-        }
-
-        .rank-4 {
-            background: linear-gradient(135deg, #64748b, #475569);
-            color: white;
-        } */
-
-    /* Goals count */
-    .goals-count {
-        background: linear-gradient(135deg, var(--accent-color), #60a5fa);
-        color: white;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        font-weight: 700;
-        font-size: 0.75rem;
-        min-width: 60px;
-        text-align: center;
-        display: inline-block;
-    }
-
-    /* Cards count */
-    .cards-count {
-        display: flex;
-        gap: 6px;
-        justify-content: flex-end;
-        font-size: 0.7rem;
-    }
-
-    /* Responsive */
-    @media (max-width: 576px) {
-        .player-card {
-            padding: 0.6rem;
-            flex-wrap: nowrap;
-        }
-
-        .rank-badge {
-            width: 24px;
-            height: 24px;
-            font-size: 0.7rem;
-            margin-right: 0.5rem;
-        }
-
-        .player-info h6 {
-            font-size: 0.85rem;
-        }
-
-        .player-team {
-            font-size: 0.7rem;
-        }
-
-        .goals-count {
-            font-size: 0.7rem;
-            min-width: 50px;
-            padding: 0.2rem 0.4rem;
-        }
-
-        .cards-count {
-            font-size: 0.65rem;
-        }
-    }
-
-    /* Responsive styles untuk Group Standings di Home */
-    @media (max-width: 768px) {
-        .table-responsive {
-            font-size: 0.8rem;
-        }
-
-        .table th,
-        .table td {
-            padding: 0.4rem 0.25rem;
-            font-size: 0.8rem;
-        }
-
-        .table th:first-child,
-        .table td:first-child {
-            padding-left: 0.5rem;
-            padding-right: 0.5rem;
-        }
-
-        .team-logo-container {
-            width: 28px !important;
-            height: 28px !important;
-            margin-right: 0.5rem !important;
-        }
-
-        .rank-badge {
-            width: 28px !important;
-            height: 28px !important;
-            font-size: 0.8rem !important;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .table-responsive {
-            font-size: 0.75rem;
-        }
-
-        .table th,
-        .table td {
-            padding: 0.35rem 0.2rem;
-            font-size: 0.75rem;
-        }
-
-        .col-md-6 {
-            padding-left: 8px;
-            padding-right: 8px;
-        }
-
-        .group-title {
+        /* Navbar desktop adjustments */
+        .nav-link {
+            padding: 0.5rem 0.8rem !important;
             font-size: 0.9rem;
         }
-
-        /* Highlight Item Styles */
-        .highlight-item {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .highlight-item:hover {
-            transform: translateY(-2px);
-        }
-
-        .highlight-thumbnail {
-            transition: transform 0.3s ease;
-        }
-
-        .highlight-thumbnail:hover {
-            transform: scale(1.02);
-        }
-
-        .highlight-thumbnail .bg-primary {
-            transition: all 0.2s ease;
-        }
-
-        .highlight-thumbnail:hover .bg-primary {
-            opacity: 1;
-            transform: scale(1.1);
-        }
-
-        /* Video player in modal */
-        .ratio-16x9 video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .highlight-thumbnail img {
-                height: 150px !important;
-            }
-
-            .highlight-info strong {
-                font-size: 0.9rem;
-            }
-        }
-
-        /* Pastikan semua kolom tetap terlihat di mobile */
-        .table th:nth-child(1),
-        .table td:nth-child(1) {
-            width: 40px;
-        }
-
-        /* # */
-        .table th:nth-child(2),
-        .table td:nth-child(2) {
-            min-width: 120px;
-        }
-
-        /* Team */
-        .table th:nth-child(3),
-        .table td:nth-child(3) {
-            width: 30px;
-        }
-
-        /* P */
-        .table th:nth-child(4),
-        .table td:nth-child(4) {
-            width: 30px;
-        }
-
-        /* W */
-        .table th:nth-child(5),
-        .table td:nth-child(5) {
-            width: 30px;
-        }
-
-        /* D */
-        .table th:nth-child(6),
-        .table td:nth-child(6) {
-            width: 30px;
-        }
-
-        /* L */
-        .table th:nth-child(7),
-        .table td:nth-child(7) {
-            width: 40px;
-        }
-
-        /* GD */
-        .table th:nth-child(8),
-        .table td:nth-child(8) {
-            width: 40px;
-        }
-
-        /* PTS */
     }
 
     @media (min-width: 992px) {
@@ -1306,7 +806,12 @@
         }
 
         .brand-main {
-            font-size: 1.4rem;
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .card-header {
@@ -1326,11 +831,15 @@
         }
     }
 
+
+
     @media (min-width: 1200px) {
+
+        /* Compact Container */
         .container {
-            max-width: 1140px;
-            padding-left: 12px;
-            padding-right: 12px;
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            max-width: 1200px;
         }
     }
 
@@ -1357,10 +866,146 @@
         }
     }
 
+    /* Hero Custom Styles */
+    .hero-section {
+        padding: 80px 0;
+        position: relative;
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        margin-bottom: 40px;
+        text-align: center;
+    }
 
+    .hero-cta-button {
+        transition: all 0.3s ease !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
 
-    /* Safe Area for Notches */
+    .hero-cta-button:hover {
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+        text-decoration: none !important;
+    }
 
+    .hero-cta-button:active {
+        transform: translateY(0) !important;
+    }
+
+    @keyframes float-particle {
+        0% {
+            transform: translateY(0) translateX(0);
+            opacity: 0;
+        }
+
+        10% {
+            opacity: 1;
+        }
+
+        90% {
+            opacity: 1;
+        }
+
+        100% {
+            transform: translateY(-100vh) translateX(20px);
+            opacity: 0;
+        }
+    }
+
+    /* Mobile specific adjustments */
+    @media (max-width: 768px) {
+        .hero-section {
+            padding: 60px 0;
+            min-height: 300px;
+        }
+
+        .tournament-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .hero-cta-button {
+            padding: 10px 25px !important;
+            font-size: 1rem !important;
+        }
+
+        .highlight-thumbnail img {
+            height: 150px !important;
+        }
+
+        .highlight-info strong {
+            font-size: 0.9rem;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .hero-section {
+            padding: 50px 0;
+            min-height: 250px;
+        }
+
+        .tournament-title {
+            font-size: 1.8rem;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+        }
+
+        .hero-cta-button {
+            padding: 8px 20px !important;
+            font-size: 0.95rem !important;
+        }
+
+        .top-scorer-player-card {
+            padding: 0.6rem;
+        }
+
+        .top-scorer-rank-badge {
+            width: 28px;
+            height: 28px;
+            font-size: 0.8rem;
+            margin-right: 8px;
+        }
+
+        .top-scorer-player-info h6 {
+            font-size: 0.85rem;
+        }
+
+        .top-scorer-player-team {
+            font-size: 0.7rem;
+        }
+
+        .top-scorer-goals-count {
+            font-size: 0.8rem;
+            min-width: 55px;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .table-responsive {
+            font-size: 0.75rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.35rem 0.2rem;
+            font-size: 0.75rem;
+        }
+
+        .col-md-6 {
+            padding-left: 8px;
+            padding-right: 8px;
+        }
+
+        .group-title {
+            font-size: 0.9rem;
+        }
+    }
 
     /* Print Styles */
     @media print {
@@ -1399,10 +1044,17 @@
             </button>
 
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto">
+                <ul class="navbar-nav ms-auto align-items-center">
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">
                             <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('news*') ? 'active' : '' }}"
+                            href="{{ route('news.index') }}">
+                            <i class="bi bi-newspaper"></i> News
                         </a>
                     </li>
 
@@ -1431,7 +1083,6 @@
                         </a>
                     </li>
 
-                    <!-- Highlights Link - Active State -->
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('highlights*') ? 'active' : '' }}"
                             href="{{ route('highlights.index') }}">
@@ -1451,8 +1102,8 @@
 
                     @if(auth()->user()->role === 'admin')
                     <li class="nav-item">
-                        <a class="nav-link admin-badge" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Admin Panel
+                        <a class="nav-link btn btn-outline-primary btn-sm" href="{{ route('admin.dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Admin
                         </a>
                     </li>
                     @endif
@@ -1460,14 +1111,14 @@
                     <li class="nav-item">
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
-                            <button type="submit" class="nav-link btn btn-link btn-logout-nav p-0 border-0">
+                            <button type="submit" class="nav-link btn btn-link btn-sm text-danger p-0">
                                 <i class="bi bi-box-arrow-right"></i> Logout
                             </button>
                         </form>
                     </li>
                     @else
                     <li class="nav-item">
-                        <a class="nav-link btn btn-primary btn-login-nav" href="{{ route('login') }}">
+                        <a class="nav-link btn btn-primary btn-sm" href="{{ route('login') }}">
                             <i class="bi bi-box-arrow-in-right"></i> Login
                         </a>
                     </li>

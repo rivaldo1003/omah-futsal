@@ -26,14 +26,14 @@ class StandingService
         $homeStanding = Standing::firstOrNew([
             'tournament_id' => $tournamentId,
             'team_id' => $homeTeamId,
-            'group_name' => $groupName
+            'group_name' => $groupName,
         ]);
 
         // Update standing untuk away team
         $awayStanding = Standing::firstOrNew([
             'tournament_id' => $tournamentId,
             'team_id' => $awayTeamId,
-            'group_name' => $groupName
+            'group_name' => $groupName,
         ]);
 
         // Reset stats sebelum dihitung ulang
@@ -57,13 +57,13 @@ class StandingService
         $homeStanding = Standing::firstOrNew([
             'tournament_id' => $tournamentId,
             'team_id' => $homeTeamId,
-            'group_name' => $groupName
+            'group_name' => $groupName,
         ]);
 
         $awayStanding = Standing::firstOrNew([
             'tournament_id' => $tournamentId,
             'team_id' => $awayTeamId,
-            'group_name' => $groupName
+            'group_name' => $groupName,
         ]);
 
         // Reset ke default
@@ -106,7 +106,7 @@ class StandingService
             ->where('tournament_id', $match->tournament_id)
             ->first();
 
-        if (!$homeStanding || !$awayStanding) {
+        if (! $homeStanding || ! $awayStanding) {
             return;
         }
 

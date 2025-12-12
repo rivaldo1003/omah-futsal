@@ -141,7 +141,7 @@ class TournamentStepController extends Controller
 
                 } catch (\Exception $e) {
                     return redirect()->back()
-                        ->with('error', 'Error creating tournament: ' . $e->getMessage());
+                        ->with('error', 'Error creating tournament: '.$e->getMessage());
                 }
         }
     }
