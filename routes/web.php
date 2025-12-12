@@ -1,17 +1,18 @@
 <?php
 
 use App\Http\Controllers\Admin\HeroSettingController;
-use App\Http\Controllers\TopScorerController;
-use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\HomeController;
-use App\Http\Controllers\TeamController;
-use App\Http\Controllers\PlayerController;
-use App\Http\Controllers\GameController;
-use App\Http\Controllers\StandingController;
-use App\Http\Controllers\TournamentController;
-use App\Http\Controllers\MatchEventController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\GameController;
+use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MatchEventController;
+use App\Http\Controllers\NewsArticleController;
+use App\Http\Controllers\PlayerController;
 use App\Http\Controllers\ScheduleController;
+use App\Http\Controllers\StandingController;
+use App\Http\Controllers\TeamController;
+use App\Http\Controllers\TopScorerController;
+use App\Http\Controllers\TournamentController;
+use Illuminate\Support\Facades\Route;
 
 // ==================== PUBLIC ROUTES ====================
 
@@ -19,6 +20,10 @@ use App\Http\Controllers\ScheduleController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+// / News
+Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index');
+Route::get('/news/{id}', [NewsArticleController::class, 'show'])->name('news.show');
 
 // Tournaments
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
@@ -44,15 +49,11 @@ Route::get('/top-scorers', [TopScorerController::class, 'index'])->name('top-sco
 Route::get('/matches/{match}/highlight', [GameController::class, 'getHighlightInfo'])
     ->name('matches.highlight');
 
-
-    // routes/web.php
+// routes/web.php
 Route::get('/highlights', [GameController::class, 'highlights'])->name('highlights.index');
 
- Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYoutubeHighlightInfo'])
-        ->name('matches.youtube-highlight.info');
-
-
-
+Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYoutubeHighlightInfo'])
+    ->name('matches.youtube-highlight.info');
 
 // ==================== AUTHENTICATION ROUTES ====================
 
@@ -71,7 +72,6 @@ Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordControlle
 Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
 Route::resource('teams', TeamController::class);
-
 
 // ==================== USER DASHBOARD ROUTES ====================
 
@@ -96,34 +96,47 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('/overview', [AdminController::class, 'overview'])->name('overview');
     Route::get('/analytics', [AdminController::class, 'analytics'])->name('analytics');
 
+    /// NEWS
+   Route::prefix('news')->name('news.')->group(function () {
+        Route::get('/', [NewsArticleController::class, 'adminIndex'])->name('index');  // adminIndex
+        Route::get('/create', [NewsArticleController::class, 'create'])->name('create');
+        Route::post('/', [NewsArticleController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [NewsArticleController::class, 'edit'])->name('edit');  // {id} bukan {article}
+        Route::put('/{id}', [NewsArticleController::class, 'update'])->name('update');  // {id} bukan {article}
+        Route::delete('/{id}', [NewsArticleController::class, 'destroy'])->name('destroy');  // {id} bukan {article}
+    });
+
     // Highlight routes
     Route::get('/matches/{match}/edit-highlight', [GameController::class, 'editHighlight'])
-    ->name('admin.matches.edit-highlight');
-Route::post('/matches/{match}/upload-highlight', [GameController::class, 'uploadHighlight'])
-    ->name('admin.matches.upload-highlight');
-Route::delete('/matches/{match}/delete-highlight', [GameController::class, 'deleteHighlight'])
-    ->name('admin.matches.delete-highlight');
-Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighlightInfo'])
-    ->name('admin.matches.highlight-info');
+        ->name('admin.matches.edit-highlight');
+    Route::post('/matches/{match}/upload-highlight', [GameController::class, 'uploadHighlight'])
+        ->name('admin.matches.upload-highlight');
+    Route::delete('/matches/{match}/delete-highlight', [GameController::class, 'deleteHighlight'])
+        ->name('admin.matches.delete-highlight');
+    Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighlightInfo'])
+        ->name('admin.matches.highlight-info');
 
+    // YouTube highlights
+    Route::post('/matches/{match}/youtube-highlight', [GameController::class, 'addYoutubeHighlight'])
+        ->name('matches.youtube-highlight.add');
+    Route::put('/matches/{match}/youtube-highlight', [GameController::class, 'updateYoutubeHighlight'])
+        ->name('matches.youtube-highlight.update');
+    Route::delete('/matches/{match}/youtube-highlight', [GameController::class, 'removeYoutubeHighlight'])
+        ->name('matches.youtube-highlight.remove');
 
-     // YouTube highlights
-        Route::post('/matches/{match}/youtube-highlight', [GameController::class, 'addYoutubeHighlight'])
-            ->name('matches.youtube-highlight.add');
-        Route::put('/matches/{match}/youtube-highlight', [GameController::class, 'updateYoutubeHighlight'])
-            ->name('matches.youtube-highlight.update');
-        Route::delete('/matches/{match}/youtube-highlight', [GameController::class, 'removeYoutubeHighlight'])
-            ->name('matches.youtube-highlight.remove');
-    
+    // / NEWS
 
+  Route::post('/news/{id}/increment-views', [NewsArticleController::class, 'incrementViews'])
+    ->name('news.increment-views');
+
+    // Untuk admin (jika ada)
+    Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
+        Route::resource('news', AdminNewsController::class);
+    });
 
     // HERO SETTINGS
-
-
     Route::get('/hero-settings', [HeroSettingController::class, 'edit'])->name('hero-settings.index');
     Route::put('/hero-settings', [HeroSettingController::class, 'update'])->name('hero-settings.update');
-
-
 
     // ========== TOURNAMENT MANAGEMENT ==========
     // Multi-step routes
@@ -165,7 +178,7 @@ Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighli
     Route::post('matches/{match}/stats', [GameController::class, 'updateStats'])->name('matches.update-stats');
 
     // ========== MATCH EVENTS MANAGEMENT ==========
-// Route khusus untuk MatchEventController
+    // Route khusus untuk MatchEventController
     Route::get('matches/{match}/events', [MatchEventController::class, 'index'])->name('matches.events.index');
     Route::get('matches/{match}/events/create', [MatchEventController::class, 'create'])->name('matches.events.create');
     Route::post('matches/{match}/events', [MatchEventController::class, 'store'])->name('matches.events.store');
@@ -186,8 +199,6 @@ Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighli
 
     // ========== TEAMS MANAGEMENT ==========
     Route::resource('teams', TeamController::class);
-
-
 
     // Tambahkan route untuk update status
     Route::put('teams/{team}/status', [TeamController::class, 'updateStatus'])->name('teams.update-status');
@@ -305,10 +316,10 @@ Route::get('/matches/{match}/highlight-info', [GameController::class, 'getHighli
         Route::post('gallery', [AdminController::class, 'storeGallery'])->name('gallery.store');
     });
 
-    // ========== NEWS & ANNOUNCEMENTS ==========
-    Route::resource('news', \App\Http\Controllers\NewsController::class);
-    Route::post('news/{news}/publish', [\App\Http\Controllers\NewsController::class, 'publish'])->name('news.publish');
-    Route::post('news/{news}/unpublish', [\App\Http\Controllers\NewsController::class, 'unpublish'])->name('news.unpublish');
+    // // ========== NEWS & ANNOUNCEMENTS ==========
+    // Route::resource('news', \App\Http\Controllers\NewsController::class);
+    // Route::post('news/{news}/publish', [\App\Http\Controllers\NewsController::class, 'publish'])->name('news.publish');
+    // Route::post('news/{news}/unpublish', [\App\Http\Controllers\NewsController::class, 'unpublish'])->name('news.unpublish');
 });
 
 // ==================== API ROUTES (Public) ====================
@@ -387,11 +398,13 @@ if (app()->environment('local')) {
 
         Route::get('/seed-test-data', function () {
             Artisan::call('db:seed', ['--class' => 'TournamentDataSeeder']);
+
             return 'Test data seeded!';
         });
 
         Route::get('/clear-cache', function () {
             Artisan::call('optimize:clear');
+
             return 'Cache cleared!';
         });
     });
@@ -400,8 +413,9 @@ if (app()->environment('local')) {
 // ==================== MAINTENANCE MODE ====================
 
 Route::get('/maintenance', function () {
-    if (!app()->isDownForMaintenance()) {
+    if (! app()->isDownForMaintenance()) {
         return redirect('/');
     }
+
     return view('maintenance');
 })->name('maintenance');

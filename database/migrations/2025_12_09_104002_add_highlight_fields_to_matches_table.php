@@ -27,7 +27,7 @@ return new class extends Migration
                 'highlight_video_size',
                 'highlight_video_duration',
                 'highlight_uploaded_at',
-                'highlight_original_name'
+                'highlight_original_name',
             ]);
         });
     }

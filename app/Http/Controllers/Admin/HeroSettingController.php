@@ -13,7 +13,7 @@ class HeroSettingController extends Controller
     {
         $heroSetting = HeroSetting::first();
 
-        if (!$heroSetting) {
+        if (! $heroSetting) {
             $heroSetting = HeroSetting::create([
                 'title' => 'OFS Champions League 2025',
                 'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
@@ -24,7 +24,7 @@ class HeroSettingController extends Controller
                 'gradient_start' => '#0f172a',
                 'gradient_end' => '#1e293b',
                 'button_color' => '#3b82f6',
-                'button_text_color' => '#ffffff'
+                'button_text_color' => '#ffffff',
             ]);
         }
 
@@ -47,7 +47,7 @@ class HeroSettingController extends Controller
             'gradient_end' => 'nullable|string',
             'overlay_opacity' => 'nullable|integer|min:0|max:100',
             'button_color' => 'nullable|string',
-            'button_text_color' => 'nullable|string'
+            'button_text_color' => 'nullable|string',
         ]);
 
         $heroSetting = HeroSetting::firstOrNew();
@@ -65,7 +65,7 @@ class HeroSettingController extends Controller
             'gradient_end',
             'overlay_opacity',
             'button_color',
-            'button_text_color'
+            'button_text_color',
         ]);
 
         // Handle background image upload

@@ -2,12 +2,12 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
-use App\Models\Tournament;
-use App\Models\Team;
 use App\Models\Game;
+use App\Models\Team;
+use App\Models\Tournament;
 use App\Models\User;
 use Carbon\Carbon;
+use Illuminate\Database\Seeder;
 
 class TournamentDataSeeder extends Seeder
 {
@@ -32,7 +32,7 @@ class TournamentDataSeeder extends Seeder
                 'points_win' => 3,
                 'points_draw' => 1,
                 'points_loss' => 0,
-            ])
+            ]),
         ]);
 
         // 2. Create Teams
@@ -61,13 +61,13 @@ class TournamentDataSeeder extends Seeder
             $team = Team::create([
                 'name' => $teamData['name'],
                 'coach_name' => $teamData['coach_name'],
-                'tournament_id' => $tournament->id
+                'tournament_id' => $tournament->id,
             ]);
 
             // Attach to tournament with group
             $tournament->teams()->attach($team->id, [
                 'group_name' => 'A',
-                'seed' => $teamId++
+                'seed' => $teamId++,
             ]);
 
             $allTeams[$team->name] = $team->id;
@@ -78,13 +78,13 @@ class TournamentDataSeeder extends Seeder
             $team = Team::create([
                 'name' => $teamData['name'],
                 'coach_name' => $teamData['coach_name'],
-                'tournament_id' => $tournament->id
+                'tournament_id' => $tournament->id,
             ]);
 
             // Attach to tournament with group
             $tournament->teams()->attach($team->id, [
                 'group_name' => 'B',
-                'seed' => $teamId++
+                'seed' => $teamId++,
             ]);
 
             $allTeams[$team->name] = $team->id;
@@ -126,19 +126,19 @@ class TournamentDataSeeder extends Seeder
         }
 
         // 4. Create Admin User (jika belum)
-        if (!User::where('email', 'admin@tournament.com')->exists()) {
+        if (! User::where('email', 'admin@tournament.com')->exists()) {
             User::create([
                 'name' => 'Admin Turnamen',
                 'email' => 'admin@tournament.com',
                 'password' => bcrypt('password123'),
                 'role' => 'admin',
-                'is_active' => true
+                'is_active' => true,
             ]);
         }
 
         $this->command->info('✅ Tournament data created successfully!');
-        $this->command->info('Tournament: ' . $tournament->name);
-        $this->command->info('Teams: ' . Team::count() . ' teams created');
-        $this->command->info('Matches: ' . Game::count() . ' matches scheduled');
+        $this->command->info('Tournament: '.$tournament->name);
+        $this->command->info('Teams: '.Team::count().' teams created');
+        $this->command->info('Matches: '.Game::count().' matches scheduled');
     }
 }

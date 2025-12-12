@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tournament extends Model
 {
@@ -44,7 +44,7 @@ class Tournament extends Model
         'points_win',
         'points_draw',
         'points_loss',
-        'max_substitutes'
+        'max_substitutes',
     ];
 
     // Relasi dengan teams (many-to-many)
@@ -148,6 +148,7 @@ class Tournament extends Model
         if ($this->start_date && $this->end_date) {
             return now()->parse($this->start_date)->diffInDays($this->end_date) + 1;
         }
+
         return 0;
     }
 
@@ -156,8 +157,10 @@ class Tournament extends Model
         if ($this->start_date && $this->end_date) {
             $start = now()->parse($this->start_date)->format('d M Y');
             $end = now()->parse($this->end_date)->format('d M Y');
+
             return "{$start} - {$end}";
         }
+
         return 'Not scheduled';
     }
 
@@ -167,6 +170,7 @@ class Tournament extends Model
         if ($this->type === 'group_knockout' && $this->groups_count) {
             return range('A', chr(ord('A') + $this->groups_count - 1));
         }
+
         return [];
     }
 
@@ -175,7 +179,6 @@ class Tournament extends Model
     {
         return $this->teams()->wherePivot('group_name', $group)->get();
     }
-
 
     // In Team model
     public function tournaments()

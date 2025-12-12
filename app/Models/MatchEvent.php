@@ -1,4 +1,5 @@
 <?php
+
 // app/Models/MatchEvent.php
 
 namespace App\Models;
@@ -8,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo; // Tambahkan untuk tipe-hi
 
 class MatchEvent extends Model
 {
-    // Pastikan semua kolom yang baru (team_id dan related_player_id) 
+    // Pastikan semua kolom yang baru (team_id dan related_player_id)
     // serta kolom lama yang relevan ada di fillable.
     protected $fillable = [
         'match_id',
@@ -19,7 +20,7 @@ class MatchEvent extends Model
         'minute',
         'description',
         'is_own_goal',
-        'is_penalty'
+        'is_penalty',
     ];
 
     // Relasi ke Pertandingan

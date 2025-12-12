@@ -20,12 +20,12 @@ class HeroSetting extends Model
         'gradient_end',
         'overlay_opacity',
         'button_color',
-        'button_text_color'
+        'button_text_color',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'overlay_opacity' => 'integer'
+        'overlay_opacity' => 'integer',
     ];
 
     protected $attributes = [
@@ -33,6 +33,6 @@ class HeroSetting extends Model
         'button_color' => '#3b82f6',
         'button_text_color' => '#ffffff',
         'gradient_start' => '#0f172a',
-        'gradient_end' => '#1e293b'
+        'gradient_end' => '#1e293b',
     ];
 }

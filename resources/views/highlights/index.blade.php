@@ -39,18 +39,20 @@
         font-size: 15px;
     }
 
-    /* Container Fixes */
+    /* Compact Container */
     .container {
-        padding-left: max(15px, env(safe-area-inset-left));
-        padding-right: max(15px, env(safe-area-inset-right));
+        padding-left: max(12px, env(safe-area-inset-left));
+        padding-right: max(12px, env(safe-area-inset-right));
+        max-width: 1200px;
     }
 
     /* Navigation - Fully Responsive */
+    /* Compact Navigation */
     .navbar {
         background: var(--nav-bg);
         backdrop-filter: blur(10px);
-        box-shadow: 0 2px 10px var(--nav-shadow);
-        padding: 0.5rem 0;
+        box-shadow: 0 1px 3px var(--nav-shadow);
+        padding: 0.4rem 0;
         position: sticky;
         top: 0;
         z-index: 1040;
@@ -71,6 +73,7 @@
         gap: 10px;
     }
 
+
     .brand-logo {
         width: 35px;
         height: 35px;
@@ -84,7 +87,7 @@
     }
 
     .brand-main {
-        font-size: 1.1rem;
+        font-size: 1rem;
         font-weight: 800;
         background: linear-gradient(135deg, var(--primary-color), #60a5fa);
         -webkit-background-clip: text;
@@ -93,9 +96,9 @@
     }
 
     .brand-sub {
-        font-size: 0.65rem;
+        font-size: 0.6rem;
         color: #64748b;
-        letter-spacing: 1px;
+        letter-spacing: 0.8px;
         text-transform: uppercase;
         font-weight: 600;
     }
@@ -117,18 +120,18 @@
     .nav-link {
         color: #475569 !important;
         font-weight: 600;
-        padding: 0.7rem 1rem !important;
-        border-radius: 6px;
-        margin: 2px 0;
+        padding: 0.5rem 0.8rem !important;
+        border-radius: 4px;
+        margin: 1px 0;
         display: flex;
         align-items: center;
-        gap: 8px;
-        font-size: 0.9rem;
+        gap: 6px;
+        font-size: 0.85rem;
     }
 
     .nav-link i {
-        font-size: 1rem;
-        width: 20px;
+        font-size: 0.9rem;
+        width: 18px;
         text-align: center;
     }
 
@@ -430,6 +433,38 @@
             height: 150px;
         }
     }
+
+    .compact-text {
+        font-size: 0.85rem;
+        line-height: 1.3;
+    }
+
+    .compact-meta {
+        font-size: 0.75rem;
+        opacity: 0.8;
+    }
+
+    .compact-heading {
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    /* Better Spacing */
+    .mb-compact-1 {
+        margin-bottom: 0.5rem;
+    }
+
+    .mb-compact-2 {
+        margin-bottom: 1rem;
+    }
+
+    .mb-compact-3 {
+        margin-bottom: 1.5rem;
+    }
+
+    .p-compact-1 {
+        padding: 0.5rem;
+    }
     </style>
 </head>
 
@@ -457,6 +492,13 @@
                     <li class="nav-item">
                         <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">
                             <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('news*') ? 'active' : '' }}"
+                            href="{{ route('news.index') }}">
+                            <i class="bi bi-newspaper"></i> News
                         </a>
                     </li>
 
@@ -504,7 +546,7 @@
 
                     <li class="nav-item">
                         <a class="nav-link admin-badge" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Admin Panel
+                            <i class="bi bi-speedometer2"></i> Admin
                         </a>
                     </li>
                     @endif

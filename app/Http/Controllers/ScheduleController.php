@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MatchModel;
-use App\Models\Tournament;
 use App\Models\Match;
+use App\Models\MatchModel;
 use App\Models\Team;
-use Illuminate\Http\Request;
+use App\Models\Tournament;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleController extends Controller
@@ -38,8 +37,9 @@ class ScheduleController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Failed to generate schedule: ' . $e->getMessage());
+                ->with('error', 'Failed to generate schedule: '.$e->getMessage());
         }
     }
 
@@ -67,12 +67,12 @@ class ScheduleController extends Controller
                 for ($j = $i + 1; $j < $teamCount; $j++) {
                     // Determine match date and time
                     if ($matchCounter % $matchesPerDay === 0 && $matchCounter > 0) {
-                        $matchDate = date('Y-m-d', strtotime($matchDate . ' +1 day'));
+                        $matchDate = date('Y-m-d', strtotime($matchDate.' +1 day'));
                         $currentTimeSlot = 0;
                     }
 
                     $timeStart = $timeSlots[$currentTimeSlot % count($timeSlots)];
-                    $timeEnd = date('H:i', strtotime($timeStart . ' +' . ($tournament->settings['match_duration'] ?? 40) . ' minutes'));
+                    $timeEnd = date('H:i', strtotime($timeStart.' +'.($tournament->settings['match_duration'] ?? 40).' minutes'));
 
                     // Create match
                     MatchModel::create([
@@ -86,7 +86,7 @@ class ScheduleController extends Controller
                         'status' => 'upcoming',
                         'round_type' => 'group',
                         'group_name' => $groupName,
-                        'notes' => "Group $groupName - Matchday " . (floor($matchCounter / $matchesPerDay) + 1)
+                        'notes' => "Group $groupName - Matchday ".(floor($matchCounter / $matchesPerDay) + 1),
                     ]);
 
                     $matchCounter++;
@@ -139,7 +139,7 @@ class ScheduleController extends Controller
             for ($j = $i + 1; $j < $teamCount; $j++) {
                 // Determine match date
                 if ($matchCounter % $matchesPerDay === 0 && $matchCounter > 0) {
-                    $matchDate = date('Y-m-d', strtotime($matchDate . ' +1 day'));
+                    $matchDate = date('Y-m-d', strtotime($matchDate.' +1 day'));
                 }
 
                 // Create match
@@ -154,7 +154,7 @@ class ScheduleController extends Controller
                     'status' => 'upcoming',
                     'round_type' => 'group',
                     'group_name' => null, // No groups in league
-                    'notes' => "Matchday " . (floor($matchCounter / $matchesPerDay) + 1)
+                    'notes' => 'Matchday '.(floor($matchCounter / $matchesPerDay) + 1),
                 ]);
 
                 $matchCounter++;
@@ -198,13 +198,13 @@ class ScheduleController extends Controller
                         'status' => 'upcoming',
                         'round_type' => $roundType,
                         'group_name' => null,
-                        'notes' => "$roundType match"
+                        'notes' => "$roundType match",
                     ]);
                 }
             }
 
             // Move to next day for next round
-            $matchDate = date('Y-m-d', strtotime($matchDate . ' -1 day'));
+            $matchDate = date('Y-m-d', strtotime($matchDate.' -1 day'));
         }
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Standing;
-use App\Models\Tournament;
 use App\Models\Game;
+use App\Models\Standing;
 use App\Models\Team;
+use App\Models\Tournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -27,10 +27,10 @@ class StandingController extends Controller
         } else {
             // Default ke tournament ongoing atau terbaru
             $selectedTournament = Tournament::where('status', 'ongoing')->first();
-            if (!$selectedTournament) {
+            if (! $selectedTournament) {
                 $selectedTournament = Tournament::where('status', 'upcoming')->first();
             }
-            if (!$selectedTournament) {
+            if (! $selectedTournament) {
                 $selectedTournament = Tournament::latest()->first();
             }
         }
@@ -67,6 +67,7 @@ class StandingController extends Controller
             $standing->won = $standing->wins;
             $standing->drawn = $standing->draws;
             $standing->lost = $standing->losses;
+
             return $standing;
         });
 
@@ -137,9 +138,9 @@ class StandingController extends Controller
                     'team' => (object) [
                         'id' => $teamTournament->id,
                         'name' => $teamTournament->name,
-                        'logo' => $teamTournament->logo // TAMBAHKAN LOGO
+                        'logo' => $teamTournament->logo, // TAMBAHKAN LOGO
                     ],
-                    'is_default' => true
+                    'is_default' => true,
                 ];
             }
 
@@ -158,7 +159,7 @@ class StandingController extends Controller
                     $standing->points,
                     $standing->goal_difference,
                     $standing->goals_for,
-                    $standing->wins
+                    $standing->wins,
                 ];
             });
 
@@ -173,7 +174,7 @@ class StandingController extends Controller
      */
     private function calculateTournamentStats($tournament, $standings)
     {
-        if (!$tournament) {
+        if (! $tournament) {
             return [
                 'total_matches' => 0,
                 'total_goals' => 0,
@@ -239,10 +240,10 @@ class StandingController extends Controller
         } else {
             // Default ke tournament ongoing atau terbaru
             $selectedTournament = Tournament::where('status', 'ongoing')->first();
-            if (!$selectedTournament) {
+            if (! $selectedTournament) {
                 $selectedTournament = Tournament::where('status', 'upcoming')->first();
             }
-            if (!$selectedTournament) {
+            if (! $selectedTournament) {
                 $selectedTournament = Tournament::latest()->first();
             }
         }
@@ -253,7 +254,7 @@ class StandingController extends Controller
             $standings = Standing::with([
                 'team' => function ($query) {
                     $query->select('id', 'name', 'logo'); // TAMBAHKAN LOGO
-                }
+                },
             ])
                 ->where('tournament_id', $selectedTournament->id)
                 ->orderBy('group_name')
@@ -301,7 +302,7 @@ class StandingController extends Controller
                     $defaultStanding->team = (object) [
                         'id' => $team->id,
                         'name' => $team->name,
-                        'logo' => $team->logo // TAMBAHKAN LOGO
+                        'logo' => $team->logo, // TAMBAHKAN LOGO
                     ];
                     $defaultStanding->is_default = true;
 
@@ -321,7 +322,7 @@ class StandingController extends Controller
                         $standing->points,
                         $standing->goal_difference,
                         $standing->goals_for,
-                        $standing->wins
+                        $standing->wins,
                     ];
                 });
 
@@ -411,8 +412,9 @@ class StandingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return redirect()->back()
-                ->with('error', 'Error recalculating standings: ' . $e->getMessage());
+                ->with('error', 'Error recalculating standings: '.$e->getMessage());
         }
     }
 
@@ -527,7 +529,7 @@ class StandingController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error resetting standings: ' . $e->getMessage());
+                ->with('error', 'Error resetting standings: '.$e->getMessage());
         }
     }
 
@@ -587,7 +589,7 @@ class StandingController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating standing: ' . $e->getMessage());
+                ->with('error', 'Error updating standing: '.$e->getMessage());
         }
     }
 
@@ -620,8 +622,9 @@ class StandingController extends Controller
                     'message' => 'Some teams are missing standings records',
                     'details' => $missingTeams->map(function ($teamId) {
                         $team = Team::find($teamId);
+
                         return $team ? $team->name : "Team ID: $teamId";
-                    })->toArray()
+                    })->toArray(),
                 ];
             }
 
@@ -636,7 +639,7 @@ class StandingController extends Controller
                     $inconsistencies[] = [
                         'type' => 'matches_mismatch',
                         'message' => "Matches played mismatch for {$standing->team->name}",
-                        'details' => "Matches played: {$standing->matches_played}, Calculated: {$calculatedMatches}"
+                        'details' => "Matches played: {$standing->matches_played}, Calculated: {$calculatedMatches}",
                     ];
                 }
 
@@ -647,7 +650,7 @@ class StandingController extends Controller
                     $inconsistencies[] = [
                         'type' => 'goal_difference_mismatch',
                         'message' => "Goal difference mismatch for {$standing->team->name}",
-                        'details' => "GD: {$standing->goal_difference}, Calculated: {$calculatedGD}"
+                        'details' => "GD: {$standing->goal_difference}, Calculated: {$calculatedGD}",
                     ];
                 }
 
@@ -658,7 +661,7 @@ class StandingController extends Controller
                     $inconsistencies[] = [
                         'type' => 'points_mismatch',
                         'message' => "Points mismatch for {$standing->team->name}",
-                        'details' => "Points: {$standing->points}, Calculated: {$calculatedPoints}"
+                        'details' => "Points: {$standing->points}, Calculated: {$calculatedPoints}",
                     ];
                 }
             }
@@ -673,11 +676,11 @@ class StandingController extends Controller
                 $homeStanding = $standings->where('team_id', $match->team_home_id)->first();
                 $awayStanding = $standings->where('team_id', $match->team_away_id)->first();
 
-                if (!$homeStanding || !$awayStanding) {
+                if (! $homeStanding || ! $awayStanding) {
                     $inconsistencies[] = [
                         'type' => 'match_no_standing',
-                        'message' => "Match has no corresponding standing records",
-                        'details' => "Match ID: {$match->id}"
+                        'message' => 'Match has no corresponding standing records',
+                        'details' => "Match ID: {$match->id}",
                     ];
                 }
             }
@@ -693,7 +696,7 @@ class StandingController extends Controller
                     $inconsistencies[] = [
                         'type' => 'group_mismatch',
                         'message' => "Group mismatch for {$standing->team->name}",
-                        'details' => "Standing Group: {$standing->group_name}, Team-Tournament Group: {$teamGroup}"
+                        'details' => "Standing Group: {$standing->group_name}, Team-Tournament Group: {$teamGroup}",
                     ];
                 }
             }
@@ -708,7 +711,7 @@ class StandingController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error verifying standings: ' . $e->getMessage(),
+                'message' => 'Error verifying standings: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -795,9 +798,10 @@ class StandingController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
+
             return response()->json([
                 'success' => false,
-                'message' => 'Error fixing inconsistencies: ' . $e->getMessage(),
+                'message' => 'Error fixing inconsistencies: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -822,7 +826,7 @@ class StandingController extends Controller
                 ->orderByDesc('wins')
                 ->get();
 
-            $filename = "standings_{$tournament->slug}_" . date('Y-m-d') . ".csv";
+            $filename = "standings_{$tournament->slug}_".date('Y-m-d').'.csv';
             $headers = [
                 'Content-Type' => 'text/csv',
                 'Content-Disposition' => "attachment; filename=\"$filename\"",
@@ -836,7 +840,7 @@ class StandingController extends Controller
 
                 // Header
                 fputcsv($file, ["Tournament Standings: {$tournament->name}"]);
-                fputcsv($file, ["Generated: " . date('Y-m-d H:i:s')]);
+                fputcsv($file, ['Generated: '.date('Y-m-d H:i:s')]);
                 fputcsv($file, []); // Empty line
 
                 // Column headers
@@ -878,7 +882,7 @@ class StandingController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error exporting standings: ' . $e->getMessage());
+                ->with('error', 'Error exporting standings: '.$e->getMessage());
         }
     }
 

@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\HeroSetting;
-use Illuminate\Http\Request;
 use App\Models\Game;
-use App\Models\Team;
+use App\Models\HeroSetting;
 use App\Models\Player;
 use App\Models\Standing;
+use App\Models\Team;
 use App\Models\Tournament;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-
     private function getFallbackTopScorers()
     {
         return Player::with('team')
@@ -25,9 +23,11 @@ class HomeController extends Controller
                 $player->goals = $player->goals ?? 0;
                 $player->yellow_cards = $player->yellow_cards ?? 0;
                 $player->red_cards = $player->red_cards ?? 0;
+
                 return $player;
             });
     }
+
     public function index()
     {
         // ==============================
@@ -36,7 +36,7 @@ class HomeController extends Controller
         $heroSetting = HeroSetting::first();
 
         // Jika tidak ada setting, buat default
-        if (!$heroSetting) {
+        if (! $heroSetting) {
             $heroSetting = (object) [
                 'title' => 'OFS Champions League 2025',
                 'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
@@ -44,7 +44,7 @@ class HomeController extends Controller
                 'background_type' => 'gradient',
                 'background_color' => null,
                 'background_image' => null,
-                'text_color' => '#ffffff'
+                'text_color' => '#ffffff',
             ];
         }
 
@@ -55,12 +55,12 @@ class HomeController extends Controller
         $activeTournament = Tournament::where('status', 'ongoing')->first();
 
         // Jika tidak ada tournament ongoing, ambil yang upcoming
-        if (!$activeTournament) {
+        if (! $activeTournament) {
             $activeTournament = Tournament::where('status', 'upcoming')->first();
         }
 
         // Jika masih tidak ada, ambil tournament apapun
-        if (!$activeTournament) {
+        if (! $activeTournament) {
             $activeTournament = Tournament::first();
         }
 
@@ -98,8 +98,8 @@ class HomeController extends Controller
         }
 
         // ==============================
-// GET TOP SCORERS PER TOURNAMENT - DENGAN PERINGKAT YANG SAMA
-// ==============================
+        // GET TOP SCORERS PER TOURNAMENT - DENGAN PERINGKAT YANG SAMA
+        // ==============================
         $topScorers = collect();
 
         if ($activeTournament) {
@@ -118,7 +118,7 @@ class HomeController extends Controller
                         DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "goal" AND me.is_own_goal = 0 THEN me.id END) as goals'),
                         DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "assist" THEN me.id END) as assists'),
                         DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "yellow_card" THEN me.id END) as yellow_cards'),
-                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "red_card" THEN me.id END) as red_cards')
+                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "red_card" THEN me.id END) as red_cards'),
                     ])
                     ->join('teams', 'players.team_id', '=', 'teams.id')
                     ->join('team_tournament', 'teams.id', '=', 'team_tournament.team_id')
@@ -177,18 +177,18 @@ class HomeController extends Controller
                         'yellow_cards' => $player->yellow_cards,
                         'red_cards' => $player->red_cards,
                         'rank' => $player->rank, // Peringkat setelah tie-handling
-                        'display_rank' => $player->rank // Untuk ditampilkan
+                        'display_rank' => $player->rank, // Untuk ditampilkan
                     ];
                 })->take(5); // Ambil 5 teratas
 
                 \Log::info('Top Scorers with Ranks:', [
                     'players' => $topScorers->map(function ($p) {
-                        return $p->name . ' - ' . $p->goals . ' gol (Rank: ' . $p->rank . ')';
-                    })->toArray()
+                        return $p->name.' - '.$p->goals.' gol (Rank: '.$p->rank.')';
+                    })->toArray(),
                 ]);
 
             } catch (\Exception $e) {
-                \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
+                \Log::error('Error getting tournament top scorers: '.$e->getMessage());
                 $topScorers = $this->getFallbackTopScorersWithRank();
             }
         } else {
@@ -224,14 +224,15 @@ class HomeController extends Controller
                 DB::table('team_tournament')->where('tournament_id', $activeTournament->id)->count() : 0,
             'top_scorers_count' => $topScorers->count(),
             'top_scorers_has_tournament_data' => $topScorers->first() && isset($topScorers->first()->tournament_goals) ? 'YES' : 'NO',
-            'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A'
+            'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A',
         ];
 
         $recentHighlights = Game::whereNotNull('youtube_id')
-        ->with(['homeTeam', 'awayTeam'])
-        ->orderBy('youtube_uploaded_at', 'desc')
-        ->limit(3)
-        ->get();
+            ->with(['homeTeam', 'awayTeam'])
+            ->orderBy('youtube_uploaded_at', 'desc')
+            ->limit(3)
+            ->get();
+
         return view('home', compact(
             'heroSetting', // <-- TAMBAH INI DI COMPACT
             'activeTournament',
@@ -297,9 +298,10 @@ class HomeController extends Controller
      */
     private function getAllGroupStandingsFixed($activeTournament = null)
     {
-        if (!$activeTournament) {
+        if (! $activeTournament) {
             // DEBUG: Log jika tidak ada tournament
             \Log::info('No active tournament found in getAllGroupStandingsFixed');
+
             return [];
         }
 
@@ -347,7 +349,7 @@ class HomeController extends Controller
                     $group = 'Ungrouped';
                 }
 
-                if (!isset($groupedTeams[$group])) {
+                if (! isset($groupedTeams[$group])) {
                     $groupedTeams[$group] = [];
                 }
 
@@ -378,8 +380,8 @@ class HomeController extends Controller
                         'team' => (object) [
                             'id' => $teamTournament->team_id,
                             'name' => $teamTournament->team_name,
-                            'logo' => $teamTournament->team_logo
-                        ]
+                            'logo' => $teamTournament->team_logo,
+                        ],
                     ];
                 }
 
@@ -399,24 +401,30 @@ class HomeController extends Controller
                     if ($b->goals_for != $a->goals_for) {
                         return $b->goals_for - $a->goals_for;
                     }
+
                     return $b->wins - $a->wins;
                 });
             }
 
             // 5. Sort groups alphabetically, tapi keluarkan 'Ungrouped' terakhir
             uksort($groupedTeams, function ($a, $b) {
-                if ($a === 'Ungrouped')
+                if ($a === 'Ungrouped') {
                     return 1;
-                if ($b === 'Ungrouped')
+                }
+                if ($b === 'Ungrouped') {
                     return -1;
+                }
+
                 return strcmp($a, $b);
             });
 
-            \Log::info("Grouped standings created with " . count($groupedTeams) . " groups");
+            \Log::info('Grouped standings created with '.count($groupedTeams).' groups');
+
             return $groupedTeams;
 
         } catch (\Exception $e) {
-            \Log::error('Error in getAllGroupStandingsFixed: ' . $e->getMessage());
+            \Log::error('Error in getAllGroupStandingsFixed: '.$e->getMessage());
+
             // Fallback ke method simple
             return $this->getStandingsDirectly($tournamentId);
         }
@@ -431,7 +439,7 @@ class HomeController extends Controller
             $standings = Standing::with([
                 'team' => function ($query) {
                     $query->select('id', 'name', 'logo');
-                }
+                },
             ])
                 ->where('tournament_id', $tournamentId)
                 ->orderBy('group_name')
@@ -442,16 +450,18 @@ class HomeController extends Controller
 
             if ($standings->isEmpty()) {
                 \Log::info("No standings found for tournament {$tournamentId}");
+
                 return [];
             }
 
             $grouped = $standings->groupBy('group_name')->toArray();
-            \Log::info("Direct standings found: " . count($grouped) . " groups");
+            \Log::info('Direct standings found: '.count($grouped).' groups');
 
             return $grouped;
 
         } catch (\Exception $e) {
-            \Log::error('Error in getStandingsDirectly: ' . $e->getMessage());
+            \Log::error('Error in getStandingsDirectly: '.$e->getMessage());
+
             return [];
         }
     }
@@ -459,8 +469,6 @@ class HomeController extends Controller
     /**
      * Method paling sederhana untuk testing
      */
-
-    
     private function getStandingsSimple()
     {
         try {
@@ -493,19 +501,21 @@ class HomeController extends Controller
                         'goals_against' => rand(0, 10),
                         'goal_difference' => rand(-5, 5),
                         'points' => rand(0, 9),
-                        'is_default' => false
+                        'is_default' => false,
                     ];
                 }
 
                 // Group dummy data
                 $grouped = collect($dummyStandings)->groupBy('group_name')->toArray();
+
                 return $grouped;
             }
 
             return $standings->groupBy('group_name')->toArray();
 
         } catch (\Exception $e) {
-            \Log::error('Error in getStandingsSimple: ' . $e->getMessage());
+            \Log::error('Error in getStandingsSimple: '.$e->getMessage());
+
             return [];
         }
     }
@@ -532,16 +542,16 @@ class HomeController extends Controller
     }
 
     // HomeController.php
-public function highlights()
-{
-    $highlights = Game::with(['homeTeam', 'awayTeam', 'tournament'])
-        ->where('status', 'completed')
-        ->whereNotNull('highlight_video')
-        ->orderBy('match_date', 'desc')
-        ->paginate(12);
-    
-    return view('highlights.index', compact('highlights'));
-}
+    public function highlights()
+    {
+        $highlights = Game::with(['homeTeam', 'awayTeam', 'tournament'])
+            ->where('status', 'completed')
+            ->whereNotNull('highlight_video')
+            ->orderBy('match_date', 'desc')
+            ->paginate(12);
+
+        return view('highlights.index', compact('highlights'));
+    }
 
     // ... method lainnya tetap sama ...
 }

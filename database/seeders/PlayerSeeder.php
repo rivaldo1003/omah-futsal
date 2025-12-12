@@ -2,9 +2,9 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Carbon\Carbon;
 
 class PlayerSeeder extends Seeder
 {
@@ -40,7 +40,7 @@ class PlayerSeeder extends Seeder
             'Udin',
             'Wahyu',
             'Yanto',
-            'Zainal'
+            'Zainal',
         ];
 
         $indonesianLastNames = [
@@ -67,7 +67,7 @@ class PlayerSeeder extends Seeder
             'Hutagalung',
             'Marpaung',
             'Pane',
-            'Purba'
+            'Purba',
         ];
 
         // Generate pemain untuk team_id 13 sampai 34
@@ -78,7 +78,7 @@ class PlayerSeeder extends Seeder
             // Kiper (minimal 1, maksimal 2)
             $numKeepers = rand(1, 2);
             for ($k = 0; $k < $numKeepers; $k++) {
-                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)] . ' ' .
+                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)].' '.
                     $indonesianLastNames[array_rand($indonesianLastNames)];
 
                 $teamPlayers[] = [
@@ -99,7 +99,7 @@ class PlayerSeeder extends Seeder
             // Pivot (1-2 pemain)
             $numPivots = rand(1, 2);
             for ($p = 0; $p < $numPivots; $p++) {
-                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)] . ' ' .
+                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)].' '.
                     $indonesianLastNames[array_rand($indonesianLastNames)];
 
                 $teamPlayers[] = [
@@ -120,7 +120,7 @@ class PlayerSeeder extends Seeder
             // Flank (2-4 pemain)
             $numFlanks = rand(2, 4);
             for ($f = 0; $f < $numFlanks; $f++) {
-                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)] . ' ' .
+                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)].' '.
                     $indonesianLastNames[array_rand($indonesianLastNames)];
 
                 $teamPlayers[] = [
@@ -141,7 +141,7 @@ class PlayerSeeder extends Seeder
             // Anchor (1-3 pemain)
             $numAnchors = rand(1, 3);
             for ($a = 0; $a < $numAnchors; $a++) {
-                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)] . ' ' .
+                $name = $indonesianFirstNames[array_rand($indonesianFirstNames)].' '.
                     $indonesianLastNames[array_rand($indonesianLastNames)];
 
                 $teamPlayers[] = [
@@ -171,6 +171,6 @@ class PlayerSeeder extends Seeder
 
         $totalPlayers = count($players);
         $this->command->info("Futsal players seeded successfully! Total: {$totalPlayers} players");
-        $this->command->info("Teams covered: 13 to 34");
+        $this->command->info('Teams covered: 13 to 34');
     }
 }
