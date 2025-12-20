@@ -437,7 +437,7 @@
             <img src="{{ asset('images/logo-ofs.png') }}" alt="OFS Logo" class="logo-img">
             <div class="logo-text">
                 <div class="logo-main">OFS FUTSAL</div>
-                <div class="logo-sub">Arena Center</div>
+                <div class="logo-sub">CENTER</div>
             </div>
         </div>
     </div>
