@@ -379,7 +379,7 @@
         align-items: center;
         justify-content: center;
         background: #ffffff;
-        border: 2px solid #e2e8f0;
+        /* border: 2px solid #e2e8f0; */
         margin: 0 auto 0.75rem auto;
         transition: all 0.3s ease;
     }
