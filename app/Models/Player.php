@@ -5,6 +5,7 @@ namespace App\Models;
 use DB;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 
 class Player extends Model
 {
@@ -21,6 +22,9 @@ class Player extends Model
         'yellow_cards',
         'red_cards',
     ];
+
+    // Tambahkan ini
+    protected $appends = ['photo_url', 'initial'];
 
     // Relasi dengan Team
     public function team()
@@ -48,12 +52,60 @@ class Player extends Model
         return "#{$this->jersey_number} {$this->name}";
     }
 
-    // app/Models/Player.php
+    // Accessor untuk initial
+    public function getInitialAttribute()
+    {
+        if (!$this->name) return '?';
+        return strtoupper(substr($this->name, 0, 1));
+    }
 
-    // Tambahkan method ini jika belum ada
+    // Accessor untuk photo_url
+    public function getPhotoUrlAttribute()
+    {
+        if (!$this->photo) {
+            return null;
+        }
+
+        // Cek jika photo adalah URL lengkap
+        if (filter_var($this->photo, FILTER_VALIDATE_URL)) {
+            return $this->photo;
+        }
+
+        // Cek jika photo adalah path storage
+        if (Storage::disk('public')->exists($this->photo)) {
+            return asset('storage/' . $this->photo);
+        }
+
+        // Coba beberapa kemungkinan path
+        $possiblePaths = [
+            $this->photo,
+            'players/photos/' . $this->photo,
+            'players/' . $this->photo,
+            'public/players/photos/' . $this->photo,
+            'public/' . $this->photo,
+        ];
+
+        foreach ($possiblePaths as $path) {
+            $cleanPath = ltrim($path, '/\\');
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return asset('storage/' . $cleanPath);
+            }
+        }
+
+        return null;
+    }
+
+    // Cek apakah foto tersedia
+    public function hasPhoto()
+    {
+        return !empty($this->photo_url);
+    }
+
+    // Method untuk tournament goals
     public function tournamentGoals($tournamentId)
     {
-        return $this->goals()
+        return $this->matchEvents()
+            ->where('event_type', 'goal')
             ->whereHas('match', function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId);
             })

@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,7 +8,6 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
     <style>
-        /* Semua style CSS tetap sama seperti sebelumnya */
         :root {
             --primary: #2C3E50;
             --primary-light: #3A506B;
@@ -54,22 +52,6 @@
             line-height: 1.6;
         }
 
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%);
-            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: #2D3748;
-            min-height: 100vh;
-            line-height: 1.6;
-            /* padding-left: var(--sidebar-width); */
-        }
-
         .sidebar {
             width: var(--sidebar-width);
             min-height: 100vh;
@@ -88,11 +70,9 @@
             body {
                 padding-left: 0;
             }
-
             .sidebar {
                 transform: translateX(-280px);
             }
-
             .sidebar.open {
                 transform: translateX(0);
             }
@@ -266,6 +246,13 @@
             padding: 40px;
             min-height: 100vh;
             transition: var(--transition);
+            margin-left: var(--sidebar-width);
+        }
+
+        @media (max-width: 991.98px) {
+            .main-content {
+                margin-left: 0;
+            }
         }
 
         .breadcrumb {
@@ -1056,6 +1043,17 @@
             margin-bottom: 0;
         }
 
+        /* Tambahan untuk step content */
+        .step-content.step3-league,
+        .step-content.step3-knockout,
+        .step-content.step3-group {
+            display: none;
+        }
+
+        .step-content[id^="step3"] {
+            transition: opacity 0.3s ease;
+        }
+
         .warning-box {
             background: linear-gradient(135deg, rgba(243, 156, 18, 0.08), rgba(243, 156, 18, 0.04));
             border-left: 4px solid var(--warning);
@@ -1106,7 +1104,6 @@
             .main-content {
                 padding: 30px;
             }
-
             .card-body {
                 padding: 30px;
             }
@@ -1116,13 +1113,11 @@
             .main-content {
                 padding: 25px;
             }
-
             .page-header {
                 flex-direction: column;
                 align-items: flex-start !important;
                 gap: 20px;
             }
-
             .preview-grid {
                 grid-template-columns: 1fr;
             }
@@ -1132,34 +1127,27 @@
             .main-content {
                 padding: 20px 15px;
             }
-
             .page-header h1 {
                 font-size: 1.8rem;
             }
-
             .page-header h1 i {
                 width: 50px;
                 height: 50px;
                 font-size: 1.5rem;
             }
-
             .card-header {
                 padding: 20px 25px;
             }
-
             .card-body {
                 padding: 25px;
             }
-
             .btn {
                 padding: 12px 25px;
             }
-
             .step-indicator {
                 flex-wrap: wrap;
                 gap: 15px;
             }
-
             .step::before {
                 display: none;
             }
@@ -1172,23 +1160,18 @@
                 align-items: flex-start;
                 gap: 10px;
             }
-
             .card-body {
                 padding: 20px;
             }
-
             .settings-section {
                 padding: 20px;
             }
-
             .tournament-preview {
                 padding: 20px;
             }
-
             .preview-grid {
                 gap: 15px;
             }
-
             .step-btn {
                 padding: 10px 20px;
                 font-size: 0.9rem;
@@ -1202,7 +1185,6 @@
         .is-invalid {
             border-color: var(--accent) !important;
         }
-
 
         .file-upload-container {
             border: 2px dashed var(--border-color);
@@ -1247,6 +1229,89 @@
             font-size: 0.75rem;
             color: var(--gray-light);
         }
+
+        .bracket-preview {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .bracket-round {
+            margin-bottom: 20px;
+        }
+
+        .bracket-match {
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            min-height: 60px;
+        }
+
+        .bracket-team {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            margin: 2px 0;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .bracket-team:hover {
+            background-color: #f1f3f4;
+        }
+
+        .bracket-team.empty {
+            min-height: 30px;
+            border: 1px dashed #ccc;
+        }
+
+        .knockout-seed {
+            font-size: 0.7rem;
+            color: #6c757d;
+            margin-left: auto;
+        }
+
+        /* Tambahan untuk knockout bracket */
+        .bracket-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .bracket-match-knockout {
+            background: white;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            min-width: 200px;
+        }
+
+        .bracket-team-knockout {
+            padding: 8px;
+            margin: 4px 0;
+            border-radius: 4px;
+            background: #f8f9fa;
+            cursor: move;
+        }
+
+        .bracket-team-knockout.empty {
+            background: #e9ecef;
+            border: 1px dashed #adb5bd;
+            color: #6c757d;
+            text-align: center;
+        }
+
+        .bracket-round-title {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid var(--secondary);
+        }
     </style>
 </head>
 
@@ -1254,6 +1319,53 @@
     <button class="sidebar-toggle d-lg-none" id="sidebarToggle">
         <i class="bi bi-list"></i>
     </button>
+
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <i class="bi bi-trophy"></i>
+                <span>Futsal Admin</span>
+            </div>
+            <div class="tagline">Tournament Management System</div>
+        </div>
+        <nav class="nav flex-column">
+            <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                <i class="bi bi-speedometer2"></i>
+                Dashboard
+            </a>
+            <a href="{{ route('admin.tournaments.index') }}" class="nav-link active">
+                <i class="bi bi-trophy"></i>
+                Tournaments
+            </a>
+            <a href="#" class="nav-link">
+                <i class="bi bi-people"></i>
+                Teams
+            </a>
+            <a href="#" class="nav-link">
+                <i class="bi bi-calendar-event"></i>
+                Matches
+            </a>
+            <div class="nav-divider">Settings</div>
+            <a href="#" class="nav-link utility-link">
+                <i class="bi bi-gear"></i>
+                Settings
+            </a>
+        </nav>
+        <div class="user-profile-section">
+            <div class="d-flex align-items-center mb-3">
+                <div class="user-avatar">A</div>
+                <div>
+                    <div class="fw-bold">Administrator</div>
+                    <small class="text-muted">Super Admin</small>
+                </div>
+            </div>
+            <button class="btn-logout">
+                <i class="bi bi-box-arrow-right"></i>
+                Logout
+            </button>
+        </div>
+    </div>
 
     <div class="main-content" id="mainContent">
         <nav aria-label="breadcrumb" class="mb-5">
@@ -1278,24 +1390,47 @@
             </a>
         </div>
 
+        <!-- Debug session -->
+        @php
+            $sessionData = session()->get('tournament_data', []);
+            \Log::info('View create step ' . ($currentStep ?? 1) . ': session data count - ' . count($sessionData));
+        @endphp
+
+        @if(config('app.debug'))
+        <div class="alert alert-info d-none" id="debugInfo">
+            <strong>Debug Info:</strong>
+            Step: {{ $currentStep }}, 
+            Session Data: {{ !empty($sessionData) ? count($sessionData) . ' items' : 'Empty' }}
+        </div>
+        @endif
+
+        <!-- Step indicator -->
         <div class="step-indicator">
-            <div class="step {{ $currentStep == 1 ? 'active' : '' }} {{ $currentStep > 1 ? 'completed' : '' }}"
-                data-step="1">
+            <div class="step {{ $currentStep == 1 ? 'active' : '' }} {{ $currentStep > 1 ? 'completed' : '' }}" data-step="1">
                 <div class="step-circle">1</div>
                 <div class="step-label">Basic Info</div>
             </div>
-            <div class="step {{ $currentStep == 2 ? 'active' : '' }} {{ $currentStep > 2 ? 'completed' : '' }}"
-                data-step="2">
+            <div class="step {{ $currentStep == 2 ? 'active' : '' }} {{ $currentStep > 2 ? 'completed' : '' }}" data-step="2">
                 <div class="step-circle">2</div>
                 <div class="step-label">Teams</div>
             </div>
-            <div class="step {{ $currentStep == 3 ? 'active' : '' }} {{ $currentStep > 3 ? 'completed' : '' }}"
-                data-step="3">
+            
+            <div class="step {{ $currentStep == 3 ? 'active' : '' }} {{ $currentStep > 3 ? 'completed' : '' }}" data-step="3">
                 <div class="step-circle">3</div>
-                <div class="step-label">Groups</div>
+                <div class="step-label" id="step3Label">
+                    @php
+                        $tournamentType = old('type', $tournamentData['type'] ?? 'group_knockout');
+                        $step3Labels = [
+                            'league' => 'League Setup',
+                            'knockout' => 'Bracket Setup',
+                            'group_knockout' => 'Groups'
+                        ];
+                        echo $step3Labels[$tournamentType] ?? 'Groups';
+                    @endphp
+                </div>
             </div>
-            <div class="step {{ $currentStep == 4 ? 'active' : '' }} {{ $currentStep > 4 ? 'completed' : '' }}"
-                data-step="4">
+            
+            <div class="step {{ $currentStep == 4 ? 'active' : '' }} {{ $currentStep > 4 ? 'completed' : '' }}" data-step="4">
                 <div class="step-circle">4</div>
                 <div class="step-label">Match Rules</div>
             </div>
@@ -1307,11 +1442,38 @@
 
         <div class="row">
             <div class="col-lg-8">
+                <!-- Debug Info -->
+                @php
+                    $sessionData = session()->get('tournament_data', []);
+                    $flashData = session()->get('tournament_data_flash', []);
+                    \Log::info('View create step ' . ($currentStep ?? 1) . ': session data count - ' . count($sessionData));
+                @endphp
+
+                @if(config('app.debug') || auth()->user()->role === 'admin')
+                <div class="alert alert-warning alert-dismissible fade show mb-4" id="debugAlert">
+                    <i class="bi bi-bug"></i>
+                    <strong>Debug Info:</strong> 
+                    Step: {{ $currentStep }}, 
+                    Session Data: {{ !empty($sessionData) ? count($sessionData) . ' items' : 'Empty' }},
+                    Session ID: {{ session()->getId() }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
+                <script>
+                // Auto-hide debug alert after 10 seconds
+                setTimeout(() => {
+                    document.getElementById('debugAlert')?.remove();
+                }, 10000);
+                </script>
+                @endif
+                
                 <form action="{{ route('admin.tournaments.store.step', ['step' => $currentStep ?? $step ?? 1]) }}"
                     method="POST" id="tournamentForm" class="multi-step-form" enctype="multipart/form-data">
                     @csrf
                     <input type="hidden" name="current_step" value="{{ $currentStep }}">
+                    <!-- <input type="hidden" name="form_action" id="formAction" value="{{ $currentStep < 5 ? 'next' : 'create' }}"> -->
 
+                    <!-- Step 1: Basic Info -->
                     <div class="step-content" id="step1" style="display: {{ $currentStep == 1 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -1467,7 +1629,7 @@
                                     </div>
                                 </div>
 
-                                <!-- TAMBAHAN FIELD UNTUK LOGO DAN BANNER -->
+                                <!-- Field untuk logo dan banner -->
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
@@ -1523,13 +1685,11 @@
                                                 Tournament Type
                                                 <span class="required">*</span>
                                             </label>
-                                            <select class="form-select @error('type') is-invalid @enderror" id="type"
-                                                name="type" required>
-                                                <!-- <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Select tournament format</option> -->
-                                                <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Group Stage +
-                                                    Knockout</option>
-                                                <!-- <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League</option> -->
-                                                <!-- <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Knockout</option> -->
+                                            <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
+                                                <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Select tournament format</option>
+                                                <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option>
+                                                <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Knockout (Cup)</option>
+                                                <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Group Stage + Knockout</option>
                                             </select>
                                             @error('type')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -1557,6 +1717,7 @@
                                     </div>
                                 </div>
 
+                                <!-- Group Stage Configuration -->
                                 <div id="groupSettings" class="settings-section"
                                     style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'block' : 'none' }};">
                                     <h6><i class="bi bi-grid-3x3"></i> Group Stage Configuration</h6>
@@ -1613,10 +1774,143 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- League Configuration -->
+                                <div id="leagueSettings" class="settings-section" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'block' : 'none' }};">
+                                    <h6><i class="bi bi-trophy"></i> League Configuration</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="league_rounds" class="form-label">
+                                                    Number of Rounds
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <select class="form-select @error('league_rounds') is-invalid @enderror" id="league_rounds" name="league_rounds">
+                                                    <option value="1" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 1) ? 'selected' : '' }}>Single Round</option>
+                                                    <option value="2" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 2) ? 'selected' : '' }}>Double Round</option>
+                                                </select>
+                                                @error('league_rounds')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Single round: Each team plays once. Double round: Each team plays home and away.
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="league_standings_type" class="form-label">
+                                                    Standings Tiebreaker
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <select class="form-select @error('league_standings_type') is-invalid @enderror" id="league_standings_type" name="league_standings_type">
+                                                    <option value="total_points" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'total_points') ? 'selected' : '' }}>Total Points</option>
+                                                    <option value="head_to_head" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'head_to_head') ? 'selected' : '' }}>Head-to-Head</option>
+                                                    <option value="goal_difference" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'goal_difference') ? 'selected' : '' }}>Goal Difference</option>
+                                                </select>
+                                                @error('league_standings_type')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    How to break ties when teams have equal points
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" id="league_allow_draw" name="league_allow_draw" value="1" {{ old('league_allow_draw', $tournamentData['league_allow_draw'] ?? true) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="league_allow_draw">
+                                            Allow draws in league matches
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <!-- Knockout Settings -->
+                                <div id="knockoutSettings" class="settings-section" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'block' : 'none' }};">
+                                    <h6><i class="bi bi-trophy"></i> Knockout (Cup) Configuration</h6>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="knockout_format" class="form-label">
+                                                    Tournament Format
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <select class="form-select @error('knockout_format') is-invalid @enderror" id="knockout_format" name="knockout_format">
+                                                    <option value="single_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'single_elimination') ? 'selected' : '' }}>Single Elimination</option>
+                                                    <option value="double_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'double_elimination') ? 'selected' : '' }}>Double Elimination</option>
+                                                </select>
+                                                @error('knockout_format')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="knockout_teams" class="form-label">
+                                                    Number of Teams
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <select class="form-select @error('knockout_teams') is-invalid @enderror" id="knockout_teams" name="knockout_teams">
+                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>2 Teams (Final)</option>
+                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
+                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
+                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>16 Teams (Round of 16)</option>
+                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>32 Teams</option>
+                                                </select>
+                                                @error('knockout_teams')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="knockout_seeding" class="form-label">
+                                                    Seeding Method
+                                                    <span class="required">*</span>
+                                                </label>
+                                                <select class="form-select @error('knockout_seeding') is-invalid @enderror" id="knockout_seeding" name="knockout_seeding">
+                                                    <option value="random" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'random') ? 'selected' : '' }}>Random Draw</option>
+                                                    <option value="ranked" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'ranked') ? 'selected' : '' }}>Ranked Seeding</option>
+                                                    <option value="manual" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'manual') ? 'selected' : '' }}>Manual Assignment</option>
+                                                </select>
+                                                @error('knockout_seeding')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <div class="form-group">
+                                                <label for="knockout_byes" class="form-label">
+                                                    Number of Byes
+                                                </label>
+                                                <input type="number" class="form-control @error('knockout_byes') is-invalid @enderror" id="knockout_byes" name="knockout_byes"
+                                                    value="{{ old('knockout_byes', $tournamentData['knockout_byes'] ?? 0) }}" min="0" max="16">
+                                                @error('knockout_byes')
+                                                    <div class="invalid-feedback">{{ $message }}</div>
+                                                @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Teams that get a free pass to next round
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-check mt-3">
+                                        <input class="form-check-input" type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1" {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
+                                        <label class="form-check-label" for="knockout_third_place">
+                                            Include third place match
+                                        </label>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
 
+                    <!-- Step 2: Team Selection -->
                     <div class="step-content" id="step2" style="display: {{ $currentStep == 2 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -1687,7 +1981,9 @@
                         </div>
                     </div>
 
-                    <div class="step-content" id="step3" style="display: {{ $currentStep == 3 ? 'block' : 'none' }};">
+                    <!-- STEP 3 CONTENT - GROUP KNOCKOUT -->
+                    <div class="step-content step3-group" id="step3Group" 
+                         style="display: {{ ($currentStep == 3 && (old('type', $tournamentData['type'] ?? 'group_knockout') == 'group_knockout')) ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
                                 <h5><i class="bi bi-grid-3x3"></i> Group Assignment</h5>
@@ -1695,8 +1991,7 @@
                             <div class="card-body">
                                 <div class="alert alert-info mb-4">
                                     <i class="bi bi-info-circle"></i>
-                                    <strong>Drag and drop teams between groups.</strong> Drag teams from "Available
-                                    Teams" to any group, or between groups.
+                                    <strong>Drag and drop teams between groups.</strong> Drag teams from "Available Teams" to any group, or between groups.
                                 </div>
 
                                 <div class="row mb-4">
@@ -1770,6 +2065,7 @@
                                 </div>
 
                                 <div class="row" id="groupsContainer">
+                                    <!-- Groups will be generated by JavaScript -->
                                 </div>
 
                                 <input type="hidden" name="group_assignments" id="groupAssignments"
@@ -1808,6 +2104,278 @@
                         </div>
                     </div>
 
+                    <!-- STEP 3 CONTENT - LEAGUE -->
+                    <div class="step-content step3-league" id="step3League" 
+                         style="display: {{ ($currentStep == 3 && (old('type', $tournamentData['type'] ?? 'group_knockout') == 'league')) ? 'block' : 'none' }};">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-trophy"></i> League Configuration</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info mb-4">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>League Tournament Setup</strong><br>
+                                    In a league tournament, all teams play against each other in a round-robin format.
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="league_seeding" class="form-label">
+                                                <i class="bi bi-sort-numeric-down"></i>
+                                                Initial Seeding
+                                            </label>
+                                            <select class="form-select" id="league_seeding" name="league_seeding">
+                                                <option value="random" {{ old('league_seeding', $tournamentData['league_seeding'] ?? 'random') == 'random' ? 'selected' : '' }}>Random</option>
+                                                <option value="manual" {{ old('league_seeding', $tournamentData['league_seeding'] ?? 'random') == 'manual' ? 'selected' : '' }}>Manual</option>
+                                                <option value="rating" {{ old('league_seeding', $tournamentData['league_seeding'] ?? 'random') == 'rating' ? 'selected' : '' }}>By Team Rating</option>
+                                            </select>
+                                            <div class="form-text">How teams are initially ranked</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="league_match_order" class="form-label">
+                                                <i class="bi bi-calendar-week"></i>
+                                                Match Schedule Order
+                                            </label>
+                                            <select class="form-select" id="league_match_order" name="league_match_order">
+                                                <option value="sequential" {{ old('league_match_order', $tournamentData['league_match_order'] ?? 'sequential') == 'sequential' ? 'selected' : '' }}>Sequential</option>
+                                                <option value="balanced" {{ old('league_match_order', $tournamentData['league_match_order'] ?? 'sequential') == 'balanced' ? 'selected' : '' }}>Balanced</option>
+                                                <option value="random" {{ old('league_match_order', $tournamentData['league_match_order'] ?? 'sequential') == 'random' ? 'selected' : '' }}>Random</option>
+                                            </select>
+                                            <div class="form-text">How matches are scheduled</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(!empty($tournamentData['teams']))
+                                    <div class="settings-section">
+                                        <h6><i class="bi bi-list-ol"></i> Team Seeding (Optional)</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Seed</th>
+                                                        <th>Team</th>
+                                                        <th>Coach</th>
+                                                        <th>Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="leagueSeedingTable">
+                                                    @foreach($teams->whereIn('id', $tournamentData['teams']) as $index => $team)
+                                                        <tr data-team-id="{{ $team->id }}">
+                                                            <td>{{ $index + 1 }}</td>
+                                                            <td>
+                                                                <div class="d-flex align-items-center">
+                                                                    @php
+                                                                        $logoUrl = $team->logo ? Storage::url($team->logo) : null;
+                                                                    @endphp
+                                                                    @if($logoUrl)
+                                                                        <img src="{{ $logoUrl }}" alt="{{ $team->name }}" 
+                                                                             class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                                    @endif
+                                                                    {{ $team->name }}
+                                                                </div>
+                                                            </td>
+                                                            <td>{{ $team->coach_name ?? '-' }}</td>
+                                                            <td>
+                                                                <button type="button" class="btn btn-sm btn-outline-primary move-up" onclick="moveTeamUp(this)">
+                                                                    <i class="bi bi-arrow-up"></i>
+                                                                </button>
+                                                                <button type="button" class="btn btn-sm btn-outline-primary move-down" onclick="moveTeamDown(this)">
+                                                                    <i class="bi bi-arrow-down"></i>
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <input type="hidden" name="league_seeds" id="leagueSeeds" 
+                                               value="{{ json_encode($tournamentData['league_seeds'] ?? []) }}">
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i>
+                                            Adjust team seeding order if needed. Higher seeds play easier schedules.
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="info-box">
+                                    <i class="bi bi-calculator"></i>
+                                    <p>
+                                        <strong>League Calculation:</strong><br>
+                                        Total teams: {{ count($tournamentData['teams'] ?? []) }}<br>
+                                        Single round robin: {{ $totalMatches = count($tournamentData['teams'] ?? []) * (count($tournamentData['teams'] ?? []) - 1) / 2 }} matches<br>
+                                        Double round robin: {{ $totalMatches * 2 }} matches<br>
+                                        Each team plays: {{ count($tournamentData['teams'] ?? []) - 1 }} matches (single round)
+                                    </p>
+                                </div>
+
+                                <div class="warning-box">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    <p>
+                                        <strong>Note:</strong> League standings will be determined by total points.
+                                        Tiebreakers: {{ old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') }}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- STEP 3 CONTENT - KNOCKOUT -->
+                    <div class="step-content step3-knockout" id="step3Knockout" 
+                         style="display: {{ ($currentStep == 3 && (old('type', $tournamentData['type'] ?? 'group_knockout') == 'knockout')) ? 'block' : 'none' }};">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="bi bi-diagram-2"></i> Knockout Bracket Setup</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info mb-4">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Knockout (Cup) Tournament Setup</strong><br>
+                                    Single elimination bracket. Teams that lose are eliminated from the tournament.
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="bracket_size" class="form-label">
+                                                <i class="bi bi-grid-3x3-gap"></i>
+                                                Bracket Size
+                                                <span class="required">*</span>
+                                            </label>
+                                            <select class="form-select" id="bracket_size" name="bracket_size" required>
+                                                <option value="2" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 2 ? 'selected' : '' }}>2 Teams (Final)</option>
+                                                <option value="4" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 4 ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
+                                                <option value="8" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 8 ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
+                                                <option value="16" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 16 ? 'selected' : '' }}>16 Teams (Round of 16)</option>
+                                                <option value="32" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 32 ? 'selected' : '' }}>32 Teams</option>
+                                            </select>
+                                            <div class="form-text">Number of teams in the knockout bracket</div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="bracket_type" class="form-label">
+                                                <i class="bi bi-diagram-3"></i>
+                                                Bracket Type
+                                            </label>
+                                            <select class="form-select" id="bracket_type" name="bracket_type">
+                                                <option value="single" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'single' ? 'selected' : '' }}>Single Elimination</option>
+                                                <option value="double" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'double' ? 'selected' : '' }}>Double Elimination</option>
+                                                <option value="consolation" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'consolation' ? 'selected' : '' }}>With Consolation</option>
+                                            </select>
+                                            <div class="form-text">Tournament bracket format</div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                @if(!empty($tournamentData['teams']))
+                                    <div class="settings-section">
+                                        <h6><i class="bi bi-list-ol"></i> Bracket Seeding</h6>
+                                        <p class="text-muted mb-3">Set bracket positions (drag and drop or use auto-seed):</p>
+                                        
+                                        <div class="row mb-3">
+                                            <div class="col-md-12">
+                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="autoSeedKnockout()">
+                                                    <i class="bi bi-shuffle"></i> Auto-seed teams
+                                                </button>
+                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearKnockoutSeeds()">
+                                                    <i class="bi bi-arrow-clockwise"></i> Clear seeds
+                                                </button>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-8">
+                                                <div class="bracket-preview mb-4">
+                                                    <div class="bracket-container" id="bracketPreview">
+                                                        <!-- Bracket will be generated by JavaScript -->
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="available-teams-knockout">
+                                                    <h6><i class="bi bi-people"></i> Available Teams</h6>
+                                                    <div class="list-group" id="availableKnockoutTeams">
+                                                        @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
+                                                            @php
+                                                                $logoUrl = $team->logo ? Storage::url($team->logo) : null;
+                                                            @endphp
+                                                            <div class="list-group-item draggable-team" data-team-id="{{ $team->id }}" 
+                                                                 data-team-name="{{ $team->name }}" data-team-logo="{{ $logoUrl }}" 
+                                                                 draggable="true" ondragstart="dragKnockoutTeam(event)">
+                                                                <div class="d-flex align-items-center">
+                                                                    @if($logoUrl)
+                                                                        <img src="{{ $logoUrl }}" alt="{{ $team->name }}" 
+                                                                             class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                                    @else
+                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
+                                                                             style="width: 30px; height: 30px;">
+                                                                            {{ substr($team->name, 0, 2) }}
+                                                                        </div>
+                                                                    @endif
+                                                                    <div>
+                                                                        <div class="fw-bold">{{ $team->name }}</div>
+                                                                        @if($team->coach_name)
+                                                                            <small class="text-muted">Coach: {{ $team->coach_name }}</small>
+                                                                        @endif
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <input type="hidden" name="knockout_seeds" id="knockoutSeeds" 
+                                               value="{{ json_encode($tournamentData['knockout_seeds'] ?? []) }}">
+                                        <div class="form-text">
+                                            <i class="bi bi-info-circle"></i>
+                                            Drag teams to bracket positions or use auto-seed. Higher seeds have easier matchups.
+                                        </div>
+                                    </div>
+                                @endif
+
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="knockout_third_place_step3" 
+                                                   name="knockout_third_place" value="1" 
+                                                   {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="knockout_third_place_step3">
+                                                Include third place match
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="knockout_byes_enabled" 
+                                                   name="knockout_byes_enabled" value="1" 
+                                                   {{ old('knockout_byes_enabled', $tournamentData['knockout_byes_enabled'] ?? false) ? 'checked' : '' }}>
+                                            <label class="form-check-label" for="knockout_byes_enabled">
+                                                Allow byes (teams advance without playing)
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="info-box">
+                                    <i class="bi bi-calculator"></i>
+                                    <p>
+                                        <strong>Knockout Calculation:</strong><br>
+                                        Total matches: <span id="knockoutMatchesCount">0</span><br>
+                                        Rounds: <span id="knockoutRoundsCount">0</span><br>
+                                        Byes available: <span id="availableByes">0</span>
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Step 4: Match Rules -->
                     <div class="step-content" id="step4" style="display: {{ $currentStep == 4 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -2047,6 +2615,7 @@
                         </div>
                     </div>
 
+                    <!-- Step 5: Review -->
                     <div class="step-content" id="step5" style="display: {{ $currentStep == 5 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -2177,7 +2746,7 @@
                                     </div>
                                 </div>
 
-                                <!-- TAMBAHAN PREVIEW LOGO DAN BANNER -->
+                                <!-- Preview Logo dan Banner -->
                                 <div class="settings-section">
                                     <h6><i class="bi bi-images"></i> Tournament Media</h6>
                                     <div class="row">
@@ -2233,53 +2802,63 @@
                                     </p>
                                 </div>
 
-                                <div class="form-check mt-4">
+                               <div class="form-check mt-4">
                                     <input class="form-check-input @error('confirmTournament') is-invalid @enderror"
-                                        type="checkbox" id="confirmTournament" name="confirmTournament" value="1" {{ old('confirmTournament') ? 'checked' : '' }}>
+                                        type="checkbox" id="confirmTournament" name="confirmTournament" value="1" 
+                                        {{ old('confirmTournament', isset($tournamentData['confirmTournament']) ? 'checked' : '') }}>
                                     <label class="form-check-label" for="confirmTournament">
-                                        I confirm that all information provided is correct and I want to create this
-                                        tournament
+                                        <strong>I confirm that all information is correct and I want to create this tournament</strong>
                                         <span class="required">*</span>
                                     </label>
                                     @error('confirmTournament')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                <input type="hidden" name="confirmTournament_required" id="confirmTournament_required"
-                                    value="{{ old('confirmTournament') ? '1' : '0' }}">
                             </div>
                         </div>
                     </div>
 
+                    <!-- Navigation Buttons -->
                     <div class="step-navigation">
                         <button type="button" class="step-btn prev" id="prevBtn"
-                            style="display: {{ $currentStep > 1 ? 'inline-flex' : 'none' }};">
+                            style="display: {{ $currentStep > 1 ? 'inline-flex' : 'none' }};"
+                            onclick="goToPreviousStep()">
                             <i class="bi bi-arrow-left"></i>
                             <span>Previous</span>
                         </button>
 
-                        @if($currentStep < 5)
-                            <button type="submit" class="step-btn next" id="nextBtn" name="action" value="next">
-                                <i class="bi bi-arrow-right"></i>
-                                <span>Next:
-                                    @if($currentStep == 1) Team Selection
-                                    @elseif($currentStep == 2) Group Assignment
-                                    @elseif($currentStep == 3) Match Rules
-                                    @elseif($currentStep == 4) Review
-                                    @endif
-                                </span>
-                            </button>
-                        @else
-                            <button type="submit" class="btn btn-primary btn-lg" id="createBtn" name="action"
-                                value="create">
-                                <i class="bi bi-check-circle"></i>
-                                <span>Create Tournament</span>
-                            </button>
-                        @endif
+                    <!-- Di bagian akhir form, ganti button create dengan ini -->
+                    @if($currentStep == 5)
+                        <button type="submit" class="btn btn-primary btn-lg" id="createBtn" name="form_action" value="create">
+                            <i class="bi bi-check-circle"></i>
+                            <span>Create Tournament</span>
+                        </button>
+                    @else
+                        <button type="submit" class="step-btn next" id="nextBtn" name="form_action" value="next">
+                            <i class="bi bi-arrow-right"></i>
+                            <span>Next:
+                                @if($currentStep == 1) Team Selection
+                                @elseif($currentStep == 2) 
+                                    @php
+                                        $type = old('type', $tournamentData['type'] ?? 'group_knockout');
+                                        $step3Labels = [
+                                            'league' => 'League Setup',
+                                            'knockout' => 'Bracket Setup',
+                                            'group_knockout' => 'Groups'
+                                        ];
+                                    @endphp
+                                    {{ $step3Labels[$type] ?? 'Setup' }}
+                                @elseif($currentStep == 3) Match Rules
+                                @elseif($currentStep == 4) Review
+                                @endif
+                            </span>
+                        </button>
+                    @endif
                     </div>
                 </form>
             </div>
 
+            <!-- Right Sidebar Preview -->
             <div class="col-lg-4">
                 <div class="card">
                     <div class="card-header">
@@ -2403,7 +2982,7 @@
                             </div>
                         </div>
 
-                        <!-- TAMBAHAN PREVIEW LOGO -->
+                        <!-- Preview Logo -->
                         <div class="settings-section mt-4">
                             <h6><i class="bi bi-image"></i> Tournament Logo</h6>
                             <div class="text-center">
@@ -2436,278 +3015,1427 @@
         </div>
     </div>
     
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-    
-    <script>
-        // Fungsi untuk preview logo
-        function previewLogo(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('logoPreview');
-            const container = document.getElementById('logoPreviewContainer');
-            const fileName = document.getElementById('logoFileName');
+   <!-- Scripts -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
+
+<script>
+
+    // Quick debug untuk checkbox
+    $('#confirmTournament').on('change', function() {
+        console.log('Checkbox changed:', this.checked, 'Value:', this.value);
+    });
+
+    // Global variables
+    let teamsData = {};
+    let groupAssignments = {};
+    const groupLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+    let knockoutTeams = {};
+    let knockoutSeeds = [];
+
+    // ========== UTILITY FUNCTIONS ==========
+
+    // Fungsi untuk preview logo
+    function previewLogo(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('logoPreview');
+        const container = document.getElementById('logoPreviewContainer');
+        const fileName = document.getElementById('logoFileName');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+                fileName.textContent = file.name;
+                
+                // Update preview di sidebar
+                updateLogoPreview(e.target.result);
+                
+                // Update review section
+                document.getElementById('reviewLogoContainer').innerHTML = 
+                    `<img src="${e.target.result}" alt="Tournament Logo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // Fungsi untuk preview banner
+    function previewBanner(event) {
+        const file = event.target.files[0];
+        const preview = document.getElementById('bannerPreview');
+        const container = document.getElementById('bannerPreviewContainer');
+        const fileName = document.getElementById('bannerFileName');
+        
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                container.style.display = 'block';
+                fileName.textContent = file.name;
+                
+                // Update review section
+                document.getElementById('reviewBannerContainer').innerHTML = 
+                    `<img src="${e.target.result}" alt="Tournament Banner" style="max-width: 300px; max-height: 150px; border-radius: 8px;">`;
+            };
+            reader.readAsDataURL(file);
+        } else {
+            container.style.display = 'none';
+        }
+    }
+
+    // Fungsi untuk update preview logo di sidebar
+    function updateLogoPreview(imageSrc) {
+        const previewContainer = document.getElementById('previewLogoContainer');
+        if (previewContainer) {
+            previewContainer.innerHTML = `<img src="${imageSrc}" alt="Tournament Logo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
+        }
+    }
+
+    // Fungsi untuk format date
+    function formatDate(dateString) {
+        if (!dateString) return '-- -- ----';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    // Fungsi untuk show error
+    function showError(message, element = null) {
+        const alertHtml = `
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle"></i>
+            <div>
+                <strong>Validation Error:</strong> ${message}
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        `;
+
+        $('.step-content:visible .card-body').prepend(alertHtml);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (element) {
+            element.focus();
+            element[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+    }
+
+
+    // ========== FORM VALIDATION ==========
+
+    // Fungsi untuk validate step - PERBAIKAN
+    // ========== FORM VALIDATION ==========
+
+    // Fungsi untuk validate step - PERBAIKAN
+    function validateStep(step) {
+        let isValid = true;
+        const tournamentType = $('#type').val();
+
+        if (step === 1) {
+            if (!$('#name').val()) {
+                showError('Please enter tournament name', $('#name'));
+                isValid = false;
+            }
+
+            if (!$('#start_date').val()) {
+                showError('Please select start date', $('#start_date'));
+                isValid = false;
+            }
+
+            if (!$('#end_date').val()) {
+                showError('Please select end date', $('#end_date'));
+                isValid = false;
+            }
+
+            if (!$('#type').val()) {
+                showError('Please select tournament type', $('#type'));
+                isValid = false;
+            }
+        }
+
+        if (step === 2) {
+            const selectedTeams = $('#teams').val();
+            if (!selectedTeams || selectedTeams.length === 0) {
+                showError('Please select at least one team');
+                isValid = false;
+            } else if (selectedTeams.length < 2) {
+                showError('Please select at least 2 teams');
+                isValid = false;
+            }
             
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    container.style.display = 'block';
-                    fileName.textContent = file.name;
-                    
-                    // Update preview di sidebar
-                    updateLogoPreview(e.target.result);
-                };
-                reader.readAsDataURL(file);
-            } else {
-                container.style.display = 'none';
+            // Validasi khusus untuk knockout
+            if (tournamentType === 'knockout') {
+                const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+                if (selectedTeams.length > bracketSize) {
+                    showError(`Knockout tournament can only have ${bracketSize} teams maximum. You selected ${selectedTeams.length} teams.`);
+                    isValid = false;
+                }
             }
-        }
-
-        // Fungsi untuk preview banner
-        function previewBanner(event) {
-            const file = event.target.files[0];
-            const preview = document.getElementById('bannerPreview');
-            const container = document.getElementById('bannerPreviewContainer');
-            const fileName = document.getElementById('bannerFileName');
             
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    container.style.display = 'block';
-                    fileName.textContent = file.name;
-                };
-                reader.readAsDataURL(file);
-            } else {
-                container.style.display = 'none';
+            // Validasi untuk group_knockout - minimal tim berdasarkan groups
+            if (tournamentType === 'group_knockout') {
+                const groupsCount = parseInt($('#groups_count').val()) || 2;
+                const teamsPerGroup = parseInt($('#teams_per_group').val()) || 4;
+                const minTeams = groupsCount * 2; // Minimal 2 tim per group
+                
+                if (selectedTeams.length < minTeams) {
+                    showError(`For ${groupsCount} groups, you need at least ${minTeams} teams (2 teams per group)`);
+                    isValid = false;
+                }
+                
+                const maxTeams = groupsCount * teamsPerGroup;
+                if (selectedTeams.length > maxTeams) {
+                    showError(`Maximum teams for ${groupsCount} groups with ${teamsPerGroup} teams per group is ${maxTeams}`);
+                    isValid = false;
+                }
+            }
+            
+            // Validasi untuk league (tambahkan jika perlu)
+            if (tournamentType === 'league') {
+                const groupsCount = parseInt($('#groups_count').val()) || 1;
+                if (groupsCount > 1) {
+                    const minTeams = groupsCount * 2;
+                    if (selectedTeams.length < minTeams) {
+                        showError(`For ${groupsCount} groups league, you need at least ${minTeams} teams`);
+                        isValid = false;
+                    }
+                }
             }
         }
 
-        // Fungsi untuk update preview logo di sidebar
-        function updateLogoPreview(imageSrc) {
-            const previewContainer = document.getElementById('previewLogoContainer');
-            if (previewContainer) {
-                previewContainer.innerHTML = `<img src="${imageSrc}" alt="Tournament Logo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
+        if (step === 3) {
+            const tournamentType = $('#type').val();
+            
+            // Untuk League - TIDAK PERLU VALIDASI KHUSUS
+            if (tournamentType === 'league') {
+                // League tidak memerlukan validasi di step 3
+                // Karena setup league sederhana (tidak wajib group assignment)
+                console.log('League step 3 validation: passed automatically');
+                return true; // Langsung return true untuk league
             }
-        }
+            
+            if (tournamentType === 'group_knockout') {
+                // **PERBAIKAN: Tidak wajib semua tim di-assign**
+                const assignedTeams = Object.values(teamsData).filter(t => t.assigned).length;
+                const totalTeams = Object.keys(teamsData).length;
 
-        let teamsData = {};
-        let groupAssignments = {};
-        const groupLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-
-        $(document).ready(function () {
-            $('#teams').select2({
-                placeholder: 'Select teams to participate',
-                allowClear: true,
-                width: '100%',
-                closeOnSelect: false
-            });
-
-            @if(!empty($tournamentData['teams']))
-                @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
-                    @php
-                        $logoUrl = $team->logo ? Storage::url($team->logo) : null;
-                    @endphp
-                    teamsData[{{ $team->id }}] = {
-                        id: {{ $team->id }},
-                        name: "{{ $team->name }}",
-                        logo: "{{ $logoUrl }}",
-                        coach: "{{ $team->coach_name }}",
-                        group: null,
-                        seed: 0,
-                        assigned: false
-                    };
-                @endforeach
-            @endif
-
-            const existingAssignments = JSON.parse($('#groupAssignments').val() || '[]');
-            if (existingAssignments.length > 0) {
-                existingAssignments.forEach(assignment => {
-                    if (assignment.group && assignment.team_id && teamsData[assignment.team_id]) {
-                        teamsData[assignment.team_id].group = assignment.group;
-                        teamsData[assignment.team_id].seed = assignment.seed;
-                        teamsData[assignment.team_id].assigned = true;
-                    }
-                });
+                if (assignedTeams === 0) {
+                    showError('Please assign teams to groups. You can use "Auto-distribute" button.');
+                    isValid = false;
+                } else if (assignedTeams < totalTeams) {
+                    // **HANYA WARNING, bukan error**
+                    // Boleh ada tim yang belum di-assign, sistem akan auto-assign nanti
+                    console.log(`${totalTeams - assignedTeams} teams are still unassigned, will be auto-assigned later`);
+                }
+                
+                // Validasi jumlah groups
+                const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
+                if (groupsCount < 1 || groupsCount > 8) {
+                    showError('Number of groups must be between 1 and 8');
+                    isValid = false;
+                }
             }
-
-            updateGroups();
-
-            $('#teams').on('change', function () {
-                updateTeamCount();
-                updatePreview();
-                loadTeamsData();
-                updateGroups();
-            });
-
-            $('#name').on('input', function () {
-                const name = $(this).val();
-                const slugInput = $('#slug');
-
-                if (!slugInput.data('customized')) {
-                    const slug = name.toLowerCase()
-                        .replace(/[^\w\s]/gi, '')
-                        .replace(/\s+/g, '-')
-                        .replace(/-+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-
-                    if (slug) {
-                        slugInput.val(slug);
-                    }
-                }
-
-                updatePreview();
-            });
-
-            $('#slug').on('input', function () {
-                $(this).data('customized', true);
-            });
-
-            $('#type').on('change', function () {
-                const groupSettings = $('#groupSettings');
-                if ($(this).val() === 'group_knockout') {
-                    groupSettings.show();
-                } else {
-                    groupSettings.hide();
-                }
-                updatePreview();
-            });
-
-            $('#groups_count_assign').on('change', function () {
-                updateGroups();
-            });
-
-            const previewFields = [
-                'name', 'start_date', 'end_date', 'location', 'organizer', 'type',
-                'groups_count', 'teams_per_group', 'qualify_per_group',
-                'match_duration', 'half_time', 'extra_time',
-                'points_win', 'points_draw', 'points_loss', 'points_no_show',
-                'max_substitutes', 'yellow_card_suspension',
-                'matches_per_day', 'match_interval', 'match_time_slots'
-            ];
-
-            previewFields.forEach(fieldId => {
-                $('#' + fieldId).on('input change', updatePreview);
-            });
-
-            updateTeamCount();
-            updatePreview();
-
-            $('#prevBtn').on('click', function () {
-                const currentStep = {{ $currentStep }};
-                if (currentStep > 1) {
-                    $('input[name="current_step"]').val(currentStep - 1);
-                    $('input[name="action"]').val('prev');
-                    $('#tournamentForm').submit();
-                }
-            });
-
-            $('#tournamentForm').on('submit', function (e) {
-                const currentStep = {{ $currentStep }};
-                const action = $('input[name="action"]').val();
-
-                if (action === 'next') {
-                    if (!validateStep(currentStep)) {
-                        e.preventDefault();
-                        return false;
-                    }
-
-                    if (currentStep === 3) {
-                        saveGroupAssignments();
-                    }
-                }
-
-                // Tambahkan validasi untuk step 1 dengan logo dan banner
-                if (currentStep === 1) {
-                    const logoInput = document.getElementById('logo');
-                    const bannerInput = document.getElementById('banner');
-                    
-                    if (logoInput && logoInput.files.length > 0) {
-                        const logoFile = logoInput.files[0];
-                        if (logoFile.size > 2 * 1024 * 1024) { // 2MB
-                            showError('Logo file size must be less than 2MB');
-                            e.preventDefault();
-                            return false;
-                        }
-                    }
-                    
-                    if (bannerInput && bannerInput.files.length > 0) {
-                        const bannerFile = bannerInput.files[0];
-                        if (bannerFile.size > 5 * 1024 * 1024) { // 5MB
-                            showError('Banner file size must be less than 5MB');
-                            e.preventDefault();
-                            return false;
-                        }
-                    }
-                }
-
+            
+            // Untuk Knockout, tidak perlu step 3 sama sekali
+            if (tournamentType === 'knockout') {
+                console.log('Knockout step 3: not required');
                 return true;
-            });
+            }
+        }
+
+        return isValid;
+    }
+
+    // ========== FORM SUBMISSION FIX ==========
+
+   // **PERBAIKAN: Ganti seluruh bagian FORM SUBMISSION FIX dengan ini**
+    $(document).ready(function () {
+        // Debug logging
+        console.log('Tournament form initialized. Current step: {{ $currentStep }}');
+        
+        // Tangani klik tombol Create
+        $(document).on('click', '#createBtn', function(e) {
+            console.log('=== CREATE BUTTON CLICKED ===');
+            
+            // Cek status checkbox
+            const isConfirmed = $('#confirmTournament').is(':checked');
+            console.log('Checkbox status:', isConfirmed);
+            
+            if (!isConfirmed) {
+                // Tampilkan error jika checkbox tidak dicentang
+                showError('You must confirm that all information is correct before creating tournament.');
+                return false;
+            }
+            
+            console.log('Submitting form for tournament creation...');
+            
+            // Submit form tanpa prevent default
+            return true; // Biarkan form submit normal
+        });
+        
+        // Tangani klik tombol Next
+        $(document).on('click', '#nextBtn', function(e) {
+            console.log('=== NEXT BUTTON CLICKED ===');
+            
+            // Validasi step saat ini
+            const currentStep = {{ $currentStep }};
+            console.log('Validating step:', currentStep);
+            
+            if (validateStep(currentStep)) {
+                console.log('Validation passed, submitting form...');
+                // Submit form tanpa prevent default
+                return true; // Biarkan form submit normal
+            } else {
+                console.log('Validation failed, stopping submission');
+                e.preventDefault(); // Hanya prevent default jika validasi gagal
+                return false;
+            }
+        });
+        
+        // Tangani klik tombol Previous
+        $(document).on('click', '#prevBtn', function(e) {
+            console.log('=== PREVIOUS BUTTON CLICKED ===');
+            console.log('Going to previous step...');
+            // Submit form tanpa prevent default
+            return true; // Biarkan form submit normal
+        });
+    });
+
+   
+    
+
+
+    // ========== PREVIEW UPDATES ==========
+
+    // Fungsi untuk update preview
+    function updatePreview() {
+        const name = $('#name').val() || '--';
+        const startDate = $('#start_date').val();
+        const endDate = $('#end_date').val();
+        const location = $('#location').val() || '--';
+        const organizer = $('#organizer').val() || '--';
+        const type = $('#type').val() || 'league';
+        const selectedTeams = $('#teams').val() || [];
+        const teamCount = selectedTeams.length;
+
+        // Hitung jumlah pertandingan berdasarkan tipe
+        let matchCount = 0;
+        if (type === 'league') {
+            const rounds = parseInt($('#league_rounds').val()) || 1;
+            matchCount = (teamCount * (teamCount - 1) / 2) * rounds;
+        } else if (type === 'knockout') {
+            const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+            matchCount = bracketSize - 1;
+            if ($('#knockout_third_place').is(':checked')) {
+                matchCount += 1;
+            }
+        } else if (type === 'group_knockout') {
+            const groupsCount = parseInt($('#groups_count').val()) || 2;
+            const teamsPerGroup = parseInt($('#teams_per_group').val()) || 4;
+            // Group stage matches
+            const groupMatches = groupsCount * (teamsPerGroup * (teamsPerGroup - 1) / 2);
+            // Knockout matches (qualifiers from each group)
+            const qualifyPerGroup = parseInt($('#qualify_per_group').val()) || 2;
+            const knockoutTeams = groupsCount * qualifyPerGroup;
+            const knockoutMatches = knockoutTeams - 1;
+            matchCount = groupMatches + knockoutMatches;
+        }
+
+        $('#previewName').text(name);
+        $('#previewTeamCount').text(teamCount);
+        $('#previewMatchCount').text(matchCount);
+        $('#quickTotalMatches').text(matchCount);
+
+        const typeNames = {
+            'league': 'League',
+            'knockout': 'Knockout',
+            'group_knockout': 'Group + Knockout'
+        };
+
+        $('#previewTournamentType').text(typeNames[type] || '--');
+
+        if (startDate && endDate) {
+            const start = new Date(startDate);
+            const end = new Date(endDate);
+            const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+
+            $('#previewDurationDays').text(duration + ' days');
+            $('#quickDuration').text(duration);
+            
+            // Update review dates
+            $('#reviewDates').text(
+                `${formatDate(startDate)} to ${formatDate(endDate)}`
+            );
+        } else {
+            $('#previewDurationDays').text('0 days');
+            $('#quickDuration').text('0');
+        }
+        
+        // Update review sections
+        $('#reviewName').text(name);
+        $('#reviewType').text(typeNames[type] || 'Select Type');
+        $('#reviewTeams').text(teamCount + ' teams');
+        $('#reviewMatches').text(matchCount + ' matches');
+        $('#reviewLocation').text(location);
+        $('#reviewOrganizer').text(organizer);
+        $('#reviewDuration').text(
+            `${$('#match_duration').val() || 40} mins (${$('#half_time').val() || 10} mins half)`
+        );
+        $('#reviewPoints').text(
+            `Win: ${$('#points_win').val() || 3}, Draw: ${$('#points_draw').val() || 1}, Loss: ${$('#points_loss').val() || 0}`
+        );
+        $('#reviewSubstitutes').text($('#max_substitutes').val() || 5);
+        
+        // Update quick stats
+        $('#quickTotalTeams').text(teamCount);
+        $('#quickGroups').text($('#groups_count').val() || 0);
+    }
+
+    // Fungsi untuk update team count
+    function updateTeamCount() {
+        const selectedTeams = $('#teams').val() || [];
+        const totalTeams = $('#teams option').length;
+
+        $('#totalTeamsCount').text(totalTeams);
+        $('#selectedTeamsCount').text(selectedTeams.length);
+        updatePreview();
+    }
+
+    // ========== STEP 3 - GROUP KNOCKOUT ==========
+
+    // Fungsi untuk update step 3 content
+    function updateStep3Content(tournamentType) {
+        // Hide semua step 3 content
+        $('.step-content[id^="step3"]').hide();
+        
+        // Update label step 3
+        const step3Labels = {
+            'league': 'League Setup',
+            'knockout': 'Bracket Setup',
+            'group_knockout': 'Groups'
+        };
+        $('#step3Label').text(step3Labels[tournamentType] || 'Groups');
+        
+        // Show content yang sesuai
+        if (tournamentType === 'league') {
+            $('#step3League').show();
+            initializeLeagueSeeding();
+        } else if (tournamentType === 'knockout') {
+            // **FIX: Knockout skip step 3, langsung ke step 4**
+            // Tapi jika di step 3, tetap tampilkan content
+            $('#step3Knockout').show();
+            initializeKnockoutBracket();
+        } else if (tournamentType === 'group_knockout') {
+            $('#step3Group').show();
+            initializeGroupAssignment();
+        }
+        
+        // Update next button text
+        updateNextButtonText();
+    }
+
+    // Fungsi untuk load teams data
+    function loadTeamsData() {
+        const selectedTeams = $('#teams').val() || [];
+        teamsData = {};
+
+        selectedTeams.forEach(teamId => {
+            const teamOption = $('#teams option[value="' + teamId + '"]');
+            teamsData[teamId] = {
+                id: teamId,
+                name: teamOption.data('name') || teamOption.text().split('(')[0].trim(),
+                logo: teamOption.data('logo'),
+                coach: teamOption.data('coach'),
+                group: null,
+                seed: 0,
+                assigned: false
+            };
         });
 
-        // Perbaikan untuk drag and drop yang lebih baik
-        function initializeDragAndDrop() {
-            const availableContainer = document.getElementById('availableTeamsContainer');
-            
-            if (availableContainer) {
-                new Sortable(availableContainer, {
-                    group: {
-                        name: 'shared',
-                        pull: 'clone',
-                        put: true
-                    },
-                    animation: 150,
-                    sort: false,
-                    onAdd: function (evt) {
-                        const teamId = evt.item.dataset.teamId;
-                        removeTeamFromGroup(teamId);
-                    }
-                });
+        const existingAssignments = JSON.parse($('#groupAssignments').val() || '[]');
+        existingAssignments.forEach(assignment => {
+            if (assignment.team_id && teamsData[assignment.team_id]) {
+                teamsData[assignment.team_id].group = assignment.group;
+                teamsData[assignment.team_id].seed = assignment.seed;
+                teamsData[assignment.team_id].assigned = true;
             }
+        });
+    }
 
-            // Initialize Sortable for each group
-            document.querySelectorAll('.group-body').forEach(groupBody => {
-                new Sortable(groupBody, {
-                    group: 'shared',
-                    animation: 150,
-                    onAdd: function (evt) {
-                        const teamId = evt.item.dataset.teamId;
-                        const group = evt.to.parentElement.dataset.group;
-                        if (teamId && group) {
-                            assignTeamToGroup(teamId, group);
-                            updateAvailableTeams();
-                        }
-                    },
-                    onUpdate: function (evt) {
-                        updateSeedsInGroup(evt.to.parentElement.dataset.group);
-                        saveGroupAssignments();
-                    }
-                });
+    // Fungsi untuk initialize group assignment - PERBAIKAN
+    function initializeGroupAssignment() {
+        // Load teams data dari select2
+        const selectedTeams = $('#teams').val() || [];
+        
+        // Reset teamsData
+        teamsData = {};
+        
+        // Load teams dari select2
+        selectedTeams.forEach(teamId => {
+            const teamOption = $('#teams option[value="' + teamId + '"]');
+            teamsData[teamId] = {
+                id: teamId,
+                name: teamOption.data('name') || teamOption.text().split('(')[0].trim(),
+                logo: teamOption.data('logo'),
+                coach: teamOption.data('coach'),
+                group: null,
+                seed: 0,
+                assigned: false
+            };
+        });
+        
+        // Load existing assignments dari hidden input
+        const existingAssignments = JSON.parse($('#groupAssignments').val() || '[]');
+        existingAssignments.forEach(assignment => {
+            if (assignment.team_id && teamsData[assignment.team_id]) {
+                teamsData[assignment.team_id].group = assignment.group;
+                teamsData[assignment.team_id].seed = assignment.seed;
+                teamsData[assignment.team_id].assigned = true;
+            }
+        });
+        
+        // Update groups dan UI
+        updateGroups();
+        
+        // Auto-distribute jika belum ada assignments
+        if (existingAssignments.length === 0 && Object.keys(teamsData).length > 0) {
+            setTimeout(() => {
+                autoDistribute();
+            }, 500);
+        }
+    }
+
+    // Fungsi untuk update groups
+    function updateGroups() {
+        const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
+        const container = $('#groupsContainer');
+        container.empty();
+
+        for (let i = 0; i < groupsCount; i++) {
+            const groupLetter = groupLetters[i];
+            const groupId = `group-${groupLetter}`;
+
+            const groupHtml = `
+            <div class="col-md-${Math.min(12 / groupsCount, 6)} mb-4">
+                <div class="card group-container" id="${groupId}" data-group="${groupLetter}">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0">
+                            <i class="bi bi-folder"></i> Group ${groupLetter}
+                            <span class="badge bg-light text-dark float-end" id="group-count-${groupLetter}">0</span>
+                        </h6>
+                    </div>
+                    <div class="card-body group-body" id="group-body-${groupLetter}">
+                        <div class="empty-group-message text-center text-muted py-4">
+                            <i class="bi bi-inbox" style="font-size: 2rem;"></i>
+                            <p class="mt-2">Drag teams here</p>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">
+                            <i class="bi bi-people"></i>
+                            <span id="group-teams-count-${groupLetter}">0</span> teams
+                        </small>
+                    </div>
+                </div>
+            </div>
+            `;
+
+            container.append(groupHtml);
+        }
+
+        updateAvailableTeams();
+        updateAssignedTeamsInGroups();
+        updateCounts();
+        
+        // Re-initialize drag and drop setelah groups diupdate
+        setTimeout(() => {
+            initializeDragAndDrop();
+        }, 100);
+    }
+
+    // Fungsi untuk initialize drag and drop
+    function initializeDragAndDrop() {
+        const availableContainer = document.getElementById('availableTeamsContainer');
+        
+        if (availableContainer) {
+            new Sortable(availableContainer, {
+                group: {
+                    name: 'shared',
+                    pull: 'clone',
+                    put: true
+                },
+                animation: 150,
+                sort: false,
+                onAdd: function (evt) {
+                    const teamId = evt.item.dataset.teamId;
+                    removeTeamFromGroup(teamId);
+                }
             });
         }
 
-        function loadTeamsData() {
-            const selectedTeams = $('#teams').val() || [];
-            teamsData = {};
+        // Initialize Sortable for each group
+        document.querySelectorAll('.group-body').forEach(groupBody => {
+            new Sortable(groupBody, {
+                group: 'shared',
+                animation: 150,
+                onAdd: function (evt) {
+                    const teamId = evt.item.dataset.teamId;
+                    const group = evt.to.parentElement.dataset.group;
+                    if (teamId && group) {
+                        assignTeamToGroup(teamId, group);
+                        updateAvailableTeams();
+                    }
+                },
+                onUpdate: function (evt) {
+                    updateSeedsInGroup(evt.to.parentElement.dataset.group);
+                    saveGroupAssignments();
+                }
+            });
+        });
+    }
 
-            selectedTeams.forEach(teamId => {
-                const teamOption = $('#teams option[value="' + teamId + '"]');
-                teamsData[teamId] = {
-                    id: teamId,
-                    name: teamOption.data('name') || teamOption.text().split('(')[0].trim(),
-                    logo: teamOption.data('logo'),
-                    coach: teamOption.data('coach'),
+    // Fungsi untuk assign team ke group
+    function assignTeamToGroup(teamId, group) {
+        if (!teamsData[teamId]) return;
+
+        const previousGroup = teamsData[teamId].group;
+        if (previousGroup && previousGroup !== group) {
+            removeTeamFromGroupDisplay(teamId, previousGroup);
+        }
+
+        teamsData[teamId].group = group;
+        teamsData[teamId].assigned = true;
+
+        const groupTeams = Object.values(teamsData).filter(t => t.group === group && t.assigned);
+        teamsData[teamId].seed = groupTeams.length;
+
+        addTeamToGroupDisplay(teamId, group, teamsData[teamId].seed);
+        updateCounts();
+        saveGroupAssignments();
+    }
+
+    // Fungsi untuk update available teams display
+    function updateAvailableTeams() {
+        const container = $('#availableTeamsContainer');
+        container.empty();
+
+        const unassignedTeams = Object.values(teamsData).filter(team => !team.assigned);
+
+        if (unassignedTeams.length === 0) {
+            container.html('<div class="text-center text-muted py-4">All teams have been assigned to groups</div>');
+            return;
+        }
+
+        unassignedTeams.forEach(team => {
+            const teamCard = `
+            <div class="col-md-3 mb-3 team-card-container" id="available-team-${team.id}">
+                <div class="team-card draggable-item" 
+                     data-team-id="${team.id}"
+                     draggable="true">
+                    <div class="team-logo-placeholder">
+                        ${team.logo ? `<img src="${team.logo}" alt="${team.name}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">` : team.name.substring(0, 2)}
+                    </div>
+                    <h6 class="mb-1">${team.name}</h6>
+                    ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
+                    <div class="mt-2">
+                        <span class="badge bg-warning">Available</span>
+                    </div>
+                </div>
+            </div>
+            `;
+            container.append(teamCard);
+        });
+
+        // Initialize drag and drop untuk available teams
+        setTimeout(() => {
+            initializeDragAndDrop();
+        }, 50);
+    }
+
+    // Fungsi untuk add team ke group display
+    function addTeamToGroupDisplay(teamId, group, seed) {
+        const team = teamsData[teamId];
+        if (!team) return;
+
+        const groupBody = document.getElementById(`group-body-${group}`);
+        if (!groupBody) return;
+
+        const emptyMessage = groupBody.querySelector('.empty-group-message');
+        if (emptyMessage) {
+            emptyMessage.remove();
+        }
+
+        const existingElement = groupBody.querySelector(`[data-team-id="${teamId}"]`);
+        if (existingElement) {
+            existingElement.remove();
+        }
+
+        const teamElement = document.createElement('div');
+        teamElement.className = 'draggable-item';
+        teamElement.dataset.teamId = teamId;
+        teamElement.draggable = true;
+
+        let logoHtml = '';
+        if (team.logo) {
+            logoHtml = `<img src="${team.logo}" alt="${team.name}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">`;
+        } else {
+            logoHtml = `<div class="team-logo-placeholder small me-2" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">${team.name.substring(0, 2)}</div>`;
+        }
+
+        teamElement.innerHTML = `
+        <div class="d-flex align-items-center">
+            ${logoHtml}
+            <div class="flex-grow-1">
+                <div class="fw-bold">${team.name}</div>
+                ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
+            </div>
+            <div class="ms-2">
+                <span class="badge bg-primary">Seed ${seed}</span>
+            </div>
+        </div>
+        `;
+
+        teamElement.addEventListener('dragstart', function (e) {
+            e.dataTransfer.setData('teamId', teamId);
+            this.classList.add('dragging');
+        });
+
+        teamElement.addEventListener('dragend', function () {
+            this.classList.remove('dragging');
+        });
+
+        groupBody.appendChild(teamElement);
+        updateGroupCount(group);
+    }
+
+    // Fungsi untuk remove team dari group display
+    function removeTeamFromGroupDisplay(teamId, group) {
+        const groupBody = document.getElementById(`group-body-${group}`);
+        if (groupBody) {
+            const teamElement = groupBody.querySelector(`[data-team-id="${teamId}"]`);
+            if (teamElement) {
+                teamElement.remove();
+            }
+
+            if (groupBody.children.length === 0) {
+                groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
+            }
+        }
+    }
+
+    // Fungsi untuk update seeds in group
+    function updateSeedsInGroup(group) {
+        const groupBody = document.getElementById(`group-body-${group}`);
+        if (!groupBody) return;
+
+        const teamElements = groupBody.querySelectorAll('.draggable-item');
+        teamElements.forEach((element, index) => {
+            const teamId = element.dataset.teamId;
+            if (teamsData[teamId]) {
+                teamsData[teamId].seed = index + 1;
+
+                const badge = element.querySelector('.badge');
+                if (badge) {
+                    badge.textContent = `Seed ${index + 1}`;
+                }
+            }
+        });
+
+        saveGroupAssignments();
+    }
+
+    // Fungsi untuk update group count
+    function updateGroupCount(group) {
+        const groupTeams = Object.values(teamsData).filter(t => t.group === group && t.assigned);
+        $(`#group-count-${group}`).text(groupTeams.length);
+        $(`#group-teams-count-${group}`).text(groupTeams.length);
+    }
+
+    // Fungsi untuk update counts
+    function updateCounts() {
+        const totalTeams = Object.keys(teamsData).length;
+        const assignedTeams = Object.values(teamsData).filter(t => t.assigned).length;
+        const unassignedTeams = totalTeams - assignedTeams;
+        const groupsCount = parseInt($('#groups_count_assign').val()) || 0;
+
+        $('#assignedCount').text(assignedTeams);
+        $('#unassignedCount').text(unassignedTeams);
+        $('#groupsCount').text(groupsCount);
+
+        for (let i = 0; i < groupsCount; i++) {
+            const groupLetter = groupLetters[i];
+            updateGroupCount(groupLetter);
+        }
+    }
+
+    // Fungsi untuk auto distribute teams - PERBAIKAN
+    function autoDistribute() {
+        const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
+        
+        // Reset all teams
+        Object.values(teamsData).forEach(team => {
+            team.group = null;
+            team.seed = 0;
+            team.assigned = false;
+        });
+
+        const allTeams = Object.keys(teamsData);
+        const shuffledTeams = [...allTeams].sort(() => Math.random() - 0.5);
+
+        // Distribute teams secara merata ke semua groups
+        shuffledTeams.forEach((teamId, index) => {
+            const groupIndex = index % groupsCount;
+            const groupLetter = groupLetters[groupIndex];
+            teamsData[teamId].group = groupLetter;
+            teamsData[teamId].assigned = true;
+
+            // Hitung seed untuk group ini
+            const groupTeams = shuffledTeams.filter((tId, idx) =>
+                idx % groupsCount === groupIndex && idx <= index
+            );
+            teamsData[teamId].seed = groupTeams.length;
+        });
+
+        updateAvailableTeams();
+        updateAssignedTeamsInGroups();
+        updateCounts();
+        saveGroupAssignments();
+    }
+
+    // Fungsi untuk reset groups
+    function resetGroups() {
+        Object.values(teamsData).forEach(team => {
+            team.group = null;
+            team.seed = 0;
+            team.assigned = false;
+        });
+
+        groupLetters.forEach(letter => {
+            const groupBody = document.getElementById(`group-body-${letter}`);
+            if (groupBody) {
+                groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
+                $(`#group-count-${letter}`).text('0');
+                $(`#group-teams-count-${letter}`).text('0');
+            }
+        });
+
+        updateAvailableTeams();
+        updateCounts();
+        saveGroupAssignments();
+    }
+
+    // Fungsi untuk remove team dari group
+    function removeTeamFromGroup(teamId) {
+        if (!teamsData[teamId]) return;
+
+        const group = teamsData[teamId].group;
+        teamsData[teamId].group = null;
+        teamsData[teamId].seed = 0;
+        teamsData[teamId].assigned = false;
+
+        removeTeamFromGroupDisplay(teamId, group);
+
+        if (group) {
+            updateSeedsInGroup(group);
+        }
+
+        updateAvailableTeams();
+        updateCounts();
+        saveGroupAssignments();
+    }
+
+    // Fungsi untuk save group assignments
+    function saveGroupAssignments() {
+        const assignments = [];
+
+        Object.values(teamsData).forEach(team => {
+            if (team.assigned && team.group) {
+                assignments.push({
+                    team_id: team.id,
+                    group: team.group,
+                    seed: team.seed
+                });
+            }
+        });
+
+        $('#groupAssignments').val(JSON.stringify(assignments));
+    }
+
+    // Fungsi untuk handle form submission di step 5
+    function handleStep5Submission(e) {
+        console.log('=== HANDLE STEP 5 SUBMISSION ===');
+        
+        // Cek checkbox konfirmasi
+        const confirmCheckbox = document.getElementById('confirmTournament');
+        if (!confirmCheckbox || !confirmCheckbox.checked) {
+            e.preventDefault();
+            showError('You must confirm that all information is correct before creating tournament.');
+            
+            // Scroll ke checkbox
+            confirmCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            confirmCheckbox.focus();
+            return false;
+        }
+        
+        console.log('Checkbox confirmed, submitting form...');
+        
+        // **PERBAIKAN: Simpan semua data form ke localStorage sebagai backup**
+        const formData = new FormData(document.getElementById('tournamentForm'));
+        const formObject = {};
+        formData.forEach((value, key) => {
+            formObject[key] = value;
+        });
+        
+        localStorage.setItem('tournament_form_backup', JSON.stringify(formObject));
+        console.log('Form data backed up to localStorage');
+        
+        return true;
+    }
+
+// Pasang event listener untuk form submission di step 5
+$(document).ready(function() {
+    // Debug info
+    console.log('Tournament form initialized. Current step: {{ $currentStep }}');
+    console.log('Session tournament data count: {{ count($tournamentData) }}');
+    
+    // Tangani form submission
+    $('#tournamentForm').on('submit', function(e) {
+        const currentStep = {{ $currentStep }};
+        const formAction = $('button[type="submit"]:focus').val() || $('input[name="form_action"]').val() || 'next';
+        
+        console.log('=== FORM SUBMISSION ===');
+        console.log('Current step:', currentStep);
+        console.log('Form action:', formAction);
+        
+        if (currentStep === 5) {
+            return handleStep5Submission(e);
+        }
+        
+        // Untuk step 1-4, validasi dulu
+        if (!validateStep(currentStep)) {
+            e.preventDefault();
+            console.log('Validation failed for step:', currentStep);
+            return false;
+        }
+        
+        console.log('Validation passed, submitting form...');
+        return true;
+    });
+    
+    // **PERBAIKAN: Simpan form state ke localStorage secara berkala**
+    setInterval(function() {
+        if ($('#tournamentForm').length) {
+            const currentStep = {{ $currentStep }};
+            const formData = {
+                step: currentStep,
+                data: {}
+            };
+            
+            // Simpan data form yang penting
+            $('#tournamentForm').find('input, select, textarea').each(function() {
+                const name = $(this).attr('name');
+                if (name && !name.includes('_token')) {
+                    if ($(this).is(':checkbox') || $(this).is(':radio')) {
+                        formData.data[name] = $(this).is(':checked');
+                    } else {
+                        formData.data[name] = $(this).val();
+                    }
+                }
+            });
+            
+            localStorage.setItem('tournament_form_autosave', JSON.stringify(formData));
+        }
+    }, 5000); // Autosave setiap 5 detik
+    
+    // **PERBAIKAN: Coba restore dari localStorage jika session kosong**
+    @if(empty($tournamentData) && $currentStep > 1)
+        console.log('Session data empty, checking localStorage...');
+        const savedForm = localStorage.getItem('tournament_form_autosave');
+        if (savedForm) {
+            console.log('Found saved form data in localStorage');
+            // Bisa digunakan untuk recovery jika diperlukan
+        }
+    @endif
+});
+
+
+// **PERBAIKAN: Function untuk handle semua tombol submit**
+$(document).on('click', 'button[type="submit"]', function() {
+    const currentStep = {{ $currentStep }};
+    const buttonValue = $(this).val();
+    
+    console.log('Button clicked:', $(this).text(), 'Value:', buttonValue);
+    
+    // Set form action berdasarkan tombol yang diklik
+    if (buttonValue === 'create') {
+        $('#formAction').val('create');
+    } else {
+        $('#formAction').val('next');
+    }
+    
+    // Untuk step 5, validasi checkbox
+    if (currentStep === 5 && buttonValue === 'create') {
+        const confirmCheckbox = document.getElementById('confirmTournament');
+        if (!confirmCheckbox || !confirmCheckbox.checked) {
+            showError('You must confirm that all information is correct before creating tournament.');
+            confirmCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            confirmCheckbox.focus();
+            return false;
+        }
+    }
+    
+    return true;
+});
+
+    // Fungsi untuk update assigned teams in groups
+    function updateAssignedTeamsInGroups() {
+        groupLetters.forEach(letter => {
+            const groupBody = document.getElementById(`group-body-${letter}`);
+            if (groupBody) {
+                groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
+            }
+        });
+
+        Object.values(teamsData).forEach(team => {
+            if (team.group && team.assigned) {
+                addTeamToGroupDisplay(team.id, team.group, team.seed);
+            }
+        });
+    }
+
+    // ========== STEP 3 - LEAGUE ==========
+
+    // Fungsi untuk initialize league seeding
+    function initializeLeagueSeeding() {
+        const selectedTeams = $('#teams').val() || [];
+        const leagueSeeds = JSON.parse($('#leagueSeeds').val() || '[]');
+        
+        // Jika belum ada seeds, buat dari selected teams
+        if (leagueSeeds.length === 0 && selectedTeams.length > 0) {
+            const seeds = selectedTeams.map((teamId, index) => ({
+                team_id: parseInt(teamId),
+                seed: index + 1
+            }));
+            $('#leagueSeeds').val(JSON.stringify(seeds));
+        }
+    }
+
+    // Fungsi untuk move team up/down di league seeding
+    function moveTeamUp(button) {
+        const row = $(button).closest('tr');
+        const prevRow = row.prev();
+        
+        if (prevRow.length) {
+            row.insertBefore(prevRow);
+            updateLeagueSeeds();
+        }
+    }
+
+    function moveTeamDown(button) {
+        const row = $(button).closest('tr');
+        const nextRow = row.next();
+        
+        if (nextRow.length) {
+            row.insertAfter(nextRow);
+            updateLeagueSeeds();
+        }
+    }
+
+    function updateLeagueSeeds() {
+        const seeds = [];
+        $('#leagueSeedingTable tr').each(function(index) {
+            const teamId = $(this).data('team-id');
+            if (teamId) {
+                seeds.push({
+                    team_id: teamId,
+                    seed: index + 1
+                });
+            }
+        });
+        $('#leagueSeeds').val(JSON.stringify(seeds));
+    }
+
+    // ========== STEP 3 - KNOCKOUT ==========
+
+    // Fungsi untuk initialize knockout bracket
+    function initializeKnockoutBracket() {
+        const bracketSize = parseInt($('#bracket_size').val()) || 8;
+        const selectedTeams = $('#teams').val() || [];
+        
+        // Load knockout teams data
+        loadKnockoutTeamsData();
+        
+        // Update calculation
+        updateKnockoutCalculation();
+        
+        // Generate bracket preview
+        generateBracketPreview(bracketSize, selectedTeams);
+    }
+
+    // Fungsi untuk load knockout teams data
+    function loadKnockoutTeamsData() {
+        const selectedTeams = $('#teams').val() || [];
+        knockoutTeams = {};
+        
+        selectedTeams.forEach(teamId => {
+            const teamOption = $('#teams option[value="' + teamId + '"]');
+            knockoutTeams[teamId] = {
+                id: teamId,
+                name: teamOption.data('name') || teamOption.text().split('(')[0].trim(),
+                logo: teamOption.data('logo'),
+                coach: teamOption.data('coach'),
+                seed: 0,
+                position: 0
+            };
+        });
+        
+        // Load existing seeds
+        const existingSeeds = JSON.parse($('#knockoutSeeds').val() || '[]');
+        knockoutSeeds = existingSeeds;
+    }
+
+    // Fungsi untuk update knockout calculation
+    function updateKnockoutCalculation() {
+        const bracketSize = parseInt($('#bracket_size').val()) || 8;
+        const includeThirdPlace = $('#knockout_third_place_step3').is(':checked');
+        
+        // Hitung jumlah pertandingan
+        let totalMatches = bracketSize - 1;
+        if (includeThirdPlace) {
+            totalMatches += 1;
+        }
+        
+        // Hitung jumlah round
+        let rounds = Math.log2(bracketSize);
+        
+        // Hitung available byes
+        const selectedTeams = $('#teams').val() || [];
+        const teamCount = selectedTeams.length;
+        const availableByes = Math.max(0, bracketSize - teamCount);
+        
+        $('#knockoutMatchesCount').text(totalMatches);
+        $('#knockoutRoundsCount').text(rounds);
+        $('#availableByes').text(availableByes);
+    }
+
+    // Fungsi untuk generate bracket preview
+    function generateBracketPreview(bracketSize, teams) {
+        const container = $('#bracketPreview');
+        container.empty();
+        
+        // Determine number of rounds
+        const numRounds = Math.log2(bracketSize);
+        
+        // Generate each round
+        for (let round = 1; round <= numRounds; round++) {
+            const roundHtml = `
+                <div class="bracket-round">
+                    <div class="bracket-round-title">Round ${round}</div>
+                    <div class="bracket-round-matches" id="round-${round}">
+                        <!-- Matches for this round -->
+                    </div>
+                </div>
+            `;
+            container.append(roundHtml);
+            
+            // Generate matches for this round
+            const matchesInRound = bracketSize / Math.pow(2, round);
+            const matchContainer = $(`#round-${round}`);
+            
+            for (let match = 1; match <= matchesInRound; match++) {
+                const position = (match - 1) * 2 + 1;
+                const matchHtml = `
+                    <div class="bracket-match-knockout" data-round="${round}" data-match="${match}">
+                        <div class="bracket-team-knockout empty" 
+                             data-position="${position}" 
+                             data-seed="${position}"
+                             ondragover="allowDrop(event)" 
+                             ondrop="dropKnockoutTeam(event)" 
+                             ondragenter="dragEnter(event)" 
+                             ondragleave="dragLeave(event)">
+                             Team ${position}
+                        </div>
+                        <div class="bracket-team-knockout empty" 
+                             data-position="${position + 1}" 
+                             data-seed="${position + 1}"
+                             ondragover="allowDrop(event)" 
+                             ondrop="dropKnockoutTeam(event)" 
+                             ondragenter="dragEnter(event)" 
+                             ondragleave="dragLeave(event)">
+                             Team ${position + 1}
+                        </div>
+                    </div>
+                `;
+                matchContainer.append(matchHtml);
+            }
+        }
+        
+        // Final round
+        if (numRounds > 0) {
+            const finalRound = numRounds + 1;
+            const finalHtml = `
+                <div class="bracket-round">
+                    <div class="bracket-round-title">Final</div>
+                    <div class="bracket-match-knockout" data-round="${finalRound}" data-match="1">
+                        <div class="bracket-team-knockout empty" 
+                             data-position="1" 
+                             data-seed="1"
+                             ondragover="allowDrop(event)" 
+                             ondrop="dropKnockoutTeam(event)" 
+                             ondragenter="dragEnter(event)" 
+                             ondragleave="dragLeave(event)">
+                             Finalist 1
+                        </div>
+                        <div class="bracket-team-knockout empty" 
+                             data-position="2" 
+                             data-seed="2"
+                             ondragover="allowDrop(event)" 
+                             ondrop="dropKnockoutTeam(event)" 
+                             ondragenter="dragEnter(event)" 
+                             ondragleave="dragLeave(event)">
+                             Finalist 2
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.append(finalHtml);
+        }
+        
+        // Load existing seeds
+        loadExistingKnockoutSeeds();
+    }
+
+    // Fungsi untuk drag knockout team
+    function dragKnockoutTeam(event) {
+        const teamId = event.target.dataset.teamId;
+        const teamName = event.target.dataset.teamName;
+        const teamLogo = event.target.dataset.teamLogo;
+        
+        event.dataTransfer.setData('teamId', teamId);
+        event.dataTransfer.setData('teamName', teamName);
+        event.dataTransfer.setData('teamLogo', teamLogo);
+        event.dataTransfer.setData('source', 'available');
+    }
+
+    // Fungsi untuk allow drop
+    function allowDrop(event) {
+        event.preventDefault();
+    }
+
+    // Fungsi untuk drag enter
+    function dragEnter(event) {
+        event.target.classList.add('drop-hover');
+    }
+
+    // Fungsi untuk drag leave
+    function dragLeave(event) {
+        event.target.classList.remove('drop-hover');
+    }
+
+    // Fungsi untuk drop knockout team
+    function dropKnockoutTeam(event) {
+        event.preventDefault();
+        event.target.classList.remove('drop-hover');
+        
+        const teamId = event.dataTransfer.getData('teamId');
+        const teamName = event.dataTransfer.getData('teamName');
+        const teamLogo = event.dataTransfer.getData('teamLogo');
+        const source = event.dataTransfer.getData('source');
+        const position = parseInt(event.target.dataset.position);
+        const seed = parseInt(event.target.dataset.seed);
+        
+        if (teamId && teamName) {
+            // Update UI
+            let logoHtml = '';
+            if (teamLogo) {
+                logoHtml = `<img src="${teamLogo}" alt="${teamName}" class="rounded-circle me-2" style="width: 20px; height: 20px; object-fit: cover;">`;
+            } else {
+                logoHtml = `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 20px; height: 20px; font-size: 0.7rem;">${teamName.substring(0, 2)}</div>`;
+            }
+            
+            event.target.innerHTML = `${logoHtml} ${teamName}`;
+            event.target.classList.remove('empty');
+            event.target.dataset.teamId = teamId;
+            
+            // Update knockout seeds
+            updateKnockoutSeeds(teamId, position, seed);
+            
+            // Jika source adalah available teams, hapus dari list
+            if (source === 'available') {
+                const teamElement = $(`.draggable-team[data-team-id="${teamId}"]`);
+                teamElement.hide();
+            }
+        }
+    }
+
+    // Fungsi untuk update knockout seeds
+    function updateKnockoutSeeds(teamId, position, seed) {
+        // Remove existing entry for this team
+        knockoutSeeds = knockoutSeeds.filter(seed => seed.team_id != teamId);
+        
+        // Add new entry
+        knockoutSeeds.push({
+            team_id: parseInt(teamId),
+            position: position,
+            seed: seed
+        });
+        
+        // Update hidden input
+        $('#knockoutSeeds').val(JSON.stringify(knockoutSeeds));
+    }
+
+    // Fungsi untuk load existing knockout seeds
+    function loadExistingKnockoutSeeds() {
+        const seeds = JSON.parse($('#knockoutSeeds').val() || '[]');
+        
+        seeds.forEach(seed => {
+            const teamPosition = $(`.bracket-team-knockout[data-position="${seed.position}"]`);
+            if (teamPosition.length > 0) {
+                const team = knockoutTeams[seed.team_id];
+                if (team) {
+                    let logoHtml = '';
+                    if (team.logo) {
+                        logoHtml = `<img src="${team.logo}" alt="${team.name}" class="rounded-circle me-2" style="width: 20px; height: 20px; object-fit: cover;">`;
+                    } else {
+                        logoHtml = `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 20px; height: 20px; font-size: 0.7rem;">${team.name.substring(0, 2)}</div>`;
+                    }
+                    
+                    teamPosition.html(`${logoHtml} ${team.name}`);
+                    teamPosition.removeClass('empty');
+                    teamPosition[0].dataset.teamId = team.id;
+                    
+                    // Hide from available teams
+                    $(`.draggable-team[data-team-id="${team.id}"]`).hide();
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk auto seed knockout
+    function autoSeedKnockout() {
+        const bracketSize = parseInt($('#bracket_size').val()) || 8;
+        const selectedTeams = $('#teams').val() || [];
+        
+        // Clear existing seeds
+        clearKnockoutSeeds();
+        
+        // Reset all bracket positions
+        $('.bracket-team-knockout').each(function() {
+            const position = $(this).data('position');
+            $(this).html(`Team ${position}`);
+            $(this).addClass('empty');
+            $(this).removeAttr('data-team-id');
+        });
+        
+        // Show all available teams
+        $('.draggable-team').show();
+        
+        // Auto assign teams to positions
+        const shuffledTeams = [...selectedTeams].sort(() => Math.random() - 0.5);
+        const positions = Array.from({length: bracketSize}, (_, i) => i + 1);
+        
+        shuffledTeams.forEach((teamId, index) => {
+            if (index < bracketSize) {
+                const position = positions[index];
+                const teamPosition = $(`.bracket-team-knockout[data-position="${position}"]`);
+                const team = knockoutTeams[teamId];
+                
+                if (teamPosition.length > 0 && team) {
+                    let logoHtml = '';
+                    if (team.logo) {
+                        logoHtml = `<img src="${team.logo}" alt="${team.name}" class="rounded-circle me-2" style="width: 20px; height: 20px; object-fit: cover;">`;
+                    } else {
+                        logoHtml = `<div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" style="width: 20px; height: 20px; font-size: 0.7rem;">${team.name.substring(0, 2)}</div>`;
+                    }
+                    
+                    teamPosition.html(`${logoHtml} ${team.name}`);
+                    teamPosition.removeClass('empty');
+                    teamPosition[0].dataset.teamId = team.id;
+                    
+                    // Hide from available teams
+                    $(`.draggable-team[data-team-id="${team.id}"]`).hide();
+                    
+                    // Update seeds
+                    updateKnockoutSeeds(teamId, position, position);
+                }
+            }
+        });
+    }
+
+    // Fungsi untuk clear knockout seeds
+    function clearKnockoutSeeds() {
+        knockoutSeeds = [];
+        $('#knockoutSeeds').val('[]');
+        
+        // Clear all bracket positions
+        $('.bracket-team-knockout').each(function() {
+            const position = $(this).data('position');
+            $(this).html(`Team ${position}`);
+            $(this).addClass('empty');
+            $(this).removeAttr('data-team-id');
+        });
+        
+        // Show all available teams
+        $('.draggable-team').show();
+    }
+
+    // ========== MAIN DOCUMENT READY ==========
+
+    $(document).ready(function () {
+        // Initialize Select2
+        $('#teams').select2({
+            placeholder: 'Select teams to participate',
+            allowClear: true,
+            width: '100%',
+            closeOnSelect: false
+        });
+
+        // Initialize step 3 content berdasarkan tipe yang dipilih
+        const tournamentType = $('#type').val() || 'group_knockout';
+        
+        // Update step 3 label saat awal load
+        const step3Labels = {
+            'league': 'League Setup',
+            'knockout': 'Bracket Setup',
+            'group_knockout': 'Groups'
+        };
+        $('#step3Label').text(step3Labels[tournamentType] || 'Groups');
+        
+        // Jika di step 3, tampilkan konten yang sesuai
+        if ({{ $currentStep }} == 3) {
+            updateStep3Content(tournamentType);
+        }
+
+        // Update next button text saat awal
+        updateNextButtonText();
+
+        // Initialize teams data
+        @if(!empty($tournamentData['teams']))
+            @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
+                @php
+                    $logoUrl = $team->logo ? Storage::url($team->logo) : null;
+                @endphp
+                teamsData[{{ $team->id }}] = {
+                    id: {{ $team->id }},
+                    name: "{{ $team->name }}",
+                    logo: "{{ $logoUrl }}",
+                    coach: "{{ $team->coach_name }}",
                     group: null,
                     seed: 0,
                     assigned: false
                 };
-            });
+            @endforeach
+        @endif
 
-            const existingAssignments = JSON.parse($('#groupAssignments').val() || '[]');
+        // Load existing assignments
+        const existingAssignments = JSON.parse($('#groupAssignments').val() || '[]');
+        if (existingAssignments.length > 0) {
             existingAssignments.forEach(assignment => {
-                if (assignment.team_id && teamsData[assignment.team_id]) {
+                if (assignment.group && assignment.team_id && teamsData[assignment.team_id]) {
                     teamsData[assignment.team_id].group = assignment.group;
                     teamsData[assignment.team_id].seed = assignment.seed;
                     teamsData[assignment.team_id].assigned = true;
@@ -2715,476 +4443,180 @@
             });
         }
 
-        function updateGroups() {
-            const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
-            const container = $('#groupsContainer');
-            container.empty();
+        // Initialize groups
+        updateGroups();
 
-            for (let i = 0; i < groupsCount; i++) {
-                const groupLetter = groupLetters[i];
-                const groupId = `group-${groupLetter}`;
+        // Event listeners
+        $('#teams').on('change', function () {
+            updateTeamCount();
+            updatePreview();
+            loadTeamsData();
+            updateGroups();
+        });
 
-                const groupHtml = `
-                <div class="col-md-${Math.min(12 / groupsCount, 6)} mb-4">
-                    <div class="card group-container" id="${groupId}" data-group="${groupLetter}">
-                        <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0">
-                                <i class="bi bi-folder"></i> Group ${groupLetter}
-                                <span class="badge bg-light text-dark float-end" id="group-count-${groupLetter}">0</span>
-                            </h6>
-                        </div>
-                        <div class="card-body group-body" id="group-body-${groupLetter}">
-                            <div class="empty-group-message text-center text-muted py-4">
-                                <i class="bi bi-inbox" style="font-size: 2rem;"></i>
-                                <p class="mt-2">Drag teams here</p>
-                            </div>
-                        </div>
-                        <div class="card-footer">
-                            <small class="text-muted">
-                                <i class="bi bi-people"></i>
-                                <span id="group-teams-count-${groupLetter}">0</span> teams
-                            </small>
-                        </div>
-                    </div>
-                </div>
-            `;
+        $('#name').on('input', function () {
+            const name = $(this).val();
+            const slugInput = $('#slug');
 
-                container.append(groupHtml);
-            }
+            if (!slugInput.data('customized')) {
+                const slug = name.toLowerCase()
+                    .replace(/[^\w\s]/gi, '')
+                    .replace(/\s+/g, '-')
+                    .replace(/-+/g, '-')
+                    .replace(/^-+|-+$/g, '');
 
-            updateAvailableTeams();
-            updateAssignedTeamsInGroups();
-            updateCounts();
-            
-            // Re-initialize drag and drop setelah groups diupdate
-            setTimeout(() => {
-                initializeDragAndDrop();
-            }, 100);
-        }
-
-        function updateAssignedTeamsInGroups() {
-            groupLetters.forEach(letter => {
-                const groupBody = document.getElementById(`group-body-${letter}`);
-                if (groupBody) {
-                    groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
-                }
-            });
-
-            Object.values(teamsData).forEach(team => {
-                if (team.group && team.assigned) {
-                    addTeamToGroupDisplay(team.id, team.group, team.seed);
-                }
-            });
-        }
-
-        function assignTeamToGroup(teamId, group) {
-            if (!teamsData[teamId]) return;
-
-            const previousGroup = teamsData[teamId].group;
-            if (previousGroup && previousGroup !== group) {
-                removeTeamFromGroupDisplay(teamId, previousGroup);
-            }
-
-            teamsData[teamId].group = group;
-            teamsData[teamId].assigned = true;
-
-            const groupTeams = Object.values(teamsData).filter(t => t.group === group && t.assigned);
-            teamsData[teamId].seed = groupTeams.length;
-
-            addTeamToGroupDisplay(teamId, group, teamsData[teamId].seed);
-
-            updateCounts();
-            saveGroupAssignments();
-        }
-
-        function removeTeamFromGroupDisplay(teamId, group) {
-            const groupBody = document.getElementById(`group-body-${group}`);
-            if (groupBody) {
-                const teamElement = groupBody.querySelector(`[data-team-id="${teamId}"]`);
-                if (teamElement) {
-                    teamElement.remove();
-                }
-
-                if (groupBody.children.length === 0) {
-                    groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
+                if (slug) {
+                    slugInput.val(slug);
                 }
             }
-        }
-
-        function addTeamToGroupDisplay(teamId, group, seed) {
-            const team = teamsData[teamId];
-            if (!team) return;
-
-            const groupBody = document.getElementById(`group-body-${group}`);
-            if (!groupBody) return;
-
-            const emptyMessage = groupBody.querySelector('.empty-group-message');
-            if (emptyMessage) {
-                emptyMessage.remove();
-            }
-
-            const existingElement = groupBody.querySelector(`[data-team-id="${teamId}"]`);
-            if (existingElement) {
-                existingElement.remove();
-            }
-
-            const teamElement = document.createElement('div');
-            teamElement.className = 'draggable-item';
-            teamElement.dataset.teamId = teamId;
-            teamElement.draggable = true;
-
-            let logoHtml = '';
-            if (team.logo) {
-                logoHtml = `<img src="${team.logo}" alt="${team.name}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">`;
-            } else {
-                logoHtml = `<div class="team-logo-placeholder small me-2" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">${team.name.substring(0, 2)}</div>`;
-            }
-
-            teamElement.innerHTML = `
-            <div class="d-flex align-items-center">
-                ${logoHtml}
-                <div class="flex-grow-1">
-                    <div class="fw-bold">${team.name}</div>
-                    ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
-                </div>
-                <div class="ms-2">
-                    <span class="badge bg-primary">Seed ${seed}</span>
-                </div>
-            </div>
-        `;
-
-            teamElement.addEventListener('dragstart', function (e) {
-                e.dataTransfer.setData('teamId', teamId);
-                this.classList.add('dragging');
-            });
-
-            teamElement.addEventListener('dragend', function () {
-                this.classList.remove('dragging');
-            });
-
-            groupBody.appendChild(teamElement);
-            updateGroupCount(group);
-        }
-
-        function updateSeedsInGroup(group) {
-            const groupBody = document.getElementById(`group-body-${group}`);
-            if (!groupBody) return;
-
-            const teamElements = groupBody.querySelectorAll('.draggable-item');
-            teamElements.forEach((element, index) => {
-                const teamId = element.dataset.teamId;
-                if (teamsData[teamId]) {
-                    teamsData[teamId].seed = index + 1;
-
-                    const badge = element.querySelector('.badge');
-                    if (badge) {
-                        badge.textContent = `Seed ${index + 1}`;
-                    }
-                }
-            });
-
-            saveGroupAssignments();
-        }
-
-        function updateAvailableTeams() {
-            const container = $('#availableTeamsContainer');
-            container.empty();
-
-            const unassignedTeams = Object.values(teamsData).filter(team => !team.assigned);
-
-            if (unassignedTeams.length === 0) {
-                container.html('<div class="text-center text-muted py-4">All teams have been assigned to groups</div>');
-                return;
-            }
-
-            unassignedTeams.forEach(team => {
-                const teamCard = `
-                <div class="col-md-3 mb-3 team-card-container" id="available-team-${team.id}">
-                    <div class="team-card draggable-item" 
-                         data-team-id="${team.id}"
-                         draggable="true">
-                        <div class="team-logo-placeholder">
-                            ${team.logo ? `<img src="${team.logo}" alt="${team.name}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">` : team.name.substring(0, 2)}
-                        </div>
-                        <h6 class="mb-1">${team.name}</h6>
-                        ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
-                        <div class="mt-2">
-                            <span class="badge bg-warning">Available</span>
-                        </div>
-                    </div>
-                </div>
-            `;
-                container.append(teamCard);
-            });
-
-            // Initialize drag and drop untuk available teams
-            setTimeout(() => {
-                initializeDragAndDrop();
-            }, 50);
-        }
-
-        function updateGroupCount(group) {
-            const groupTeams = Object.values(teamsData).filter(t => t.group === group && t.assigned);
-            $(`#group-count-${group}`).text(groupTeams.length);
-            $(`#group-teams-count-${group}`).text(groupTeams.length);
-        }
-
-        function updateCounts() {
-            const totalTeams = Object.keys(teamsData).length;
-            const assignedTeams = Object.values(teamsData).filter(t => t.assigned).length;
-            const unassignedTeams = totalTeams - assignedTeams;
-            const groupsCount = parseInt($('#groups_count_assign').val()) || 0;
-
-            $('#assignedCount').text(assignedTeams);
-            $('#unassignedCount').text(unassignedTeams);
-            $('#groupsCount').text(groupsCount);
-
-            for (let i = 0; i < groupsCount; i++) {
-                const groupLetter = groupLetters[i];
-                updateGroupCount(groupLetter);
-            }
-        }
-
-        function autoDistribute() {
-            const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
-            const allTeams = Object.keys(teamsData);
-
-            Object.values(teamsData).forEach(team => {
-                team.group = null;
-                team.seed = 0;
-                team.assigned = false;
-            });
-
-            const shuffledTeams = [...allTeams].sort(() => Math.random() - 0.5);
-
-            shuffledTeams.forEach((teamId, index) => {
-                const groupIndex = index % groupsCount;
-                const groupLetter = groupLetters[groupIndex];
-                teamsData[teamId].group = groupLetter;
-                teamsData[teamId].assigned = true;
-
-                const groupTeams = shuffledTeams.filter((tId, idx) =>
-                    idx % groupsCount === groupIndex && idx <= index
-                );
-                teamsData[teamId].seed = groupTeams.length;
-            });
-
-            updateAvailableTeams();
-            updateAssignedTeamsInGroups();
-            updateCounts();
-            saveGroupAssignments();
-        }
-
-        function resetGroups() {
-            Object.values(teamsData).forEach(team => {
-                team.group = null;
-                team.seed = 0;
-                team.assigned = false;
-            });
-
-            groupLetters.forEach(letter => {
-                const groupBody = document.getElementById(`group-body-${letter}`);
-                if (groupBody) {
-                    groupBody.innerHTML = '<div class="empty-group-message text-center text-muted py-4"><i class="bi bi-inbox" style="font-size: 2rem;"></i><p class="mt-2">Drag teams here</p></div>';
-                    $(`#group-count-${letter}`).text('0');
-                    $(`#group-teams-count-${letter}`).text('0');
-                }
-            });
-
-            updateAvailableTeams();
-            updateCounts();
-            saveGroupAssignments();
-        }
-
-        function removeTeamFromGroup(teamId) {
-            if (!teamsData[teamId]) return;
-
-            const group = teamsData[teamId].group;
-            teamsData[teamId].group = null;
-            teamsData[teamId].seed = 0;
-            teamsData[teamId].assigned = false;
-
-            removeTeamFromGroupDisplay(teamId, group);
-
-            if (group) {
-                updateSeedsInGroup(group);
-            }
-
-            updateAvailableTeams();
-            updateCounts();
-            saveGroupAssignments();
-        }
-
-        function saveGroupAssignments() {
-            const assignments = [];
-
-            Object.values(teamsData).forEach(team => {
-                if (team.assigned && team.group) {
-                    assignments.push({
-                        team_id: team.id,
-                        group: team.group,
-                        seed: team.seed
-                    });
-                }
-            });
-
-            $('#groupAssignments').val(JSON.stringify(assignments));
-        }
-
-        function updateTeamCount() {
-            const selectedTeams = $('#teams').val() || [];
-            const totalTeams = $('#teams option').length;
-
-            $('#totalTeamsCount').text(totalTeams);
-            $('#selectedTeamsCount').text(selectedTeams.length);
 
             updatePreview();
+        });
+
+        $('#slug').on('input', function () {
+            $(this).data('customized', true);
+        });
+
+        // Tournament type change handler
+        $('#type').on('change', function () {
+        const selectedType = $(this).val();
+        
+        // Hide all settings sections
+        $('#groupSettings, #leagueSettings, #knockoutSettings').hide();
+        
+        // Show relevant settings section
+        if (selectedType === 'group_knockout') {
+            $('#groupSettings').show();
+            $('#groups_count').prop('required', true);
+            $('#teams_per_group').prop('required', true);
+            $('#qualify_per_group').prop('required', true);
+        } else if (selectedType === 'league') {
+            $('#leagueSettings').show();
+            // League bisa memiliki grup atau tidak
+            $('#groups_count').prop('required', false);
+            $('#teams_per_group').prop('required', false);
+            $('#qualify_per_group').prop('required', false);
+            
+            // **FIX: Reset nilai groups_count jika league tanpa grup**
+            if (!$('#groups_count').val() || $('#groups_count').val() < 1) {
+                $('#groups_count').val(1); // Default 1 group untuk league
+            }
+        } else if (selectedType === 'knockout') {
+            $('#knockoutSettings').show();
+            $('#groups_count').prop('required', false);
+            $('#teams_per_group').prop('required', false);
+            $('#qualify_per_group').prop('required', false);
         }
-
-        function validateStep(step) {
-            let isValid = true;
-
-            if (step === 1) {
-                if (!$('#name').val()) {
-                    showError('Please enter tournament name', $('#name'));
-                    isValid = false;
-                }
-
-                if (!$('#start_date').val()) {
-                    showError('Please select start date', $('#start_date'));
-                    isValid = false;
-                }
-
-                if (!$('#end_date').val()) {
-                    showError('Please select end date', $('#end_date'));
-                    isValid = false;
-                }
-
-                if (!$('#type').val()) {
-                    showError('Please select tournament type', $('#type'));
-                    isValid = false;
-                }
-            }
-
-            if (step === 2) {
-                const selectedTeams = $('#teams').val();
-                if (!selectedTeams || selectedTeams.length === 0) {
-                    showError('Please select at least one team');
-                    isValid = false;
-                } else if (selectedTeams.length < 2) {
-                    showError('Please select at least 2 teams');
-                    isValid = false;
-                }
-            }
-
-            if (step === 3) {
-                const tournamentType = $('#type').val();
-                if (tournamentType === 'group_knockout') {
-                    const assignedTeams = Object.values(teamsData).filter(t => t.assigned).length;
-                    const totalTeams = Object.keys(teamsData).length;
-
-                    if (assignedTeams === 0) {
-                        showError('Please assign teams to groups. You can use "Auto-distribute" button.');
-                        isValid = false;
-                    } else if (assignedTeams !== totalTeams) {
-                        showError('Please assign all teams to groups. There are still unassigned teams.');
-                        isValid = false;
-                    }
-                }
-            }
-
-            return isValid;
+        
+        // Jika di step 3, update konten
+        if ({{ $currentStep }} == 3) {
+            updateStep3Content(selectedType);
         }
+        
+        // Update step 3 label
+        const step3Labels = {
+            'league': 'League Setup',
+            'knockout': 'Bracket Setup',
+            'group_knockout': 'Groups'
+        };
+        $('#step3Label').text(step3Labels[selectedType] || 'Groups');
+        
+        // Update preview dan next button text
+        updatePreview();
+        updateNextButtonText();
+    });
 
-        function showError(message, element = null) {
-            const alertHtml = `
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle"></i>
-                <div>
-                    <strong>Validation Error:</strong> ${message}
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        `;
+        // Bracket size change handler
+        $('#bracket_size').on('change', function() {
+            updateKnockoutCalculation();
+            generateBracketPreview(parseInt($(this).val()), $('#teams').val() || []);
+        });
 
-            $('.step-content:visible .card-body').prepend(alertHtml);
+        // Preview fields update
+        const previewFields = [
+            'name', 'start_date', 'end_date', 'location', 'organizer', 'type',
+            'groups_count', 'teams_per_group', 'qualify_per_group',
+            'match_duration', 'half_time', 'extra_time',
+            'points_win', 'points_draw', 'points_loss', 'points_no_show',
+            'max_substitutes', 'yellow_card_suspension',
+            'matches_per_day', 'match_interval', 'match_time_slots'
+        ];
 
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        previewFields.forEach(fieldId => {
+            $('#' + fieldId).on('input change', updatePreview);
+        });
 
-            if (element) {
-                element.focus();
-                element[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-        }
+        // Initialize counts and preview
+        updateTeamCount();
+        updatePreview();
+    });
 
-        function updatePreview() {
-            const name = $('#name').val() || '--';
-            const startDate = $('#start_date').val();
-            const endDate = $('#end_date').val();
-            const location = $('#location').val() || '--';
-            const organizer = $('#organizer').val() || '--';
-            const type = $('#type').val() || 'league';
-            const selectedTeams = $('#teams').val() || [];
-            const teamCount = selectedTeams.length;
-
-            $('#previewName').text(name);
-            $('#previewTeamCount').text(teamCount);
-
-            const typeNames = {
-                'league': 'League',
-                'knockout': 'Knockout',
-                'group_knockout': 'Group + Knockout'
-            };
-
-            $('#previewTournamentType').text(typeNames[type] || '--');
-
-            if (startDate && endDate) {
-                const start = new Date(startDate);
-                const end = new Date(endDate);
-                const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-
-                $('#previewDurationDays').text(duration + ' days');
-                $('#quickDuration').text(duration);
-            } else {
-                $('#previewDurationDays').text('0 days');
-                $('#quickDuration').text('0');
-            }
-        }
-    </script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const sidebar = document.getElementById('sidebar');
-            const toggleButton = document.getElementById('sidebarToggle');
-
-            // Toggle sidebar on button click
-            if (toggleButton) {
-                toggleButton.addEventListener('click', function () {
-                    sidebar.classList.toggle('open');
-                });
-            }
-
-            // Close sidebar when clicking outside on mobile
-            if (sidebar) {
-                document.addEventListener('click', function (event) {
-                    if (window.innerWidth < 992) {
-                        const isClickInsideSidebar = sidebar.contains(event.target);
-                        const isClickOnToggle = toggleButton && toggleButton.contains(event.target);
-
-                        if (sidebar.classList.contains('open') && !isClickInsideSidebar && !isClickOnToggle) {
-                            sidebar.classList.remove('open');
-                        }
-                    }
-                });
+    // Fungsi untuk update next button text
+    function updateNextButtonText() {
+        const currentStep = {{ $currentStep }};
+        const tournamentType = $('#type').val();
+        
+        if (currentStep < 5) {
+            let nextText = '';
+            if (currentStep == 1) {
+                nextText = 'Team Selection';
+            } else if (currentStep == 2) {
+                if (tournamentType === 'league') {
+                    nextText = 'League Setup';
+                } else if (tournamentType === 'knockout') {
+                    nextText = 'Bracket Setup';
+                } else if (tournamentType === 'group_knockout') {
+                    nextText = 'Groups';
+                } else {
+                    nextText = 'Setup';
+                }
+            } else if (currentStep == 3) {
+                nextText = 'Match Rules';
+            } else if (currentStep == 4) {
+                nextText = 'Review';
             }
             
-            // Initialize drag and drop jika di step 3
-            @if($currentStep == 3)
-                setTimeout(() => {
-                    initializeDragAndDrop();
-                }, 500);
-            @endif
-        });
-    </script>
+            $('#nextBtn span').html(`Next: ${nextText}`);
+        }
+    }
+
+    // Sidebar toggle
+    document.addEventListener('DOMContentLoaded', function () {
+        const sidebar = document.getElementById('sidebar');
+        const toggleButton = document.getElementById('sidebarToggle');
+
+        // Toggle sidebar on button click
+        if (toggleButton) {
+            toggleButton.addEventListener('click', function () {
+                sidebar.classList.toggle('open');
+            });
+        }
+
+        // Close sidebar when clicking outside on mobile
+        if (sidebar) {
+            document.addEventListener('click', function (event) {
+                if (window.innerWidth < 992) {
+                    const isClickInsideSidebar = sidebar.contains(event.target);
+                    const isClickOnToggle = toggleButton && toggleButton.contains(event.target);
+
+                    if (sidebar.classList.contains('open') && !isClickInsideSidebar && !isClickOnToggle) {
+                        sidebar.classList.remove('open');
+                    }
+                }
+            });
+        }
+        
+        // Initialize drag and drop jika di step 3
+        @if($currentStep == 3)
+            setTimeout(() => {
+                if ($('#type').val() === 'group_knockout') {
+                    initializeGroupAssignment();
+                } else if ($('#type').val() === 'knockout') {
+                    initializeKnockoutBracket();
+                }
+            }, 500);
+        @endif
+    });
+</script>
 </body>
 </html>

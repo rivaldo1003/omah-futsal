@@ -42,7 +42,7 @@ Route::prefix('v1')->group(function () {
     // Teams
     Route::get('teams', [TeamApiController::class, 'index']);
     Route::get('teams/{id}', [TeamApiController::class, 'show']);
-    Route::get('teams/{id}/players', [TeamApiController::class, 'players']);
+    Route::get('teams/{id}/players', [TeamApiController::class, 'players']); // <-- HAPUS SALAH SATU
     Route::get('teams/{id}/matches', [TeamApiController::class, 'matches']);
 
     // Players
@@ -63,6 +63,7 @@ Route::prefix('v1')->group(function () {
             'total_goals' => \App\Models\Player::sum('goals'),
         ]);
     });
+    // HAPUS BARIS INI: Route::get('teams/{id}/players', [TeamApiController::class, 'players']);
 });
 
 // Protected API Routes (Authentication Required)

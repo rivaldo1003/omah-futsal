@@ -39,8 +39,6 @@
         font-size: 14px;
     }
 
-
-
     .container {
         padding-left: max(12px, env(safe-area-inset-left));
         padding-right: max(12px, env(safe-area-inset-right));
@@ -84,7 +82,14 @@
         line-height: 1.2;
     }
 
-
+    .brand-main {
+        font-size: 1rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--primary-color), #60a5fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 
     .brand-sub {
         font-size: 0.6rem;
@@ -121,6 +126,36 @@
     .nav-link.active {
         background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.05));
         color: var(--accent-color) !important;
+    }
+
+    /* OVERRIDE BOOTSTRAP UNTUK HILANGKAN BACKGROUND LOGO */
+    .table-success .team-logo-container,
+    .standing-row.table-success .team-logo-container {
+        background-color: transparent !important;
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .table-success td .team-logo-container,
+    .table-success .team-logo-container {
+        background-color: transparent !important;
+        background: transparent !important;
+    }
+
+    .table-success .team-logo-container img,
+    .standing-row.table-success .team-logo-container img {
+        background: transparent !important;
+        background-color: transparent !important;
+    }
+
+    .table-success .d-flex.align-items-center,
+    .standing-row.table-success .d-flex.align-items-center {
+        background-color: transparent !important;
+    }
+
+    .table-success td,
+    .standing-row.table-success td {
+        background-color: inherit !important;
     }
 
     /* Compact Buttons - SAMA DENGAN NEWS */
@@ -251,6 +286,255 @@
         min-width: 70px;
         text-align: center;
         display: inline-block;
+    }
+
+    /* Teams Section Styles - DIUBAH LAYOUT */
+    .teams-section {
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+    }
+
+    /* Team Card Compact Style */
+    .team-compact-card {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        height: 100%;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        position: relative;
+    }
+
+    .team-compact-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent-color);
+    }
+
+    .team-compact-logo {
+        width: 50px;
+        height: 50px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        /* border: 2px solid #e2e8f0; */
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+    }
+
+    .team-compact-card:hover .team-compact-logo {
+        border-color: var(--accent-color);
+        transform: scale(1.05);
+    }
+
+    .team-compact-logo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .team-compact-logo .logo-fallback {
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .team-compact-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .compact-stat {
+        background: #f8fafc;
+        border-radius: 6px;
+        padding: 6px;
+        text-align: center;
+        border: 1px solid #e2e8f0;
+    }
+
+    .compact-stat-number {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        display: block;
+        line-height: 1.2;
+    }
+
+    .compact-stat-label {
+        font-size: 0.7rem;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        line-height: 1.1;
+    }
+
+    .compact-badge {
+        background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+        border: 1px solid #cbd5e1;
+        border-radius: 16px;
+        padding: 3px 8px;
+        font-size: 0.7rem;
+        font-weight: 500;
+        color: #475569;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+    }
+
+    .compact-badge .jersey {
+        background: var(--accent-color);
+        color: white;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.65rem;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    /* Modal Styles */
+    #teamDetailsModal .modal-dialog {
+        max-width: 800px;
+    }
+
+    #teamDetailsModal .modal-body {
+        max-height: 70vh;
+        overflow-y: auto;
+    }
+
+    /* Player Grid in Modal */
+    .player-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .player-card-modal {
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .player-card-modal:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: var(--accent-color);
+    }
+
+    .player-photo-container {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 12px;
+        border: 3px solid #e2e8f0;
+        background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .player-photo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .player-initial {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--primary-color);
+    }
+
+    .player-info-modal h6 {
+        margin: 0;
+        font-weight: 600;
+        font-size: 0.95rem;
+        color: #334155;
+        line-height: 1.3;
+    }
+
+    .player-position {
+        font-size: 0.8rem;
+        color: #64748b;
+        background: #f1f5f9;
+        border-radius: 4px;
+        padding: 3px 8px;
+        display: inline-block;
+        margin-top: 5px;
+        font-weight: 500;
+    }
+
+    .player-jersey {
+        font-size: 0.85rem;
+        color: var(--accent-color);
+        font-weight: 700;
+        margin-top: 3px;
+    }
+
+    /* Load More Button */
+    .load-more-container {
+        text-align: center;
+        margin-top: 20px;
+        padding: 20px 0;
+    }
+
+    .load-more-btn {
+        padding: 10px 30px;
+        font-size: 0.95rem;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent-color), #1c71d8);
+        color: white;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+    .load-more-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    }
+
+    .load-more-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    /* Loading Spinner */
+    .spinner-border {
+        width: 1.5rem;
+        height: 1.5rem;
+        border-width: 0.2em;
+    }
+
+    /* Animation for card loading */
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    .team-compact-card {
+        animation: fadeInUp 0.5s ease forwards;
+        animation-delay: calc(var(--card-index, 0) * 0.1s);
     }
 
     .score-badge.live {
@@ -658,6 +942,32 @@
         display: inline-block;
     }
 
+    .team-logo-container {
+        width: 32px;
+        height: 32px;
+        background: transparent !important;
+        border-radius: 5px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        margin-right: 0.6rem;
+        flex-shrink: 0;
+        border: none !important;
+    }
+
+    .standing-row.table-success .team-logo-container {
+        background: transparent !important;
+        border: none !important;
+    }
+
+    .standing-row.table-success .team-logo-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: transparent;
+    }
+
     .top-scorer-cards-count {
         display: flex;
         gap: 6px;
@@ -748,6 +1058,15 @@
         .table td {
             padding: 0.6rem 0.4rem;
         }
+
+        /* Team section responsive */
+        .team-compact-card {
+            height: 100%;
+        }
+        
+        .player-grid {
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        }
     }
 
     @media (min-width: 768px) {
@@ -762,11 +1081,6 @@
         .tournament-title {
             font-size: 2.2rem;
         }
-
-        /* 
-        .brand-main {
-            font-size: 1.3rem;
-        } */
 
         .brand-logo {
             width: 35px;
@@ -792,6 +1106,14 @@
         .nav-link {
             padding: 0.5rem 0.8rem !important;
             font-size: 0.9rem;
+        }
+
+        .team-compact-card {
+            height: 100%;
+        }
+        
+        .player-grid {
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
         }
     }
 
@@ -829,13 +1151,13 @@
         .score-badge {
             min-width: 100px;
         }
+        
+        .player-grid {
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        }
     }
 
-
-
     @media (min-width: 1200px) {
-
-        /* Compact Container */
         .container {
             padding-left: max(12px, env(safe-area-inset-left));
             padding-right: max(12px, env(safe-area-inset-right));
@@ -941,6 +1263,14 @@
         .highlight-info strong {
             font-size: 0.9rem;
         }
+
+        .team-compact-card {
+            height: auto;
+        }
+        
+        .player-grid {
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        }
     }
 
     @media (max-width: 576px) {
@@ -1004,6 +1334,15 @@
 
         .group-title {
             font-size: 0.9rem;
+        }
+
+        .team-compact-card {
+            height: auto;
+            margin-bottom: 1.5rem;
+        }
+        
+        .player-grid {
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
         }
     }
 
@@ -1130,37 +1469,36 @@
     <!-- Hero Section -->
     @if($heroSetting->is_active)
     <div class="hero-section" style="
-                                                                                @if($heroSetting->background_type === 'gradient')
-                                                                                    background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-                                                                                @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-                                                                                    background-color: {{ $heroSetting->background_color }};
-                                                                                @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                                                                                    background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-                                                                                    background-size: cover;
-                                                                                    background-position: center;
-                                                                                    @if($heroSetting->overlay_opacity > 0)
-                                                                                        position: relative;
-                                                                                    @endif
-                                                                                @else
-                                                                                    background: linear-gradient(135deg, #0f172a, #1e293b);
-                                                                                @endif
-                                                                                color: {{ $heroSetting->text_color }};
-                                                                                position: relative;
-                                                                                overflow: hidden;
-                                                                            ">
-        @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity
-        > 0)
+                @if($heroSetting->background_type === 'gradient')
+                    background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                    background-color: {{ $heroSetting->background_color }};
+                @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                    background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                    background-size: cover;
+                    background-position: center;
+                    @if($heroSetting->overlay_opacity > 0)
+                        position: relative;
+                    @endif
+                @else
+                    background: linear-gradient(135deg, #0f172a, #1e293b);
+                @endif
+                color: {{ $heroSetting->text_color }};
+                position: relative;
+                overflow: hidden;
+            ">
+        @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
         <!-- Overlay untuk image background -->
         <div class="hero-overlay"
             style="
-                                                                                                                                                                position: absolute;
-                                                                                                                                                                top: 0;
-                                                                                                                                                                left: 0;
-                                                                                                                                                                width: 100%;
-                                                                                                                                                                height: 100%;
-                                                                                                                                                                background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                                                                                                                                                                z-index: 1;
-                                                                                                                                                            ">
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                z-index: 1;
+            ">
         </div>
         @endif
 
@@ -1168,38 +1506,36 @@
             <div class="row align-items-center justify-content-center text-center">
                 <div class="col-lg-8">
                     <h1 class="tournament-title" style="
-                                                                                                color: {{ $heroSetting->text_color }};
-                                                                                                text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-                                                                                            ">
-                        <!-- <i class="bi bi-trophy-fill"> -->
-
-                        </i> {{ $heroSetting->title }}
+                        color: {{ $heroSetting->text_color }};
+                        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                    ">
+                        {{ $heroSetting->title }}
                     </h1>
                     <p class="hero-subtitle" style="
-                                                                                                color: {{ $heroSetting->text_color }};
-                                                                                                opacity: 0.9;
-                                                                                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-                                                                                                margin-left: auto;
-                                                                                                margin-right: auto;
-                                                                                            ">
+                        color: {{ $heroSetting->text_color }};
+                        opacity: 0.9;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                        margin-left: auto;
+                        margin-right: auto;
+                    ">
                         {{ $heroSetting->subtitle }}
                     </p>
 
                     @if($heroSetting->cta_button_text)
                     <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
                         style="
-                                                                                                                                                                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                                                                                                                                                                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                                                                                                                                                                                border: none;
-                                                                                                                                                                                padding: 12px 30px;
-                                                                                                                                                                                border-radius: 8px;
-                                                                                                                                                                                font-weight: 600;
-                                                                                                                                                                                text-decoration: none;
-                                                                                                                                                                                display: inline-block;
-                                                                                                                                                                                margin-top: 20px;
-                                                                                                                                                                                transition: all 0.3s ease;
-                                                                                                                                                                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                                                                                                                                                                            "
+                            background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                            color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                            border: none;
+                            padding: 12px 30px;
+                            border-radius: 8px;
+                            font-weight: 600;
+                            text-decoration: none;
+                            display: inline-block;
+                            margin-top: 20px;
+                            transition: all 0.3s ease;
+                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                        "
                         onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
                         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                         <i class="bi bi-arrow-right-circle me-2"></i>
@@ -1212,26 +1548,26 @@
 
         <!-- Animated elements -->
         <div class="hero-particles" style="
-                                                                                    position: absolute;
-                                                                                    top: 0;
-                                                                                    left: 0;
-                                                                                    width: 100%;
-                                                                                    height: 100%;
-                                                                                    pointer-events: none;
-                                                                                    z-index: 1;
-                                                                                    opacity: 0.3;
-                                                                                ">
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1;
+                opacity: 0.3;
+            ">
             @for($i = 1; $i <= 15; $i++) <div class="particle"
                 style="
-                                                                                                                                                                    position: absolute;
-                                                                                                                                                                    width: {{ rand(2, 5) }}px;
-                                                                                                                                                                    height: {{ rand(2, 5) }}px;
-                                                                                                                                                                    background-color: {{ $heroSetting->text_color }};
-                                                                                                                                                                    border-radius: 50%;
-                                                                                                                                                                    top: {{ rand(0, 100) }}%;
-                                                                                                                                                                    left: {{ rand(0, 100) }}%;
-                                                                                                                                                                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                                                                                                                                                                ">
+                    position: absolute;
+                    width: {{ rand(2, 5) }}px;
+                    height: {{ rand(2, 5) }}px;
+                    background-color: {{ $heroSetting->text_color }};
+                    border-radius: 50%;
+                    top: {{ rand(0, 100) }}%;
+                    left: {{ rand(0, 100) }}%;
+                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                ">
         </div>
         @endfor
     </div>
@@ -1307,8 +1643,7 @@
                             </div>
 
                             <!-- Match Events -->
-                            @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed'
-                            || $match->status == 'ongoing'))
+                            @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed' || $match->status == 'ongoing'))
                             <div class="match-events">
                                 <div class="row small">
                                     <div class="col-6">
@@ -1494,7 +1829,6 @@
                 </div>
 
                 <!-- Group Standings -->
-                <!-- Group Standings -->
                 <div class="card">
                     <div class="card-header">
                         <i class="bi bi-bar-chart-line"></i> Group Standing
@@ -1506,7 +1840,6 @@
                             <div class="col-12 col-md-6 mb-4">
                                 <h6 class="group-title">GROUP {{ $group }}</h6>
                                 <div class="table-responsive">
-                                    <!-- GANTI TABEL INI -->
                                     <table class="table table-sm">
                                         <thead>
                                             <tr>
@@ -1524,11 +1857,9 @@
                                             @foreach($groupStandings as $index => $standing)
                                             @php
                                             $team = $standing->team ?? null;
-                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ??
-                                            'Unknown Team';
+                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
                                             $teamLogo = $team->logo ?? null;
-                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played >
-                                            0;
+                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
 
                                             // Abbreviation for logo
                                             $teamAbbr = '';
@@ -1545,8 +1876,7 @@
                                             $gdValue = $standing->goal_difference ?? 0;
                                             $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
                                             @endphp
-                                            <tr
-                                                class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                            <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
                                                 <td class="text-center align-middle">
                                                     <div class="rank-badge rank-{{ min($index + 1, 4) }}">
                                                         {{ $index + 1 }}
@@ -1554,20 +1884,19 @@
                                                 </td>
                                                 <td class="align-middle">
                                                     <div class="d-flex align-items-center">
-                                                        <div class="team-logo-container"
-                                                            style="
-                                                                                                                                                                                                                                                                        width: 32px;
-                                                                                                                                                                                                                                                                        height: 32px;
-                                                                                                                                                                                                                                                                        background: white;
-                                                                                                                                                                                                                                                                        border-radius: 5px;
-                                                                                                                                                                                                                                                                        display: flex;
-                                                                                                                                                                                                                                                                        align-items: center;
-                                                                                                                                                                                                                                                                        justify-content: center;
-                                                                                                                                                                                                                                                                        overflow: hidden;
-                                                                                                                                                                                                                                                                        margin-right: 0.6rem;
-                                                                                                                                                                                                                                                                        flex-shrink: 0;
-                                                                                                                                                                                                                                                                        border: 1px solid #e2e8f0;
-                                                                                                                                                                                                                                                                    ">
+                                                        <div class="team-logo-container" style="
+                                                            width: 32px;
+                                                            height: 32px;
+                                                            background: transparent !important;
+                                                            border-radius: 5px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            overflow: hidden;
+                                                            margin-right: 0.6rem;
+                                                            flex-shrink: 0;
+                                                            border: none !important;
+                                                        ">
                                                             @php
                                                             $logoExists = false;
 
@@ -1583,10 +1912,10 @@
                                                             @if($logoExists)
                                                             <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
                                                                 alt="{{ $teamName }}"
-                                                                style="width: 100%; height: 100%; object-fit: cover;">
+                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
                                                             @else
                                                             <span
-                                                                style="font-weight: bold; color: #333; font-size: 0.8rem;">
+                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
                                                                 {{ $teamAbbr }}
                                                             </span>
                                                             @endif
@@ -1597,10 +1926,6 @@
                                                                 style="font-size: 0.85rem;">
                                                                 {{ Str::limit($teamName, 15) }}
                                                             </strong>
-                                                            <!-- @if($index < 2 && $hasPlayed) <small
-                                                                class="badge bg-success"
-                                                                style="font-size: 0.6rem; padding: 1px 4px;">Q</small>
-                                                                @endif -->
                                                         </div>
                                                     </div>
                                                 </td>
@@ -1621,26 +1946,26 @@
                                                 <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
                                                     <span
                                                         style="
-                                                                                                                                                                                                                                                                                                                        display: inline-block;
-                                                                                                                                                                                                                                                                                                                        padding: 2px 6px;
-                                                                                                                                                                                                                                                                                                                        border-radius: 4px;
-                                                                                                                                                                                                                                                                                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                                                                                                                                                                                                                                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                                                                                                                                                                                                                                                                        min-width: 40px;
-                                                                                                                                                                                                                                                                                                                    ">
+                                                            display: inline-block;
+                                                            padding: 2px 6px;
+                                                            border-radius: 4px;
+                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                            min-width: 40px;
+                                                        ">
                                                         {{ $gdDisplay }}
                                                     </span>
                                                 </td>
                                                 <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
                                                     <span
                                                         style="
-                                                                                                                                                                                                                                                                                                                        display: inline-block;
-                                                                                                                                                                                                                                                                                                                        padding: 2px 8px;
-                                                                                                                                                                                                                                                                                                                        border-radius: 4px;
-                                                                                                                                                                                                                                                                                                                        background-color: rgba(59, 130, 246, 0.1);
-                                                                                                                                                                                                                                                                                                                        color: #1d4ed8;
-                                                                                                                                                                                                                                                                                                                        min-width: 40px;
-                                                                                                                                                                                                                                                                                                                    ">
+                                                            display: inline-block;
+                                                            padding: 2px 8px;
+                                                            border-radius: 4px;
+                                                            background-color: rgba(59, 130, 246, 0.1);
+                                                            color: #1d4ed8;
+                                                            min-width: 40px;
+                                                        ">
                                                         {{ $standing->points ?? 0 }}
                                                     </span>
                                                 </td>
@@ -1667,6 +1992,182 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Teams Section - COMPACT VERSION -->
+                <!-- Teams Section - TANPA API -->
+<div class="card mt-4 teams-section">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill"></i>
+            <span>Teams & Players</span>
+            @if($teams->count() > 0)
+                <span class="badge bg-primary">{{ $teams->count() }} Teams</span>
+            @endif
+        </div>
+        <!-- <a href="{{ route('teams.index') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-right"></i> View All
+        </a> -->
+    </div>
+    <div class="card-body">
+        @if($teams->count() > 0)
+            <!-- Search and Filter -->
+            <div class="row mb-4">
+                <div class="col-md-8">
+                    <div class="input-group">
+                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                        <input type="text" id="teamSearch" class="form-control" placeholder="Search teams or players...">
+                    </div>
+                </div>
+                <div class="col-md-4 mt-2 mt-md-0">
+                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-filter"></i></span>
+                                        <select id="teamSort" class="form-select">
+                                            <option value="name">Sort by Name</option>
+                                            <option value="players">Sort by Players</option>
+                                            <option value="tournaments">Sort by Tournaments</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Teams Grid - COMPACT LAYOUT -->
+                            <!-- Teams Grid - COMPACT LAYOUT -->
+<div class="row g-3" id="teamsGrid">
+    @foreach($teams as $index => $team)
+        @php
+            $totalPlayers = $team->players->count();
+            $totalTournaments = $team->tournaments->count();
+            $keyPlayers = $team->players->take(2);
+            
+            // Serialize players data untuk JavaScript - VERSION FIXED
+            $playersData = $team->players->map(function($player) {
+                return [
+                    'id' => $player->id ?? 0,
+                    'name' => $player->name ?? 'Unknown',
+                    'jersey_number' => $player->jersey_number ?? '',
+                    'position' => $player->position ?? '',
+                    'photo' => $player->photo ?? '',
+                    'goals' => $player->goals ?? 0,
+                    'assists' => $player->assists ?? 0,
+                ];
+            })->toArray();
+            
+            // Convert to JSON with proper escaping
+            $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+        @endphp
+        <div class="col-xl-3 col-lg-4 col-md-6 team-card" 
+             data-team-id="{{ $team->id }}"
+             data-team-name="{{ strtolower($team->name) }}"
+             data-team-players="{{ $totalPlayers }}"
+             data-team-tournaments="{{ $totalTournaments }}"
+             data-team-coach="{{ $team->coach_name }}"
+             data-team-logo="{{ $team->logo }}"
+             data-players-json="{{ $playersJson }}">
+            <div class="team-compact-card h-100 d-flex flex-column p-3">
+                <!-- Team Header -->
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="team-compact-logo">
+                        @if($team->logo && Storage::disk('public')->exists($team->logo))
+                            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                        @else
+                            <div class="logo-fallback">
+                                {{ strtoupper(substr($team->name, 0, 2)) }}
+                            </div>
+                        @endif
+                    </div>
+                    <div class="flex-grow-1">
+                        <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                            {{ $team->name }}
+                        </h6>
+                        @if($team->coach_name)
+                            <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                            </small>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="team-compact-stats mb-3">
+                    <div class="compact-stat">
+                        <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                        <span class="compact-stat-label">Players</span>
+                    </div>
+                    <div class="compact-stat">
+                        <span class="compact-stat-number">{{ $totalTournaments }}</span>
+                        <span class="compact-stat-label">Tournaments</span>
+                    </div>
+                    <div class="compact-stat">
+                        <span class="compact-stat-number">{{ $team->status }}</span>
+                        <span class="compact-stat-label">Status</span>
+                    </div>
+                </div>
+
+                <!-- Key Players -->
+                @if($keyPlayers->count() > 0)
+                    <div class="mb-3">
+                        <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                            <i class="bi bi-star-fill text-warning"></i> Key Players
+                        </small>
+                        <div class="d-flex flex-wrap gap-2">
+                            @foreach($keyPlayers as $player)
+                                <div class="compact-badge">
+                                    <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                    <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
+                                </div>
+                            @endforeach
+                            @if($totalPlayers > 2)
+                                <div class="compact-badge">
+                                    <span>+{{ $totalPlayers - 2 }}</span>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Quick View Button -->
+                <div class="mt-auto">
+                    <button class="btn btn-sm btn-primary w-100 view-team-details" 
+                            data-team-index="{{ $index }}">
+                        <i class="bi bi-eye"></i> Quick View
+                    </button>
+                </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+                            
+                            <!-- No Results Message -->
+                            <div id="noTeamsFound" class="text-center py-5 d-none">
+                                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                <h5>No teams found</h5>
+                                <p class="text-muted">Try changing your search criteria</p>
+                            </div>
+                            
+                            <!-- View All Button -->
+                            <!-- <div class="text-center mt-4">
+                                <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                    <i class="bi bi-list-ul"></i> View All Teams
+                                </a>
+                            </div> -->
+                        @else
+                            <!-- Empty State -->
+                            <div class="empty-state text-center py-5">
+                                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                <h5>No Teams Available</h5>
+                                <p class="text-muted">Teams will appear here when they are created</p>
+                                @auth
+                                    @if(auth()->user()->role === 'admin')
+                                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
+                                            <i class="bi bi-plus-circle"></i> Create First Team
+                                        </a>
+                                    @endif
+                                @endauth
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
             </div>
 
             <!-- Right Column -->
@@ -1954,8 +2455,6 @@
                         @endif
                     </div>
                 </div>
-
-
             </div>
         </div>
     </div>
@@ -1966,9 +2465,7 @@
             <div class="row">
                 <div class="col-lg-4 mb-4">
                     <h5 class="footer-title">
-                        <i class="bi bi-trophy-fill">
-
-                        </i> OFS Futsal Center
+                        <i class="bi bi-trophy-fill"></i> OFS Futsal Center
                     </h5>
                     <div class="social-icons">
                         <a href="#"><i class="bi bi-facebook"></i></a>
@@ -2005,41 +2502,27 @@
         </div>
     </footer>
 
-    <!-- DEBUG SECTION - Tampilkan di bawah footer sementara -->
-    <div class="container mt-5 border rounded p-3 bg-light">
-        <h5>Debug - Recent Highlights Data</h5>
-        <p>Count: {{ $recentHighlights->count() }}</p>
-
-        @if($recentHighlights->count() > 0)
-        @foreach($recentHighlights as $match)
-        <div class="border p-2 mb-2">
-            <strong>Match #{{ $loop->iteration }}</strong><br>
-            ID: {{ $match->id }}<br>
-            Teams: {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}<br>
-            YouTube ID: <code>{{ $match->youtube_id ?? 'NULL' }}</code><br>
-            Embed URL: {{ $match->youtube_embed_url ?? 'NULL' }}<br>
-            Thumbnail URL: {{ $match->display_thumbnail_url ?? 'NULL' }}<br>
-            Uploaded: {{ $match->youtube_uploaded_at ?? 'Not set' }}<br>
-
-            <!-- Test Links -->
-            @if($match->youtube_id)
-            <div class="mt-2">
-                <a href="https://www.youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
-                    class="btn btn-sm btn-danger">
-                    <i class="bi bi-youtube"></i> Test YouTube Link
-                </a>
-                <a href="https://img.youtube.com/vi/{{ $match->youtube_id }}/maxresdefault.jpg" target="_blank"
-                    class="btn btn-sm btn-info">
-                    <i class="bi bi-image"></i> Test Thumbnail
-                </a>
+    <!-- Team Details Modal -->
+    <!-- Team Details Modal - SIMPLIFIED -->
+<div class="modal fade" id="teamDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-people-fill"></i> Team Players
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            @endif
+            <div class="modal-body" id="teamDetailsContent">
+                <!-- Content akan diisi oleh JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <!-- Hapus load more button atau simplifikasi -->
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
         </div>
-        @endforeach
-        @else
-        <p class="text-danger">No highlights found in database!</p>
-        @endif
     </div>
+</div>
 
     @foreach($recentHighlights as $match)
     @if($match->youtube_id)
@@ -2182,223 +2665,321 @@
     @endif
     @endforeach
 
-    <!-- Modal untuk setiap highlight video -->
-    @foreach($recentHighlights as $match)
-    <div class="modal fade" id="highlightModal{{ $match->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
-                        @if($match->home_score !== null && $match->away_score !== null)
-                        <span class="badge bg-success ms-2">{{ $match->home_score }} - {{ $match->away_score }}</span>
-                        @endif
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Team Search Functionality
+    const teamSearch = document.getElementById('teamSearch');
+    const teamSort = document.getElementById('teamSort');
+    const teamsGrid = document.getElementById('teamsGrid');
+    const noTeamsFound = document.getElementById('noTeamsFound');
+    const teamCards = document.querySelectorAll('.team-card');
+    
+    // Store all teams data
+    const teamsData = [];
+    teamCards.forEach(card => {
+        teamsData.push({
+            element: card,
+            name: card.getAttribute('data-team-name').toLowerCase(),
+            players: parseInt(card.getAttribute('data-team-players') || 0),
+            tournaments: parseInt(card.getAttribute('data-team-tournaments') || 0),
+            index: parseInt(card.getAttribute('data-team-id') || 0)
+        });
+    });
+    
+    if (teamSearch && teamCards.length > 0) {
+        teamSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            teamCards.forEach(card => {
+                const teamName = card.getAttribute('data-team-name').toLowerCase();
+                const cardContent = card.textContent.toLowerCase();
+                
+                if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                teamsGrid.classList.add('d-none');
+                noTeamsFound.classList.remove('d-none');
+            } else {
+                teamsGrid.classList.remove('d-none');
+                noTeamsFound.classList.add('d-none');
+                
+                // Sort teams
+                sortTeams(teamSort.value);
+            }
+        });
+    }
+    
+    // Sort functionality
+    if (teamSort) {
+        teamSort.addEventListener('change', function() {
+            sortTeams(this.value);
+        });
+    }
+    
+    function sortTeams(sortBy) {
+        const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
+        
+        cards.sort((a, b) => {
+            if (sortBy === 'name') {
+                const nameA = a.getAttribute('data-team-name');
+                const nameB = b.getAttribute('data-team-name');
+                return nameA.localeCompare(nameB);
+            } else if (sortBy === 'players') {
+                const playersA = parseInt(a.getAttribute('data-team-players') || 0);
+                const playersB = parseInt(b.getAttribute('data-team-players') || 0);
+                return playersB - playersA; // Descending
+            } else if (sortBy === 'tournaments') {
+                const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
+                const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
+                return tournamentsB - tournamentsA; // Descending
+            }
+            return 0;
+        });
+        
+        // Reorder the grid
+        const container = cards[0].parentNode;
+        cards.forEach(card => {
+            container.appendChild(card);
+        });
+    }
+    
+    // Team Details Modal - TANPA API
+    const teamDetailsModal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
+    const viewTeamButtons = document.querySelectorAll('.view-team-details');
+    const loadMoreBtn = document.getElementById('loadMorePlayers');
+    const loadMoreText = document.getElementById('loadMoreText');
+    const loadMoreSpinner = document.getElementById('loadMoreSpinner');
+    
+    let currentTeamCard = null;
+    let currentPlayers = [];
+    let currentPage = 1;
+    const playersPerPage = 25;
+    let allPlayersLoaded = false;
+    
+    viewTeamButtons.forEach((button, index) => {
+        button.addEventListener('click', function() {
+            const teamIndex = this.getAttribute('data-team-index');
+            showTeamPlayers(teamIndex);
+        });
+    });
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            if (currentTeamCard && !allPlayersLoaded) {
+                loadMorePlayers();
+            }
+        });
+    }
+    
+    function showTeamPlayers(teamIndex) {
+    const teamCard = teamCards[teamIndex];
+    if (!teamCard) return;
+    
+    currentTeamCard = teamCard;
+    currentPage = 1;
+    allPlayersLoaded = false;
+    
+    // Get team data from data attributes
+    const teamName = teamCard.querySelector('h6').textContent;
+    const coachName = teamCard.getAttribute('data-team-coach') || '';
+    const teamLogo = teamCard.getAttribute('data-team-logo') || '';
+    const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
+    
+    // Parse players data - FIXED VERSION
+    try {
+        const playersJson = teamCard.getAttribute('data-players-json');
+        console.log('Players JSON:', playersJson);
+        
+        if (!playersJson || playersJson.trim() === '') {
+            console.warn('No players data found');
+            currentPlayers = [];
+        } else {
+            // Clean JSON string jika perlu
+            let cleanJson = playersJson;
+            // Replace escaped characters
+            cleanJson = cleanJson.replace(/&quot;/g, '"')
+                                .replace(/&#039;/g, "'")
+                                .replace(/&amp;/g, '&')
+                                .replace(/&lt;/g, '<')
+                                .replace(/&gt;/g, '>');
+            
+            console.log('Cleaned JSON:', cleanJson.substring(0, 200));
+            
+            // Parse JSON
+            currentPlayers = JSON.parse(cleanJson);
+            console.log('Parsed players:', currentPlayers.length, 'players');
+        }
+    } catch (e) {
+        console.error('Error parsing players data:', e);
+        console.error('JSON string was:', teamCard.getAttribute('data-players-json'));
+        currentPlayers = [];
+    }
+    
+    const contentDiv = document.getElementById('teamDetailsContent');
+    
+    // Show team info
+    let logoHtml = '';
+    if (teamLogo && teamLogo.trim() !== '') {
+        logoHtml = `<img src="{{ asset('storage/') }}/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+        const initials = teamName.substring(0, 2).toUpperCase();
+        logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                        <span class="fw-bold text-primary">${initials}</span>
+                    </div>`;
+    }
+    
+    // Get players for current page
+    const startIndex = 0;
+    const endIndex = Math.min(playersPerPage, currentPlayers.length);
+    const pagePlayers = currentPlayers.slice(startIndex, endIndex);
+    
+    // Generate players HTML
+    const playersHtml = generatePlayersHtml(pagePlayers);
+    
+    contentDiv.innerHTML = `
+        <div class="team-info mb-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden;">
+                    ${logoHtml}
                 </div>
-                <div class="modal-body">
-                    <!-- Video player -->
-                    <div class="ratio ratio-16x9 mb-3">
-                        <video id="highlightPlayer{{ $match->id }}" controls class="rounded" style="background: #000;">
-                            <source src="{{ asset('storage/' . $match->highlight_video) }}" type="video/mp4">
-                            Your browser does not support the video tag.
-                        </video>
-                    </div>
-
-                    <!-- Match details -->
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h6>Match Information</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>Date:</strong> {{ $match->match_date->format('d M Y') }}</li>
-                                <li><strong>Time:</strong> {{ $match->time_start }}</li>
-                                <li><strong>Venue:</strong> {{ $match->venue ?? 'Main Field' }}</li>
-                                <li><strong>Stage:</strong> {{ ucfirst(str_replace('_', ' ', $match->round_type)) }}
-                                </li>
-                                @if($match->group_name)
-                                <li><strong>Group:</strong> {{ $match->group_name }}</li>
-                                @endif
-                            </ul>
-                        </div>
-                        <div class="col-md-6">
-                            <h6>Video Information</h6>
-                            <ul class="list-unstyled">
-                                <li><strong>Duration:</strong>
-                                    @if($match->highlight_video_duration)
-                                    {{ floor($match->highlight_video_duration / 60) }}:{{ str_pad($match->highlight_video_duration % 60, 2, '0', STR_PAD_LEFT) }}
-                                    @else
-                                    N/A
-                                    @endif
-                                </li>
-                                <li><strong>Size:</strong>
-                                    @if($match->highlight_video_size)
-                                    {{ round($match->highlight_video_size / (1024 * 1024), 1) }} MB
-                                    @else
-                                    N/A
-                                    @endif
-                                </li>
-                                <li><strong>Uploaded:</strong>
-                                    {{ $match->youtube_uploaded_at ? $match->youtube_uploaded_at->format('d M Y H:i') : 'N/A' }}
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <a href="{{ asset('storage/' . $match->highlight_video) }}" class="btn btn-primary"
-                        download="{{ $match->homeTeam->name ?? 'Home' }}_{{ $match->awayTeam->name ?? 'Away' }}_highlight.mp4">
-                        <i class="bi bi-download me-1"></i> Download
-                    </a>
+                <div>
+                    <h4 class="mb-1">${teamName}</h4>
+                    ${coachName ? `<p class="text-muted mb-0"><i class="bi bi-person-badge"></i> ${coachName}</p>` : ''}
+                    <p class="text-muted mb-0"><i class="bi bi-people"></i> ${totalPlayers} Players</p>
                 </div>
             </div>
         </div>
-    </div>
-    @endforeach
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const highlightModals = document.querySelectorAll('[id^="highlightModal"]');
-
-        highlightModals.forEach(modal => {
-            modal.addEventListener('shown.bs.modal', function() {
-                const iframe = this.querySelector('iframe');
-                if (iframe) {
-                    // Refresh iframe to ensure proper sizing
-                    const src = iframe.src;
-                    iframe.src = '';
-                    setTimeout(() => {
-                        iframe.src = src;
-                    }, 100);
+        <h5 class="mb-3">Players</h5>
+        <div class="player-grid" id="playersGrid">
+            ${playersHtml || '<div class="col-12"><p class="text-muted text-center">No players found</p></div>'}
+        </div>
+    `;
+    
+    // Update load more button
+    if (loadMoreBtn) {
+        if (currentPlayers.length <= playersPerPage) {
+            loadMoreBtn.style.display = 'none';
+            allPlayersLoaded = true;
+        } else {
+            loadMoreBtn.style.display = 'block';
+            loadMoreText.textContent = 'Load More Players';
+            allPlayersLoaded = false;
+        }
+    }
+    
+    // Show modal
+    teamDetailsModal.show();
+}
+    
+    function generatePlayersHtml(players) {
+        if (!players || players.length === 0) return '';
+        
+        let html = '';
+        players.forEach(player => {
+            // Photo HTML
+            let photoHtml = '';
+            if (player.photo) {
+                photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
+            } else {
+                const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
+                photoHtml = `<div class="player-initial">${initial}</div>`;
+            }
+            
+            // Stats badges
+            let statsHtml = '';
+            if (player.goals > 0 || player.assists > 0) {
+                statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
+                if (player.goals > 0) {
+                    statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
                 }
-            });
+                if (player.assists > 0) {
+                    statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
+                }
+                statsHtml += '</div>';
+            }
+            
+            html += `
+            <div class="player-card-modal">
+                <div class="player-photo-container">
+                    ${photoHtml}
+                </div>
+                <div class="player-info-modal">
+                    <h6 class="mb-1 text-truncate">${player.name || 'Unknown'}</h6>
+                    ${player.jersey_number ? `<div class="player-jersey mb-1">#${player.jersey_number}</div>` : ''}
+                    ${player.position ? `<div class="player-position mb-2">${player.position}</div>` : ''}
+                    ${statsHtml}
+                </div>
+            </div>
+            `;
         });
-
-        // Thumbnail hover effects
-        const thumbnails = document.querySelectorAll('.highlight-thumbnail');
-        thumbnails.forEach(thumb => {
-            thumb.addEventListener('mouseenter', function() {
-                const img = this.querySelector('img');
-                if (img) {
-                    img.style.transform = 'scale(1.05)';
-                }
+        
+        return html;
+    }
+    
+    function loadMorePlayers() {
+        if (!currentTeamCard || allPlayersLoaded) return;
+        
+        currentPage++;
+        const startIndex = (currentPage - 1) * playersPerPage;
+        const endIndex = Math.min(startIndex + playersPerPage, currentPlayers.length);
+        
+        if (startIndex >= currentPlayers.length) {
+            allPlayersLoaded = true;
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+            return;
+        }
+        
+        const pagePlayers = currentPlayers.slice(startIndex, endIndex);
+        const playersHtml = generatePlayersHtml(pagePlayers);
+        
+        const playersGrid = document.getElementById('playersGrid');
+        if (playersGrid) {
+            playersGrid.innerHTML += playersHtml;
+        }
+        
+        // Check if all players loaded
+        if (endIndex >= currentPlayers.length) {
+            allPlayersLoaded = true;
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        }
+        
+        // Update button text
+        if (loadMoreBtn && loadMoreText) {
+            const remaining = currentPlayers.length - endIndex;
+            if (remaining > 0) {
+                loadMoreText.textContent = `Load ${Math.min(remaining, playersPerPage)} More`;
+            } else {
+                loadMoreText.textContent = 'All Players Loaded';
+            }
+        }
+    }
+    
+    // Add hover effect to team cards
+    teamCards.forEach(card => {
+        const teamCard = card.querySelector('.team-compact-card');
+        if (teamCard) {
+            teamCard.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
             });
-
-            thumb.addEventListener('mouseleave', function() {
-                const img = this.querySelector('img');
-                if (img) {
-                    img.style.transform = 'scale(1)';
-                }
-            });
-        });
-    });
-    // Navbar auto-close on mobile
-    document.addEventListener('DOMContentLoaded', function() {
-        const navLinks = document.querySelectorAll('.nav-link');
-        const navbarCollapse = document.querySelector('.navbar-collapse');
-
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth < 992) {
-                    const bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
-                    if (bsCollapse) {
-                        bsCollapse.hide();
-                    }
-                }
-            });
-        });
-
-        // Live badge animation
-        function refreshLiveMatches() {
-            const liveBadges = document.querySelectorAll('.score-badge.live');
-            liveBadges.forEach(badge => {
-                badge.style.animation = 'none';
-                setTimeout(() => {
-                    badge.style.animation = 'pulse 2s infinite';
-                }, 10);
+            
+            teamCard.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
             });
         }
-
-        refreshLiveMatches();
-        setInterval(refreshLiveMatches, 5000);
-
-        // Safe area handling
-        function updateSafeArea() {
-            const safeAreaTop = getComputedStyle(document.documentElement).getPropertyValue(
-                '--safe-area-inset-top');
-            const safeAreaBottom = getComputedStyle(document.documentElement).getPropertyValue(
-                '--safe-area-inset-bottom');
-
-            if (safeAreaTop) {
-                document.documentElement.style.setProperty('--navbar-padding-top', safeAreaTop);
-            }
-
-            if (safeAreaBottom) {
-                document.documentElement.style.setProperty('--footer-padding-bottom', safeAreaBottom);
-            }
-        }
-
-        // Initial call and on resize
-        updateSafeArea();
-        window.addEventListener('resize', updateSafeArea);
     });
-
-
-    document.addEventListener('DOMContentLoaded', function() {
-        // Auto-play video when modal is shown
-        const highlightModals = document.querySelectorAll('[id^="highlightModal"]');
-
-        highlightModals.forEach(modal => {
-            modal.addEventListener('shown.bs.modal', function() {
-                const videoId = this.id.replace('highlightModal', 'highlightPlayer');
-                const video = document.getElementById(videoId);
-                if (video) {
-                    video.play().catch(e => console.log('Autoplay prevented:', e));
-                }
-            });
-
-            modal.addEventListener('hide.bs.modal', function() {
-                const videoId = this.id.replace('highlightModal', 'highlightPlayer');
-                const video = document.getElementById(videoId);
-                if (video) {
-                    video.pause();
-                    video.currentTime = 0;
-                }
-            });
-        });
-    });
-
-
-    // Touch-friendly scrolling for tables
-    document.querySelectorAll('.table-responsive').forEach(table => {
-        let isDown = false;
-        let startX;
-        let scrollLeft;
-
-        table.addEventListener('mousedown', (e) => {
-            isDown = true;
-            startX = e.pageX - table.offsetLeft;
-            scrollLeft = table.scrollLeft;
-        });
-
-        table.addEventListener('mouseleave', () => {
-            isDown = false;
-        });
-
-        table.addEventListener('mouseup', () => {
-            isDown = false;
-        });
-
-        table.addEventListener('mousemove', (e) => {
-            if (!isDown) return;
-            e.preventDefault();
-            const x = e.pageX - table.offsetLeft;
-            const walk = (x - startX) * 2;
-            table.scrollLeft = scrollLeft - walk;
-        });
-    });
-    </script>
+});
+</script>
 </body>
 
 </html>

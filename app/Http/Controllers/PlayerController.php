@@ -61,7 +61,7 @@ class PlayerController extends Controller
             'assists' => 'integer|min:0',
             'yellow_cards' => 'integer|min:0',
             'red_cards' => 'integer|min:0',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5000',
         ]);
 
         if ($request->hasFile('photo')) {
@@ -108,7 +108,7 @@ class PlayerController extends Controller
             'jersey_number' => 'nullable|integer|min:1|max:99',
             'team_id' => 'nullable|exists:teams,id',
             'position' => 'nullable|string|max:50',
-            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5000',
             'goals' => 'nullable|integer|min:0',
             'assists' => 'nullable|integer|min:0',
             'yellow_cards' => 'nullable|integer|min:0',

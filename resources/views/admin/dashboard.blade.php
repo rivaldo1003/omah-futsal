@@ -154,10 +154,10 @@
             width: 28px;
             height: 28px;
             border-radius: 6px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            /* background: linear-gradient(135deg, var(--primary), var(--primary-light)); */
             overflow: hidden;
             flex-shrink: 0;
-            border: 1px solid var(--border-color);
+            /* border: 1px solid var(--border-color); */
         }
 
         .team-logo-small img {

@@ -36,7 +36,7 @@ class HomeController extends Controller
         $heroSetting = HeroSetting::first();
 
         // Jika tidak ada setting, buat default
-        if (! $heroSetting) {
+        if (!$heroSetting) {
             $heroSetting = (object) [
                 'title' => 'OFS Champions League 2025',
                 'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
@@ -55,14 +55,29 @@ class HomeController extends Controller
         $activeTournament = Tournament::where('status', 'ongoing')->first();
 
         // Jika tidak ada tournament ongoing, ambil yang upcoming
-        if (! $activeTournament) {
+        if (!$activeTournament) {
             $activeTournament = Tournament::where('status', 'upcoming')->first();
         }
 
         // Jika masih tidak ada, ambil tournament apapun
-        if (! $activeTournament) {
+        if (!$activeTournament) {
             $activeTournament = Tournament::first();
         }
+
+        // ==============================
+        // GET TEAMS DATA
+        // ==============================
+        $teams = Team::withCount(['players', 'tournaments'])
+        ->with(['players' => function($query) {
+            // Ambil SEMUA players, jangan dibatasi di sini
+            $query->orderBy('goals', 'desc')
+                  ->orderBy('position')
+                  ->orderBy('name');
+        }])
+        ->where('status', 'active')
+        ->orderBy('name')
+        ->limit(value: 12)
+        ->get();
 
         // Get today's matches
         $todayMatches = Game::with(['homeTeam', 'awayTeam'])
@@ -183,12 +198,12 @@ class HomeController extends Controller
 
                 \Log::info('Top Scorers with Ranks:', [
                     'players' => $topScorers->map(function ($p) {
-                        return $p->name.' - '.$p->goals.' gol (Rank: '.$p->rank.')';
+                        return $p->name . ' - ' . $p->goals . ' gol (Rank: ' . $p->rank . ')';
                     })->toArray(),
                 ]);
 
             } catch (\Exception $e) {
-                \Log::error('Error getting tournament top scorers: '.$e->getMessage());
+                \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
                 $topScorers = $this->getFallbackTopScorersWithRank();
             }
         } else {
@@ -202,7 +217,7 @@ class HomeController extends Controller
         $standings = $this->getAllGroupStandingsFixed($activeTournament);
 
         // Statistics for hero section
-        $teams = Team::all();
+        $totalTeams = Team::count();
         $matchesCount = Game::count();
         $totalGoals = Player::sum('goals');
 
@@ -225,6 +240,7 @@ class HomeController extends Controller
             'top_scorers_count' => $topScorers->count(),
             'top_scorers_has_tournament_data' => $topScorers->first() && isset($topScorers->first()->tournament_goals) ? 'YES' : 'NO',
             'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A',
+            'teams_count' => $teams->count(),
         ];
 
         $recentHighlights = Game::whereNotNull('youtube_id')
@@ -234,14 +250,15 @@ class HomeController extends Controller
             ->get();
 
         return view('home', compact(
-            'heroSetting', // <-- TAMBAH INI DI COMPACT
+            'heroSetting',
             'activeTournament',
             'todayMatches',
             'upcomingMatches',
             'recentResults',
             'topScorers',
             'standings',
-            'teams',
+            'teams', // Data teams yang baru
+            'totalTeams', // Ubah dari $teams ke $totalTeams untuk statistik
             'matchesCount',
             'totalGoals',
             'daysLeft',
@@ -551,6 +568,96 @@ class HomeController extends Controller
             ->paginate(12);
 
         return view('highlights.index', compact('highlights'));
+    }
+
+    /**
+ * Get team details for AJAX modal
+ */
+    public function teamDetails($id)
+    {
+        try {
+            $team = Team::withCount(['players', 'tournaments', 'homeMatches', 'awayMatches'])
+                ->with([
+                    'players' => function($query) {
+                        $query->orderBy('goals', 'desc')
+                            ->orderBy('position')
+                            ->orderBy('jersey_number');
+                    },
+                    'tournaments' => function($query) {
+                        $query->where('status', 'active')
+                            ->orderBy('start_date', 'desc');
+                    },
+                    'homeMatches' => function($query) {
+                        $query->where('status', 'completed')
+                            ->orderBy('match_date', 'desc')
+                            ->limit(5)
+                            ->with('awayTeam');
+                    },
+                    'awayMatches' => function($query) {
+                        $query->where('status', 'completed')
+                            ->orderBy('match_date', 'desc')
+                            ->limit(5)
+                            ->with('homeTeam');
+                    }
+                ])
+                ->findOrFail($id);
+
+            // Calculate team statistics
+            $stats = [
+                'total_matches' => $team->home_matches_count + $team->away_matches_count,
+                'wins' => 0,
+                'draws' => 0,
+                'losses' => 0,
+                'goals_for' => 0,
+                'goals_against' => 0,
+            ];
+
+            // Calculate from home matches
+            foreach ($team->homeMatches as $match) {
+                if ($match->home_score > $match->away_score) {
+                    $stats['wins']++;
+                } elseif ($match->home_score < $match->away_score) {
+                    $stats['losses']++;
+                } else {
+                    $stats['draws']++;
+                }
+                $stats['goals_for'] += $match->home_score;
+                $stats['goals_against'] += $match->away_score;
+            }
+
+            // Calculate from away matches
+            foreach ($team->awayMatches as $match) {
+                if ($match->away_score > $match->home_score) {
+                    $stats['wins']++;
+                } elseif ($match->away_score < $match->home_score) {
+                    $stats['losses']++;
+                } else {
+                    $stats['draws']++;
+                }
+                $stats['goals_for'] += $match->away_score;
+                $stats['goals_against'] += $match->home_score;
+            }
+
+            $stats['goal_difference'] = $stats['goals_for'] - $stats['goals_against'];
+            $stats['points'] = ($stats['wins'] * 3) + $stats['draws'];
+
+            // Get top scorer
+            $topScorer = $team->players->sortByDesc('goals')->first();
+
+            // Render HTML content
+            $html = view('partials.team-details-modal', compact('team', 'stats', 'topScorer'))->render();
+
+            return response()->json([
+                'success' => true,
+                'html' => $html
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to load team details: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     // ... method lainnya tetap sama ...

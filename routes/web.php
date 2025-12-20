@@ -55,6 +55,11 @@ Route::get('/highlights', [GameController::class, 'highlights'])->name('highligh
 Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYoutubeHighlightInfo'])
     ->name('matches.youtube-highlight.info');
 
+
+// Home routes
+Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/teams/{team}/details', [HomeController::class, 'teamDetails'])->name('teams.details');
+
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Authentication Routes
@@ -139,15 +144,18 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::put('/hero-settings', [HeroSettingController::class, 'update'])->name('hero-settings.update');
 
     // ========== TOURNAMENT MANAGEMENT ==========
-    // Multi-step routes
-    Route::get('tournaments/create', [TournamentController::class, 'createStep'])->name('tournaments.create');
-    Route::get('tournaments/create/step/{step}', [TournamentController::class, 'createStep'])
-        ->name('tournaments.create.step');
-    Route::post('tournaments/store/step/{step}', [TournamentController::class, 'storeStep'])
-        ->name('tournaments.store.step');
+// Multi-step tournament creation - URUTAN PENTING!
+Route::get('/tournaments/create', [TournamentController::class, 'create'])->name('tournaments.create');
+Route::get('/tournaments/create/step/{step}', [TournamentController::class, 'createStep'])->name('tournaments.create.step');
+Route::post('/tournaments/store/step/{step}', [TournamentController::class, 'storeStep'])->name('tournaments.store.step');
 
-    // Standard CRUD routes
-    Route::resource('tournaments', TournamentController::class)->except(['create', 'store']);
+// Debug routes untuk tournament creation
+Route::get('/tournaments/debug-session', [TournamentController::class, 'debugSession'])->name('tournaments.debug.session');
+Route::get('/tournaments/clear-session', [TournamentController::class, 'clearSession'])->name('tournaments.clear.session');
+Route::post('/tournaments/create/final', [TournamentController::class, 'createFinal'])->name('tournaments.create.final');
+
+// Standard CRUD routes - EXCLUDE create dan store karena sudah ada di atas
+Route::resource('tournaments', TournamentController::class)->except(['create', 'store']);
 
     // Tournament Schedule Routes
     Route::get('/tournaments/{tournament}/schedule', [ScheduleController::class, 'index'])->name('tournaments.schedule');
@@ -185,6 +193,15 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('matches/{match}/events/{event}/edit', [MatchEventController::class, 'edit'])->name('matches.events.edit');
     Route::put('matches/{match}/events/{event}', [MatchEventController::class, 'update'])->name('matches.events.update');
     Route::delete('matches/{match}/events/{event}', [MatchEventController::class, 'destroy'])->name('matches.events.destroy');
+
+    // Route untuk generate matches
+    Route::post('/tournaments/{tournament}/generate-matches', [GameController::class, 'generateMatches'])
+    ->name('admin.tournaments.generate-matches');
+
+    // Route untuk delete all matches
+    Route::delete('/tournaments/{tournament}/matches', [GameController::class, 'deleteTournamentMatches'])
+    ->name('admin.tournaments.delete-matches');
+    
 
     // Quick actions untuk API/AJAX
     Route::post('matches/{match}/events/quick-goal', [MatchEventController::class, 'quickAddGoal'])->name('matches.events.quick-goal');
@@ -335,6 +352,17 @@ Route::prefix('api')->name('api.')->group(function () {
     Route::get('tournaments/active', [TournamentController::class, 'apiActive'])->name('tournaments.active');
     Route::get('tournaments/{id}', [TournamentController::class, 'apiShow'])->name('tournaments.show');
     Route::get('matches/by-date-range', [GameController::class, 'getByDateRange'])->name('matches.by-date-range');
+
+     // ADD THESE NEW ROUTES - IMPORTANT!
+    Route::prefix('v1')->group(function () {
+        Route::get('teams/{team}/players', [App\Http\Controllers\Api\TeamApiController::class, 'players'])
+            ->where('team', '[0-9]+')
+            ->name('teams.players');
+        Route::get('teams/{team}', [App\Http\Controllers\Api\TeamApiController::class, 'show'])
+            ->where('team', '[0-9]+')
+            ->name('teams.show');
+    });
+
 });
 
 // ==================== AJAX/JSON ROUTES ====================
