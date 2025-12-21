@@ -2011,31 +2011,31 @@
                             @endif
                         </div>
                        <!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
-        <div class="tie-breaker-info mt-2" style="
-            font-size: 0.7rem;
-            color: #64748b;
-            padding: 6px 8px;
-            background: #f8fafc;
-            border-radius: 4px;
-            border-left: 3px solid #3b82f6;
-            margin-top: 0px;
-        ">
-            <div class="d-flex align-items-center">
-                <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
-                <div>
-                    <strong>Tie-breaker order:</strong>
-                    <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
-                        <li>Points</li>
-                        <li><strong>Head-to-Head</strong> (results between tied teams)</li>
-                        <li>Goal Difference</li>
-                        <li>Goals For</li>
-                        <li>Wins</li>
-                        <li>Team Name (alphabetical)</li>
-                    </ol>
-                </div>
-            </div>
+<!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
+<div class="tie-breaker-info mt-2" style="
+    font-size: 0.7rem;
+    color: #64748b;
+    padding: 6px 8px;
+    background: #f8fafc;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+    margin-top: 0px;
+">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+        <div>
+            <strong>Penentuan Juara dan Runner-up:</strong>
+            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                <li>Poin (nilai) - jika sama</li>
+                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                <li>Selisih gol - jika sama</li>
+                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                <li>Nilai fairplay (kartu) - jika sama</li>
+                <li>Adu tendangan penalti</li>
+            </ol>
         </div>
     </div>
+</div>
                         <div class="text-center mt-0 mb-4">
                             <a href="{{ route('standings') }}" class="btn btn-dark">
                                 <i class="bi bi-table"></i> View Full Standings
