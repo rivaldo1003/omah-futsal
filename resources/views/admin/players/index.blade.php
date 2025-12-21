@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+
+
 @section('title', 'Players Management')
 
 @section('styles')

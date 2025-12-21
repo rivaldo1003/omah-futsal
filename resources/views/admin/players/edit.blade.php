@@ -1,5 +1,7 @@
 @extends('layouts.admin')
 
+
+
 @section('title', 'Edit Player')
 
 @section('content')

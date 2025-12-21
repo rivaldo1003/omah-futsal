@@ -1,5 +1,8 @@
 @extends('layouts.admin')
 
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
+
 @section('title', 'Teams Management')@section('styles')<style>
 :root {
     --primary: #1e3a8a;

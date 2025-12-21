@@ -1,6 +1,8 @@
 @extends('layouts.admin')
 
 @section('title', 'Dashboard')
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
 
 @section('styles')
     <style>
