@@ -406,20 +406,37 @@ class HomeController extends Controller
             }
 
             // 4. Sort each group
+            // GANTI kode sorting yang lama dengan ini:
             foreach ($groupedTeams as $group => $standings) {
-                usort($groupedTeams[$group], function ($a, $b) {
-                    // Sort by: points > GD > GF > wins
+                usort($groupedTeams[$group], function ($a, $b) use ($tournamentId, $group) {
+                    // 1. Points (Poin)
                     if ($b->points != $a->points) {
                         return $b->points - $a->points;
                     }
+                    
+                    // 2. HEAD-TO-HEAD DULU (jika poin sama)
+                    $headToHeadResult = $this->calculateHeadToHead($a->team_id, $b->team_id, $tournamentId, $group);
+                    if ($headToHeadResult !== 0) {
+                        return $headToHeadResult;
+                    }
+                    
+                    // 3. Goal Difference (Selisih Gol) - SETELAH HEAD-TO-HEAD
                     if ($b->goal_difference != $a->goal_difference) {
                         return $b->goal_difference - $a->goal_difference;
                     }
+                    
+                    // 4. Goals For (Gol Memasukkan)
                     if ($b->goals_for != $a->goals_for) {
                         return $b->goals_for - $a->goals_for;
                     }
-
-                    return $b->wins - $a->wins;
+                    
+                    // 5. Wins (Jumlah Kemenangan)
+                    if ($b->wins != $a->wins) {
+                        return $b->wins - $a->wins;
+                    }
+                    
+                    // 6. Jika semua sama, urutkan berdasarkan nama
+                    return strcmp($a->team_name ?? '', $b->team_name ?? '');
                 });
             }
 
@@ -445,6 +462,49 @@ class HomeController extends Controller
             // Fallback ke method simple
             return $this->getStandingsDirectly($tournamentId);
         }
+    }
+
+    private function calculateHeadToHead($teamAId, $teamBId, $tournamentId, $group)
+    {
+        $matches = Game::where('tournament_id', $tournamentId)
+            ->where('group_name', $group)
+            ->where('status', 'completed')
+            ->where(function($query) use ($teamAId, $teamBId) {
+                $query->where(function($q) use ($teamAId, $teamBId) {
+                    $q->where('team_home_id', $teamAId)
+                    ->where('team_away_id', $teamBId);
+                })->orWhere(function($q) use ($teamAId, $teamBId) {
+                    $q->where('team_home_id', $teamBId)
+                    ->where('team_away_id', $teamAId);
+                });
+            })
+            ->get();
+        
+        if ($matches->isEmpty()) return 0;
+        
+        $teamAPoints = 0;
+        $teamBPoints = 0;
+        
+        foreach ($matches as $match) {
+            if ($match->home_score > $match->away_score) {
+                if ($match->team_home_id == $teamAId) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } elseif ($match->home_score < $match->away_score) {
+                if ($match->team_away_id == $teamAId) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } else {
+                $teamAPoints += 1;
+                $teamBPoints += 1;
+            }
+        }
+        
+        return $teamBPoints - $teamAPoints;
     }
 
     /**

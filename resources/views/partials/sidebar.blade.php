@@ -431,6 +431,8 @@
 }
 </style>
 
+
+
 <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
         <div class="logo-container">
@@ -517,12 +519,14 @@
             </a>
 
             {{-- SETTINGS --}}
-            <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
+            <!-- <a class="nav-link {{ request()->routeIs('admin.settings.*') ? 'active' : '' }}"
                 href="{{ route('admin.settings.index') }}">
                 <i class="bi bi-gear"></i> System Settings
-            </a>
+            </a> -->
 
         </nav>
+
+        
 
         {{-- Quick News Actions --}}
         <div class="nav flex-column mt-2" style="padding: 0 5px;">

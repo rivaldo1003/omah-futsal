@@ -1,6 +1,9 @@
 {{-- resources/views/admin/hero-settings/edit.blade.php --}}
 @extends('layouts.admin')
 
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
+
 @section('content')
     <div class="container-fluid">
         <div class="row">

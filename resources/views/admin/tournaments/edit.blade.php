@@ -2,6 +2,9 @@
 
 @section('title', 'Edit Tournament')
 
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
+
 @section('styles')
     <style>
         :root {

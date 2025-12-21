@@ -2,8 +2,12 @@
 
 @section('title', 'News Management - OFS Futsal Center Admin')
 
+
+
 @section('styles')
 <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
 <style>
 :root {
     --primary-color: #1a5fb4;
