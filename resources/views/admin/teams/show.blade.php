@@ -216,6 +216,75 @@
             object-fit: cover;
         }
 
+        /* Coaching Staff Grid */
+        .staff-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .staff-card {
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        .staff-role {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+
+        .staff-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .staff-contact {
+            font-size: 0.75rem;
+            color: var(--secondary);
+        }
+
+        /* Contact Badges */
+        .contact-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.5rem;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            color: var(--primary);
+            margin-right: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Color Display */
+        .color-display {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            background: #f8fafc;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .color-box {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
         /* Players Table */
         .table {
             margin: 0;
@@ -422,7 +491,6 @@
             border-radius: 50%;
         }
 
-
         /* Mobile Responsive */
         @media (max-width: 768px) {
             .page-header {
@@ -462,6 +530,10 @@
 
             .action-grid {
                 grid-template-columns: 1fr 1fr;
+            }
+
+            .staff-grid {
+                grid-template-columns: 1fr;
             }
         }
     </style>
@@ -506,8 +578,8 @@
                         <span class="badge badge-status-inactive">Inactive</span>
                     @endif
 
-                    @if($team->group_name)
-                        <span class="badge badge-group">Group {{ $team->group_name }}</span>
+                    @if($team->founded_year)
+                        <span class="badge badge-group">Founded {{ $team->founded_year }}</span>
                     @endif
                 </div>
             </div>
@@ -555,14 +627,13 @@
         <div class="stat-card">
             <div class="stat-title">Matches</div>
             <div class="stat-value">{{ $stats['total_matches'] ?? 0 }}</div>
-            <div class="stat-detail">{{ $stats['wins'] ?? 0 }}W {{ $stats['draws'] ?? 0 }}D {{ $stats['losses'] ?? 0 }}L
-            </div>
+            <div class="stat-detail">{{ $stats['wins'] ?? 0 }}W {{ $stats['draws'] ?? 0 }}D {{ $stats['losses'] ?? 0 }}L</div>
         </div>
 
         <div class="stat-card">
-            <div class="stat-title">Founded</div>
-            <div class="stat-value">{{ $team->created_at->format('Y') }}</div>
-            <div class="stat-detail">{{ $team->created_at->diffForHumans() }}</div>
+            <div class="stat-title">Points</div>
+            <div class="stat-value">{{ $stats['points'] ?? 0 }}</div>
+            <div class="stat-detail">{{ $stats['goals_for'] ?? 0 }} GF / {{ $stats['goals_against'] ?? 0 }} GA</div>
         </div>
     </div>
 
@@ -606,39 +677,135 @@
                                 <td>{{ $team->short_name }}</td>
                             </tr>
                         @endif
-                        @if($team->city)
+                        @if($team->description)
                             <tr>
-                                <th>City:</th>
-                                <td>{{ $team->city }}</td>
+                                <th>Description:</th>
+                                <td>{{ $team->description }}</td>
                             </tr>
                         @endif
-                        @if($team->coach_name)
+                        @if($team->founded_year)
                             <tr>
-                                <th>Coach:</th>
-                                <td>{{ $team->coach_name }}</td>
+                                <th>Founded Year:</th>
+                                <td>{{ $team->founded_year }}</td>
                             </tr>
                         @endif
-                        @if($team->contact_email)
+                        @if($team->home_venue)
                             <tr>
-                                <th>Email:</th>
-                                <td><a href="mailto:{{ $team->contact_email }}"
-                                        class="text-decoration-none">{{ $team->contact_email }}</a></td>
+                                <th>Home Venue:</th>
+                                <td>{{ $team->home_venue }}</td>
                             </tr>
                         @endif
-                        @if($team->contact_phone)
+                        @if($team->primary_color || $team->secondary_color)
                             <tr>
-                                <th>Phone:</th>
-                                <td><a href="tel:{{ $team->contact_phone }}"
-                                        class="text-decoration-none">{{ $team->contact_phone }}</a></td>
+                                <th>Team Colors:</th>
+                                <td>
+                                    @if($team->primary_color)
+                                        <div class="color-display mb-1">
+                                            <div class="color-box" style="background-color: {{ $team->primary_color }}"></div>
+                                            <span>Primary: {{ $team->primary_color }}</span>
+                                        </div>
+                                    @endif
+                                    @if($team->secondary_color)
+                                        <div class="color-display">
+                                            <div class="color-box" style="background-color: {{ $team->secondary_color }}"></div>
+                                            <span>Secondary: {{ $team->secondary_color }}</span>
+                                        </div>
+                                    @endif
+                                </td>
                             </tr>
                         @endif
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                @if($team->status == 'active')
+                                    <span class="badge badge-status-active">Active</span>
+                                @elseif($team->status == 'pending')
+                                    <span class="badge badge-status-pending">Pending</span>
+                                @else
+                                    <span class="badge badge-status-inactive">Inactive</span>
+                                @endif
+                            </td>
+                        </tr>
                     </table>
 
-                    @if($team->description)
-                        <div class="mt-3 pt-3 border-top">
-                            <h6 class="text-muted mb-2">Description</h6>
-                            <p class="mb-0">{{ $team->description }}</p>
+                    <!-- Contact Information -->
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-muted mb-3">Contact Information</h6>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if($team->email)
+                                <span class="contact-badge">
+                                    <i class="bi bi-envelope"></i> {{ $team->email }}
+                                </span>
+                            @endif
+                            @if($team->phone)
+                                <span class="contact-badge">
+                                    <i class="bi bi-telephone"></i> {{ $team->phone }}
+                                </span>
+                            @endif
+                            @if($team->website)
+                                <span class="contact-badge">
+                                    <i class="bi bi-globe"></i> {{ parse_url($team->website, PHP_URL_HOST) }}
+                                </span>
+                            @endif
+                            @if($team->address)
+                                <span class="contact-badge">
+                                    <i class="bi bi-geo-alt"></i> {{ Str::limit($team->address, 30) }}
+                                </span>
+                            @endif
                         </div>
+                    </div>
+
+                    <!-- Coaching Staff -->
+                    @if($team->coach_name || $team->head_coach || $team->assistant_coach || $team->goalkeeper_coach || $team->kitman)
+                    <div class="mt-4 pt-3 border-top">
+                        <h6 class="text-muted mb-3">Coaching Staff</h6>
+                        <div class="staff-grid">
+                            @if($team->coach_name)
+                                <div class="staff-card">
+                                    <div class="staff-role">Coach</div>
+                                    <div class="staff-name">{{ $team->coach_name }}</div>
+                                    @if($team->coach_email || $team->coach_phone)
+                                        <div class="staff-contact">
+                                            @if($team->coach_email)
+                                                <div><i class="bi bi-envelope"></i> {{ $team->coach_email }}</div>
+                                            @endif
+                                            @if($team->coach_phone)
+                                                <div><i class="bi bi-telephone"></i> {{ $team->coach_phone }}</div>
+                                            @endif
+                                        </div>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if($team->head_coach)
+                                <div class="staff-card">
+                                    <div class="staff-role">Head Coach</div>
+                                    <div class="staff-name">{{ $team->head_coach }}</div>
+                                </div>
+                            @endif
+
+                            @if($team->assistant_coach)
+                                <div class="staff-card">
+                                    <div class="staff-role">Assistant Coach</div>
+                                    <div class="staff-name">{{ $team->assistant_coach }}</div>
+                                </div>
+                            @endif
+
+                            @if($team->goalkeeper_coach)
+                                <div class="staff-card">
+                                    <div class="staff-role">Goalkeeper Coach</div>
+                                    <div class="staff-name">{{ $team->goalkeeper_coach }}</div>
+                                </div>
+                            @endif
+
+                            @if($team->kitman)
+                                <div class="staff-card">
+                                    <div class="staff-role">Kitman</div>
+                                    <div class="staff-name">{{ $team->kitman }}</div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
                     @endif
                 </div>
             </div>
@@ -670,7 +837,6 @@
                                                 <div class="d-flex align-items-center">
                                                     <div class="player-photo">
                                                         @php
-                                                            // Get player photo
                                                             $playerPhoto = $player->photo ?? null;
                                                             $nameParts = explode(' ', $player->name);
                                                             $initials = '';
@@ -680,7 +846,6 @@
                                                                 $initials = strtoupper(substr($player->name, 0, 2));
                                                             }
 
-                                                            // Process photo path
                                                             $photoPath = null;
                                                             if ($playerPhoto) {
                                                                 if (filter_var($playerPhoto, FILTER_VALIDATE_URL)) {
@@ -689,8 +854,6 @@
                                                                     try {
                                                                         if (Storage::disk('public')->exists($playerPhoto)) {
                                                                             $photoPath = asset('storage/' . $playerPhoto);
-                                                                        } else {
-                                                                            $photoPath = null;
                                                                         }
                                                                     } catch (Exception $e) {
                                                                         $photoPath = null;
@@ -714,11 +877,14 @@
                                                     <div>
                                                         <div class="player-name">{{ $player->name }}</div>
                                                         <div class="player-details">
+                                                            @if($player->date_of_birth)
+                                                                <span>{{ \Carbon\Carbon::parse($player->date_of_birth)->format('M d, Y') }}</span>
+                                                                @if($player->jersey_number)
+                                                                    <span class="mx-2">•</span>
+                                                                @endif
+                                                            @endif
                                                             @if($player->jersey_number)
                                                                 <span class="jersey-number">#{{ $player->jersey_number }}</span>
-                                                            @endif
-                                                            @if($player->nationality)
-                                                                <span>{{ $player->nationality }}</span>
                                                             @endif
                                                         </div>
                                                     </div>
@@ -770,6 +936,81 @@
                     @endif
                 </div>
             </div>
+
+            <!-- Tournaments Section -->
+            @if($team->tournaments->count() > 0)
+                <div class="main-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-trophy me-2"></i> Tournaments ({{ $team->tournaments->count() }})</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach($team->tournaments as $tournament)
+                                <div class="col-md-6 mb-3">
+                                    <div class="card border">
+                                        <div class="card-body">
+                                            <h6 class="card-title">{{ $tournament->name }}</h6>
+                                            @if($tournament->description)
+                                                <p class="card-text text-muted small">{{ Str::limit($tournament->description, 100) }}</p>
+                                            @endif
+                                            @if($tournament->start_date)
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar"></i> 
+                                                    {{ \Carbon\Carbon::parse($tournament->start_date)->format('M d, Y') }}
+                                                    @if($tournament->end_date)
+                                                        - {{ \Carbon\Carbon::parse($tournament->end_date)->format('M d, Y') }}
+                                                    @endif
+                                                </small>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+            <!-- Recent Matches -->
+            @if(isset($recentMatches) && $recentMatches->count() > 0)
+                <div class="main-card">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i> Recent Matches</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            @foreach($recentMatches as $match)
+                                <div class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <div class="fw-medium">{{ $match->homeTeam->name ?? 'Unknown' }} vs {{ $match->awayTeam->name ?? 'Unknown' }}</div>
+                                            <small class="text-muted">
+                                                {{ \Carbon\Carbon::parse($match->match_date)->format('M d, Y') }}
+                                                @if($match->venue)
+                                                    • {{ $match->venue }}
+                                                @endif
+                                            </small>
+                                        </div>
+                                        <div class="text-end">
+                                            @if($match->status == 'completed')
+                                                <span class="badge bg-success">{{ $match->home_score }} - {{ $match->away_score }}</span>
+                                            @elseif($match->status == 'scheduled')
+                                                <span class="badge bg-secondary">Scheduled</span>
+                                            @elseif($match->status == 'ongoing')
+                                                <span class="badge bg-warning">Live</span>
+                                            @elseif($match->status == 'postponed')
+                                                <span class="badge bg-info">Postponed</span>
+                                            @else
+                                                <span class="badge bg-danger">Cancelled</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                </div>
+            @endif
         </div>
 
         <!-- Sidebar -->
@@ -794,18 +1035,31 @@
                     </div>
 
                     <div class="mb-3">
-                        <div class="stat-title">Goals For/Against</div>
-                        <div class="stat-value">{{ $stats['goals_for'] ?? 0 }} / {{ $stats['goals_against'] ?? 0 }}</div>
-                        <div class="stat-detail">+{{ ($stats['goals_for'] ?? 0) - ($stats['goals_against'] ?? 0) }} GD</div>
+                        <div class="stat-title">Goal Difference</div>
+                        <div class="stat-value">{{ $stats['goal_difference'] ?? 0 }}</div>
+                        <div class="stat-detail">
+                            {{ $stats['goals_for'] ?? 0 }} GF / {{ $stats['goals_against'] ?? 0 }} GA
+                        </div>
                     </div>
 
-                    @if($team->tournaments->count() > 0)
+                    <div class="mb-3">
+                        <div class="stat-title">Points</div>
+                        <div class="stat-value">{{ $stats['points'] ?? 0 }}</div>
+                        <div class="stat-detail">
+                            {{ $stats['wins'] ?? 0 }}W {{ $stats['draws'] ?? 0 }}D {{ $stats['losses'] ?? 0 }}L
+                        </div>
+                    </div>
+
+                    <!-- Top Scorers -->
+                    @if(isset($topScorers) && $topScorers->count() > 0)
                         <div>
-                            <div class="stat-title">Active Tournaments</div>
-                            <div class="stat-value">{{ $team->tournaments->count() }}</div>
+                            <div class="stat-title">Top Scorers</div>
                             <div class="stat-detail">
-                                @foreach($team->tournaments->take(3) as $tournament)
-                                    <div class="mb-1">{{ $tournament->name }}</div>
+                                @foreach($topScorers as $scorer)
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span>{{ $scorer->name }}</span>
+                                        <span class="text-primary">{{ $scorer->goals ?? 0 }} goals</span>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
@@ -814,7 +1068,7 @@
             </div>
 
             <!-- Quick Actions -->
-            <div class="main-card">
+            <!-- <div class="main-card">
                 <div class="card-header">
                     <h5 class="mb-0"><i class="bi bi-lightning me-2"></i> Quick Actions</h5>
                 </div>
@@ -824,10 +1078,9 @@
                             <i class="bi bi-pencil d-block mb-1"></i>
                             Edit Team
                         </a>
-                        <a href="{{ route('admin.players.create', ['team_id' => $team->id]) }}" class="action-btn">
-                            <i class="bi bi-plus d-block mb-1"></i>
-                            Add Player
-                        </a>
+                         <a href="{{ route('admin.players.create', ['team_id' => $team->id]) }}" class="btn btn-sm btn-primary">
+                        <i class="bi bi-plus"></i> Add Player
+                    </a>
                         <a href="{{ route('admin.teams.index') }}" class="action-btn">
                             <i class="bi bi-list d-block mb-1"></i>
                             All Teams
@@ -839,7 +1092,7 @@
                         </button>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Logo Preview -->
             @if($team->logo)
@@ -872,21 +1125,7 @@
         </div>
     </div>
 
-    <!-- Quick Actions Footer -->
-    <div class="quick-actions mt-4">
-        <div class="action-grid">
-            <a href="{{ route('admin.teams.edit', $team) }}" class="action-btn">
-                <i class="bi bi-pencil me-1"></i> Edit Team
-            </a>
-            <a href="{{ route('admin.players.create', ['team_id' => $team->id]) }}" class="action-btn">
-                <i class="bi bi-plus me-1"></i> Add Player
-            </a>
-            <a href="{{ route('admin.teams.index') }}" class="action-btn">
-                <i class="bi bi-arrow-left me-1"></i> Back to Teams
-            </a>
-        </div>
-    </div>
-    </div>
+   
 
     <!-- Delete Modal -->
     <div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
@@ -902,6 +1141,18 @@
                     <p class="text-muted small mt-2">
                         This action cannot be undone. All related data will be removed.
                     </p>
+                    <div class="alert alert-warning text-start mt-3">
+                        <i class="bi bi-info-circle me-2"></i>
+                        This team has:
+                        <ul class="mb-0 mt-2">
+                            <li>{{ $team->players->count() }} players</li>
+                            <li>{{ $team->tournaments->count() }} tournaments</li>
+                            <li>{{ $stats['total_matches'] ?? 0 }} matches</li>
+                            @if($team->coach_name || $team->head_coach || $team->assistant_coach || $team->goalkeeper_coach)
+                            <li>Coaching staff data</li>
+                            @endif
+                        </ul>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

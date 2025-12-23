@@ -11,13 +11,31 @@ class Team extends Model
 
     protected $fillable = [
         'name',
+        'short_name',
+        'description',
         'logo',
         'coach_name',
-        'contact_phone',
-        'contact_email',
-        'description',
-        'short_name',
+        'coach_phone',
+        'coach_email',
+        'head_coach',
+        'assistant_coach',
+        'goalkeeper_coach',
+        'kitman',
+        'primary_color',
+        'secondary_color',
         'status',
+        'founded_year',
+        'home_venue',
+        'phone',
+        'email',
+        'website',
+        'address',
+        'tournament_id',
+        // HAPUS field yang tidak ada di database:
+        // 'contact_phone',  // TIDAK ADA di database
+        // 'contact_email',  // TIDAK ADA di database
+        // 'city',          // TIDAK ADA di database
+        // 'country',       // TIDAK ADA di database
     ];
 
     // Relasi many-to-many dengan tournaments

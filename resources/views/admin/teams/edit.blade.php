@@ -74,8 +74,172 @@
                                         <label for="short_name" class="form-label small fw-medium">Short Code</label>
                                         <input type="text" class="form-control form-control-sm @error('short_name') is-invalid @enderror" 
                                                id="short_name" name="short_name" value="{{ old('short_name', $team->short_name) }}" 
-                                               maxlength="4" placeholder="e.g., TGR">
+                                               maxlength="10" placeholder="e.g., TGR">
                                         @error('short_name')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Coach Information Section -->
+                                    <div class="col-12 mt-2">
+                                        <h6 class="border-bottom pb-1 mb-2 small fw-medium">Coach Information</h6>
+                                    </div>
+
+                                    <!-- <div class="col-md-6">
+                                        <label for="coach_name" class="form-label small fw-medium">Coach</label>
+                                        <input type="text" class="form-control form-control-sm @error('coach_name') is-invalid @enderror"
+                                               id="coach_name" name="coach_name" value="{{ old('coach_name', $team->coach_name) }}"
+                                               placeholder="Coach name">
+                                        @error('coach_name')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div> -->
+
+                                    <div class="col-md-6">
+                                        <label for="head_coach" class="form-label small fw-medium">Head Coach</label>
+                                        <input type="text" class="form-control form-control-sm @error('head_coach') is-invalid @enderror"
+                                               id="head_coach" name="head_coach" value="{{ old('head_coach', $team->head_coach) }}"
+                                               placeholder="Head coach name">
+                                        @error('head_coach')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="assistant_coach" class="form-label small fw-medium">Assistant Coach</label>
+                                        <input type="text" class="form-control form-control-sm @error('assistant_coach') is-invalid @enderror"
+                                               id="assistant_coach" name="assistant_coach" value="{{ old('assistant_coach', $team->assistant_coach) }}"
+                                               placeholder="Assistant coach name">
+                                        @error('assistant_coach')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="goalkeeper_coach" class="form-label small fw-medium">Goalkeeper Coach</label>
+                                        <input type="text" class="form-control form-control-sm @error('goalkeeper_coach') is-invalid @enderror"
+                                               id="goalkeeper_coach" name="goalkeeper_coach" value="{{ old('goalkeeper_coach', $team->goalkeeper_coach) }}"
+                                               placeholder="Goalkeeper coach name">
+                                        @error('goalkeeper_coach')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="kitman" class="form-label small fw-medium">Kitman</label>
+                                        <input type="text" class="form-control form-control-sm @error('kitman') is-invalid @enderror"
+                                               id="kitman" name="kitman" value="{{ old('kitman', $team->kitman) }}"
+                                               placeholder="Kitman name">
+                                        @error('kitman')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="coach_phone" class="form-label small fw-medium">Coach Phone</label>
+                                        <input type="text" class="form-control form-control-sm @error('coach_phone') is-invalid @enderror"
+                                               id="coach_phone" name="coach_phone" value="{{ old('coach_phone', $team->coach_phone) }}"
+                                               placeholder="Coach phone number">
+                                        @error('coach_phone')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="coach_email" class="form-label small fw-medium">Coach Email</label>
+                                        <input type="email" class="form-control form-control-sm @error('coach_email') is-invalid @enderror"
+                                               id="coach_email" name="coach_email" value="{{ old('coach_email', $team->coach_email) }}"
+                                               placeholder="Coach email address">
+                                        @error('coach_email')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Team Colors -->
+                                    <div class="col-12 mt-2">
+                                        <h6 class="border-bottom pb-1 mb-2 small fw-medium">Team Colors</h6>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="primary_color" class="form-label small fw-medium">Primary Color</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="color" class="form-control form-control-color p-1" 
+                                                   id="primary_color_picker" value="{{ old('primary_color', $team->primary_color ?: '#007bff') }}">
+                                            <input type="text" class="form-control form-control-sm @error('primary_color') is-invalid @enderror"
+                                                   id="primary_color" name="primary_color" value="{{ old('primary_color', $team->primary_color) }}"
+                                                   maxlength="7" placeholder="#RRGGBB">
+                                        </div>
+                                        @error('primary_color')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="secondary_color" class="form-label small fw-medium">Secondary Color</label>
+                                        <div class="input-group input-group-sm">
+                                            <input type="color" class="form-control form-control-color p-1" 
+                                                   id="secondary_color_picker" value="{{ old('secondary_color', $team->secondary_color ?: '#6c757d') }}">
+                                            <input type="text" class="form-control form-control-sm @error('secondary_color') is-invalid @enderror"
+                                                   id="secondary_color" name="secondary_color" value="{{ old('secondary_color', $team->secondary_color) }}"
+                                                   maxlength="7" placeholder="#RRGGBB">
+                                        </div>
+                                        @error('secondary_color')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- Contact Information -->
+                                    <div class="col-12 mt-2">
+                                        <h6 class="border-bottom pb-1 mb-2 small fw-medium">Contact Information</h6>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="phone" class="form-label small fw-medium">Team Phone</label>
+                                        <input type="text" class="form-control form-control-sm @error('phone') is-invalid @enderror"
+                                               id="phone" name="phone" value="{{ old('phone', $team->phone) }}"
+                                               placeholder="Team phone number">
+                                        @error('phone')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="email" class="form-label small fw-medium">Team Email</label>
+                                        <input type="email" class="form-control form-control-sm @error('email') is-invalid @enderror"
+                                               id="email" name="email" value="{{ old('email', $team->email) }}"
+                                               placeholder="Team email address">
+                                        @error('email')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <!-- <div class="col-md-6">
+                                        <label for="contact_phone" class="form-label small fw-medium">Contact Phone</label>
+                                        <input type="text" class="form-control form-control-sm @error('contact_phone') is-invalid @enderror"
+                                               id="contact_phone" name="contact_phone" value="{{ old('contact_phone', $team->contact_phone) }}"
+                                               placeholder="Contact phone number">
+                                        @error('contact_phone')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="contact_email" class="form-label small fw-medium">Contact Email</label>
+                                        <input type="email" class="form-control form-control-sm @error('contact_email') is-invalid @enderror"
+                                               id="contact_email" name="contact_email" value="{{ old('contact_email', $team->contact_email) }}"
+                                               placeholder="Contact email address">
+                                        @error('contact_email')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div> -->
+
+                                    <!-- Venue and Address -->
+                                    <div class="col-md-6">
+                                        <label for="home_venue" class="form-label small fw-medium">Home Venue</label>
+                                        <input type="text" class="form-control form-control-sm @error('home_venue') is-invalid @enderror"
+                                               id="home_venue" name="home_venue" value="{{ old('home_venue', $team->home_venue) }}"
+                                               placeholder="Home stadium/venue">
+                                        @error('home_venue')
                                             <div class="invalid-feedback small">{{ $message }}</div>
                                         @enderror
                                     </div>
@@ -90,17 +254,7 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-6">
-                                        <label for="coach_name" class="form-label small fw-medium">Coach</label>
-                                        <input type="text" class="form-control form-control-sm @error('coach_name') is-invalid @enderror"
-                                               id="coach_name" name="coach_name" value="{{ old('coach_name', $team->coach_name) }}"
-                                               placeholder="Coach name">
-                                        @error('coach_name')
-                                            <div class="invalid-feedback small">{{ $message }}</div>
-                                        @enderror
-                                    </div>
-
-                                    <div class="col-md-6">
+                                    <!-- <div class="col-md-6">
                                         <label for="city" class="form-label small fw-medium">City</label>
                                         <input type="text" class="form-control form-control-sm @error('city') is-invalid @enderror"
                                                id="city" name="city" value="{{ old('city', $team->city) }}"
@@ -118,6 +272,16 @@
                                         @error('country')
                                             <div class="invalid-feedback small">{{ $message }}</div>
                                         @enderror
+                                    </div> -->
+
+                                    <div class="col-md-6">
+                                        <label for="website" class="form-label small fw-medium">Website</label>
+                                        <input type="url" class="form-control form-control-sm @error('website') is-invalid @enderror"
+                                               id="website" name="website" value="{{ old('website', $team->website) }}"
+                                               placeholder="https://example.com">
+                                        @error('website')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
                                     </div>
 
                                     <div class="col-md-6">
@@ -133,10 +297,20 @@
                                         @enderror
                                     </div>
 
-                                    <div class="col-md-6">
+                                    <div class="col-12">
+                                        <label for="address" class="form-label small fw-medium">Address</label>
+                                        <textarea class="form-control form-control-sm @error('address') is-invalid @enderror" 
+                                                  id="address" name="address" rows="2"
+                                                  placeholder="Full team address">{{ old('address', $team->address) }}</textarea>
+                                        @error('address')
+                                            <div class="invalid-feedback small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-12">
                                         <label for="description" class="form-label small fw-medium">Description</label>
                                         <textarea class="form-control form-control-sm @error('description') is-invalid @enderror" 
-                                                  id="description" name="description" rows="1"
+                                                  id="description" name="description" rows="3"
                                                   placeholder="Team description">{{ old('description', $team->description) }}</textarea>
                                         @error('description')
                                             <div class="invalid-feedback small">{{ $message }}</div>
@@ -270,8 +444,12 @@
                                 <div class="text-muted">Fields marked with <span class="text-danger">*</span> are required</div>
                             </div>
                             <div class="mb-2">
-                                <div class="text-primary mb-0"><strong>Player Assignment</strong></div>
-                                <div class="text-muted">Players can only belong to one team</div>
+                                <div class="text-primary mb-0"><strong>Coach Information</strong></div>
+                                <div class="text-muted">Complete all coach fields for better team management</div>
+                            </div>
+                            <div class="mb-2">
+                                <div class="text-primary mb-0"><strong>Team Colors</strong></div>
+                                <div class="text-muted">Use hex color codes (#RRGGBB) for primary and secondary colors</div>
                             </div>
                             <div class="mb-0">
                                 <div class="text-primary mb-0"><strong>Status</strong></div>
@@ -455,6 +633,12 @@
         .modal-sm {
             max-width: 300px;
         }
+
+        .form-control-color {
+            width: 40px;
+            height: calc(1.8125rem + 2px);
+            padding: 0.25rem;
+        }
     </style>
 @endpush
 
@@ -518,6 +702,16 @@
         @endif
     }
 
+    // Color picker functions
+    function updateColorPreview() {
+        const primaryColor = document.getElementById('primary_color').value;
+        const secondaryColor = document.getElementById('secondary_color').value;
+        
+        // Update color pickers
+        document.getElementById('primary_color_picker').value = primaryColor;
+        document.getElementById('secondary_color_picker').value = secondaryColor;
+    }
+
     // Initialize when page loads
     document.addEventListener('DOMContentLoaded', function() {
         // Logo upload event listener
@@ -539,6 +733,39 @@
                 clearImage();
             });
         }
+
+        // Color picker event listeners
+        const primaryColorInput = document.getElementById('primary_color');
+        const secondaryColorInput = document.getElementById('secondary_color');
+        const primaryColorPicker = document.getElementById('primary_color_picker');
+        const secondaryColorPicker = document.getElementById('secondary_color_picker');
+        
+        if (primaryColorInput && primaryColorPicker) {
+            primaryColorInput.addEventListener('input', function() {
+                if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+                    primaryColorPicker.value = this.value;
+                }
+            });
+            
+            primaryColorPicker.addEventListener('input', function() {
+                primaryColorInput.value = this.value;
+            });
+        }
+        
+        if (secondaryColorInput && secondaryColorPicker) {
+            secondaryColorInput.addEventListener('input', function() {
+                if (this.value.match(/^#[0-9A-F]{6}$/i)) {
+                    secondaryColorPicker.value = this.value;
+                }
+            });
+            
+            secondaryColorPicker.addEventListener('input', function() {
+                secondaryColorInput.value = this.value;
+            });
+        }
+        
+        // Initialize color pickers
+        updateColorPreview();
 
         // Player selection
         const selectAllPlayersBtn = document.getElementById('selectAllPlayers');
@@ -588,11 +815,19 @@
             yearInput.addEventListener('blur', function() {
                 const year = parseInt(this.value);
                 if (this.value && (year < 1900 || year > new Date().getFullYear())) {
-                    this.value = '';
+                    this.value = '{{ old('founded_year', $team->founded_year) }}';
                     alert('Please enter a valid year between 1900 and ' + new Date().getFullYear());
                 }
             });
         }
+
+        // Phone number formatting (optional)
+        const phoneInputs = document.querySelectorAll('input[name="phone"], input[name="coach_phone"], input[name="contact_phone"]');
+        phoneInputs.forEach(input => {
+            input.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9+\-\s()]/g, '');
+            });
+        });
     });
     </script>
 @endpush

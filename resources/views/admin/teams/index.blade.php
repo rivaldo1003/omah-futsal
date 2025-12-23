@@ -1,9 +1,73 @@
 @extends('layouts.admin')
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+<link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
+@section('title', 'Teams Management')
+@section('styles')
+<style>
+/* Tambahkan style untuk staff badges */
+.staff-badge {
+    display: inline-block;
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--primary);
+    padding: 0.15rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    margin: 0.1rem;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
-@section('title', 'Teams Management')@section('styles')<style>
+.info-tooltip {
+    cursor: help;
+    border-bottom: 1px dotted #6b7280;
+}
+
+.team-expanded-info {
+    margin-top: 0.5rem;
+    padding-top: 0.5rem;
+    border-top: 1px dashed #e5e7eb;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 0.3rem;
+    margin-top: 0.3rem;
+}
+
+.info-item {
+    font-size: 0.7rem;
+    color: #6b7280;
+}
+
+.info-label {
+    font-weight: 600;
+    color: #4b5563;
+}
+
+.info-value {
+    color: #374151;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.toggle-details {
+    font-size: 0.7rem;
+    color: var(--primary-light);
+    cursor: pointer;
+    user-select: none;
+    margin-top: 0.3rem;
+    display: inline-block;
+}
+
+.toggle-details:hover {
+    text-decoration: underline;
+}
+
 :root {
     --primary: #1e3a8a;
     --primary-light: #3b82f6;
@@ -361,7 +425,6 @@
 }
 
 .team-logo-container {
-
     flex-shrink: 0;
     /* border: 1px solid var(--border-color); */
     border-radius: 6px;
@@ -476,6 +539,10 @@
         justify-content: center;
         margin-bottom: 0.5rem;
     }
+    
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
 }
 </style>
 @endsection
@@ -509,7 +576,6 @@
         </a>
     </div>
 </div>
-
 
 @if(session('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -563,7 +629,8 @@
                     <tr>
                         <th>Team</th>
                         <th>Players</th>
-                        <th>Group</th>
+                        <th>Tournaments</th>
+                        <th>Coaching Staff</th>
                         <th>Status</th>
                         <th class="text-end">Actions</th>
                     </tr>
@@ -592,7 +659,7 @@
                                 </div>
                                 @endif
 
-                                <div>
+                                <div style="flex: 1;">
                                     <a href="{{ route('admin.teams.show', $team) }}" class="team-name">
                                         {{ $team->name }}
                                     </a>
@@ -600,9 +667,70 @@
                                         @if($team->short_name)
                                         <span class="team-shortname">({{ $team->short_name }})</span>
                                         @endif
-                                        @if($team->coach_name)
-                                        <span class="text-muted">{{ $team->coach_name }}</span>
+                                        
+                                        @if($team->coach_name || $team->head_coach)
+                                        <span class="text-muted">
+                                            {{ $team->coach_name ?? $team->head_coach }}
+                                            @if($team->coach_email)
+                                            <i class="bi bi-envelope ms-1" title="{{ $team->coach_email }}"></i>
+                                            @endif
+                                        </span>
                                         @endif
+                                    </div>
+                                    
+                                    <!-- Toggle untuk detail tambahan -->
+                                    <span class="toggle-details" onclick="toggleDetails('{{ $team->id }}')">
+                                        <i class="bi bi-chevron-down" id="icon-{{ $team->id }}"></i> More info
+                                    </span>
+                                    
+                                    <!-- Detail tambahan yang bisa di-expand -->
+                                    <div class="team-expanded-info" id="details-{{ $team->id }}" style="display: none;">
+                                        <div class="info-grid">
+                                            @if($team->founded_year)
+                                            <div class="info-item">
+                                                <span class="info-label">Founded:</span>
+                                                <span class="info-value">{{ $team->founded_year }}</span>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($team->home_venue)
+                                            <div class="info-item">
+                                                <span class="info-label">Venue:</span>
+                                                <span class="info-value">{{ Str::limit($team->home_venue, 15) }}</span>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($team->primary_color)
+                                            <div class="info-item">
+                                                <span class="info-label">Color:</span>
+                                                <span class="info-value">
+                                                    <span style="display: inline-block; width: 12px; height: 12px; background-color: {{ $team->primary_color }}; border-radius: 2px; vertical-align: middle; margin-right: 4px;"></span>
+                                                    {{ $team->primary_color }}
+                                                </span>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($team->email)
+                                            <div class="info-item">
+                                                <span class="info-label">Email:</span>
+                                                <span class="info-value">{{ Str::limit($team->email, 15) }}</span>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($team->phone)
+                                            <div class="info-item">
+                                                <span class="info-label">Phone:</span>
+                                                <span class="info-value">{{ $team->phone }}</span>
+                                            </div>
+                                            @endif
+                                            
+                                            @if($team->website)
+                                            <div class="info-item">
+                                                <span class="info-label">Website:</span>
+                                                <span class="info-value">{{ Str::limit(parse_url($team->website, PHP_URL_HOST), 15) }}</span>
+                                            </div>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -612,15 +740,68 @@
                                 <i class="bi bi-people"></i>
                                 {{ $team->players_count ?? $team->players->count() }} players
                             </span>
+                            @if($team->players->count() > 0)
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    @php
+                                        $positions = $team->players->groupBy('position')->map->count();
+                                        $topPositions = $positions->sortDesc()->take(2);
+                                    @endphp
+                                    @foreach($topPositions as $position => $count)
+                                        <span class="badge bg-light text-dark">{{ $position }}: {{ $count }}</span>
+                                    @endforeach
+                                </small>
+                            </div>
+                            @endif
                         </td>
                         <td>
-                            @if($team->group_name)
-                            <span class="badge badge-group">
-                                {{ $team->group_name }}
-                            </span>
+                            @if($team->tournaments->count() > 0)
+                            <div style="max-height: 60px; overflow-y: auto;">
+                                @foreach($team->tournaments->take(3) as $tournament)
+                                <span class="badge bg-info bg-opacity-10 text-info mb-1" style="display: block; font-size: 0.7rem;">
+                                    {{ Str::limit($tournament->name, 20) }}
+                                </span>
+                                @endforeach
+                                @if($team->tournaments->count() > 3)
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary" style="font-size: 0.7rem;">
+                                    +{{ $team->tournaments->count() - 3 }} more
+                                </span>
+                                @endif
+                            </div>
                             @else
                             <span class="text-muted">-</span>
                             @endif
+                        </td>
+                        <td style="min-width: 180px;">
+                            <div style="max-height: 60px; overflow-y: auto;">
+                                @if($team->head_coach)
+                                <span class="staff-badge" title="Head Coach: {{ $team->head_coach }}">
+                                    <i class="bi bi-person-badge"></i> {{ Str::limit($team->head_coach, 15) }}
+                                </span>
+                                @endif
+                                
+                                @if($team->assistant_coach)
+                                <span class="staff-badge" title="Assistant Coach: {{ $team->assistant_coach }}">
+                                    <i class="bi bi-person"></i> {{ Str::limit($team->assistant_coach, 15) }}
+                                </span>
+                                @endif
+                                
+                                @if($team->goalkeeper_coach)
+                                <span class="staff-badge" title="Goalkeeper Coach: {{ $team->goalkeeper_coach }}">
+                                    <i class="bi bi-shield"></i> {{ Str::limit($team->goalkeeper_coach, 15) }}
+                                </span>
+                                @endif
+                                
+                                @if($team->kitman)
+                                <span class="staff-badge" title="Kitman: {{ $team->kitman }}">
+                                    <i class="bi bi-bag"></i> {{ Str::limit($team->kitman, 15) }}
+                                </span>
+                                @endif
+                                
+                                @if(!$team->head_coach && !$team->assistant_coach && !$team->goalkeeper_coach && !$team->kitman)
+                                <span class="text-muted">No staff</span>
+                                @endif
+                            </div>
                         </td>
                         <td>
                             @if($team->status == 'active')
@@ -629,6 +810,14 @@
                             <span class="status-badge status-pending">Pending</span>
                             @else
                             <span class="status-badge status-inactive">Inactive</span>
+                            @endif
+                            
+                            @if($team->created_at)
+                            <div class="mt-1">
+                                <small class="text-muted">
+                                    {{ $team->created_at->format('d/m/Y') }}
+                                </small>
+                            </div>
                             @endif
                         </td>
                         <td class="text-end">
@@ -645,6 +834,21 @@
                                     data-bs-target="#deleteModal{{ $team->id }}" title="Delete">
                                     <i class="bi bi-trash"></i>
                                 </button>
+                            </div>
+                            
+                            <!-- Quick actions -->
+                            <div class="mt-2">
+                                @if($team->website)
+                                <a href="{{ $team->website }}" target="_blank" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">
+                                    <i class="bi bi-globe"></i>
+                                </a>
+                                @endif
+                                
+                                @if($team->email)
+                                <a href="mailto:{{ $team->email }}" class="btn btn-sm btn-outline-secondary" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;">
+                                    <i class="bi bi-envelope"></i>
+                                </a>
+                                @endif
                             </div>
                         </td>
                     </tr>
@@ -753,6 +957,18 @@
                     <i class="bi bi-info-circle me-2"></i>
                     This team has {{ $team->players->count() }} players and {{ $team->tournaments->count() }}
                     tournaments.
+                    
+                    @if($team->head_coach || $team->assistant_coach || $team->goalkeeper_coach)
+                    <div class="mt-2">
+                        <strong>Coaching Staff:</strong>
+                        <ul class="mb-0">
+                            @if($team->head_coach)<li>Head Coach: {{ $team->head_coach }}</li>@endif
+                            @if($team->assistant_coach)<li>Assistant Coach: {{ $team->assistant_coach }}</li>@endif
+                            @if($team->goalkeeper_coach)<li>Goalkeeper Coach: {{ $team->goalkeeper_coach }}</li>@endif
+                            @if($team->kitman)<li>Kitman: {{ $team->kitman }}</li>@endif
+                        </ul>
+                    </div>
+                    @endif
                 </div>
             </div>
             <div class="modal-footer border-0">
@@ -848,6 +1064,22 @@ document.getElementById('searchInput').addEventListener('keypress', function(e) 
         this.dispatchEvent(new Event('keyup'));
     }
 });
+
+// Toggle details function
+function toggleDetails(teamId) {
+    const detailsDiv = document.getElementById('details-' + teamId);
+    const icon = document.getElementById('icon-' + teamId);
+    
+    if (detailsDiv.style.display === 'none') {
+        detailsDiv.style.display = 'block';
+        icon.classList.remove('bi-chevron-down');
+        icon.classList.add('bi-chevron-up');
+    } else {
+        detailsDiv.style.display = 'none';
+        icon.classList.remove('bi-chevron-up');
+        icon.classList.add('bi-chevron-down');
+    }
+}
 
 // Auto-dismiss alerts
 setTimeout(() => {
