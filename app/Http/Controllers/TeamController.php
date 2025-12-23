@@ -58,62 +58,80 @@ class TeamController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-        $validated = $request->validate([ // Ubah ke $request->validate() yang lebih sederhana
-            'name' => 'required|string|max:255|unique:teams',
-            'short_name' => 'nullable|string|max:4',
-            'description' => 'nullable|string',
-            'coach_name' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'country' => 'nullable|string|max:100',
-            'status' => 'required|in:active,pending,inactive',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'player_ids' => 'nullable|array',
-            'player_ids.*' => 'exists:players,id',
-            'tournament_ids' => 'nullable|array',
-            'tournament_ids.*' => 'exists:tournaments,id',
-            'founded_year' => 'nullable|integer|min:1900|max:'.date('Y'),
-        ]);
+    /**
+ * Store a newly created resource in storage.
+ */
+public function store(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string|max:100|unique:teams',
+        'short_name' => 'nullable|string|max:10',
+        'description' => 'nullable|string',
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        'coach_name' => 'nullable|string|max:255',
+        'coach_phone' => 'nullable|string|max:20',
+        'coach_email' => 'nullable|email|max:255',
+        'head_coach' => 'nullable|string|max:255',
+        'assistant_coach' => 'nullable|string|max:255',
+        'goalkeeper_coach' => 'nullable|string|max:255',
+        'kitman' => 'nullable|string|max:255',
+        'primary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
+        'secondary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
+        'status' => 'required|in:active,inactive,pending',
+        'founded_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+        'home_venue' => 'nullable|string|max:255',
+        'phone' => 'nullable|string|max:20',
+        'email' => 'nullable|email|max:255',
+        'website' => 'nullable|url|max:255',
+        'address' => 'nullable|string',
+        'player_ids' => 'nullable|array',
+        'player_ids.*' => 'exists:players,id',
+        'tournament_ids' => 'nullable|array',
+        'tournament_ids.*' => 'exists:tournaments,id',
+    ]);
 
-        DB::beginTransaction();
+    DB::beginTransaction();
 
-        try {
-            $teamData = $validated;
+    try {
+        $teamData = $validated;
 
-            // Handle logo upload
-            if ($request->hasFile('logo')) {
-                $logoFile = $request->file('logo');
-                $logoPath = $logoFile->store('teams/logos', 'public');
-                $teamData['logo'] = $logoPath;
-            }
-
-            // Create team
-            $team = Team::create($teamData);
-
-            // Attach players if selected
-            if ($request->filled('player_ids')) {
-                Player::whereIn('id', $request->player_ids)->update(['team_id' => $team->id]);
-            }
-
-            // Attach tournaments if selected
-            if ($request->filled('tournament_ids')) {
-                $team->tournaments()->attach($request->tournament_ids);
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.teams.index')
-                ->with('success', 'Team created successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Error creating team: '.$e->getMessage())
-                ->withInput();
+        // Handle logo upload
+        if ($request->hasFile('logo')) {
+            $logoFile = $request->file('logo');
+            $logoPath = $logoFile->store('teams/logos', 'public');
+            $teamData['logo'] = $logoPath;
         }
+
+        // Remove player_ids and tournament_ids from team creation data
+        unset($teamData['player_ids']);
+        unset($teamData['tournament_ids']);
+
+        // Create team
+        $team = Team::create($teamData);
+
+        // Attach players if selected
+        if ($request->filled('player_ids')) {
+            Player::whereIn('id', $request->player_ids)->update(['team_id' => $team->id]);
+        }
+
+        // Attach tournaments if selected
+        if ($request->filled('tournament_ids')) {
+            $team->tournaments()->attach($request->tournament_ids);
+        }
+
+        DB::commit();
+
+        return redirect()->route('admin.teams.index')
+            ->with('success', 'Team created successfully!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+
+        return redirect()->back()
+            ->with('error', 'Error creating team: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     /**
      * Display the specified resource.
@@ -179,18 +197,43 @@ class TeamController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Team $team)
-    {
-        $tournaments = Tournament::where('status', 'active')->get();
-        $players = Player::where('team_id', null)
-            ->orWhere('team_id', $team->id)
-            ->get();
+   /**
+ * Show the form for editing the specified resource.
+ */
+public function edit(Team $team)
+{
+    $tournaments = Tournament::where('status', 'active')->get();
+    $players = Player::where('team_id', null)
+        ->orWhere('team_id', $team->id)
+        ->get();
 
-        $currentPlayers = $team->players->pluck('id')->toArray();
-        $currentTournaments = $team->tournaments->pluck('id')->toArray(); // Tambahkan ini
+    $currentPlayers = $team->players->pluck('id')->toArray();
+    $currentTournaments = $team->tournaments->pluck('id')->toArray();
 
-        return view('admin.teams.edit', compact('team', 'tournaments', 'players', 'currentPlayers', 'currentTournaments'));
-    }
+    // Get statistics for the dashboard
+    $totalTeams = Team::count();
+    $activeTeams = Team::where('status', 'active')->count();
+    $pendingTeams = Team::where('status', 'pending')->count();
+    $inactiveTeams = Team::where('status', 'inactive')->count();
+    $totalPlayers = Player::count();
+    $freePlayers = Player::where('team_id', null)->count();
+    $assignedPlayers = Player::whereNotNull('team_id')->count();
+
+    return view('admin.teams.edit', compact(
+        'team',
+        'tournaments',
+        'players',
+        'currentPlayers',
+        'currentTournaments',
+        'totalTeams',
+        'activeTeams',
+        'pendingTeams',
+        'inactiveTeams',
+        'totalPlayers',
+        'freePlayers',
+        'assignedPlayers'
+    ));
+}
 
     /**
      * Update the specified resource in storage.
@@ -198,79 +241,154 @@ class TeamController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Team $team)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:teams,name,'.$team->id,
-            'short_name' => 'nullable|string|max:10',
-            'description' => 'nullable|string',
-            'coach_name' => 'nullable|string|max:255',
-            'city' => 'nullable|string|max:100',
-            'group_name' => 'nullable|string|max:50', // TAMBAHKAN INI
-            'contact_email' => 'nullable|email|max:255', // TAMBAHKAN INI
-            'contact_phone' => 'nullable|string|max:20', // TAMBAHKAN INI
-            'status' => 'required|in:active,inactive,pending',
-            'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
-            'logo_url' => 'nullable|url|max:255', // TAMBAHKAN INI untuk handle URL
-            'remove_logo' => 'nullable|boolean', // TAMBAHKAN INI
-        ]);
+    /**
+ * Update the specified resource in storage.
+ */
+/**
+ * Update the specified resource in storage.
+ */
+/**
+ * Update the specified resource in storage.
+ */
+public function update(Request $request, Team $team)
+{
+    \Log::info('=== UPDATE WITH PLAYERS START ===');
+    
+    $validated = $request->validate([
+        // Basic info (19 fields)
+        'name' => 'required|string|max:100|unique:teams,name,' . $team->id,
+        'short_name' => 'nullable|string|max:10',
+        'description' => 'nullable|string',
+        'status' => 'required|in:active,inactive,pending',
+        'founded_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+        'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
+        'coach_name' => 'nullable|string|max:255',
+        'coach_phone' => 'nullable|string|max:20',
+        'coach_email' => 'nullable|email|max:255',
+        'head_coach' => 'nullable|string|max:255',
+        'assistant_coach' => 'nullable|string|max:255',
+        'goalkeeper_coach' => 'nullable|string|max:255',
+        'kitman' => 'nullable|string|max:255',
+        'primary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
+        'secondary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
+        'home_venue' => 'nullable|string|max:255',
+        'phone' => 'nullable|string|max:20',
+        'email' => 'nullable|email|max:255',
+        'website' => 'nullable|url|max:255',
+        'address' => 'nullable|string',
+        
+        // Players
+        'player_ids' => 'nullable|array',
+        'player_ids.*' => 'exists:players,id',
+        
+        // Tournaments
+        'tournament_ids' => 'nullable|array',
+        'tournament_ids.*' => 'exists:tournaments,id',
+    ]);
+    
+    \Log::info('Player IDs count: ' . count($validated['player_ids'] ?? []));
+    \Log::info('Tournament IDs count: ' . count($validated['tournament_ids'] ?? []));
+    
+    DB::beginTransaction();
 
-        DB::beginTransaction();
-
-        try {
-            // Handle logo removal
-            if ($request->has('remove_logo') && $request->remove_logo == '1') {
-                if ($team->logo && Storage::disk('public')->exists($team->logo)) {
-                    Storage::disk('public')->delete($team->logo);
+    try {
+        // Handle logo upload jika ada
+        if ($request->hasFile('logo')) {
+            if ($team->logo && Storage::disk('public')->exists($team->logo)) {
+                Storage::disk('public')->delete($team->logo);
+            }
+            $logoPath = $request->file('logo')->store('teams/logos', 'public');
+            $validated['logo'] = $logoPath;
+        }
+        
+        // Simpan array untuk relations
+        $player_ids = $validated['player_ids'] ?? [];
+        $tournament_ids = $validated['tournament_ids'] ?? [];
+        
+        // Hapus dari array sebelum update team
+        unset($validated['player_ids']);
+        unset($validated['tournament_ids']);
+        
+        // Update team basic info
+        $team->update($validated);
+        \Log::info('Team basic info updated');
+        
+        // === LOGIC UPDATE PLAYERS YANG AMAN ===
+        // (Tidak pernah set team_id = null karena NOT NULL)
+        
+        if (is_array($player_ids)) {
+            // 1. Player yang SEKARANG ada di tim ini
+            $currentPlayerIds = $team->players()->pluck('players.id')->toArray();
+            
+            // 2. Player yang akan DIPINDAHKAN keluar dari tim ini
+            $playersToRemove = array_diff($currentPlayerIds, $player_ids);
+            
+            if (!empty($playersToRemove)) {
+                // Karena team_id NOT NULL, kita perlu pindahkan ke tim lain
+                // OPTION 1: Pindahkan ke tim khusus "Free Agents" atau "Default Team"
+                // Atau OPTION 2: Biarkan administrator memilih tim tujuan
+                // Untuk sekarang, kita lewati dulu - biarkan administrator handle manual
+                \Log::warning('Cannot remove players automatically. Team ID cannot be null. Players to remove: ' . implode(',', $playersToRemove));
+                
+                // Tampilkan warning ke user
+                session()->flash('warning', count($playersToRemove) . ' players cannot be removed automatically because every player must have a team. Please move them to another team first.');
+            }
+            
+            // 3. Player yang akan DITAMBAHKAN ke tim ini
+            $playersToAdd = array_diff($player_ids, $currentPlayerIds);
+            
+            if (!empty($playersToAdd)) {
+                // Cek dulu apakah player sudah punya tim lain
+                $playersWithOtherTeams = Player::whereIn('id', $playersToAdd)
+                    ->whereNotNull('team_id')
+                    ->where('team_id', '!=', $team->id)
+                    ->get();
+                
+                if ($playersWithOtherTeams->isNotEmpty()) {
+                    // Player ini sudah punya tim lain, perlu warning
+                    $conflictPlayers = $playersWithOtherTeams->pluck('name')->implode(', ');
+                    \Log::warning('Some players already belong to other teams: ' . $conflictPlayers);
+                    session()->flash('warning', 'Some players already belong to other teams: ' . $conflictPlayers);
                 }
-                $validated['logo'] = null;
-            } else {
-                // Handle logo file upload
-                if ($request->hasFile('logo')) {
-                    // Delete old logo if exists
-                    if ($team->logo && Storage::disk('public')->exists($team->logo)) {
-                        Storage::disk('public')->delete($team->logo);
-                    }
-
-                    $logoPath = $request->file('logo')->store('teams/logos', 'public');
-                    $validated['logo'] = $logoPath;
-                }
-                // Handle logo URL
-                elseif ($request->filled('logo_url')) {
-                    $validated['logo'] = $request->logo_url;
+                
+                // Update hanya player yang bisa ditambahkan (team_id = null atau team_id = tim ini)
+                $playersToActuallyAdd = Player::whereIn('id', $playersToAdd)
+                    ->where(function($query) use ($team) {
+                        $query->whereNull('team_id')
+                              ->orWhere('team_id', $team->id);
+                    })
+                    ->pluck('id')
+                    ->toArray();
+                
+                if (!empty($playersToActuallyAdd)) {
+                    Player::whereIn('id', $playersToActuallyAdd)->update(['team_id' => $team->id]);
+                    \Log::info('Players added to team: ' . implode(',', $playersToActuallyAdd));
                 }
             }
-
-            // Clean up data - remove fields that aren't in database
-            $teamData = array_intersect_key($validated, array_flip([
-                'name',
-                'short_name',
-                'description',
-                'coach_name',
-                'city',
-                'group_name',
-                'contact_email',
-                'contact_phone',
-                'status',
-                'logo',
-            ]));
-
-            // Update team
-            $team->update($teamData);
-
-            DB::commit();
-
-            return redirect()->route('admin.teams.show', $team)
-                ->with('success', 'Team updated successfully!');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return redirect()->back()
-                ->with('error', 'Error updating team: '.$e->getMessage())
-                ->withInput();
         }
+        
+        // === HANDLE TOURNAMENTS ===
+        if (is_array($tournament_ids)) {
+            $team->tournaments()->sync($tournament_ids);
+            \Log::info('Tournaments updated: ' . implode(',', $tournament_ids));
+        }
+        
+        DB::commit();
+        \Log::info('=== UPDATE WITH PLAYERS SUCCESS ===');
+
+        return redirect()->route('admin.teams.show', $team)
+            ->with('success', 'Team updated successfully!');
+
+    } catch (\Exception $e) {
+        DB::rollBack();
+        \Log::error('UPDATE ERROR: ' . $e->getMessage());
+        \Log::error($e->getTraceAsString());
+        
+        return redirect()->back()
+            ->with('error', 'Error updating team: ' . $e->getMessage())
+            ->withInput();
     }
+}
 
     /**
      * Remove the specified resource from storage.
