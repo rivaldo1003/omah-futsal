@@ -246,7 +246,7 @@
             padding: 40px;
             min-height: 100vh;
             transition: var(--transition);
-            margin-left: var(--sidebar-width);
+            /* margin-left: var(--sidebar-width); */
         }
 
         @media (max-width: 991.98px) {
@@ -1321,7 +1321,7 @@
     </button>
 
     <!-- Sidebar -->
-    <div class="sidebar" id="sidebar">
+    <!-- <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
             <div class="logo">
                 <i class="bi bi-trophy"></i>
@@ -1365,7 +1365,7 @@
                 Logout
             </button>
         </div>
-    </div>
+    </div> -->
 
     <div class="main-content" id="mainContent">
         <nav aria-label="breadcrumb" class="mb-5">
@@ -1391,7 +1391,7 @@
         </div>
 
         <!-- Debug session -->
-        @php
+        <!-- @php
             $sessionData = session()->get('tournament_data', []);
             \Log::info('View create step ' . ($currentStep ?? 1) . ': session data count - ' . count($sessionData));
         @endphp
@@ -1402,7 +1402,7 @@
             Step: {{ $currentStep }}, 
             Session Data: {{ !empty($sessionData) ? count($sessionData) . ' items' : 'Empty' }}
         </div>
-        @endif
+        @endif -->
 
         <!-- Step indicator -->
         <div class="step-indicator">
@@ -1443,7 +1443,7 @@
         <div class="row">
             <div class="col-lg-8">
                 <!-- Debug Info -->
-                @php
+                <!-- @php
                     $sessionData = session()->get('tournament_data', []);
                     $flashData = session()->get('tournament_data_flash', []);
                     \Log::info('View create step ' . ($currentStep ?? 1) . ': session data count - ' . count($sessionData));
@@ -1457,7 +1457,7 @@
                     Session Data: {{ !empty($sessionData) ? count($sessionData) . ' items' : 'Empty' }},
                     Session ID: {{ session()->getId() }}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
+                </div> -->
 
                 <script>
                 // Auto-hide debug alert after 10 seconds
@@ -1755,24 +1755,59 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="form-group">
-                                                <label for="qualify_per_group" class="form-label">
-                                                    Teams Qualify per Group
-                                                    <span class="required">*</span>
-                                                </label>
-                                                <input type="number"
-                                                    class="form-control @error('qualify_per_group') is-invalid @enderror"
-                                                    id="qualify_per_group" name="qualify_per_group"
-                                                    value="{{ old('qualify_per_group', $tournamentData['qualify_per_group'] ?? 2) }}"
-                                                    min="1" max="4">
-                                                @error('qualify_per_group')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
-                                            </div>
-                                        </div>
-                                    </div>
+                                   <!-- Di dalam section <div id="groupSettings" class="settings-section" ...> -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="qualify_per_group" class="form-label">
+                Teams Qualify per Group
+                <span class="required">*</span>
+            </label>
+            <input type="number"
+                class="form-control @error('qualify_per_group') is-invalid @enderror"
+                id="qualify_per_group" name="qualify_per_group"
+                value="{{ old('qualify_per_group', $tournamentData['qualify_per_group'] ?? 2) }}"
+                min="1" max="4">
+            @error('qualify_per_group')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="form-group">
+            <label for="tiebreaker_system" class="form-label">
+                <i class="bi bi-sort-numeric-down"></i>
+                Tiebreaker System
+                <span class="required">*</span>
+            </label>
+            <select class="form-select @error('tiebreaker_system') is-invalid @enderror" 
+                id="tiebreaker_system" name="tiebreaker_system" required>
+                <option value="head_to_head" {{ (old('tiebreaker_system', $tournamentData['tiebreaker_system'] ?? 'head_to_head') == 'head_to_head') ? 'selected' : '' }}>
+                    Head-to-Head
+                </option>
+                <option value="goal_difference" {{ (old('tiebreaker_system', $tournamentData['tiebreaker_system'] ?? 'head_to_head') == 'goal_difference') ? 'selected' : '' }}>
+                    Goal Difference
+                </option>
+                <option value="goals_scored" {{ (old('tiebreaker_system', $tournamentData['tiebreaker_system'] ?? 'head_to_head') == 'goals_scored') ? 'selected' : '' }}>
+                    Goals Scored
+                </option>
+                <option value="points_direct" {{ (old('tiebreaker_system', $tournamentData['tiebreaker_system'] ?? 'head_to_head') == 'points_direct') ? 'selected' : '' }}>
+                    Direct Points
+                </option>
+                <option value="combined" {{ (old('tiebreaker_system', $tournamentData['tiebreaker_system'] ?? 'head_to_head') == 'combined') ? 'selected' : '' }}>
+                    Combined (Goal Diff → Goals → Head-to-Head)
+                </option>
+            </select>
+            @error('tiebreaker_system')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <div class="form-text">
+                <i class="bi bi-info-circle"></i>
+                How to break ties when teams have equal points in group stage
+            </div>
+        </div>
+    </div>
+</div>
                                 </div>
 
                                 <!-- League Configuration -->
@@ -2492,6 +2527,141 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <div class="settings-section">
+    <h6><i class="bi bi-trophy"></i> Tiebreaker Rules</h6>
+    
+    <div class="alert alert-info mb-3">
+        <i class="bi bi-info-circle"></i>
+        <strong>How tiebreakers work:</strong> When teams have equal points, the following criteria will be applied in order
+    </div>
+    
+    <div class="form-group">
+        <label for="tiebreaker_order" class="form-label">
+            <i class="bi bi-list-ol"></i>
+            Tiebreaker Order (for group stage)
+            <span class="required">*</span>
+        </label>
+        <div class="tiebreaker-order-container" id="tiebreakerOrderContainer">
+            <!-- Tiebreaker items will be dynamically sorted -->
+            <div class="draggable-item mb-2" data-criteria="head_to_head">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                        <i class="bi bi-people me-2"></i>
+                        <span class="fw-bold">Head-to-Head</span>
+                        <small class="text-muted ms-2">Results between tied teams</small>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input tiebreaker-checkbox" type="checkbox" 
+                            name="tiebreaker_enabled[]" value="head_to_head" checked disabled>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="draggable-item mb-2" data-criteria="goal_difference">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                        <i class="bi bi-dash-circle me-2"></i>
+                        <span class="fw-bold">Goal Difference</span>
+                        <small class="text-muted ms-2">Goals scored minus goals conceded</small>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input tiebreaker-checkbox" type="checkbox" 
+                            name="tiebreaker_enabled[]" value="goal_difference" checked>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="draggable-item mb-2" data-criteria="goals_scored">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                        <i class="bi bi-arrow-up-circle me-2"></i>
+                        <span class="fw-bold">Goals Scored</span>
+                        <small class="text-muted ms-2">Total goals scored</small>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input tiebreaker-checkbox" type="checkbox" 
+                            name="tiebreaker_enabled[]" value="goals_scored" checked>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="draggable-item mb-2" data-criteria="fair_play">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                        <i class="bi bi-award me-2"></i>
+                        <span class="fw-bold">Fair Play Points</span>
+                        <small class="text-muted ms-2">Yellow/red cards deduction</small>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input tiebreaker-checkbox" type="checkbox" 
+                            name="tiebreaker_enabled[]" value="fair_play">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="draggable-item mb-2" data-criteria="draw">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="bi bi-grip-vertical me-2 text-muted"></i>
+                        <i class="bi bi-shuffle me-2"></i>
+                        <span class="fw-bold">Drawing of Lots</span>
+                        <small class="text-muted ms-2">Random draw</small>
+                    </div>
+                    <div class="form-check form-check-inline">
+                        <input class="form-check-input tiebreaker-checkbox" type="checkbox" 
+                            name="tiebreaker_enabled[]" value="draw" checked disabled>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <input type="hidden" name="tiebreaker_order" id="tiebreakerOrder" 
+            value="{{ old('tiebreaker_order', $tournamentData['tiebreaker_order'] ?? 'head_to_head,goal_difference,goals_scored,fair_play,draw') }}">
+        
+        <div class="form-text">
+            <i class="bi bi-info-circle"></i>
+            Drag to reorder tiebreaker criteria. Check/uncheck to enable/disable criteria
+        </div>
+    </div>
+    
+    <!-- Fair play points configuration -->
+    <div class="row mt-3" id="fairPlaySettings">
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fair_play_yellow" class="form-label">Yellow Card Points</label>
+                <input type="number" class="form-control" id="fair_play_yellow" 
+                    name="fair_play_yellow" value="{{ old('fair_play_yellow', $tournamentData['fair_play_yellow'] ?? -1) }}" 
+                    min="-10" max="0">
+                <small class="form-text">Points deduction per yellow card (usually -1)</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fair_play_red" class="form-label">Red Card Points</label>
+                <input type="number" class="form-control" id="fair_play_red" 
+                    name="fair_play_red" value="{{ old('fair_play_red', $tournamentData['fair_play_red'] ?? -3) }}" 
+                    min="-10" max="0">
+                <small class="form-text">Points deduction per red card (usually -3)</small>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label for="fair_play_double_yellow" class="form-label">Second Yellow Points</label>
+                <input type="number" class="form-control" id="fair_play_double_yellow" 
+                    name="fair_play_double_yellow" value="{{ old('fair_play_double_yellow', $tournamentData['fair_play_double_yellow'] ?? -3) }}" 
+                    min="-10" max="0">
+                <small class="form-text">Points for second yellow/red (usually -3)</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+                                
 
                                 <div class="settings-section">
                                     <h6><i class="bi bi-card-checklist"></i> Match Rules</h6>
