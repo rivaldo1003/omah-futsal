@@ -3,9 +3,9 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Tournament extends Model
 {
@@ -92,9 +92,9 @@ class Tournament extends Model
         $types = [
             'league' => 'League',
             'knockout' => 'Knockout',
-            'group_knockout' => 'Group + Knockout'
+            'group_knockout' => 'Group + Knockout',
         ];
-        
+
         return $types[$this->type] ?? $this->type;
     }
 
@@ -182,41 +182,43 @@ class Tournament extends Model
     public function getTotalMatchesAttribute(): int
     {
         $teamCount = $this->teams()->count();
-        
+
         if ($teamCount < 2) {
             return 0;
         }
-        
+
         switch ($this->type) {
             case 'league':
                 $rounds = $this->league_rounds ?? 1;
+
                 return ($teamCount * ($teamCount - 1) / 2) * $rounds;
-                
+
             case 'knockout':
                 $bracketSize = $this->knockout_teams ?? 8;
                 $total = $bracketSize - 1;
                 if ($this->knockout_third_place) {
                     $total += 1;
                 }
+
                 return $total;
-                
+
             case 'group_knockout':
                 $groupsCount = $this->groups_count ?? 2;
                 $teamsPerGroup = $this->teams_per_group ?? 4;
                 $qualifyPerGroup = $this->qualify_per_group ?? 2;
-                
+
                 // Group stage matches
                 $groupMatches = $groupsCount * ($teamsPerGroup * ($teamsPerGroup - 1) / 2);
-                
+
                 // Knockout matches
                 $knockoutTeams = $groupsCount * $qualifyPerGroup;
                 $knockoutMatches = $knockoutTeams - 1;
                 if ($this->knockout_third_place) {
                     $knockoutMatches += 1;
                 }
-                
+
                 return $groupMatches + $knockoutMatches;
-                
+
             default:
                 return 0;
         }
@@ -229,9 +231,10 @@ class Tournament extends Model
     {
         if (in_array($this->type, ['group_knockout', 'league']) && $this->groups_count > 1) {
             $teamsPerGroup = $this->teams_per_group ?? 4;
+
             return $teamsPerGroup * ($teamsPerGroup - 1) / 2;
         }
-        
+
         return 0;
     }
 
@@ -240,7 +243,7 @@ class Tournament extends Model
      */
     public function getDefaultRoundType(): string
     {
-        switch($this->type) {
+        switch ($this->type) {
             case 'league': return 'league';
             case 'knockout': return 'quarterfinal';
             case 'group_knockout': return 'group';
@@ -305,6 +308,7 @@ class Tournament extends Model
             for ($i = 0; $i < min($this->groups_count, 26); $i++) {
                 $groups[] = chr(65 + $i); // A, B, C, ...
             }
+
             return $groups;
         }
 
@@ -348,6 +352,7 @@ class Tournament extends Model
     public function getTimeSlotsAttribute(): array
     {
         $slots = $this->settings['match_time_slots'] ?? '14:00,16:00,18:00,20:00';
+
         return array_map('trim', explode(',', $slots));
     }
 
@@ -369,9 +374,10 @@ class Tournament extends Model
         } elseif ($this->type === 'group_knockout') {
             $groupsCount = $this->groups_count ?? 2;
             $qualifyPerGroup = $this->qualify_per_group ?? 2;
+
             return $groupsCount * $qualifyPerGroup;
         }
-        
+
         return 0;
     }
 
@@ -395,7 +401,7 @@ class Tournament extends Model
         if ($this->type === 'league') {
             return $this->league_allow_draw ?? true;
         }
-        
+
         return $this->allow_draw ?? true;
     }
 
@@ -407,7 +413,7 @@ class Tournament extends Model
         $summary = [
             'type' => $this->type_label,
             'teams' => $this->teams_count,
-            'duration' => $this->duration . ' days',
+            'duration' => $this->duration.' days',
             'total_matches' => $this->total_matches,
         ];
 
@@ -417,13 +423,13 @@ class Tournament extends Model
                 $summary['allow_draws'] = $this->allowsDraws() ? 'Yes' : 'No';
                 $summary['standings_type'] = $this->league_standings_type ?? 'total_points';
                 break;
-                
+
             case 'knockout':
                 $summary['bracket_size'] = $this->knockout_teams ?? 8;
                 $summary['format'] = $this->knockout_format_type;
                 $summary['third_place'] = $this->knockout_third_place ? 'Yes' : 'No';
                 break;
-                
+
             case 'group_knockout':
                 $summary['groups'] = $this->groups_count ?? 2;
                 $summary['teams_per_group'] = $this->teams_per_group ?? 4;

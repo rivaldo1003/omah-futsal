@@ -39,7 +39,7 @@ class StandingController extends Controller
         if ($selectedTournament) {
             $standings = $this->getCompleteStandingsWithAllTeams($selectedTournament->id);
         } else {
-            $standings = collect();
+        $standings = collect();
         }
 
         // Group standings by group
