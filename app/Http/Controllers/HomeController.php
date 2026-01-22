@@ -36,7 +36,7 @@ class HomeController extends Controller
         $heroSetting = HeroSetting::first();
 
         // Jika tidak ada setting, buat default
-        if (!$heroSetting) {
+        if (! $heroSetting) {
             $heroSetting = (object) [
                 'title' => 'OFS Champions League 2025',
                 'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
@@ -55,12 +55,12 @@ class HomeController extends Controller
         $activeTournament = Tournament::where('status', 'ongoing')->first();
 
         // Jika tidak ada tournament ongoing, ambil yang upcoming
-        if (!$activeTournament) {
+        if (! $activeTournament) {
             $activeTournament = Tournament::where('status', 'upcoming')->first();
         }
 
         // Jika masih tidak ada, ambil tournament apapun
-        if (!$activeTournament) {
+        if (! $activeTournament) {
             $activeTournament = Tournament::first();
         }
 
@@ -68,16 +68,16 @@ class HomeController extends Controller
         // GET TEAMS DATA
         // ==============================
         $teams = Team::withCount(['players', 'tournaments'])
-        ->with(['players' => function($query) {
-            // Ambil SEMUA players, jangan dibatasi di sini
-            $query->orderBy('goals', 'desc')
-                  ->orderBy('position')
-                  ->orderBy('name');
-        }])
-        ->where('status', 'active')
-        ->orderBy('name')
-        ->limit(value: 12)
-        ->get();
+            ->with(['players' => function ($query) {
+                // Ambil SEMUA players, jangan dibatasi di sini
+                $query->orderBy('goals', 'desc')
+                    ->orderBy('position')
+                    ->orderBy('name');
+            }])
+            ->where('status', 'active')
+            ->orderBy('name')
+            ->limit(value: 12)
+            ->get();
 
         // Get today's matches
         $todayMatches = Game::with(['homeTeam', 'awayTeam'])
@@ -198,12 +198,12 @@ class HomeController extends Controller
 
                 \Log::info('Top Scorers with Ranks:', [
                     'players' => $topScorers->map(function ($p) {
-                        return $p->name . ' - ' . $p->goals . ' gol (Rank: ' . $p->rank . ')';
+                        return $p->name.' - '.$p->goals.' gol (Rank: '.$p->rank.')';
                     })->toArray(),
                 ]);
 
             } catch (\Exception $e) {
-                \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
+                \Log::error('Error getting tournament top scorers: '.$e->getMessage());
                 $topScorers = $this->getFallbackTopScorersWithRank();
             }
         } else {
@@ -413,28 +413,28 @@ class HomeController extends Controller
                     if ($b->points != $a->points) {
                         return $b->points - $a->points;
                     }
-                    
+
                     // 2. HEAD-TO-HEAD DULU (jika poin sama)
                     $headToHeadResult = $this->calculateHeadToHead($a->team_id, $b->team_id, $tournamentId, $group);
                     if ($headToHeadResult !== 0) {
                         return $headToHeadResult;
                     }
-                    
+
                     // 3. Goal Difference (Selisih Gol) - SETELAH HEAD-TO-HEAD
                     if ($b->goal_difference != $a->goal_difference) {
                         return $b->goal_difference - $a->goal_difference;
                     }
-                    
+
                     // 4. Goals For (Gol Memasukkan)
                     if ($b->goals_for != $a->goals_for) {
                         return $b->goals_for - $a->goals_for;
                     }
-                    
+
                     // 5. Wins (Jumlah Kemenangan)
                     if ($b->wins != $a->wins) {
                         return $b->wins - $a->wins;
                     }
-                    
+
                     // 6. Jika semua sama, urutkan berdasarkan nama
                     return strcmp($a->team_name ?? '', $b->team_name ?? '');
                 });
@@ -469,22 +469,24 @@ class HomeController extends Controller
         $matches = Game::where('tournament_id', $tournamentId)
             ->where('group_name', $group)
             ->where('status', 'completed')
-            ->where(function($query) use ($teamAId, $teamBId) {
-                $query->where(function($q) use ($teamAId, $teamBId) {
+            ->where(function ($query) use ($teamAId, $teamBId) {
+                $query->where(function ($q) use ($teamAId, $teamBId) {
                     $q->where('team_home_id', $teamAId)
-                    ->where('team_away_id', $teamBId);
-                })->orWhere(function($q) use ($teamAId, $teamBId) {
+                        ->where('team_away_id', $teamBId);
+                })->orWhere(function ($q) use ($teamAId, $teamBId) {
                     $q->where('team_home_id', $teamBId)
-                    ->where('team_away_id', $teamAId);
+                        ->where('team_away_id', $teamAId);
                 });
             })
             ->get();
-        
-        if ($matches->isEmpty()) return 0;
-        
+
+        if ($matches->isEmpty()) {
+            return 0;
+        }
+
         $teamAPoints = 0;
         $teamBPoints = 0;
-        
+
         foreach ($matches as $match) {
             if ($match->home_score > $match->away_score) {
                 if ($match->team_home_id == $teamAId) {
@@ -503,7 +505,7 @@ class HomeController extends Controller
                 $teamBPoints += 1;
             }
         }
-        
+
         return $teamBPoints - $teamAPoints;
     }
 
@@ -631,34 +633,34 @@ class HomeController extends Controller
     }
 
     /**
- * Get team details for AJAX modal
- */
+     * Get team details for AJAX modal
+     */
     public function teamDetails($id)
     {
         try {
             $team = Team::withCount(['players', 'tournaments', 'homeMatches', 'awayMatches'])
                 ->with([
-                    'players' => function($query) {
+                    'players' => function ($query) {
                         $query->orderBy('goals', 'desc')
                             ->orderBy('position')
                             ->orderBy('jersey_number');
                     },
-                    'tournaments' => function($query) {
+                    'tournaments' => function ($query) {
                         $query->where('status', 'active')
                             ->orderBy('start_date', 'desc');
                     },
-                    'homeMatches' => function($query) {
+                    'homeMatches' => function ($query) {
                         $query->where('status', 'completed')
                             ->orderBy('match_date', 'desc')
                             ->limit(5)
                             ->with('awayTeam');
                     },
-                    'awayMatches' => function($query) {
+                    'awayMatches' => function ($query) {
                         $query->where('status', 'completed')
                             ->orderBy('match_date', 'desc')
                             ->limit(5)
                             ->with('homeTeam');
-                    }
+                    },
                 ])
                 ->findOrFail($id);
 
@@ -709,13 +711,13 @@ class HomeController extends Controller
 
             return response()->json([
                 'success' => true,
-                'html' => $html
+                'html' => $html,
             ]);
 
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load team details: ' . $e->getMessage()
+                'message' => 'Failed to load team details: '.$e->getMessage(),
             ], 500);
         }
     }

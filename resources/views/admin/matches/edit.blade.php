@@ -451,34 +451,44 @@ document.addEventListener('DOMContentLoaded', function() {
         filterTeamsByGroup(groupNameSelect.value);
     }
 
-    // Event listeners
     roundTypeSelect.addEventListener('change', toggleGroupField);
-    statusSelect.addEventListener('change', toggleScoreField);
-    
-    // Team selection events
-    homeTeamSelect.addEventListener('change', validateTeamsInSameGroup);
-    awayTeamSelect.addEventListener('change', validateTeamsInSameGroup);
-    
-    // Group selection event
-    groupNameSelect.addEventListener('change', function() {
-        filterTeamsByGroup(this.value);
-    });
+statusSelect.addEventListener('change', toggleScoreField);
 
-    // Set min date to today for match date
-    const today = new Date().toISOString().split('T')[0];
-    const matchDateInput = document.getElementById('match_date');
+// Team selection events
+homeTeamSelect.addEventListener('change', validateTeamsInSameGroup);
+awayTeamSelect.addEventListener('change', validateTeamsInSameGroup);
+
+// Group selection event
+groupNameSelect.addEventListener('change', function() {
+    filterTeamsByGroup(this.value);
+});
+
+// Set min date to today for match date
+const matchDateInput = document.getElementById('match_date');
+const currentMatchDateString = '{{ $match->match_date ? $match->match_date->format("Y-m-d") : "" }}';
+const today = new Date().toISOString().split('T')[0]; // Format: YYYY-MM-DD
+
+// Bandingkan string tanggal (YYYY-MM-DD), bukan Date object
+if (currentMatchDateString >= today) {
+    // Match belum terjadi atau hari ini, set min = today
     matchDateInput.setAttribute('min', today);
+    console.log('Match belum terjadi, min date set to:', today);
+} else {
+    // Match sudah lewat, biarkan bisa diubah (hapus min attribute)
+    matchDateInput.removeAttribute('min');
+    console.log('Match sudah lewat, min date dihapus');
+}
 
-    // Validate end time is after start time
-    document.getElementById('time_start').addEventListener('change', function() {
-        const startTime = this.value;
-        const endTimeInput = document.getElementById('time_end');
-        
-        if (startTime && endTimeInput.value && startTime >= endTimeInput.value) {
-            alert('End time must be after start time');
-            endTimeInput.focus();
-        }
-    });
+// Validate end time is after start time
+document.getElementById('time_start').addEventListener('change', function() {
+    const startTime = this.value;
+    const endTimeInput = document.getElementById('time_end');
+    
+    if (startTime && endTimeInput.value && startTime >= endTimeInput.value) {
+        alert('End time must be after start time');
+        endTimeInput.focus();
+    }
+});
 
     // Form validation
     matchForm.addEventListener('submit', function(e) {
