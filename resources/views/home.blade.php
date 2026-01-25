@@ -10,6 +10,3156 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
+        :root {
+            --primary-color: #1a5fb4;
+            --secondary-color: #5e5c64;
+            --success-color: #26a269;
+            --danger-color: #c01c28;
+            --warning-color: #f5c211;
+            --info-color: #1c71d8;
+            --dark-color: #0f172a;
+            --light-color: #f8fafc;
+            --accent-color: #3b82f6;
+            --nav-bg: rgba(255, 255, 255, 0.98);
+            --nav-shadow: rgba(15, 23, 42, 0.1);
+            --card-shadow: rgba(0, 0, 0, 0.05);
+        }
+
+        /* Reset & Base */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--light-color);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            color: #334155;
+            line-height: 1.6;
+            overflow-x: hidden;
+            font-size: 14px;
+        }
+
+        .container {
+            padding-left: max(12px, env(safe-area-inset-left));
+            padding-right: max(12px, env(safe-area-inset-right));
+            max-width: 1200px;
+        }
+
+        .navbar {
+            background: var(--nav-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 1px 3px var(--nav-shadow);
+            padding: 0.4rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1040;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
+            margin-right: 0;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        .brand-logo {
+            width: 35px;
+            height: 35px;
+            object-fit: contain;
+        }
+
+        .brand-text {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+
+        .brand-main {
+            font-size: 1rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-color), #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .brand-sub {
+            font-size: 0.6rem;
+            color: #64748b;
+            letter-spacing: 0.8px;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .navbar-toggler {
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            padding: 0.3rem 0.5rem;
+            font-size: 0.85rem;
+        }
+
+        .nav-link {
+            color: #475569 !important;
+            font-weight: 600;
+            padding: 0.5rem 0.8rem !important;
+            border-radius: 4px;
+            margin: 1px 0;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+        }
+
+        .nav-link i {
+            font-size: 0.9rem;
+            width: 18px;
+            text-align: center;
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(96, 165, 250, 0.05));
+            color: var(--accent-color) !important;
+        }
+
+        /* OVERRIDE BOOTSTRAP UNTUK HILANGKAN BACKGROUND LOGO */
+        .table-success .team-logo-container,
+        .standing-row.table-success .team-logo-container {
+            background-color: transparent !important;
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .table-success td .team-logo-container,
+        .table-success .team-logo-container {
+            background-color: transparent !important;
+            background: transparent !important;
+        }
+
+        .table-success .team-logo-container img,
+        .standing-row.table-success .team-logo-container img {
+            background: transparent !important;
+            background-color: transparent !important;
+        }
+
+        .table-success .d-flex.align-items-center,
+        .standing-row.table-success .d-flex.align-items-center {
+            background-color: transparent !important;
+        }
+
+        .table-success td,
+        .standing-row.table-success td {
+            background-color: inherit !important;
+        }
+
+        /* Compact Buttons - SAMA DENGAN NEWS */
+        .btn {
+            border-radius: 4px;
+            font-weight: 600;
+            padding: 0.4rem 0.8rem;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        /* Hero Section */
+        .hero-section {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .tournament-title {
+            font-weight: 700;
+            font-size: 1.8rem;
+            margin-bottom: 0.8rem;
+            background: linear-gradient(135deg, #ffffff, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            line-height: 1.3;
+        }
+
+        .hero-subtitle {
+            font-size: 0.95rem;
+            opacity: 0.9;
+            max-width: 100%;
+            margin: 0 auto 1.5rem;
+            text-align: center;
+            color: #cbd5e1;
+            padding: 0 10px;
+        }
+
+        /* Cards - Mobile First */
+        .card {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 3px 8px var(--card-shadow);
+            background: white;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid #e2e8f0;
+            padding: 1rem;
+            font-weight: 700;
+            color: #334155;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .card-header i {
+            margin-right: 8px;
+            color: var(--accent-color);
+            font-size: 1.1rem;
+        }
+
+        .card-body {
+            padding: 1.25rem;
+        }
+
+        /* Match Cards */
+        .match-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .match-time {
+            font-weight: 600;
+            color: var(--accent-color);
+            font-size: 0.95rem;
+            margin-bottom: 0.2rem;
+        }
+
+        .match-venue {
+            font-size: 0.8rem;
+            color: #64748b;
+        }
+
+        .team-name {
+            font-weight: 600;
+            color: #334155;
+            font-size: 0.95rem;
+            margin-bottom: 3px;
+            line-height: 1.2;
+        }
+
+        .team-group {
+            font-size: 0.8rem;
+            color: #64748b;
+            line-height: 1.1;
+        }
+
+        /* Score Section */
+        .score-badge {
+            background: linear-gradient(135deg, var(--accent-color), #1c71d8);
+            color: white;
+            padding: 0.5rem 0.8rem;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1.2rem;
+            min-width: 70px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        /* Teams Section Styles - DIUBAH LAYOUT */
+        .teams-section {
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Team Card Compact Style */
+        .team-compact-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            height: 100%;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .team-compact-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .team-compact-logo {
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            /* border: 2px solid #e2e8f0; */
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            transition: all 0.3s ease;
+            flex-shrink: 0;
+        }
+
+        .team-compact-card:hover .team-compact-logo {
+            border-color: var(--accent-color);
+            transform: scale(1.05);
+        }
+
+        .team-compact-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-compact-logo .logo-fallback {
+            font-size: 1rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .team-compact-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .compact-stat {
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .compact-stat-number {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--accent-color);
+            display: block;
+            line-height: 1.2;
+        }
+
+        .compact-stat-label {
+            font-size: 0.7rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            line-height: 1.1;
+        }
+
+        .compact-badge {
+            background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+            border: 1px solid #cbd5e1;
+            border-radius: 16px;
+            padding: 3px 8px;
+            font-size: 0.7rem;
+            font-weight: 500;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+
+        .compact-badge .jersey {
+            background: var(--accent-color);
+            color: white;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        /* Hero Fullscreen Modal Styles */
+#heroFullscreenModal .modal-content {
+    background: rgba(0, 0, 0, 0.95) !important;
+    border: none;
+}
+
+#heroFullscreenModal .modal-header {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: 9999;
+    border: none;
+}
+
+#heroFullscreenModal .modal-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 0;
+}
+
+.hero-fullscreen-img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.hero-fullscreen-img:hover {
+    transform: scale(1.02);
+}
+
+.modal-fullscreen .modal-dialog {
+    max-width: 100%;
+    margin: 0;
+}
+
+#heroFullscreenModal .btn-close-white {
+    filter: invert(1);
+    opacity: 0.8;
+    background-size: 1.2rem;
+}
+
+#heroFullscreenModal .btn-close-white:hover {
+    opacity: 1;
+}
+
+/* Fix for modal backdrop */
+.modal-backdrop {
+    z-index: 1040 !important;
+}
+
+#heroFullscreenModal {
+    z-index: 1050 !important;
+}
+
+/* Ensure modal is on top */
+.modal {
+    z-index: 1060 !important;
+}
+
+/* Prevent body scroll when modal is open */
+body.modal-open {
+    overflow: hidden;
+    padding-right: 0 !important;
+}
+
+/* Fix for modal closing animation */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+}
+
+/* Loading spinner for image */
+.hero-loading-spinner {
+    color: white;
+    font-size: 2rem;
+}
+
+        /* Modal Styles */
+        #teamDetailsModal .modal-dialog {
+            max-width: 800px;
+        }
+
+        #teamDetailsModal .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* Player Grid in Modal */
+        .player-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .player-card-modal {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .player-card-modal:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            border-color: var(--accent-color);
+        }
+
+        .player-photo-container {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            overflow: hidden;
+            margin: 0 auto 12px;
+            border: 3px solid #e2e8f0;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .player-photo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-initial {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+        }
+
+        .player-info-modal h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #334155;
+            line-height: 1.3;
+        }
+
+        .player-position {
+            font-size: 0.8rem;
+            color: #64748b;
+            background: #f1f5f9;
+            border-radius: 4px;
+            padding: 3px 8px;
+            display: inline-block;
+            margin-top: 5px;
+            font-weight: 500;
+        }
+
+        .player-jersey {
+            font-size: 0.85rem;
+            color: var(--accent-color);
+            font-weight: 700;
+            margin-top: 3px;
+        }
+
+        /* Load More Button */
+        .load-more-container {
+            text-align: center;
+            margin-top: 20px;
+            padding: 20px 0;
+        }
+
+        .load-more-btn {
+            padding: 10px 30px;
+            font-size: 0.95rem;
+            border-radius: 8px;
+            background: linear-gradient(135deg, var(--accent-color), #1c71d8);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .load-more-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .load-more-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* Loading Spinner */
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-width: 0.2em;
+        }
+
+        /* Animation for card loading */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .team-compact-card {
+            animation: fadeInUp 0.5s ease forwards;
+            animation-delay: calc(var(--card-index, 0) * 0.1s);
+        }
+
+        .score-badge.live {
+            background: linear-gradient(135deg, #ef4444, #f87171);
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .match-status {
+            font-size: 0.8rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 4px;
+            display: block;
+        }
+
+        /* Match Layout */
+        .teams-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.8rem;
+            margin: 1rem 0;
+        }
+
+        .team-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .score-container {
+            order: -1;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Match Events */
+        .match-events {
+            background: #f8fafc;
+            border-radius: 6px;
+            padding: 0.7rem;
+            border: 1px solid #e2e8f0;
+            margin-top: 0.7rem;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .match-events .col-6 {
+            padding: 0 5px;
+        }
+
+        /* Tables */
+        .table-responsive {
+            -webkit-overflow-scrolling: touch;
+            overflow-x: auto;
+            margin-bottom: 1rem;
+        }
+
+        .table {
+            width: 100%;
+            min-width: 300px;
+            font-size: 0.85rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 0.5rem 0.3rem;
+            white-space: nowrap;
+        }
+
+        /* Group Standings */
+        .group-standings {
+            margin-bottom: 1.5rem;
+        }
+
+        .standing-row {
+            padding: 0.4rem 0;
+        }
+
+        /* Ranking Badge */
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+
+        .group-title {
+            color: var(--accent-color);
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.8rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        /* Player Cards */
+        .player-card {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.7rem;
+            gap: 0.8rem;
+        }
+
+        .player-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .player-info h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #334155;
+        }
+
+        .player-team {
+            font-size: 0.8rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .goals-count {
+            background: linear-gradient(135deg, var(--accent-color), #60a5fa);
+            color: white;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .cards-count {
+            display: flex;
+            gap: 6px;
+            margin-top: 3px;
+            flex-shrink: 0;
+            font-size: 0.75rem;
+        }
+
+        /* Upcoming Matches */
+        .upcoming-match-item {
+            padding: 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            background: white;
+        }
+
+        .upcoming-match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .team-with-logo {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .team-logo-small {
+            width: 28px;
+            height: 28px;
+            border-radius: 5px;
+            object-fit: cover;
+        }
+
+        /* Recent Results */
+        .recent-result-item {
+            padding: 0.8rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.8rem;
+            background: white;
+        }
+
+        .goal-scorers {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid #e2e8f0;
+            font-size: 0.8rem;
+        }
+
+        .goal-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.2rem;
+            font-size: 0.75rem;
+        }
+
+        .goal-minute {
+            background-color: rgba(38, 162, 105, 0.1);
+            color: #26a269;
+            border-radius: 3px;
+            padding: 0.1rem 0.25rem;
+            margin-right: 0.25rem;
+            font-size: 0.7rem;
+            border: 1px solid rgba(38, 162, 105, 0.2);
+        }
+
+        /* Footer - SAMA DENGAN NEWS */
+        .footer {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: white;
+            padding: 1.5rem 0 1rem;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+        }
+
+        .footer-title {
+            font-weight: 700;
+            margin-bottom: 0.8rem;
+            font-size: 0.95rem;
+            color: #e2e8f0;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            display: block;
+            margin-bottom: 0.3rem;
+            font-size: 0.8rem;
+        }
+
+        .footer-contact {
+            color: #cbd5e1;
+            font-size: 0.75rem;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 8px;
+            margin-top: 0.5rem;
+        }
+
+        .social-icons a {
+            color: #cbd5e1;
+            font-size: 1rem;
+        }
+
+        .copyright {
+            color: #94a3b8;
+            font-size: 0.75rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        /* Grid System */
+        .main-container {
+            padding-top: 0.5rem;
+        }
+
+        .col-lg-8,
+        .col-lg-4 {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
+
+        .row {
+            margin-left: -0.5rem;
+            margin-right: -0.5rem;
+        }
+
+        /* Badges */
+        .badge {
+            border-radius: 4px;
+            font-weight: 600;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+
+        /* Empty States */
+        .empty-state {
+            text-align: center;
+            padding: 2rem 1rem;
+            color: #64748b;
+        }
+
+        .empty-state i {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            opacity: 0.6;
+        }
+
+        /* Top Scorers Styles */
+        .top-scorer-rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+
+        .tie-breaker-info {
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+            border: 1px solid #bae6fd;
+            border-radius: 6px;
+            padding: 8px 10px;
+            font-size: 0.7rem;
+            color: #0c4a6e;
+            margin-top: 10px;
+        }
+
+        .tie-breaker-info strong {
+            color: #0369a1;
+        }
+
+        .tie-breaker-info ol {
+            margin-bottom: 0;
+            padding-left: 15px;
+        }
+
+        .tie-breaker-info li {
+            padding: 1px 0;
+        }
+
+        .top-scorer-rank-1 {
+            background: linear-gradient(135deg, #FFD700, #FFA500) !important;
+            color: #333 !important;
+        }
+
+        .top-scorer-rank-2 {
+            background: linear-gradient(135deg, #C0C0C0, #A9A9A9) !important;
+            color: white !important;
+        }
+
+        .top-scorer-rank-3 {
+            background: linear-gradient(135deg, #CD7F32, #A0522D) !important;
+            color: white !important;
+        }
+
+        .top-scorer-rank-4 {
+            background: linear-gradient(135deg, #64748b, #475569) !important;
+            color: white !important;
+        }
+
+        .top-scorer-player-card {
+            display: flex;
+            align-items: center;
+            padding: 0.8rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .top-scorer-player-card:hover {
+            background-color: #f8fafc;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .top-scorer-player-info {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        .top-scorer-player-info h6 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #334155;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .top-scorer-player-team {
+            font-size: 0.75rem;
+            color: #64748b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.2;
+        }
+
+        .top-scorer-goals-count {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            min-width: 60px;
+            text-align: center;
+            display: inline-block;
+        }
+
+        .team-logo-container {
+            width: 32px;
+            height: 32px;
+            background: transparent !important;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-right: 0.6rem;
+            flex-shrink: 0;
+            border: none !important;
+        }
+
+        .standing-row.table-success .team-logo-container {
+            background: transparent !important;
+            border: none !important;
+        }
+
+        .standing-row.table-success .team-logo-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: transparent;
+        }
+
+        .top-scorer-cards-count {
+            display: flex;
+            gap: 6px;
+            justify-content: flex-end;
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Highlight Item Styles */
+        .highlight-item {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .highlight-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .highlight-thumbnail {
+            transition: transform 0.3s ease;
+        }
+
+        .highlight-thumbnail:hover {
+            transform: scale(1.02);
+        }
+
+        .highlight-thumbnail .bg-primary {
+            transition: all 0.2s ease;
+        }
+
+        .highlight-thumbnail:hover .bg-primary {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        /* Video player in modal */
+        .ratio-16x9 video {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 576px) {
+            body {
+                font-size: 15.5px;
+            }
+
+            .tournament-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .card-header {
+                padding: 1.1rem;
+            }
+
+            .card-body {
+                padding: 1.5rem;
+            }
+
+            .teams-container {
+                flex-direction: row;
+                gap: 1rem;
+            }
+
+            .team-container {
+                width: auto;
+                flex: 1;
+            }
+
+            .team-home {
+                text-align: right;
+            }
+
+            .team-away {
+                text-align: left;
+            }
+
+            .score-container {
+                order: 0;
+                margin-bottom: 0;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.6rem 0.4rem;
+            }
+
+            /* Team section responsive */
+            .team-compact-card {
+                height: 100%;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            }
+        }
+
+        @media (min-width: 768px) {
+            body {
+                font-size: 16px;
+            }
+
+            .hero-section {
+                padding: 3rem 0 2.5rem;
+            }
+
+            .tournament-title {
+                font-size: 2.2rem;
+            }
+
+            .brand-logo {
+                width: 35px;
+                height: 35px;
+                object-fit: contain;
+            }
+
+            .teams-container {
+                gap: 1.5rem;
+            }
+
+            .score-badge {
+                min-width: 90px;
+                padding: 0.7rem 1.2rem;
+                font-size: 1.4rem;
+            }
+
+            .table {
+                font-size: 0.9rem;
+            }
+
+            /* Navbar desktop adjustments */
+            .nav-link {
+                padding: 0.5rem 0.8rem !important;
+                font-size: 0.9rem;
+            }
+
+            .team-compact-card {
+                height: 100%;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            }
+        }
+
+        @media (min-width: 992px) {
+            .tournament-title {
+                font-size: 2.5rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1.1rem;
+                max-width: 600px;
+            }
+
+            .brand-main {
+                font-size: 1rem;
+                font-weight: 800;
+                background: linear-gradient(135deg, var(--primary-color), #60a5fa);
+                -webkit-background-clip: text;
+                -webkit-text-fill-color: transparent;
+                background-clip: text;
+            }
+
+            .card-header {
+                font-size: 1.1rem;
+            }
+
+            .match-card {
+                padding: 1.5rem;
+            }
+
+            .team-name {
+                font-size: 1rem;
+            }
+
+            .score-badge {
+                min-width: 100px;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .container {
+                padding-left: max(12px, env(safe-area-inset-left));
+                padding-right: max(12px, env(safe-area-inset-right));
+                max-width: 1200px;
+            }
+        }
+
+        /* Touch-friendly elements */
+        @media (hover: none) and (pointer: coarse) {
+
+            .btn,
+            .nav-link,
+            .card {
+                min-height: 44px;
+            }
+
+            .btn-sm {
+                min-height: 36px;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.6rem 0.4rem;
+            }
+
+            .match-events {
+                max-height: 250px;
+            }
+        }
+
+        /* Hero Custom Styles */
+        .hero-section {
+            padding: 80px 0;
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            align-items: center;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .hero-cta-button {
+            transition: all 0.3s ease !important;
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
+        .hero-cta-button:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15) !important;
+            text-decoration: none !important;
+        }
+
+        .hero-cta-button:active {
+            transform: translateY(0) !important;
+        }
+
+        @keyframes float-particle {
+            0% {
+                transform: translateY(0) translateX(0);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100vh) translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 60px 0;
+                min-height: 300px;
+            }
+
+            .tournament-title {
+                font-size: 2rem;
+            }
+
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+
+            .hero-cta-button {
+                padding: 10px 25px !important;
+                font-size: 1rem !important;
+            }
+
+            .highlight-thumbnail img {
+                height: 150px !important;
+            }
+
+            .highlight-info strong {
+                font-size: 0.9rem;
+            }
+
+            .team-compact-card {
+                height: auto;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            }
+        }
+
+        @media (max-width: 576px) {
+            .hero-section {
+                padding: 50px 0;
+                min-height: 250px;
+            }
+
+            .tournament-title {
+                font-size: 1.8rem;
+            }
+
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+
+            .hero-cta-button {
+                padding: 8px 20px !important;
+                font-size: 0.95rem !important;
+            }
+
+            .top-scorer-player-card {
+                padding: 0.6rem;
+            }
+
+            .top-scorer-rank-badge {
+                width: 28px;
+                height: 28px;
+                font-size: 0.8rem;
+                margin-right: 8px;
+            }
+
+            .top-scorer-player-info h6 {
+                font-size: 0.85rem;
+            }
+
+            .top-scorer-player-team {
+                font-size: 0.7rem;
+            }
+
+            .top-scorer-goals-count {
+                font-size: 0.8rem;
+                min-width: 55px;
+                padding: 0.25rem 0.5rem;
+            }
+
+            .table-responsive {
+                font-size: 0.75rem;
+            }
+
+            .table th,
+            .table td {
+                padding: 0.35rem 0.2rem;
+                font-size: 0.75rem;
+            }
+
+            .col-md-6 {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            .group-title {
+                font-size: 0.9rem;
+            }
+
+            .team-compact-card {
+                height: auto;
+                margin-bottom: 1.5rem;
+            }
+
+            .player-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+
+            .navbar,
+            .footer,
+            .btn {
+                display: none !important;
+            }
+
+            .card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <div class="brand-container">
+                    <img src="{{ asset('images/logo-ofs.png') }}" alt="OFS Logo" class="brand-logo">
+                    <div class="brand-text">
+                        <div class="brand-main">OFS FUTSAL</div>
+                        <div class="brand-sub">CENTER</div>
+                    </div>
+                </div>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('/') ? 'active' : '' }}" href="/">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('news*') ? 'active' : '' }}"
+                            href="{{ route('news.index') }}">
+                            <i class="bi bi-newspaper"></i> News
+                        </a>
+                    </li>
+
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('tournaments*') ? 'active' : '' }}"
+                                    href="{{ route('tournaments.index') }}">
+                                    <i class="bi bi-trophy"></i> Tournaments
+                                </a>
+                            </li>
+                        @endif
+                    @endauth
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('schedule*') || request()->is('matches*') ? 'active' : '' }}"
+                            href="{{ route('schedule') }}">
+                            <i class="bi bi-calendar2-week"></i> Schedule
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('standings*') ? 'active' : '' }}"
+                            href="{{ route('standings') }}">
+                            <i class="bi bi-bar-chart-line"></i> Standings
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ request()->is('highlights*') ? 'active' : '' }}"
+                            href="{{ route('highlights.index') }}">
+                            <i class="bi bi-play-circle"></i> Highlights
+                        </a>
+                    </li>
+
+                    @auth
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('teams*') ? 'active' : '' }}"
+                                    href="{{ route('teams.index') }}">
+                                    <i class="bi bi-people-fill"></i> Teams
+                                </a>
+                            </li>
+                        @endif
+
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-primary btn-sm" href="{{ route('admin.dashboard') }}">
+                                    <i class="bi bi-speedometer2"></i> Admin
+                                </a>
+                            </li>
+                        @endif
+
+                        <li class="nav-item">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="nav-link btn btn-link btn-sm text-danger p-0">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                        </li>
+                    @else
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary btn-sm" href="{{ route('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
+                    @endauth
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <!-- Hero Section -->
+    <!-- ============================================== -->
+<!-- HERO SECTION (Update kode Anda) -->
+<!-- ============================================== -->
+@if($heroSetting->is_active)
+    <div class="hero-section" id="mainHeroSection" style="
+                @if($heroSetting->background_type === 'gradient')
+                    background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                    background-color: {{ $heroSetting->background_color }};
+                @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                    background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                    background-size: cover;
+                    background-position: center;
+                    background-repeat: no-repeat;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    @if($heroSetting->overlay_opacity > 0)
+                        position: relative;
+                    @endif
+                @else
+                    background: linear-gradient(135deg, #0f172a, #1e293b);
+                @endif
+                color: {{ $heroSetting->text_color }};
+                position: relative;
+                overflow: hidden;
+                min-height: 400px;
+            "
+            @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
+                onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
+                onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
+                title="Click to view full image"
+            @endif>
+
+        @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
+            <!-- Overlay untuk image background -->
+            <div class="hero-overlay"
+                style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                    z-index: 1;
+                    pointer-events: none;
+                ">
+            </div>
+        @endif
+
+        <div class="container" style="position: relative; z-index: 2;">
+            <div class="row align-items-center justify-content-center text-center">
+                <div class="col-lg-8">
+                    <h1 class="tournament-title" style="
+                        color: {{ $heroSetting->text_color }};
+                        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                    ">
+                        {{ $heroSetting->title }}
+                    </h1>
+                    <p class="hero-subtitle" style="
+                        color: {{ $heroSetting->text_color }};
+                        opacity: 0.9;
+                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                        margin-left: auto;
+                        margin-right: auto;
+                    ">
+                        {{ $heroSetting->subtitle }}
+                    </p>
+
+                    @if($heroSetting->cta_button_text)
+                        <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
+                            style="
+                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                border: none;
+                                padding: 12px 30px;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                text-decoration: none;
+                                display: inline-block;
+                                margin-top: 20px;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                            "
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
+                            <i class="bi bi-arrow-right-circle me-2"></i>
+                            {{ $heroSetting->cta_button_text }}
+                        </a>
+                    @endif
+
+                    <!-- Zoom Indicator (hanya untuk image background) -->
+                    @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                        <div class="mt-4">
+                            <div class="zoom-indicator" style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 8px;
+                                background: rgba(0, 0, 0, 0.4);
+                                padding: 6px 15px;
+                                border-radius: 25px;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                backdrop-filter: blur(5px);
+                                animation: pulse 2s infinite;
+                            ">
+                                <i class="bi bi-zoom-in text-white"></i>
+                                <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
+                                    Click background to view full image
+                                </span>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+
+        <!-- Animated elements -->
+        <div class="hero-particles" style="
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+                z-index: 1;
+                opacity: 0.3;
+            ">
+            @for($i = 1; $i <= 15; $i++) <div class="particle"
+                        style="
+                            position: absolute;
+                            width: {{ rand(2, 5) }}px;
+                            height: {{ rand(2, 5) }}px;
+                            background-color: {{ $heroSetting->text_color }};
+                            border-radius: 50%;
+                            top: {{ rand(0, 100) }}%;
+                            left: {{ rand(0, 100) }}%;
+                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                        ">
+                </div>
+            @endfor
+    </div>
+    </div>
+@else
+    <!-- Hero section hidden message (optional) -->
+    <div class="container mt-4">
+        <div class="alert alert-info text-center">
+            <i class="bi bi-info-circle me-2"></i>
+            Hero section is currently disabled.
+            <a href="{{ route('admin.hero-settings.edit') }}" class="alert-link">
+                Enable it from admin settings
+            </a>
+        </div>
+    </div>
+@endif
+<!-- ============================================== -->
+
+    <!-- Main Content -->
+    <div class="container main-container">
+        <!-- Today's Matches -->
+        @if($todayMatches->count() > 0)
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calendar-day"></i> Today's Matches
+                    <span class="badge bg-primary ms-2">{{ $todayMatches->count() }}</span>
+                </div>
+                <div class="card-body">
+                    @foreach($todayMatches as $match)
+                        <div class="match-card">
+                            <div class="row align-items-center">
+                                <!-- Time & Venue - Mobile Full Width -->
+                                <div class="col-12 col-md-3 mb-3 mb-md-0">
+                                    <div class="text-center">
+                                        <div class="match-time">{{ date('H:i', strtotime($match->time_start)) }}</div>
+                                        <div class="match-venue">{{ $match->venue ?? 'Main Field' }}</div>
+                                    </div>
+                                </div>
+
+                                <!-- Teams & Score - Responsive Layout -->
+                                <div class="col-12 col-md-7">
+                                    <div class="teams-container">
+                                        <!-- Home Team -->
+                                        <div class="team-container team-home">
+                                            <div class="team-name">{{ $match->homeTeam->name ?? 'TBA' }}</div>
+                                            <div class="team-group">
+                                                {{ $match->group_name ? 'Group ' . $match->group_name : ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Score -->
+                                        <div class="score-container">
+                                            @if($match->status == 'completed')
+                                                <div class="score-badge">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
+                                                <span class="match-status">FT</span>
+                                            @elseif($match->status == 'ongoing')
+                                                <div class="score-badge live">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
+                                                <span class="match-status text-danger">LIVE</span>
+                                            @else
+                                                <div class="score-badge bg-secondary">VS</div>
+                                                <span class="match-status">Upcoming</span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Away Team -->
+                                        <div class="team-container team-away">
+                                            <div class="team-name">{{ $match->awayTeam->name ?? 'TBA' }}</div>
+                                            <div class="team-group">{{ ucfirst($match->status ?? 'upcoming') }}</div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Match Events -->
+                                    @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed' || $match->status == 'ongoing'))
+                                        <div class="match-events">
+                                            <div class="row small">
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+
+                                <!-- Action Button -->
+                                <div class="col-12 col-md-2 text-center text-md-end mt-3 mt-md-0">
+                                    <a href="{{ route('matches.show', $match->id) }}"
+                                        class="btn btn-primary btn-sm w-100 w-md-auto">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        @endif
+
+        <div class="row">
+            <!-- Left Column -->
+            <div class="col-lg-8">
+                <!-- Upcoming Matches -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-calendar-week"></i> Upcoming Matches
+                    </div>
+                    <div class="card-body">
+                        @if($upcomingMatches->count() > 0)
+                            @foreach($upcomingMatches as $match)
+                                <div class="upcoming-match-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-dark">{{ date('d M', strtotime($match->match_date)) }}</span>
+                                            <span class="text-muted">{{ date('H:i', strtotime($match->time_start)) }}</span>
+                                        </div>
+                                        <span class="badge bg-warning text-dark">Upcoming</span>
+                                    </div>
+
+                                    <div class="upcoming-match-teams">
+                                        <!-- Home Team -->
+                                        <div class="team-with-logo">
+                                            <div class="team-logo-container-small">
+                                                @php
+                                                    $homeTeam = $match->homeTeam;
+                                                    $homeLogo = $homeTeam->logo ?? null;
+                                                    $homeName = $homeTeam->name ?? 'TBA';
+                                                @endphp
+                                                @if($homeLogo && Storage::disk('public')->exists($homeLogo))
+                                                    <img src="{{ asset('storage/' . $homeLogo) }}" alt="{{ $homeName }}"
+                                                        class="team-logo-small">
+                                                @else
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($homeName, 0, 1)) }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-truncate">
+                                                <strong>{{ $homeName }}</strong>
+                                            </div>
+                                        </div>
+
+                                        <!-- VS Badge -->
+                                        <div class="text-center px-2">
+                                            <span class="badge bg-secondary">VS</span>
+                                        </div>
+
+                                        <!-- Away Team -->
+                                        <div class="team-with-logo justify-content-end">
+                                            <div class="text-truncate text-end me-2">
+                                                <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
+                                            </div>
+                                            <div class="team-logo-container-small">
+                                                @php
+                                                    $awayTeam = $match->awayTeam;
+                                                    $awayLogo = $awayTeam->logo ?? null;
+                                                    $awayName = $awayTeam->name ?? 'TBA';
+                                                @endphp
+                                                @if($awayLogo && Storage::disk('public')->exists($awayLogo))
+                                                    <img src="{{ asset('storage/' . $awayLogo) }}" alt="{{ $awayName }}"
+                                                        class="team-logo-small">
+                                                @else
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($awayName, 0, 1)) }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Match Details -->
+                                    <div class="small text-muted mt-2">
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            <i class="bi bi-geo-alt"></i>
+                                            <span>{{ $match->venue ?? 'Main Field' }}</span>
+                                            @if($match->group_name)
+                                                <i class="bi bi-people ms-2"></i>
+                                                <span>Group {{ $match->group_name }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div class="text-center mt-4">
+                                <a href="{{ route('schedule') }}" class="btn btn-primary">
+                                    <i class="bi bi-calendar4-week"></i> View Full Schedule
+                                </a>
+                            </div>
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-calendar-x"></i>
+                                <p class="mt-2">No upcoming matches scheduled</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Group Standings -->
+                <div class="card">
+                    <div class="card-header">
+                        <i class="bi bi-bar-chart-line"></i> Group Standing
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @if(isset($standings) && count($standings) > 0)
+                                @foreach($standings as $group => $groupStandings)
+                                    <div class="col-12 col-md-6 mb-4">
+                                        <h6 class="group-title">GROUP {{ $group }}</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40px;">#</th>
+                                                        <th>Team</th>
+                                                        <th class="text-center">P</th>
+                                                        <th class="text-center">W</th>
+                                                        <th class="text-center">D</th>
+                                                        <th class="text-center">L</th>
+                                                        <th class="text-center">GD</th>
+                                                        <th class="text-center">PTS</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($groupStandings as $index => $standing)
+                                                        @php
+                                                            $team = $standing->team ?? null;
+                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                            $teamLogo = $team->logo ?? null;
+                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+
+                                                            // Abbreviation for logo
+                                                            $teamAbbr = '';
+                                                            if (!empty($teamName)) {
+                                                                $words = explode(' ', $teamName);
+                                                                if (count($words) >= 2) {
+                                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                } else {
+                                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                }
+                                                            }
+
+                                                            // Goal difference
+                                                            $gdValue = $standing->goal_difference ?? 0;
+                                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                        @endphp
+                                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                            <td class="text-center align-middle">
+                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                    {{ $index + 1 }}
+                                                                </div>
+                                                            </td>
+                                                            <td class="align-middle">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="team-logo-container" style="
+                                                                        width: 32px;
+                                                                        height: 32px;
+                                                                        background: transparent !important;
+                                                                        border-radius: 5px;
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        justify-content: center;
+                                                                        overflow: hidden;
+                                                                        margin-right: 0.6rem;
+                                                                        flex-shrink: 0;
+                                                                        border: none !important;
+                                                                    ">
+                                                                        @php
+                                                                            $logoExists = false;
+
+                                                                            if ($teamLogo) {
+                                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                    $logoExists = true;
+                                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                    $logoExists = true;
+                                                                                }
+                                                                            }
+                                                                        @endphp
+
+                                                                        @if($logoExists)
+                                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                alt="{{ $teamName }}"
+                                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                                        @else
+                                                                            <span
+                                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                                {{ $teamAbbr }}
+                                                                            </span>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <div class="text-truncate">
+                                                                        <strong class="d-block text-truncate"
+                                                                            style="font-size: 0.85rem;">
+                                                                            {{ Str::limit($teamName, 15) }}
+                                                                        </strong>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                {{ $standing->matches_played ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold text-success"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->wins ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                {{ $standing->draws ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle text-danger"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->losses ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                        display: inline-block;
+                                                                        padding: 2px 6px;
+                                                                        border-radius: 4px;
+                                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                        min-width: 40px;
+                                                                    ">
+                                                                    {{ $gdDisplay }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                        display: inline-block;
+                                                                        padding: 2px 8px;
+                                                                        border-radius: 4px;
+                                                                        background-color: rgba(59, 130, 246, 0.1);
+                                                                        color: #1d4ed8;
+                                                                        min-width: 40px;
+                                                                    ">
+                                                                    {{ $standing->points ?? 0 }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+
+
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @else
+                                <div class="col-12">
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        No group standings available yet.
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                       <!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
+<!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
+<div class="tie-breaker-info mt-2" style="
+    font-size: 0.7rem;
+    color: #64748b;
+    padding: 6px 8px;
+    background: #f8fafc;
+    border-radius: 4px;
+    border-left: 3px solid #3b82f6;
+    margin-top: 0px;
+">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+        <div>
+            <strong>Penentuan Juara dan Runner-up:</strong>
+            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                <li>Poin (nilai) - jika sama</li>
+                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                <li>Selisih gol - jika sama</li>
+                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                <li>Nilai fairplay (kartu) - jika sama</li>
+                <li>Adu tendangan penalti</li>
+            </ol>
+        </div>
+    </div>
+</div>
+                        <div class="text-center mt-0 mb-4">
+                            <a href="{{ route('standings') }}" class="btn btn-dark">
+                                <i class="bi bi-table"></i> View Full Standings
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Teams Section - COMPACT VERSION -->
+                <!-- Teams Section - TANPA API -->
+<div class="card mt-4 teams-section">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-people-fill"></i>
+            <span>Teams & Players</span>
+            @if($teams->count() > 0)
+                <span class="badge bg-primary">{{ $teams->count() }} Teams</span>
+            @endif
+        </div>
+        <!-- <a href="{{ route('teams.index') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-right"></i> View All
+        </a> -->
+    </div>
+    <div class="card-body">
+        @if($teams->count() > 0)
+                        <!-- Search and Filter -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="teamSearch" class="form-control" placeholder="Search teams or players...">
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-2 mt-md-0">
+                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-filter"></i></span>
+                                                    <select id="teamSort" class="form-select">
+                                                        <option value="name">Sort by Name</option>
+                                                        <option value="players">Sort by Players</option>
+                                                        <option value="tournaments">Sort by Tournaments</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Teams Grid - COMPACT LAYOUT -->
+                                        <!-- Teams Grid - COMPACT LAYOUT -->
+            <div class="row g-3" id="teamsGrid">
+                @foreach($teams as $index => $team)
+                    @php
+                        $totalPlayers = $team->players->count();
+                        $totalTournaments = $team->tournaments->count();
+                        $keyPlayers = $team->players->take(2);
+
+                        // Serialize players data untuk JavaScript - VERSION FIXED
+                        $playersData = $team->players->map(function ($player) {
+                            return [
+                                'id' => $player->id ?? 0,
+                                'name' => $player->name ?? 'Unknown',
+                                'jersey_number' => $player->jersey_number ?? '',
+                                'position' => $player->position ?? '',
+                                'photo' => $player->photo ?? '',
+                                'goals' => $player->goals ?? 0,
+                                'assists' => $player->assists ?? 0,
+                            ];
+                        })->toArray();
+
+                        // Convert to JSON with proper escaping
+                        $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                    @endphp
+                    <div class="col-xl-3 col-lg-4 col-md-6 team-card" 
+                         data-team-id="{{ $team->id }}"
+                         data-team-name="{{ strtolower($team->name) }}"
+                         data-team-players="{{ $totalPlayers }}"
+                         data-team-tournaments="{{ $totalTournaments }}"
+                         data-team-coach="{{ $team->coach_name }}"
+                         data-team-logo="{{ $team->logo }}"
+                         data-players-json="{{ $playersJson }}">
+                        <div class="team-compact-card h-100 d-flex flex-column p-3">
+                            <!-- Team Header -->
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="team-compact-logo">
+                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                                    @else
+                                        <div class="logo-fallback">
+                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                        {{ $team->name }}
+                                    </h6>
+                                    @if($team->coach_name)
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="team-compact-stats mb-3">
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                                    <span class="compact-stat-label">Players</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $totalTournaments }}</span>
+                                    <span class="compact-stat-label">Tournaments</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $team->status }}</span>
+                                    <span class="compact-stat-label">Status</span>
+                                </div>
+                            </div>
+
+                            <!-- Key Players -->
+                            @if($keyPlayers->count() > 0)
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-star-fill text-warning"></i> Key Players
+                                    </small>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($keyPlayers as $player)
+                                            <div class="compact-badge">
+                                                <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                                <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
+                                            </div>
+                                        @endforeach
+                                        @if($totalPlayers > 2)
+                                            <div class="compact-badge">
+                                                <span>+{{ $totalPlayers - 2 }}</span>
+                                            </div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endif
+
+                            <!-- Quick View Button -->
+                            <div class="mt-auto">
+                                <button class="btn btn-sm btn-primary w-100 view-team-details" 
+                                        data-team-index="{{ $index }}">
+                                    <i class="bi bi-eye"></i> Quick View
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+                                        <!-- No Results Message -->
+                                        <div id="noTeamsFound" class="text-center py-5 d-none">
+                                            <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                            <h5>No teams found</h5>
+                                            <p class="text-muted">Try changing your search criteria</p>
+                                        </div>
+
+                                        <!-- View All Button -->
+                                        <!-- <div class="text-center mt-4">
+                                            <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                                <i class="bi bi-list-ul"></i> View All Teams
+                                            </a>
+                                        </div> -->
+        @else
+            <!-- Empty State -->
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                <h5>No Teams Available</h5>
+                <p class="text-muted">Teams will appear here when they are created</p>
+                @auth
+                    @if(auth()->user()->role === 'admin')
+                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle"></i> Create First Team
+                        </a>
+                    @endif
+                @endauth
+            </div>
+        @endif
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right Column -->
+            <div class="col-lg-4">
+                <!-- Top Scorers -->
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-trophy"></i>
+                            <span>Top Scorers</span>
+                            @if($activeTournament)
+                                <span class="badge bg-primary">{{ $activeTournament->name }}</span>
+                            @endif
+                        </div>
+                        @if($activeTournament)
+                            <small
+                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
+                        @endif
+                    </div>
+                    <div class="card-body">
+                        @if($topScorers->count() > 0)
+                            @foreach($topScorers as $index => $player)
+                                <div class="top-scorer-player-card">
+                                    <!-- Rank Badge - Tampilkan ranking (1, 2, 3, dll) -->
+                                    <div class="top-scorer-rank-badge top-scorer-rank-{{ min($index + 1, 4) }}">
+                                        {{ $index + 1 }}
+                                    </div>
+
+                                    <div class="top-scorer-player-info">
+                                        <h6 class="mb-1">{{ $player->name ?? 'Unknown Player' }}</h6>
+                                        <div class="top-scorer-player-team small text-muted">
+                                            <i class="bi bi-people me-1"></i>
+                                            {{ $player->team_name ?? ($player->team->name ?? 'No Team') }}
+                                            @if(isset($player->jersey_number) && $player->jersey_number)
+                                                <span class="badge bg-secondary ms-1">#{{ $player->jersey_number }}</span>
+                                            @endif
+                                            @if(isset($player->position) && $player->position)
+                                                <span class="badge bg-light text-dark ms-1">{{ $player->position }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end ms-2">
+                                        <span class="top-scorer-goals-count">{{ $player->goals ?? 0 }} Gol</span>
+                                        <div class="top-scorer-cards-count">
+                                            @if(($player->yellow_cards ?? 0) > 0)
+                                                <span class="text-warning me-2">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->yellow_cards }}
+                                                </span>
+                                            @endif
+                                            @if(($player->red_cards ?? 0) > 0)
+                                                <span class="text-danger">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->red_cards }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <div class="text-center mt-4">
+                                <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}"
+                                    class="btn btn-success w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i> View All Scorers
+                                </a>
+                            </div>
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-person-x"></i>
+                                <p class="mt-2">No tournament statistics available</p>
+                                @if($activeTournament)
+                                    <small class="text-muted">No goals scored in {{ $activeTournament->name }} yet</small>
+                                @endif
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <div class="card mb-4">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-play-circle"></i>
+                            <span>Match Highlights</span>
+                            @if($recentHighlights->count() > 0)
+                                <span class="badge bg-primary">{{ $recentHighlights->count() }}</span>
+                            @endif
+                        </div>
+                        <a href="{{ route('highlights.index') }}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if($recentHighlights->count() > 0)
+                            @foreach($recentHighlights as $match)
+                                <div class="highlight-item mb-3">
+                                    <!-- Thumbnail Container -->
+                                    <div class="highlight-thumbnail position-relative mb-2"
+                                        style="border-radius: 8px; overflow: hidden; cursor: pointer; height: 180px; background: #1a1a1a;"
+                                        data-bs-toggle="modal" data-bs-target="#highlightModal{{ $match->id }}">
+
+                                        <!-- YouTube Thumbnail -->
+                                        <img src="{{ $match->display_thumbnail_url }}"
+                                            alt="{{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
+                                            class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;"
+                                            onmouseover="this.style.transform='scale(1.05)';"
+                                            onmouseout="this.style.transform='scale(1)';">
+
+                                        <!-- YouTube Badge -->
+                                        <div class="position-absolute top-0 start-0 m-2">
+                                            <span class="badge bg-danger d-flex align-items-center gap-1">
+                                                <i class="bi bi-youtube"></i>
+                                                <span>YouTube</span>
+                                            </span>
+                                        </div>
+
+                                        <!-- Play Button Overlay -->
+                                        <div class="position-absolute top-50 start-50 translate-middle"
+                                            style="transition: all 0.3s ease;"
+                                            onmouseover="this.style.transform='translate(-50%, -50%) scale(1.1)';"
+                                            onmouseout="this.style.transform='translate(-50%, -50%) scale(1)';">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 60px; height: 60px; opacity: 0.9; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                                <i class="bi bi-play-fill text-white"
+                                                    style="font-size: 1.8rem; margin-left: 4px;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Video Duration -->
+                                        @if($match->youtube_duration_formatted)
+                                            <div class="position-absolute bottom-0 end-0 m-2">
+                                                <span class="badge bg-dark bg-opacity-75">
+                                                    {{ $match->youtube_duration_formatted }}
+                                                </span>
+                                            </div>
+                                        @endif
+
+                                        <!-- Match Score Overlay -->
+                                        @if($match->home_score !== null && $match->away_score !== null)
+                                            <div class="position-absolute bottom-0 start-0 m-2">
+                                                <span class="badge bg-success" style="font-size: 0.9rem;">
+                                                    {{ $match->home_score }} - {{ $match->away_score }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Match Info -->
+                                    <div class="highlight-info">
+                                        <h6 class="mb-1 text-truncate" style="font-weight: 600;">
+                                            {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
+                                        </h6>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ $match->match_date->format('d M Y') }}
+                                            </small>
+                                            @if($match->youtube_uploaded_at)
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock-history me-1"></i>
+                                                    {{ $match->youtube_uploaded_at->diffForHumans() }}
+                                                </small>
+                                            @endif
+                                        </div>
+
+                                        <!-- Match Details -->
+                                        <div class="mt-2 d-flex flex-wrap gap-2">
+                                            @if($match->venue)
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-geo-alt me-1"></i> {{ $match->venue }}
+                                                </span>
+                                            @endif
+
+                                            @if($match->group_name)
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-people me-1"></i> Group {{ $match->group_name }}
+                                                </span>
+                                            @endif
+
+                                            <span
+                                                class="badge {{ $match->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                {{ ucfirst($match->status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+
+                            <!-- View All Button -->
+                            <div class="text-center mt-4">
+                                <a href="{{ route('highlights.index') }}" class="btn btn-primary">
+                                    <i class="bi bi-collection-play me-2"></i> View All Highlights
+                                </a>
+                            </div>
+
+                        @else
+                            <!-- Empty State -->
+                            <div class="empty-state text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-film" style="font-size: 3rem; color: #6c757d;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No Highlights Available</h5>
+                                <p class="text-muted small mb-0">Highlights will appear here when added to completed matches
+                                </p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Recent Results -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-clock-history"></i> Recent Results
+                    </div>
+                    <div class="card-body">
+                        @if($recentResults->count() > 0)
+                            @foreach($recentResults as $match)
+                                <div class="recent-result-item">
+                                    <div class="small text-muted mb-2">
+                                        {{ date('d M', strtotime($match->match_date)) }} •
+                                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                                        @if($match->group_name)
+                                            • Group {{ $match->group_name }}
+                                        @endif
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="text-end" style="width: 45%;">
+                                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
+                                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                        </div>
+                                        <div class="text-start" style="width: 45%;">
+                                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                    </div>
+
+                                    @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                                        <div class="goal-scorers">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    @foreach($match->events->where(
+                                                            'team_id',
+                                                            $match->team_home_id
+                                                        )->where('event_type', 'goal') as $goal)
+                                                                    <div class="goal-item">
+                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                        <small class="text-truncate">
+                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                            @if($goal->is_penalty)
+                                                                                <span class="text-muted">(P)</span>
+                                                                            @endif
+                                                                            @if($goal->is_own_goal)
+                                                                                <span class="text-danger">(OG)</span>
+                                                                            @endif
+                                                                        </small>
+                                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                <div class="col-6">
+                                                    @foreach($match->events->where(
+                                                            'team_id',
+                                                            $match->team_away_id
+                                                        )->where('event_type', 'goal') as $goal)
+                                                                    <div class="goal-item">
+                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                        <small class="text-truncate">
+                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                            @if($goal->is_penalty)
+                                                                                <span class="text-muted">(P)</span>
+                                                                            @endif
+                                                                            @if($goal->is_own_goal)
+                                                                                <span class="text-danger">(OG)</span>
+                                                                            @endif
+                                                                        </small>
+                                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-emoji-frown"></i>
+                                <p class="mt-2">No recent matches</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-4 mb-4">
+                    <h5 class="footer-title">
+                        <i class="bi bi-trophy-fill"></i> OFS Futsal Center
+                    </h5>
+                    <div class="social-icons">
+                        <a href="#"><i class="bi bi-facebook"></i></a>
+                        <a href="#"><i class="bi bi-twitter"></i></a>
+                        <a href="#"><i class="bi bi-instagram"></i></a>
+                        <a href="#"><i class="bi bi-youtube"></i></a>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="footer-title">Quick Links</h5>
+                    <div class="footer-links">
+                        <a href="{{ route('home') }}">Home</a>
+                        <a href="{{ route('schedule') }}">Schedule</a>
+                        <a href="{{ route('standings') }}">Standings</a>
+                    </div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <h5 class="footer-title">Contact Info</h5>
+                    <div class="footer-contact">
+                        <p class="mb-2"><i class="bi bi-geo-alt"></i> OFS Futsal Center Jombang</p>
+                        <p class="mb-2"><i class="bi bi-telephone"></i> +62 812 4752 1076</p>
+                        <p class="mb-2"><i class="bi bi-envelope"></i> ofsfutsalcenter@gmail.com</p>
+                        <p class="mb-0"><i class="bi bi-clock"></i> Mon-Sun: 07.00-23.30</p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="copyright">
+                        <p class="mb-0">&copy; {{ date('Y') }} OFS Futsal Center. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Team Details Modal -->
+    <!-- Team Details Modal - SIMPLIFIED -->
+<div class="modal fade" id="teamDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bi bi-people-fill"></i> Team Players
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="teamDetailsContent">
+                <!-- Content akan diisi oleh JavaScript -->
+            </div>
+            <div class="modal-footer">
+                <!-- Hapus load more button atau simplifikasi -->
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    @foreach($recentHighlights as $match)
+        @if($match->youtube_id)
+            <div class="modal fade" id="highlightModal{{ $match->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-youtube text-danger" style="font-size: 1.2rem;"></i>
+                                <h5 class="modal-title mb-0">
+                                    {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
+                                    @if($match->home_score !== null && $match->away_score !== null)
+                                        <span class="badge bg-success ms-2">{{ $match->home_score }} -
+                                            {{ $match->away_score }}</span>
+                                    @endif
+                                </h5>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body p-0">
+                            <!-- YouTube Embed -->
+                            <div class="ratio ratio-16x9">
+                                <iframe src="{{ $match->youtube_embed_url }}"
+                                    title="Highlight: {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowfullscreen style="background: #000;">
+                                </iframe>
+                            </div>
+
+                            <!-- Match Details -->
+                            <div class="p-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-info-circle me-2"></i>Match Information
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Date & Time</strong>
+                                                <span>{{ $match->match_date->format('d M Y') }} •
+                                                    {{ $match->time_start }}</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Venue</strong>
+                                                <span>{{ $match->venue ?? 'Main Field' }}</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Stage</strong>
+                                                <span>{{ ucfirst(str_replace('_', ' ', $match->round_type)) }}</span>
+                                            </li>
+                                            @if($match->group_name)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Group</strong>
+                                                    <span>Group {{ $match->group_name }}</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-youtube text-danger me-2"></i>YouTube Information
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Video ID</strong>
+                                                <code>{{ $match->youtube_id }}</code>
+                                            </li>
+                                            @if($match->youtube_duration_formatted)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Duration</strong>
+                                                    <span>{{ $match->youtube_duration_formatted }}</span>
+                                                </li>
+                                            @endif
+                                            @if($match->youtube_uploaded_at)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Added</strong>
+                                                    <span>{{ $match->youtube_uploaded_at->format('d M Y H:i') }}</span>
+                                                </li>
+                                            @endif
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Watch on YouTube</strong>
+                                                <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
+                                                    class="text-decoration-none">
+                                                    <i class="bi bi-box-arrow-up-right me-1"></i>
+                                                    Open in YouTube
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Teams Info -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Home Team</h6>
+                                                <p class="mb-0">
+                                                    <strong>{{ $match->homeTeam->name ?? 'TBA' }}</strong>
+                                                </p>
+                                                @if($match->home_score !== null)
+                                                    <p class="mb-0 text-muted">
+                                                        Score: <span class="fw-bold">{{ $match->home_score }}</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Away Team</h6>
+                                                <p class="mb-0">
+                                                    <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
+                                                </p>
+                                                @if($match->away_score !== null)
+                                                    <p class="mb-0 text-muted">
+                                                        Score: <span class="fw-bold">{{ $match->away_score }}</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Close
+                            </button>
+                            <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
+                                class="btn btn-danger">
+                                <i class="bi bi-youtube me-1"></i> Watch on YouTube
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        @endif
+    @endforeach
+
+     <!-- Hero Fullscreen Modal - TAMBAHKAN INI -->
+    <div class="modal fade" id="heroFullscreenModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content bg-dark">
+                <div class="modal-header border-0">
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body d-flex align-items-center justify-content-center p-0">
+                    <div id="heroFullscreenImage" class="w-100 h-100 d-flex align-items-center justify-content-center">
+                        <!-- Gambar akan dimuat di sini -->
+                    </div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                        <i class="bi bi-x-lg me-2"></i> Close
+                    </button>
+                    <button type="button" class="btn btn-outline-light" id="downloadHeroBtn">
+                        <i class="bi bi-download me-2"></i> Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Team Search Functionality
+    const teamSearch = document.getElementById('teamSearch');
+    const teamSort = document.getElementById('teamSort');
+    const teamsGrid = document.getElementById('teamsGrid');
+    const noTeamsFound = document.getElementById('noTeamsFound');
+    const teamCards = document.querySelectorAll('.team-card');
+    
+    // Store all teams data
+    const teamsData = [];
+    teamCards.forEach(card => {
+        teamsData.push({
+            element: card,
+            name: card.getAttribute('data-team-name').toLowerCase(),
+            players: parseInt(card.getAttribute('data-team-players') || 0),
+            tournaments: parseInt(card.getAttribute('data-team-tournaments') || 0),
+            index: parseInt(card.getAttribute('data-team-id') || 0)
+        });
+    });
+    
+    if (teamSearch && teamCards.length > 0) {
+        teamSearch.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            let visibleCount = 0;
+            
+            teamCards.forEach(card => {
+                const teamName = card.getAttribute('data-team-name').toLowerCase();
+                const cardContent = card.textContent.toLowerCase();
+                
+                if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // Show/hide no results message
+            if (visibleCount === 0) {
+                teamsGrid.classList.add('d-none');
+                noTeamsFound.classList.remove('d-none');
+            } else {
+                teamsGrid.classList.remove('d-none');
+                noTeamsFound.classList.add('d-none');
+                
+                // Sort teams
+                sortTeams(teamSort.value);
+            }
+        });
+    }
+    
+    // Sort functionality
+    if (teamSort) {
+        teamSort.addEventListener('change', function() {
+            sortTeams(this.value);
+        });
+    }
+    
+    function sortTeams(sortBy) {
+        const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
+        
+        cards.sort((a, b) => {
+            if (sortBy === 'name') {
+                const nameA = a.getAttribute('data-team-name');
+                const nameB = b.getAttribute('data-team-name');
+                return nameA.localeCompare(nameB);
+            } else if (sortBy === 'players') {
+                const playersA = parseInt(a.getAttribute('data-team-players') || 0);
+                const playersB = parseInt(b.getAttribute('data-team-players') || 0);
+                return playersB - playersA; // Descending
+            } else if (sortBy === 'tournaments') {
+                const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
+                const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
+                return tournamentsB - tournamentsA; // Descending
+            }
+            return 0;
+        });
+        
+        // Reorder the grid
+        const container = cards[0].parentNode;
+        cards.forEach(card => {
+            container.appendChild(card);
+        });
+    }
+    
+    // Team Details Modal - TANPA API
+    const teamDetailsModal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
+    const viewTeamButtons = document.querySelectorAll('.view-team-details');
+    const loadMoreBtn = document.getElementById('loadMorePlayers');
+    const loadMoreText = document.getElementById('loadMoreText');
+    const loadMoreSpinner = document.getElementById('loadMoreSpinner');
+    
+    let currentTeamCard = null;
+    let currentPlayers = [];
+    let currentPage = 1;
+    const playersPerPage = 25;
+    let allPlayersLoaded = false;
+    
+    viewTeamButtons.forEach((button, index) => {
+        button.addEventListener('click', function() {
+            const teamIndex = this.getAttribute('data-team-index');
+            showTeamPlayers(teamIndex);
+        });
+    });
+    
+    if (loadMoreBtn) {
+        loadMoreBtn.addEventListener('click', function() {
+            if (currentTeamCard && !allPlayersLoaded) {
+                loadMorePlayers();
+            }
+        });
+    }
+    
+    function showTeamPlayers(teamIndex) {
+    const teamCard = teamCards[teamIndex];
+    if (!teamCard) return;
+    
+    currentTeamCard = teamCard;
+    currentPage = 1;
+    allPlayersLoaded = false;
+    
+    // Get team data from data attributes
+    const teamName = teamCard.querySelector('h6').textContent;
+    const coachName = teamCard.getAttribute('data-team-coach') || '';
+    const teamLogo = teamCard.getAttribute('data-team-logo') || '';
+    const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
+    
+    // Parse players data - FIXED VERSION
+    try {
+        const playersJson = teamCard.getAttribute('data-players-json');
+        console.log('Players JSON:', playersJson);
+        
+        if (!playersJson || playersJson.trim() === '') {
+            console.warn('No players data found');
+            currentPlayers = [];
+        } else {
+            // Clean JSON string jika perlu
+            let cleanJson = playersJson;
+            // Replace escaped characters
+            cleanJson = cleanJson.replace(/&quot;/g, '"')
+                                .replace(/&#039;/g, "'")
+                                .replace(/&amp;/g, '&')
+                                .replace(/&lt;/g, '<')
+                                .replace(/&gt;/g, '>');
+            
+            console.log('Cleaned JSON:', cleanJson.substring(0, 200));
+            
+            // Parse JSON
+            currentPlayers = JSON.parse(cleanJson);
+            console.log('Parsed players:', currentPlayers.length, 'players');
+        }
+    } catch (e) {
+        console.error('Error parsing players data:', e);
+        console.error('JSON string was:', teamCard.getAttribute('data-players-json'));
+        currentPlayers = [];
+    }
+    
+    const contentDiv = document.getElementById('teamDetailsContent');
+    
+    // Show team info
+    let logoHtml = '';
+    if (teamLogo && teamLogo.trim() !== '') {
+        logoHtml = `<img src="{{ asset('storage/') }}/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
+    } else {
+        const initials = teamName.substring(0, 2).toUpperCase();
+        logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
+                        <span class="fw-bold text-primary">${initials}</span>
+                    </div>`;
+    }
+    
+    // Get players for current page
+    const startIndex = 0;
+    const endIndex = Math.min(playersPerPage, currentPlayers.length);
+    const pagePlayers = currentPlayers.slice(startIndex, endIndex);
+    
+    // Generate players HTML
+    const playersHtml = generatePlayersHtml(pagePlayers);
+    
+    contentDiv.innerHTML = `
+        <div class="team-info mb-4">
+            <div class="d-flex align-items-center gap-3 mb-3">
+                <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden;">
+                    ${logoHtml}
+                </div>
+                <div>
+                    <h4 class="mb-1">${teamName}</h4>
+                    ${coachName ? `<p class="text-muted mb-0"><i class="bi bi-person-badge"></i> ${coachName}</p>` : ''}
+                    <p class="text-muted mb-0"><i class="bi bi-people"></i> ${totalPlayers} Players</p>
+                </div>
+            </div>
+        </div>
+        <h5 class="mb-3">Players</h5>
+        <div class="player-grid" id="playersGrid">
+            ${playersHtml || '<div class="col-12"><p class="text-muted text-center">No players found</p></div>'}
+        </div>
+    `;
+    
+    // Update load more button
+    if (loadMoreBtn) {
+        if (currentPlayers.length <= playersPerPage) {
+            loadMoreBtn.style.display = 'none';
+            allPlayersLoaded = true;
+        } else {
+            loadMoreBtn.style.display = 'block';
+            loadMoreText.textContent = 'Load More Players';
+            allPlayersLoaded = false;
+        }
+    }
+    
+    // Show modal
+    teamDetailsModal.show();
+}
+
+
+ 
+
+
+// Tambahkan juga event listener untuk klik hero section yang lebih baik
+document.addEventListener('DOMContentLoaded', function() {
+    const heroSection = document.getElementById('mainHeroSection');
+    
+    if (heroSection) {
+        // Tambahkan cursor pointer jika hero memiliki gambar
+        const hasImage = heroSection.style.backgroundImage && 
+                         heroSection.style.backgroundImage !== 'none';
+        
+        if (hasImage) {
+            heroSection.style.cursor = 'pointer';
+            
+            // Tambahkan efek hover yang lebih jelas
+            heroSection.addEventListener('mouseenter', function() {
+                if (this.style.backgroundImage && this.style.backgroundImage !== 'none') {
+                    this.style.transform = 'scale(1.005)';
+                    this.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                }
+            });
+            
+            heroSection.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+            
+            // Pastikan klik bekerja
+            heroSection.addEventListener('click', function(e) {
+                // Cek apakah klik tidak pada tombol CTA
+                if (e.target.closest('.hero-cta-button')) {
+                    return; // Biarkan tombol CTA bekerja normal
+                }
+                
+                const bgImage = this.style.backgroundImage;
+                if (bgImage && bgImage !== 'none') {
+                    // Extract URL dari background-image
+                    const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                    if (match && match[1]) {
+                        const imageUrl = match[1];
+                        const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
+                        openHeroFullscreen(imageUrl, title);
+                    }
+                }
+            });
+        }
+    }
+    
+    // Tambahkan animasi untuk zoom indicator
+    const zoomIndicators = document.querySelectorAll('.zoom-indicator');
+    zoomIndicators.forEach(indicator => {
+        indicator.addEventListener('click', function(e) {
+            e.stopPropagation(); // Mencegah bubbling ke hero section
+            const heroSection = this.closest('.hero-section');
+            if (heroSection) {
+                heroSection.click(); // Trigger klik pada hero section
+            }
+        });
+    });
+});
+
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>OFS Futsal Center - Home</title>
+    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
     :root {
         --primary-color: #1a5fb4;
         --secondary-color: #5e5c64;
@@ -69,6 +3219,12 @@
         align-items: center;
         gap: 10px;
     }
+
+    * {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
 
     .brand-logo {
         width: 35px;
@@ -1421,14 +4577,14 @@
                     </li>
 
                     @auth
-                    @if(auth()->user()->role === 'admin')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('tournaments*') ? 'active' : '' }}"
-                            href="{{ route('tournaments.index') }}">
-                            <i class="bi bi-trophy"></i> Tournaments
-                        </a>
-                    </li>
-                    @endif
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('tournaments*') ? 'active' : '' }}"
+                                    href="{{ route('tournaments.index') }}">
+                                    <i class="bi bi-trophy"></i> Tournaments
+                                </a>
+                            </li>
+                        @endif
                     @endauth
 
                     <li class="nav-item">
@@ -1453,45 +4609,48 @@
                     </li>
 
                     @auth
-                    @if(auth()->user()->role === 'admin')
-                    <li class="nav-item">
-                        <a class="nav-link {{ request()->is('teams*') ? 'active' : '' }}"
-                            href="{{ route('teams.index') }}">
-                            <i class="bi bi-people-fill"></i> Teams
-                        </a>
-                    </li>
-                    @endif
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link {{ request()->is('teams*') ? 'active' : '' }}"
+                                    href="{{ route('teams.index') }}">
+                                    <i class="bi bi-people-fill"></i> Teams
+                                </a>
+                            </li>
+                        @endif
 
-                    @if(auth()->user()->role === 'admin')
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-outline-primary btn-sm" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2"></i> Admin
-                        </a>
-                    </li>
-                    @endif
+                        @if(auth()->user()->role === 'admin')
+                            <li class="nav-item">
+                                <a class="nav-link btn btn-outline-primary btn-sm" href="{{ route('admin.dashboard') }}">
+                                    <i class="bi bi-speedometer2"></i> Admin
+                                </a>
+                            </li>
+                        @endif
 
-                    <li class="nav-item">
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="nav-link btn btn-link btn-sm text-danger p-0">
-                                <i class="bi bi-box-arrow-right"></i> Logout
-                            </button>
-                        </form>
-                    </li>
+                        <li class="nav-item">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="nav-link btn btn-link btn-sm text-danger p-0">
+                                    <i class="bi bi-box-arrow-right"></i> Logout
+                                </button>
+                            </form>
+                        </li>
                     @else
-                    <li class="nav-item">
-                        <a class="nav-link btn btn-primary btn-sm" href="{{ route('login') }}">
-                            <i class="bi bi-box-arrow-in-right"></i> Login
-                        </a>
-                    </li>
+                        <li class="nav-item">
+                            <a class="nav-link btn btn-primary btn-sm" href="{{ route('login') }}">
+                                <i class="bi bi-box-arrow-in-right"></i> Login
+                            </a>
+                        </li>
                     @endauth
                 </ul>
             </div>
         </div>
     </nav>
     <!-- Hero Section -->
-    @if($heroSetting->is_active)
-    <div class="hero-section" style="
+    <!-- ============================================== -->
+<!-- HERO SECTION (Update kode Anda) -->
+<!-- ============================================== -->
+@if($heroSetting->is_active)
+    <div class="hero-section" id="mainHeroSection" style="
                 @if($heroSetting->background_type === 'gradient')
                     background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
                 @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
@@ -1500,6 +4659,9 @@
                     background-image: url('{{ Storage::url($heroSetting->background_image) }}');
                     background-size: cover;
                     background-position: center;
+                    background-repeat: no-repeat;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
                     @if($heroSetting->overlay_opacity > 0)
                         position: relative;
                     @endif
@@ -1509,20 +4671,29 @@
                 color: {{ $heroSetting->text_color }};
                 position: relative;
                 overflow: hidden;
-            ">
+                min-height: 400px;
+            "
+            @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
+                onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
+                onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
+                title="Click to view full image"
+            @endif>
+
         @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
-        <!-- Overlay untuk image background -->
-        <div class="hero-overlay"
-            style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                z-index: 1;
-            ">
-        </div>
+            <!-- Overlay untuk image background -->
+            <div class="hero-overlay"
+                style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                    z-index: 1;
+                    pointer-events: none;
+                ">
+            </div>
         @endif
 
         <div class="container" style="position: relative; z-index: 2;">
@@ -1545,25 +4716,47 @@
                     </p>
 
                     @if($heroSetting->cta_button_text)
-                    <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
-                        style="
-                            background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                            color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                            border: none;
-                            padding: 12px 30px;
-                            border-radius: 8px;
-                            font-weight: 600;
-                            text-decoration: none;
-                            display: inline-block;
-                            margin-top: 20px;
-                            transition: all 0.3s ease;
-                            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                        "
-                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
-                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
-                        <i class="bi bi-arrow-right-circle me-2"></i>
-                        {{ $heroSetting->cta_button_text }}
-                    </a>
+                        <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
+                            style="
+                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                border: none;
+                                padding: 12px 30px;
+                                border-radius: 8px;
+                                font-weight: 600;
+                                text-decoration: none;
+                                display: inline-block;
+                                margin-top: 20px;
+                                transition: all 0.3s ease;
+                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                            "
+                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
+                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
+                            <i class="bi bi-arrow-right-circle me-2"></i>
+                            {{ $heroSetting->cta_button_text }}
+                        </a>
+                    @endif
+
+                    <!-- Zoom Indicator (hanya untuk image background) -->
+                    @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                        <div class="mt-4">
+                            <div class="zoom-indicator" style="
+                                display: inline-flex;
+                                align-items: center;
+                                gap: 8px;
+                                background: rgba(0, 0, 0, 0.4);
+                                padding: 6px 15px;
+                                border-radius: 25px;
+                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                backdrop-filter: blur(5px);
+                                animation: pulse 2s infinite;
+                            ">
+                                <i class="bi bi-zoom-in text-white"></i>
+                                <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
+                                    Click background to view full image
+                                </span>
+                            </div>
+                        </div>
                     @endif
                 </div>
             </div>
@@ -1581,21 +4774,21 @@
                 opacity: 0.3;
             ">
             @for($i = 1; $i <= 15; $i++) <div class="particle"
-                style="
-                    position: absolute;
-                    width: {{ rand(2, 5) }}px;
-                    height: {{ rand(2, 5) }}px;
-                    background-color: {{ $heroSetting->text_color }};
-                    border-radius: 50%;
-                    top: {{ rand(0, 100) }}%;
-                    left: {{ rand(0, 100) }}%;
-                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                ">
-        </div>
-        @endfor
+                        style="
+                            position: absolute;
+                            width: {{ rand(2, 5) }}px;
+                            height: {{ rand(2, 5) }}px;
+                            background-color: {{ $heroSetting->text_color }};
+                            border-radius: 50%;
+                            top: {{ rand(0, 100) }}%;
+                            left: {{ rand(0, 100) }}%;
+                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                        ">
+                </div>
+            @endfor
     </div>
     </div>
-    @else
+@else
     <!-- Hero section hidden message (optional) -->
     <div class="container mt-4">
         <div class="alert alert-info text-center">
@@ -1606,146 +4799,147 @@
             </a>
         </div>
     </div>
-    @endif
+@endif
+<!-- ============================================== -->
 
     <!-- Main Content -->
     <div class="container main-container">
         <!-- Today's Matches -->
         @if($todayMatches->count() > 0)
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-calendar-day"></i> Today's Matches
-                <span class="badge bg-primary ms-2">{{ $todayMatches->count() }}</span>
-            </div>
-            <div class="card-body">
-                @foreach($todayMatches as $match)
-                <div class="match-card">
-                    <div class="row align-items-center">
-                        <!-- Time & Venue - Mobile Full Width -->
-                        <div class="col-12 col-md-3 mb-3 mb-md-0">
-                            <div class="text-center">
-                                <div class="match-time">{{ date('H:i', strtotime($match->time_start)) }}</div>
-                                <div class="match-venue">{{ $match->venue ?? 'Main Field' }}</div>
-                            </div>
-                        </div>
-
-                        <!-- Teams & Score - Responsive Layout -->
-                        <div class="col-12 col-md-7">
-                            <div class="teams-container">
-                                <!-- Home Team -->
-                                <div class="team-container team-home">
-                                    <div class="team-name">{{ $match->homeTeam->name ?? 'TBA' }}</div>
-                                    <div class="team-group">
-                                        {{ $match->group_name ? 'Group ' . $match->group_name : ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+            <div class="card">
+                <div class="card-header">
+                    <i class="bi bi-calendar-day"></i> Today's Matches
+                    <span class="badge bg-primary ms-2">{{ $todayMatches->count() }}</span>
+                </div>
+                <div class="card-body">
+                    @foreach($todayMatches as $match)
+                        <div class="match-card">
+                            <div class="row align-items-center">
+                                <!-- Time & Venue - Mobile Full Width -->
+                                <div class="col-12 col-md-3 mb-3 mb-md-0">
+                                    <div class="text-center">
+                                        <div class="match-time">{{ date('H:i', strtotime($match->time_start)) }}</div>
+                                        <div class="match-venue">{{ $match->venue ?? 'Main Field' }}</div>
                                     </div>
                                 </div>
 
-                                <!-- Score -->
-                                <div class="score-container">
-                                    @if($match->status == 'completed')
-                                    <div class="score-badge">{{ $match->home_score ?? 0 }} -
-                                        {{ $match->away_score ?? 0 }}
+                                <!-- Teams & Score - Responsive Layout -->
+                                <div class="col-12 col-md-7">
+                                    <div class="teams-container">
+                                        <!-- Home Team -->
+                                        <div class="team-container team-home">
+                                            <div class="team-name">{{ $match->homeTeam->name ?? 'TBA' }}</div>
+                                            <div class="team-group">
+                                                {{ $match->group_name ? 'Group ' . $match->group_name : ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                                            </div>
+                                        </div>
+
+                                        <!-- Score -->
+                                        <div class="score-container">
+                                            @if($match->status == 'completed')
+                                                <div class="score-badge">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
+                                                <span class="match-status">FT</span>
+                                            @elseif($match->status == 'ongoing')
+                                                <div class="score-badge live">{{ $match->home_score ?? 0 }} -
+                                                    {{ $match->away_score ?? 0 }}
+                                                </div>
+                                                <span class="match-status text-danger">LIVE</span>
+                                            @else
+                                                <div class="score-badge bg-secondary">VS</div>
+                                                <span class="match-status">Upcoming</span>
+                                            @endif
+                                        </div>
+
+                                        <!-- Away Team -->
+                                        <div class="team-container team-away">
+                                            <div class="team-name">{{ $match->awayTeam->name ?? 'TBA' }}</div>
+                                            <div class="team-group">{{ ucfirst($match->status ?? 'upcoming') }}</div>
+                                        </div>
                                     </div>
-                                    <span class="match-status">FT</span>
-                                    @elseif($match->status == 'ongoing')
-                                    <div class="score-badge live">{{ $match->home_score ?? 0 }} -
-                                        {{ $match->away_score ?? 0 }}
-                                    </div>
-                                    <span class="match-status text-danger">LIVE</span>
-                                    @else
-                                    <div class="score-badge bg-secondary">VS</div>
-                                    <span class="match-status">Upcoming</span>
+
+                                    <!-- Match Events -->
+                                    @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed' || $match->status == 'ongoing'))
+                                        <div class="match-events">
+                                            <div class="row small">
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
                                     @endif
                                 </div>
 
-                                <!-- Away Team -->
-                                <div class="team-container team-away">
-                                    <div class="team-name">{{ $match->awayTeam->name ?? 'TBA' }}</div>
-                                    <div class="team-group">{{ ucfirst($match->status ?? 'upcoming') }}</div>
+                                <!-- Action Button -->
+                                <div class="col-12 col-md-2 text-center text-md-end mt-3 mt-md-0">
+                                    <a href="{{ route('matches.show', $match->id) }}"
+                                        class="btn btn-primary btn-sm w-100 w-md-auto">
+                                        <i class="bi bi-eye"></i> Details
+                                    </a>
                                 </div>
                             </div>
-
-                            <!-- Match Events -->
-                            @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed' || $match->status == 'ongoing'))
-                            <div class="match-events">
-                                <div class="row small">
-                                    <div class="col-6">
-                                        @foreach($match->events->where('team_id', $match->team_home_id) as $event)
-                                        <div class="mb-1">
-                                            @if($event->event_type == 'goal')
-                                            <span class="badge bg-success me-1">
-                                                <i class="bi bi-soccer"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>
-                                                {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
-                                                @if($event->is_penalty)
-                                                <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($event->is_own_goal)
-                                                <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
-                                            @elseif($event->event_type == 'yellow_card')
-                                            <span class="badge bg-warning me-1">
-                                                <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @elseif($event->event_type == 'red_card')
-                                            <span class="badge bg-danger me-1">
-                                                <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @endif
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="col-6">
-                                        @foreach($match->events->where('team_id', $match->team_away_id) as $event)
-                                        <div class="mb-1">
-                                            @if($event->event_type == 'goal')
-                                            <span class="badge bg-success me-1">
-                                                <i class="bi bi-soccer"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>
-                                                {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
-                                                @if($event->is_penalty)
-                                                <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($event->is_own_goal)
-                                                <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
-                                            @elseif($event->event_type == 'yellow_card')
-                                            <span class="badge bg-warning me-1">
-                                                <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @elseif($event->event_type == 'red_card')
-                                            <span class="badge bg-danger me-1">
-                                                <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                            </span>
-                                            <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @endif
-                                        </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                            @endif
                         </div>
-
-                        <!-- Action Button -->
-                        <div class="col-12 col-md-2 text-center text-md-end mt-3 mt-md-0">
-                            <a href="{{ route('matches.show', $match->id) }}"
-                                class="btn btn-primary btn-sm w-100 w-md-auto">
-                                <i class="bi bi-eye"></i> Details
-                            </a>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
-                @endforeach
             </div>
-        </div>
         @endif
 
         <div class="row">
@@ -1758,95 +4952,95 @@
                     </div>
                     <div class="card-body">
                         @if($upcomingMatches->count() > 0)
-                        @foreach($upcomingMatches as $match)
-                        <div class="upcoming-match-item">
-                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                <div class="d-flex align-items-center gap-2">
-                                    <span class="badge bg-dark">{{ date('d M', strtotime($match->match_date)) }}</span>
-                                    <span class="text-muted">{{ date('H:i', strtotime($match->time_start)) }}</span>
-                                </div>
-                                <span class="badge bg-warning text-dark">Upcoming</span>
-                            </div>
-
-                            <div class="upcoming-match-teams">
-                                <!-- Home Team -->
-                                <div class="team-with-logo">
-                                    <div class="team-logo-container-small">
-                                        @php
-                                        $homeTeam = $match->homeTeam;
-                                        $homeLogo = $homeTeam->logo ?? null;
-                                        $homeName = $homeTeam->name ?? 'TBA';
-                                        @endphp
-                                        @if($homeLogo && Storage::disk('public')->exists($homeLogo))
-                                        <img src="{{ asset('storage/' . $homeLogo) }}" alt="{{ $homeName }}"
-                                            class="team-logo-small">
-                                        @else
-                                        <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
-                                            style="width: 28px; height: 28px; border-radius: 5px;">
-                                            <span
-                                                class="fw-bold text-dark">{{ strtoupper(substr($homeName, 0, 1)) }}</span>
+                            @foreach($upcomingMatches as $match)
+                                <div class="upcoming-match-item">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="badge bg-dark">{{ date('d M', strtotime($match->match_date)) }}</span>
+                                            <span class="text-muted">{{ date('H:i', strtotime($match->time_start)) }}</span>
                                         </div>
-                                        @endif
+                                        <span class="badge bg-warning text-dark">Upcoming</span>
                                     </div>
-                                    <div class="text-truncate">
-                                        <strong>{{ $homeName }}</strong>
-                                    </div>
-                                </div>
 
-                                <!-- VS Badge -->
-                                <div class="text-center px-2">
-                                    <span class="badge bg-secondary">VS</span>
-                                </div>
-
-                                <!-- Away Team -->
-                                <div class="team-with-logo justify-content-end">
-                                    <div class="text-truncate text-end me-2">
-                                        <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
-                                    </div>
-                                    <div class="team-logo-container-small">
-                                        @php
-                                        $awayTeam = $match->awayTeam;
-                                        $awayLogo = $awayTeam->logo ?? null;
-                                        $awayName = $awayTeam->name ?? 'TBA';
-                                        @endphp
-                                        @if($awayLogo && Storage::disk('public')->exists($awayLogo))
-                                        <img src="{{ asset('storage/' . $awayLogo) }}" alt="{{ $awayName }}"
-                                            class="team-logo-small">
-                                        @else
-                                        <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
-                                            style="width: 28px; height: 28px; border-radius: 5px;">
-                                            <span
-                                                class="fw-bold text-dark">{{ strtoupper(substr($awayName, 0, 1)) }}</span>
+                                    <div class="upcoming-match-teams">
+                                        <!-- Home Team -->
+                                        <div class="team-with-logo">
+                                            <div class="team-logo-container-small">
+                                                @php
+                                                    $homeTeam = $match->homeTeam;
+                                                    $homeLogo = $homeTeam->logo ?? null;
+                                                    $homeName = $homeTeam->name ?? 'TBA';
+                                                @endphp
+                                                @if($homeLogo && Storage::disk('public')->exists($homeLogo))
+                                                    <img src="{{ asset('storage/' . $homeLogo) }}" alt="{{ $homeName }}"
+                                                        class="team-logo-small">
+                                                @else
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($homeName, 0, 1)) }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                            <div class="text-truncate">
+                                                <strong>{{ $homeName }}</strong>
+                                            </div>
                                         </div>
-                                        @endif
+
+                                        <!-- VS Badge -->
+                                        <div class="text-center px-2">
+                                            <span class="badge bg-secondary">VS</span>
+                                        </div>
+
+                                        <!-- Away Team -->
+                                        <div class="team-with-logo justify-content-end">
+                                            <div class="text-truncate text-end me-2">
+                                                <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
+                                            </div>
+                                            <div class="team-logo-container-small">
+                                                @php
+                                                    $awayTeam = $match->awayTeam;
+                                                    $awayLogo = $awayTeam->logo ?? null;
+                                                    $awayName = $awayTeam->name ?? 'TBA';
+                                                @endphp
+                                                @if($awayLogo && Storage::disk('public')->exists($awayLogo))
+                                                    <img src="{{ asset('storage/' . $awayLogo) }}" alt="{{ $awayName }}"
+                                                        class="team-logo-small">
+                                                @else
+                                                    <div class="team-logo-small d-flex align-items-center justify-content-center bg-light"
+                                                        style="width: 28px; height: 28px; border-radius: 5px;">
+                                                        <span
+                                                            class="fw-bold text-dark">{{ strtoupper(substr($awayName, 0, 1)) }}</span>
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Match Details -->
+                                    <div class="small text-muted mt-2">
+                                        <div class="d-flex flex-wrap gap-2 align-items-center">
+                                            <i class="bi bi-geo-alt"></i>
+                                            <span>{{ $match->venue ?? 'Main Field' }}</span>
+                                            @if($match->group_name)
+                                                <i class="bi bi-people ms-2"></i>
+                                                <span>Group {{ $match->group_name }}</span>
+                                            @endif
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            @endforeach
 
-                            <!-- Match Details -->
-                            <div class="small text-muted mt-2">
-                                <div class="d-flex flex-wrap gap-2 align-items-center">
-                                    <i class="bi bi-geo-alt"></i>
-                                    <span>{{ $match->venue ?? 'Main Field' }}</span>
-                                    @if($match->group_name)
-                                    <i class="bi bi-people ms-2"></i>
-                                    <span>Group {{ $match->group_name }}</span>
-                                    @endif
-                                </div>
+                            <div class="text-center mt-4">
+                                <a href="{{ route('schedule') }}" class="btn btn-primary">
+                                    <i class="bi bi-calendar4-week"></i> View Full Schedule
+                                </a>
                             </div>
-                        </div>
-                        @endforeach
-
-                        <div class="text-center mt-4">
-                            <a href="{{ route('schedule') }}" class="btn btn-primary">
-                                <i class="bi bi-calendar4-week"></i> View Full Schedule
-                            </a>
-                        </div>
                         @else
-                        <div class="empty-state">
-                            <i class="bi bi-calendar-x"></i>
-                            <p class="mt-2">No upcoming matches scheduled</p>
-                        </div>
+                            <div class="empty-state">
+                                <i class="bi bi-calendar-x"></i>
+                                <p class="mt-2">No upcoming matches scheduled</p>
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -1859,155 +5053,155 @@
                     <div class="card-body">
                         <div class="row">
                             @if(isset($standings) && count($standings) > 0)
-                            @foreach($standings as $group => $groupStandings)
-                            <div class="col-12 col-md-6 mb-4">
-                                <h6 class="group-title">GROUP {{ $group }}</h6>
-                                <div class="table-responsive">
-                                    <table class="table table-sm">
-                                        <thead>
-                                            <tr>
-                                                <th style="width: 40px;">#</th>
-                                                <th>Team</th>
-                                                <th class="text-center">P</th>
-                                                <th class="text-center">W</th>
-                                                <th class="text-center">D</th>
-                                                <th class="text-center">L</th>
-                                                <th class="text-center">GD</th>
-                                                <th class="text-center">PTS</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach($groupStandings as $index => $standing)
-                                            @php
-                                            $team = $standing->team ?? null;
-                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                            $teamLogo = $team->logo ?? null;
-                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+                                @foreach($standings as $group => $groupStandings)
+                                    <div class="col-12 col-md-6 mb-4">
+                                        <h6 class="group-title">GROUP {{ $group }}</h6>
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40px;">#</th>
+                                                        <th>Team</th>
+                                                        <th class="text-center">P</th>
+                                                        <th class="text-center">W</th>
+                                                        <th class="text-center">D</th>
+                                                        <th class="text-center">L</th>
+                                                        <th class="text-center">GD</th>
+                                                        <th class="text-center">PTS</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    @foreach($groupStandings as $index => $standing)
+                                                        @php
+                                                            $team = $standing->team ?? null;
+                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                            $teamLogo = $team->logo ?? null;
+                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
 
-                                            // Abbreviation for logo
-                                            $teamAbbr = '';
-                                            if (!empty($teamName)) {
-                                            $words = explode(' ', $teamName);
-                                            if (count($words) >= 2) {
-                                            $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                            } else {
-                                            $teamAbbr = strtoupper(substr($teamName, 0, 2));
-                                            }
-                                            }
-
-                                            // Goal difference
-                                            $gdValue = $standing->goal_difference ?? 0;
-                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
-                                            @endphp
-                                            <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                <td class="text-center align-middle">
-                                                    <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                        {{ $index + 1 }}
-                                                    </div>
-                                                </td>
-                                                <td class="align-middle">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="team-logo-container" style="
-                                                            width: 32px;
-                                                            height: 32px;
-                                                            background: transparent !important;
-                                                            border-radius: 5px;
-                                                            display: flex;
-                                                            align-items: center;
-                                                            justify-content: center;
-                                                            overflow: hidden;
-                                                            margin-right: 0.6rem;
-                                                            flex-shrink: 0;
-                                                            border: none !important;
-                                                        ">
-                                                            @php
-                                                            $logoExists = false;
-
-                                                            if ($teamLogo) {
-                                                            if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                            $logoExists = true;
-                                                            } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                            $logoExists = true;
+                                                            // Abbreviation for logo
+                                                            $teamAbbr = '';
+                                                            if (!empty($teamName)) {
+                                                                $words = explode(' ', $teamName);
+                                                                if (count($words) >= 2) {
+                                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                } else {
+                                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                }
                                                             }
-                                                            }
-                                                            @endphp
 
-                                                            @if($logoExists)
-                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                alt="{{ $teamName }}"
-                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
-                                                            @else
-                                                            <span
-                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
-                                                                {{ $teamAbbr }}
-                                                            </span>
-                                                            @endif
-                                                        </div>
+                                                            // Goal difference
+                                                            $gdValue = $standing->goal_difference ?? 0;
+                                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                        @endphp
+                                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                            <td class="text-center align-middle">
+                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                    {{ $index + 1 }}
+                                                                </div>
+                                                            </td>
+                                                            <td class="align-middle">
+                                                                <div class="d-flex align-items-center">
+                                                                    <div class="team-logo-container" style="
+                                                                        width: 32px;
+                                                                        height: 32px;
+                                                                        background: transparent !important;
+                                                                        border-radius: 5px;
+                                                                        display: flex;
+                                                                        align-items: center;
+                                                                        justify-content: center;
+                                                                        overflow: hidden;
+                                                                        margin-right: 0.6rem;
+                                                                        flex-shrink: 0;
+                                                                        border: none !important;
+                                                                    ">
+                                                                        @php
+                                                                            $logoExists = false;
 
-                                                        <div class="text-truncate">
-                                                            <strong class="d-block text-truncate"
-                                                                style="font-size: 0.85rem;">
-                                                                {{ Str::limit($teamName, 15) }}
-                                                            </strong>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    {{ $standing->matches_played ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle fw-bold text-success"
-                                                    style="font-size: 0.9rem;">
-                                                    {{ $standing->wins ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                    {{ $standing->draws ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle text-danger"
-                                                    style="font-size: 0.9rem;">
-                                                    {{ $standing->losses ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    <span
-                                                        style="
-                                                            display: inline-block;
-                                                            padding: 2px 6px;
-                                                            border-radius: 4px;
-                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                            min-width: 40px;
-                                                        ">
-                                                        {{ $gdDisplay }}
-                                                    </span>
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    <span
-                                                        style="
-                                                            display: inline-block;
-                                                            padding: 2px 8px;
-                                                            border-radius: 4px;
-                                                            background-color: rgba(59, 130, 246, 0.1);
-                                                            color: #1d4ed8;
-                                                            min-width: 40px;
-                                                        ">
-                                                        {{ $standing->points ?? 0 }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
+                                                                            if ($teamLogo) {
+                                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                    $logoExists = true;
+                                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                    $logoExists = true;
+                                                                                }
+                                                                            }
+                                                                        @endphp
 
-                                    
-                                </div>
-                            </div>
-                            @endforeach
+                                                                        @if($logoExists)
+                                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                alt="{{ $teamName }}"
+                                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                                        @else
+                                                                            <span
+                                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                                {{ $teamAbbr }}
+                                                                            </span>
+                                                                        @endif
+                                                                    </div>
+
+                                                                    <div class="text-truncate">
+                                                                        <strong class="d-block text-truncate"
+                                                                            style="font-size: 0.85rem;">
+                                                                            {{ Str::limit($teamName, 15) }}
+                                                                        </strong>
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                {{ $standing->matches_played ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold text-success"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->wins ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                {{ $standing->draws ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle text-danger"
+                                                                style="font-size: 0.9rem;">
+                                                                {{ $standing->losses ?? 0 }}
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                        display: inline-block;
+                                                                        padding: 2px 6px;
+                                                                        border-radius: 4px;
+                                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                        min-width: 40px;
+                                                                    ">
+                                                                    {{ $gdDisplay }}
+                                                                </span>
+                                                            </td>
+                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                <span
+                                                                    style="
+                                                                        display: inline-block;
+                                                                        padding: 2px 8px;
+                                                                        border-radius: 4px;
+                                                                        background-color: rgba(59, 130, 246, 0.1);
+                                                                        color: #1d4ed8;
+                                                                        min-width: 40px;
+                                                                    ">
+                                                                    {{ $standing->points ?? 0 }}
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    @endforeach
+                                                </tbody>
+                                            </table>
+
+
+                                        </div>
+                                    </div>
+                                @endforeach
                             @else
-                            <div class="col-12">
-                                <div class="alert alert-warning mb-0">
-                                    <i class="bi bi-exclamation-triangle me-2"></i>
-                                    No group standings available yet.
+                                <div class="col-12">
+                                    <div class="alert alert-warning mb-0">
+                                        <i class="bi bi-exclamation-triangle me-2"></i>
+                                        No group standings available yet.
+                                    </div>
                                 </div>
-                            </div>
                             @endif
                         </div>
                        <!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
@@ -2061,161 +5255,161 @@
     </div>
     <div class="card-body">
         @if($teams->count() > 0)
-            <!-- Search and Filter -->
-            <div class="row mb-4">
-                <div class="col-md-8">
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="text" id="teamSearch" class="form-control" placeholder="Search teams or players...">
-                    </div>
-                </div>
-                <div class="col-md-4 mt-2 mt-md-0">
-                    <div class="input-group">
-                                        <span class="input-group-text"><i class="bi bi-filter"></i></span>
-                                        <select id="teamSort" class="form-select">
-                                            <option value="name">Sort by Name</option>
-                                            <option value="players">Sort by Players</option>
-                                            <option value="tournaments">Sort by Tournaments</option>
-                                        </select>
+                        <!-- Search and Filter -->
+                        <div class="row mb-4">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                    <input type="text" id="teamSearch" class="form-control" placeholder="Search teams or players...">
+                                </div>
+                            </div>
+                            <div class="col-md-4 mt-2 mt-md-0">
+                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="bi bi-filter"></i></span>
+                                                    <select id="teamSort" class="form-select">
+                                                        <option value="name">Sort by Name</option>
+                                                        <option value="players">Sort by Players</option>
+                                                        <option value="tournaments">Sort by Tournaments</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Teams Grid - COMPACT LAYOUT -->
+                                        <!-- Teams Grid - COMPACT LAYOUT -->
+            <div class="row g-3" id="teamsGrid">
+                @foreach($teams as $index => $team)
+                    @php
+                        $totalPlayers = $team->players->count();
+                        $totalTournaments = $team->tournaments->count();
+                        $keyPlayers = $team->players->take(2);
+
+                        // Serialize players data untuk JavaScript - VERSION FIXED
+                        $playersData = $team->players->map(function ($player) {
+                            return [
+                                'id' => $player->id ?? 0,
+                                'name' => $player->name ?? 'Unknown',
+                                'jersey_number' => $player->jersey_number ?? '',
+                                'position' => $player->position ?? '',
+                                'photo' => $player->photo ?? '',
+                                'goals' => $player->goals ?? 0,
+                                'assists' => $player->assists ?? 0,
+                            ];
+                        })->toArray();
+
+                        // Convert to JSON with proper escaping
+                        $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                    @endphp
+                    <div class="col-xl-3 col-lg-4 col-md-6 team-card" 
+                         data-team-id="{{ $team->id }}"
+                         data-team-name="{{ strtolower($team->name) }}"
+                         data-team-players="{{ $totalPlayers }}"
+                         data-team-tournaments="{{ $totalTournaments }}"
+                         data-team-coach="{{ $team->coach_name }}"
+                         data-team-logo="{{ $team->logo }}"
+                         data-players-json="{{ $playersJson }}">
+                        <div class="team-compact-card h-100 d-flex flex-column p-3">
+                            <!-- Team Header -->
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="team-compact-logo">
+                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                                    @else
+                                        <div class="logo-fallback">
+                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                        {{ $team->name }}
+                                    </h6>
+                                    @if($team->coach_name)
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <!-- Stats -->
+                            <div class="team-compact-stats mb-3">
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                                    <span class="compact-stat-label">Players</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $totalTournaments }}</span>
+                                    <span class="compact-stat-label">Tournaments</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $team->status }}</span>
+                                    <span class="compact-stat-label">Status</span>
+                                </div>
+                            </div>
+
+                            <!-- Key Players -->
+                            @if($keyPlayers->count() > 0)
+                                <div class="mb-3">
+                                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-star-fill text-warning"></i> Key Players
+                                    </small>
+                                    <div class="d-flex flex-wrap gap-2">
+                                        @foreach($keyPlayers as $player)
+                                            <div class="compact-badge">
+                                                <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                                <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
+                                            </div>
+                                        @endforeach
+                                        @if($totalPlayers > 2)
+                                            <div class="compact-badge">
+                                                <span>+{{ $totalPlayers - 2 }}</span>
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
-                            </div>
-
-                            <!-- Teams Grid - COMPACT LAYOUT -->
-                            <!-- Teams Grid - COMPACT LAYOUT -->
-<div class="row g-3" id="teamsGrid">
-    @foreach($teams as $index => $team)
-        @php
-            $totalPlayers = $team->players->count();
-            $totalTournaments = $team->tournaments->count();
-            $keyPlayers = $team->players->take(2);
-            
-            // Serialize players data untuk JavaScript - VERSION FIXED
-            $playersData = $team->players->map(function($player) {
-                return [
-                    'id' => $player->id ?? 0,
-                    'name' => $player->name ?? 'Unknown',
-                    'jersey_number' => $player->jersey_number ?? '',
-                    'position' => $player->position ?? '',
-                    'photo' => $player->photo ?? '',
-                    'goals' => $player->goals ?? 0,
-                    'assists' => $player->assists ?? 0,
-                ];
-            })->toArray();
-            
-            // Convert to JSON with proper escaping
-            $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-        @endphp
-        <div class="col-xl-3 col-lg-4 col-md-6 team-card" 
-             data-team-id="{{ $team->id }}"
-             data-team-name="{{ strtolower($team->name) }}"
-             data-team-players="{{ $totalPlayers }}"
-             data-team-tournaments="{{ $totalTournaments }}"
-             data-team-coach="{{ $team->coach_name }}"
-             data-team-logo="{{ $team->logo }}"
-             data-players-json="{{ $playersJson }}">
-            <div class="team-compact-card h-100 d-flex flex-column p-3">
-                <!-- Team Header -->
-                <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="team-compact-logo">
-                        @if($team->logo && Storage::disk('public')->exists($team->logo))
-                            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
-                        @else
-                            <div class="logo-fallback">
-                                {{ strtoupper(substr($team->name, 0, 2)) }}
-                            </div>
-                        @endif
-                    </div>
-                    <div class="flex-grow-1">
-                        <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
-                            {{ $team->name }}
-                        </h6>
-                        @if($team->coach_name)
-                            <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
-                                <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
-                            </small>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Stats -->
-                <div class="team-compact-stats mb-3">
-                    <div class="compact-stat">
-                        <span class="compact-stat-number">{{ $totalPlayers }}</span>
-                        <span class="compact-stat-label">Players</span>
-                    </div>
-                    <div class="compact-stat">
-                        <span class="compact-stat-number">{{ $totalTournaments }}</span>
-                        <span class="compact-stat-label">Tournaments</span>
-                    </div>
-                    <div class="compact-stat">
-                        <span class="compact-stat-number">{{ $team->status }}</span>
-                        <span class="compact-stat-label">Status</span>
-                    </div>
-                </div>
-
-                <!-- Key Players -->
-                @if($keyPlayers->count() > 0)
-                    <div class="mb-3">
-                        <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
-                            <i class="bi bi-star-fill text-warning"></i> Key Players
-                        </small>
-                        <div class="d-flex flex-wrap gap-2">
-                            @foreach($keyPlayers as $player)
-                                <div class="compact-badge">
-                                    <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
-                                    <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
-                                </div>
-                            @endforeach
-                            @if($totalPlayers > 2)
-                                <div class="compact-badge">
-                                    <span>+{{ $totalPlayers - 2 }}</span>
-                                </div>
                             @endif
+
+                            <!-- Quick View Button -->
+                            <div class="mt-auto">
+                                <button class="btn btn-sm btn-primary w-100 view-team-details" 
+                                        data-team-index="{{ $index }}">
+                                    <i class="bi bi-eye"></i> Quick View
+                                </button>
+                            </div>
                         </div>
                     </div>
-                @endif
-
-                <!-- Quick View Button -->
-                <div class="mt-auto">
-                    <button class="btn btn-sm btn-primary w-100 view-team-details" 
-                            data-team-index="{{ $index }}">
-                        <i class="bi bi-eye"></i> Quick View
-                    </button>
-                </div>
+                @endforeach
             </div>
-        </div>
-    @endforeach
-</div>
-                            
-                            <!-- No Results Message -->
-                            <div id="noTeamsFound" class="text-center py-5 d-none">
-                                <i class="bi bi-people display-4 text-muted mb-3"></i>
-                                <h5>No teams found</h5>
-                                <p class="text-muted">Try changing your search criteria</p>
-                            </div>
-                            
-                            <!-- View All Button -->
-                            <!-- <div class="text-center mt-4">
-                                <a href="{{ route('teams.index') }}" class="btn btn-primary">
-                                    <i class="bi bi-list-ul"></i> View All Teams
-                                </a>
-                            </div> -->
-                        @else
-                            <!-- Empty State -->
-                            <div class="empty-state text-center py-5">
-                                <i class="bi bi-people display-4 text-muted mb-3"></i>
-                                <h5>No Teams Available</h5>
-                                <p class="text-muted">Teams will appear here when they are created</p>
-                                @auth
-                                    @if(auth()->user()->role === 'admin')
-                                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
-                                            <i class="bi bi-plus-circle"></i> Create First Team
-                                        </a>
-                                    @endif
-                                @endauth
-                            </div>
-                        @endif
+
+                                        <!-- No Results Message -->
+                                        <div id="noTeamsFound" class="text-center py-5 d-none">
+                                            <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                            <h5>No teams found</h5>
+                                            <p class="text-muted">Try changing your search criteria</p>
+                                        </div>
+
+                                        <!-- View All Button -->
+                                        <!-- <div class="text-center mt-4">
+                                            <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                                <i class="bi bi-list-ul"></i> View All Teams
+                                            </a>
+                                        </div> -->
+        @else
+            <!-- Empty State -->
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                <h5>No Teams Available</h5>
+                <p class="text-muted">Teams will appear here when they are created</p>
+                @auth
+                    @if(auth()->user()->role === 'admin')
+                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
+                            <i class="bi bi-plus-circle"></i> Create First Team
+                        </a>
+                    @endif
+                @endauth
+            </div>
+        @endif
                     </div>
                 </div>
 
@@ -2230,69 +5424,69 @@
                             <i class="bi bi-trophy"></i>
                             <span>Top Scorers</span>
                             @if($activeTournament)
-                            <span class="badge bg-primary">{{ $activeTournament->name }}</span>
+                                <span class="badge bg-primary">{{ $activeTournament->name }}</span>
                             @endif
                         </div>
                         @if($activeTournament)
-                        <small
-                            class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
+                            <small
+                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
                         @endif
                     </div>
                     <div class="card-body">
                         @if($topScorers->count() > 0)
-                        @foreach($topScorers as $index => $player)
-                        <div class="top-scorer-player-card">
-                            <!-- Rank Badge - Tampilkan ranking (1, 2, 3, dll) -->
-                            <div class="top-scorer-rank-badge top-scorer-rank-{{ min($index + 1, 4) }}">
-                                {{ $index + 1 }}
-                            </div>
+                            @foreach($topScorers as $index => $player)
+                                <div class="top-scorer-player-card">
+                                    <!-- Rank Badge - Tampilkan ranking (1, 2, 3, dll) -->
+                                    <div class="top-scorer-rank-badge top-scorer-rank-{{ min($index + 1, 4) }}">
+                                        {{ $index + 1 }}
+                                    </div>
 
-                            <div class="top-scorer-player-info">
-                                <h6 class="mb-1">{{ $player->name ?? 'Unknown Player' }}</h6>
-                                <div class="top-scorer-player-team small text-muted">
-                                    <i class="bi bi-people me-1"></i>
-                                    {{ $player->team_name ?? ($player->team->name ?? 'No Team') }}
-                                    @if(isset($player->jersey_number) && $player->jersey_number)
-                                    <span class="badge bg-secondary ms-1">#{{ $player->jersey_number }}</span>
-                                    @endif
-                                    @if(isset($player->position) && $player->position)
-                                    <span class="badge bg-light text-dark ms-1">{{ $player->position }}</span>
-                                    @endif
+                                    <div class="top-scorer-player-info">
+                                        <h6 class="mb-1">{{ $player->name ?? 'Unknown Player' }}</h6>
+                                        <div class="top-scorer-player-team small text-muted">
+                                            <i class="bi bi-people me-1"></i>
+                                            {{ $player->team_name ?? ($player->team->name ?? 'No Team') }}
+                                            @if(isset($player->jersey_number) && $player->jersey_number)
+                                                <span class="badge bg-secondary ms-1">#{{ $player->jersey_number }}</span>
+                                            @endif
+                                            @if(isset($player->position) && $player->position)
+                                                <span class="badge bg-light text-dark ms-1">{{ $player->position }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end ms-2">
+                                        <span class="top-scorer-goals-count">{{ $player->goals ?? 0 }} Gol</span>
+                                        <div class="top-scorer-cards-count">
+                                            @if(($player->yellow_cards ?? 0) > 0)
+                                                <span class="text-warning me-2">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->yellow_cards }}
+                                                </span>
+                                            @endif
+                                            @if(($player->red_cards ?? 0) > 0)
+                                                <span class="text-danger">
+                                                    <i class="bi bi-square-fill me-1"></i>{{ $player->red_cards }}
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            @endforeach
 
-                            <div class="text-end ms-2">
-                                <span class="top-scorer-goals-count">{{ $player->goals ?? 0 }} Gol</span>
-                                <div class="top-scorer-cards-count">
-                                    @if(($player->yellow_cards ?? 0) > 0)
-                                    <span class="text-warning me-2">
-                                        <i class="bi bi-square-fill me-1"></i>{{ $player->yellow_cards }}
-                                    </span>
-                                    @endif
-                                    @if(($player->red_cards ?? 0) > 0)
-                                    <span class="text-danger">
-                                        <i class="bi bi-square-fill me-1"></i>{{ $player->red_cards }}
-                                    </span>
-                                    @endif
-                                </div>
+                            <div class="text-center mt-4">
+                                <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}"
+                                    class="btn btn-success w-100">
+                                    <i class="bi bi-arrow-right-circle me-2"></i> View All Scorers
+                                </a>
                             </div>
-                        </div>
-                        @endforeach
-
-                        <div class="text-center mt-4">
-                            <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}"
-                                class="btn btn-success w-100">
-                                <i class="bi bi-arrow-right-circle me-2"></i> View All Scorers
-                            </a>
-                        </div>
                         @else
-                        <div class="empty-state">
-                            <i class="bi bi-person-x"></i>
-                            <p class="mt-2">No tournament statistics available</p>
-                            @if($activeTournament)
-                            <small class="text-muted">No goals scored in {{ $activeTournament->name }} yet</small>
-                            @endif
-                        </div>
+                            <div class="empty-state">
+                                <i class="bi bi-person-x"></i>
+                                <p class="mt-2">No tournament statistics available</p>
+                                @if($activeTournament)
+                                    <small class="text-muted">No goals scored in {{ $activeTournament->name }} yet</small>
+                                @endif
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -2303,7 +5497,7 @@
                             <i class="bi bi-play-circle"></i>
                             <span>Match Highlights</span>
                             @if($recentHighlights->count() > 0)
-                            <span class="badge bg-primary">{{ $recentHighlights->count() }}</span>
+                                <span class="badge bg-primary">{{ $recentHighlights->count() }}</span>
                             @endif
                         </div>
                         <a href="{{ route('highlights.index') }}" class="btn btn-sm btn-outline-primary">
@@ -2312,118 +5506,118 @@
                     </div>
                     <div class="card-body">
                         @if($recentHighlights->count() > 0)
-                        @foreach($recentHighlights as $match)
-                        <div class="highlight-item mb-3">
-                            <!-- Thumbnail Container -->
-                            <div class="highlight-thumbnail position-relative mb-2"
-                                style="border-radius: 8px; overflow: hidden; cursor: pointer; height: 180px; background: #1a1a1a;"
-                                data-bs-toggle="modal" data-bs-target="#highlightModal{{ $match->id }}">
+                            @foreach($recentHighlights as $match)
+                                <div class="highlight-item mb-3">
+                                    <!-- Thumbnail Container -->
+                                    <div class="highlight-thumbnail position-relative mb-2"
+                                        style="border-radius: 8px; overflow: hidden; cursor: pointer; height: 180px; background: #1a1a1a;"
+                                        data-bs-toggle="modal" data-bs-target="#highlightModal{{ $match->id }}">
 
-                                <!-- YouTube Thumbnail -->
-                                <img src="{{ $match->display_thumbnail_url }}"
-                                    alt="{{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
-                                    class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;"
-                                    onmouseover="this.style.transform='scale(1.05)';"
-                                    onmouseout="this.style.transform='scale(1)';">
+                                        <!-- YouTube Thumbnail -->
+                                        <img src="{{ $match->display_thumbnail_url }}"
+                                            alt="{{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
+                                            class="w-100 h-100" style="object-fit: cover; transition: transform 0.3s ease;"
+                                            onmouseover="this.style.transform='scale(1.05)';"
+                                            onmouseout="this.style.transform='scale(1)';">
 
-                                <!-- YouTube Badge -->
-                                <div class="position-absolute top-0 start-0 m-2">
-                                    <span class="badge bg-danger d-flex align-items-center gap-1">
-                                        <i class="bi bi-youtube"></i>
-                                        <span>YouTube</span>
-                                    </span>
-                                </div>
+                                        <!-- YouTube Badge -->
+                                        <div class="position-absolute top-0 start-0 m-2">
+                                            <span class="badge bg-danger d-flex align-items-center gap-1">
+                                                <i class="bi bi-youtube"></i>
+                                                <span>YouTube</span>
+                                            </span>
+                                        </div>
 
-                                <!-- Play Button Overlay -->
-                                <div class="position-absolute top-50 start-50 translate-middle"
-                                    style="transition: all 0.3s ease;"
-                                    onmouseover="this.style.transform='translate(-50%, -50%) scale(1.1)';"
-                                    onmouseout="this.style.transform='translate(-50%, -50%) scale(1)';">
-                                    <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
-                                        style="width: 60px; height: 60px; opacity: 0.9; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
-                                        <i class="bi bi-play-fill text-white"
-                                            style="font-size: 1.8rem; margin-left: 4px;"></i>
+                                        <!-- Play Button Overlay -->
+                                        <div class="position-absolute top-50 start-50 translate-middle"
+                                            style="transition: all 0.3s ease;"
+                                            onmouseover="this.style.transform='translate(-50%, -50%) scale(1.1)';"
+                                            onmouseout="this.style.transform='translate(-50%, -50%) scale(1)';">
+                                            <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center"
+                                                style="width: 60px; height: 60px; opacity: 0.9; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                                                <i class="bi bi-play-fill text-white"
+                                                    style="font-size: 1.8rem; margin-left: 4px;"></i>
+                                            </div>
+                                        </div>
+
+                                        <!-- Video Duration -->
+                                        @if($match->youtube_duration_formatted)
+                                            <div class="position-absolute bottom-0 end-0 m-2">
+                                                <span class="badge bg-dark bg-opacity-75">
+                                                    {{ $match->youtube_duration_formatted }}
+                                                </span>
+                                            </div>
+                                        @endif
+
+                                        <!-- Match Score Overlay -->
+                                        @if($match->home_score !== null && $match->away_score !== null)
+                                            <div class="position-absolute bottom-0 start-0 m-2">
+                                                <span class="badge bg-success" style="font-size: 0.9rem;">
+                                                    {{ $match->home_score }} - {{ $match->away_score }}
+                                                </span>
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    <!-- Match Info -->
+                                    <div class="highlight-info">
+                                        <h6 class="mb-1 text-truncate" style="font-weight: 600;">
+                                            {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
+                                        </h6>
+
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <small class="text-muted">
+                                                <i class="bi bi-calendar me-1"></i>
+                                                {{ $match->match_date->format('d M Y') }}
+                                            </small>
+                                            @if($match->youtube_uploaded_at)
+                                                <small class="text-muted">
+                                                    <i class="bi bi-clock-history me-1"></i>
+                                                    {{ $match->youtube_uploaded_at->diffForHumans() }}
+                                                </small>
+                                            @endif
+                                        </div>
+
+                                        <!-- Match Details -->
+                                        <div class="mt-2 d-flex flex-wrap gap-2">
+                                            @if($match->venue)
+                                                <span class="badge bg-light text-dark">
+                                                    <i class="bi bi-geo-alt me-1"></i> {{ $match->venue }}
+                                                </span>
+                                            @endif
+
+                                            @if($match->group_name)
+                                                <span class="badge bg-info">
+                                                    <i class="bi bi-people me-1"></i> Group {{ $match->group_name }}
+                                                </span>
+                                            @endif
+
+                                            <span
+                                                class="badge {{ $match->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
+                                                {{ ucfirst($match->status) }}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
+                            @endforeach
 
-                                <!-- Video Duration -->
-                                @if($match->youtube_duration_formatted)
-                                <div class="position-absolute bottom-0 end-0 m-2">
-                                    <span class="badge bg-dark bg-opacity-75">
-                                        {{ $match->youtube_duration_formatted }}
-                                    </span>
-                                </div>
-                                @endif
-
-                                <!-- Match Score Overlay -->
-                                @if($match->home_score !== null && $match->away_score !== null)
-                                <div class="position-absolute bottom-0 start-0 m-2">
-                                    <span class="badge bg-success" style="font-size: 0.9rem;">
-                                        {{ $match->home_score }} - {{ $match->away_score }}
-                                    </span>
-                                </div>
-                                @endif
+                            <!-- View All Button -->
+                            <div class="text-center mt-4">
+                                <a href="{{ route('highlights.index') }}" class="btn btn-primary">
+                                    <i class="bi bi-collection-play me-2"></i> View All Highlights
+                                </a>
                             </div>
-
-                            <!-- Match Info -->
-                            <div class="highlight-info">
-                                <h6 class="mb-1 text-truncate" style="font-weight: 600;">
-                                    {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
-                                </h6>
-
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <small class="text-muted">
-                                        <i class="bi bi-calendar me-1"></i>
-                                        {{ $match->match_date->format('d M Y') }}
-                                    </small>
-                                    @if($match->youtube_uploaded_at)
-                                    <small class="text-muted">
-                                        <i class="bi bi-clock-history me-1"></i>
-                                        {{ $match->youtube_uploaded_at->diffForHumans() }}
-                                    </small>
-                                    @endif
-                                </div>
-
-                                <!-- Match Details -->
-                                <div class="mt-2 d-flex flex-wrap gap-2">
-                                    @if($match->venue)
-                                    <span class="badge bg-light text-dark">
-                                        <i class="bi bi-geo-alt me-1"></i> {{ $match->venue }}
-                                    </span>
-                                    @endif
-
-                                    @if($match->group_name)
-                                    <span class="badge bg-info">
-                                        <i class="bi bi-people me-1"></i> Group {{ $match->group_name }}
-                                    </span>
-                                    @endif
-
-                                    <span
-                                        class="badge {{ $match->status === 'completed' ? 'bg-success' : 'bg-warning text-dark' }}">
-                                        {{ ucfirst($match->status) }}
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                        @endforeach
-
-                        <!-- View All Button -->
-                        <div class="text-center mt-4">
-                            <a href="{{ route('highlights.index') }}" class="btn btn-primary">
-                                <i class="bi bi-collection-play me-2"></i> View All Highlights
-                            </a>
-                        </div>
 
                         @else
-                        <!-- Empty State -->
-                        <div class="empty-state text-center py-5">
-                            <div class="mb-3">
-                                <i class="bi bi-film" style="font-size: 3rem; color: #6c757d;"></i>
+                            <!-- Empty State -->
+                            <div class="empty-state text-center py-5">
+                                <div class="mb-3">
+                                    <i class="bi bi-film" style="font-size: 3rem; color: #6c757d;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No Highlights Available</h5>
+                                <p class="text-muted small mb-0">Highlights will appear here when added to completed matches
+                                </p>
                             </div>
-                            <h5 class="text-muted mb-2">No Highlights Available</h5>
-                            <p class="text-muted small mb-0">Highlights will appear here when added to completed matches
-                            </p>
-                        </div>
                         @endif
                     </div>
                 </div>
@@ -2435,74 +5629,78 @@
                     </div>
                     <div class="card-body">
                         @if($recentResults->count() > 0)
-                        @foreach($recentResults as $match)
-                        <div class="recent-result-item">
-                            <div class="small text-muted mb-2">
-                                {{ date('d M', strtotime($match->match_date)) }} •
-                                {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
-                                @if($match->group_name)
-                                • Group {{ $match->group_name }}
-                                @endif
-                            </div>
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="text-end" style="width: 45%;">
-                                    <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
-                                </div>
-                                <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
-                                    {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
-                                </div>
-                                <div class="text-start" style="width: 45%;">
-                                    <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
-                                </div>
-                            </div>
+                            @foreach($recentResults as $match)
+                                <div class="recent-result-item">
+                                    <div class="small text-muted mb-2">
+                                        {{ date('d M', strtotime($match->match_date)) }} •
+                                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                                        @if($match->group_name)
+                                            • Group {{ $match->group_name }}
+                                        @endif
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="text-end" style="width: 45%;">
+                                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
+                                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                        </div>
+                                        <div class="text-start" style="width: 45%;">
+                                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                    </div>
 
-                            @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
-                            <div class="goal-scorers">
-                                <div class="row">
-                                    <div class="col-6">
-                                        @foreach($match->events->where('team_id',
-                                        $match->team_home_id)->where('event_type', 'goal') as $goal)
-                                        <div class="goal-item">
-                                            <span class="goal-minute">{{ $goal->minute }}'</span>
-                                            <small class="text-truncate">
-                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                @if($goal->is_penalty)
-                                                <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($goal->is_own_goal)
-                                                <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
+                                    @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                                        <div class="goal-scorers">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    @foreach($match->events->where(
+                                                            'team_id',
+                                                            $match->team_home_id
+                                                        )->where('event_type', 'goal') as $goal)
+                                                                    <div class="goal-item">
+                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                        <small class="text-truncate">
+                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                            @if($goal->is_penalty)
+                                                                                <span class="text-muted">(P)</span>
+                                                                            @endif
+                                                                            @if($goal->is_own_goal)
+                                                                                <span class="text-danger">(OG)</span>
+                                                                            @endif
+                                                                        </small>
+                                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                                <div class="col-6">
+                                                    @foreach($match->events->where(
+                                                            'team_id',
+                                                            $match->team_away_id
+                                                        )->where('event_type', 'goal') as $goal)
+                                                                    <div class="goal-item">
+                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                        <small class="text-truncate">
+                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                            @if($goal->is_penalty)
+                                                                                <span class="text-muted">(P)</span>
+                                                                            @endif
+                                                                            @if($goal->is_own_goal)
+                                                                                <span class="text-danger">(OG)</span>
+                                                                            @endif
+                                                                        </small>
+                                                                    </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
                                         </div>
-                                        @endforeach
-                                    </div>
-                                    <div class="col-6">
-                                        @foreach($match->events->where('team_id',
-                                        $match->team_away_id)->where('event_type', 'goal') as $goal)
-                                        <div class="goal-item">
-                                            <span class="goal-minute">{{ $goal->minute }}'</span>
-                                            <small class="text-truncate">
-                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                @if($goal->is_penalty)
-                                                <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($goal->is_own_goal)
-                                                <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
-                                        </div>
-                                        @endforeach
-                                    </div>
+                                    @endif
                                 </div>
-                            </div>
-                            @endif
-                        </div>
-                        @endforeach
+                            @endforeach
                         @else
-                        <div class="empty-state">
-                            <i class="bi bi-emoji-frown"></i>
-                            <p class="mt-2">No recent matches</p>
-                        </div>
+                            <div class="empty-state">
+                                <i class="bi bi-emoji-frown"></i>
+                                <p class="mt-2">No recent matches</p>
+                            </div>
                         @endif
                     </div>
                 </div>
@@ -2578,144 +5776,144 @@
 </div>
 
     @foreach($recentHighlights as $match)
-    @if($match->youtube_id)
-    <div class="modal fade" id="highlightModal{{ $match->id }}" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-youtube text-danger" style="font-size: 1.2rem;"></i>
-                        <h5 class="modal-title mb-0">
-                            {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
-                            @if($match->home_score !== null && $match->away_score !== null)
-                            <span class="badge bg-success ms-2">{{ $match->home_score }} -
-                                {{ $match->away_score }}</span>
-                            @endif
-                        </h5>
-                    </div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body p-0">
-                    <!-- YouTube Embed -->
-                    <div class="ratio ratio-16x9">
-                        <iframe src="{{ $match->youtube_embed_url }}"
-                            title="Highlight: {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
-                            frameborder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                            allowfullscreen style="background: #000;">
-                        </iframe>
-                    </div>
-
-                    <!-- Match Details -->
-                    <div class="p-4">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h6 class="mb-3">
-                                    <i class="bi bi-info-circle me-2"></i>Match Information
-                                </h6>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Date & Time</strong>
-                                        <span>{{ $match->match_date->format('d M Y') }} •
-                                            {{ $match->time_start }}</span>
-                                    </li>
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Venue</strong>
-                                        <span>{{ $match->venue ?? 'Main Field' }}</span>
-                                    </li>
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Stage</strong>
-                                        <span>{{ ucfirst(str_replace('_', ' ', $match->round_type)) }}</span>
-                                    </li>
-                                    @if($match->group_name)
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Group</strong>
-                                        <span>Group {{ $match->group_name }}</span>
-                                    </li>
+        @if($match->youtube_id)
+            <div class="modal fade" id="highlightModal{{ $match->id }}" tabindex="-1" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-youtube text-danger" style="font-size: 1.2rem;"></i>
+                                <h5 class="modal-title mb-0">
+                                    {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
+                                    @if($match->home_score !== null && $match->away_score !== null)
+                                        <span class="badge bg-success ms-2">{{ $match->home_score }} -
+                                            {{ $match->away_score }}</span>
                                     @endif
-                                </ul>
+                                </h5>
                             </div>
-                            <div class="col-md-6">
-                                <h6 class="mb-3">
-                                    <i class="bi bi-youtube text-danger me-2"></i>YouTube Information
-                                </h6>
-                                <ul class="list-unstyled">
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Video ID</strong>
-                                        <code>{{ $match->youtube_id }}</code>
-                                    </li>
-                                    @if($match->youtube_duration_formatted)
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Duration</strong>
-                                        <span>{{ $match->youtube_duration_formatted }}</span>
-                                    </li>
-                                    @endif
-                                    @if($match->youtube_uploaded_at)
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Added</strong>
-                                        <span>{{ $match->youtube_uploaded_at->format('d M Y H:i') }}</span>
-                                    </li>
-                                    @endif
-                                    <li class="mb-2">
-                                        <strong class="d-block text-muted small">Watch on YouTube</strong>
-                                        <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
-                                            class="text-decoration-none">
-                                            <i class="bi bi-box-arrow-up-right me-1"></i>
-                                            Open in YouTube
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
+                        <div class="modal-body p-0">
+                            <!-- YouTube Embed -->
+                            <div class="ratio ratio-16x9">
+                                <iframe src="{{ $match->youtube_embed_url }}"
+                                    title="Highlight: {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowfullscreen style="background: #000;">
+                                </iframe>
+                            </div>
 
-                        <!-- Teams Info -->
-                        <div class="row mt-4">
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-title">Home Team</h6>
-                                        <p class="mb-0">
-                                            <strong>{{ $match->homeTeam->name ?? 'TBA' }}</strong>
-                                        </p>
-                                        @if($match->home_score !== null)
-                                        <p class="mb-0 text-muted">
-                                            Score: <span class="fw-bold">{{ $match->home_score }}</span>
-                                        </p>
-                                        @endif
+                            <!-- Match Details -->
+                            <div class="p-4">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-info-circle me-2"></i>Match Information
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Date & Time</strong>
+                                                <span>{{ $match->match_date->format('d M Y') }} •
+                                                    {{ $match->time_start }}</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Venue</strong>
+                                                <span>{{ $match->venue ?? 'Main Field' }}</span>
+                                            </li>
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Stage</strong>
+                                                <span>{{ ucfirst(str_replace('_', ' ', $match->round_type)) }}</span>
+                                            </li>
+                                            @if($match->group_name)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Group</strong>
+                                                    <span>Group {{ $match->group_name }}</span>
+                                                </li>
+                                            @endif
+                                        </ul>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6 class="mb-3">
+                                            <i class="bi bi-youtube text-danger me-2"></i>YouTube Information
+                                        </h6>
+                                        <ul class="list-unstyled">
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Video ID</strong>
+                                                <code>{{ $match->youtube_id }}</code>
+                                            </li>
+                                            @if($match->youtube_duration_formatted)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Duration</strong>
+                                                    <span>{{ $match->youtube_duration_formatted }}</span>
+                                                </li>
+                                            @endif
+                                            @if($match->youtube_uploaded_at)
+                                                <li class="mb-2">
+                                                    <strong class="d-block text-muted small">Added</strong>
+                                                    <span>{{ $match->youtube_uploaded_at->format('d M Y H:i') }}</span>
+                                                </li>
+                                            @endif
+                                            <li class="mb-2">
+                                                <strong class="d-block text-muted small">Watch on YouTube</strong>
+                                                <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
+                                                    class="text-decoration-none">
+                                                    <i class="bi bi-box-arrow-up-right me-1"></i>
+                                                    Open in YouTube
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <!-- Teams Info -->
+                                <div class="row mt-4">
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Home Team</h6>
+                                                <p class="mb-0">
+                                                    <strong>{{ $match->homeTeam->name ?? 'TBA' }}</strong>
+                                                </p>
+                                                @if($match->home_score !== null)
+                                                    <p class="mb-0 text-muted">
+                                                        Score: <span class="fw-bold">{{ $match->home_score }}</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="card border-0 bg-light">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Away Team</h6>
+                                                <p class="mb-0">
+                                                    <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
+                                                </p>
+                                                @if($match->away_score !== null)
+                                                    <p class="mb-0 text-muted">
+                                                        Score: <span class="fw-bold">{{ $match->away_score }}</span>
+                                                    </p>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="card border-0 bg-light">
-                                    <div class="card-body">
-                                        <h6 class="card-title">Away Team</h6>
-                                        <p class="mb-0">
-                                            <strong>{{ $match->awayTeam->name ?? 'TBA' }}</strong>
-                                        </p>
-                                        @if($match->away_score !== null)
-                                        <p class="mb-0 text-muted">
-                                            Score: <span class="fw-bold">{{ $match->away_score }}</span>
-                                        </p>
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                                <i class="bi bi-x-circle me-1"></i> Close
+                            </button>
+                            <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
+                                class="btn btn-danger">
+                                <i class="bi bi-youtube me-1"></i> Watch on YouTube
+                            </a>
                         </div>
                     </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Close
-                    </button>
-                    <a href="https://youtube.com/watch?v={{ $match->youtube_id }}" target="_blank"
-                        class="btn btn-danger">
-                        <i class="bi bi-youtube me-1"></i> Watch on YouTube
-                    </a>
                 </div>
             </div>
-        </div>
-    </div>
-    @endif
+        @endif
     @endforeach
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -2932,6 +6130,359 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show modal
     teamDetailsModal.show();
 }
+
+
+ 
+
+
+// Tambahkan juga event listener untuk klik hero section yang lebih baik
+document.addEventListener('DOMContentLoaded', function() {
+    const heroSection = document.getElementById('mainHeroSection');
+    
+    if (heroSection) {
+        // Tambahkan cursor pointer jika hero memiliki gambar
+        const hasImage = heroSection.style.backgroundImage && 
+                         heroSection.style.backgroundImage !== 'none';
+        
+        if (hasImage) {
+            heroSection.style.cursor = 'pointer';
+            
+            // Tambahkan efek hover yang lebih jelas
+            heroSection.addEventListener('mouseenter', function() {
+                if (this.style.backgroundImage && this.style.backgroundImage !== 'none') {
+                    this.style.transform = 'scale(1.005)';
+                    this.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
+                }
+            });
+            
+            heroSection.addEventListener('mouseleave', function() {
+                this.style.transform = 'scale(1)';
+            });
+            
+            // Pastikan klik bekerja
+            heroSection.addEventListener('click', function(e) {
+                // Cek apakah klik tidak pada tombol CTA
+                if (e.target.closest('.hero-cta-button')) {
+                    return; // Biarkan tombol CTA bekerja normal
+                }
+                
+                const bgImage = this.style.backgroundImage;
+                if (bgImage && bgImage !== 'none') {
+                    // Extract URL dari background-image
+                    const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                    if (match && match[1]) {
+                        const imageUrl = match[1];
+                        const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
+                        openHeroFullscreen(imageUrl, title);
+                    }
+                }
+            });
+        }
+    }
+    
+    // Tambahkan animasi untuk zoom indicator
+    const zoomIndicators = document.querySelectorAll('.zoom-indicator');
+    zoomIndicators.forEach(indicator => {
+        indicator.addEventListener('click', function(e) {
+            e.stopPropagation(); // Mencegah bubbling ke hero section
+            const heroSection = this.closest('.hero-section');
+            if (heroSection) {
+                heroSection.click(); // Trigger klik pada hero section
+            }
+        });
+    });
+});
+
+// Tambahkan key listener untuk menutup modal dengan ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('heroFullscreenModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+});
+    
+    function generatePlayersHtml(players) {
+        if (!players || players.length === 0) return '';
+        
+        let html = '';
+        players.forEach(player => {
+            // Photo HTML
+            let photoHtml = '';
+            if (player.photo) {
+                photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
+            } else {
+                const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
+                photoHtml = `<div class="player-initial">${initial}</div>`;
+            }
+            
+            // Stats badges
+            let statsHtml = '';
+            if (player.goals > 0 || player.assists > 0) {
+                statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
+                if (player.goals > 0) {
+                    statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
+                }
+                if (player.assists > 0) {
+                    statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
+                }
+                statsHtml += '</div>';
+            }
+            
+            html += `
+            <div class="player-card-modal">
+                <div class="player-photo-container">
+                    ${photoHtml}
+                </div>
+                <div class="player-info-modal">
+                    <h6 class="mb-1 text-truncate">${player.name || 'Unknown'}</h6>
+                    ${player.jersey_number ? `<div class="player-jersey mb-1">#${player.jersey_number}</div>` : ''}
+                    ${player.position ? `<div class="player-position mb-2">${player.position}</div>` : ''}
+                    ${statsHtml}
+                </div>
+            </div>
+            `;
+        });
+        
+        return html;
+    }
+    
+    function loadMorePlayers() {
+        if (!currentTeamCard || allPlayersLoaded) return;
+        
+        currentPage++;
+        const startIndex = (currentPage - 1) * playersPerPage;
+        const endIndex = Math.min(startIndex + playersPerPage, currentPlayers.length);
+        
+        if (startIndex >= currentPlayers.length) {
+            allPlayersLoaded = true;
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+            return;
+        }
+        
+        const pagePlayers = currentPlayers.slice(startIndex, endIndex);
+        const playersHtml = generatePlayersHtml(pagePlayers);
+        
+        const playersGrid = document.getElementById('playersGrid');
+        if (playersGrid) {
+            playersGrid.innerHTML += playersHtml;
+        }
+        
+        // Check if all players loaded
+        if (endIndex >= currentPlayers.length) {
+            allPlayersLoaded = true;
+            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
+        }
+        
+        // Update button text
+        if (loadMoreBtn && loadMoreText) {
+            const remaining = currentPlayers.length - endIndex;
+            if (remaining > 0) {
+                loadMoreText.textContent = `Load ${Math.min(remaining, playersPerPage)} More`;
+            } else {
+                loadMoreText.textContent = 'All Players Loaded';
+            }
+        }
+    }
+    
+    // Add hover effect to team cards
+    teamCards.forEach(card => {
+        const teamCard = card.querySelector('.team-compact-card');
+        if (teamCard) {
+            teamCard.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+            });
+            
+            teamCard.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+            });
+        }
+    });
+});
+
+// Function untuk membuka hero image fullscreen
+function openHeroFullscreen(imageUrl, title) {
+    console.log('Opening fullscreen:', imageUrl, title);
+    
+    // Dapatkan modal
+    const modal = new bootstrap.Modal(document.getElementById('heroFullscreenModal'));
+    const imageContainer = document.getElementById('heroFullscreenImage');
+    const downloadBtn = document.getElementById('downloadHeroBtn');
+    
+    // Tampilkan loading
+    imageContainer.innerHTML = `
+        <div class="hero-loading-spinner">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </div>
+    `;
+    
+    // Buat element gambar
+    const img = new Image();
+    
+    img.onload = function() {
+        // Setelah gambar selesai load, tampilkan
+        imageContainer.innerHTML = `
+            <img src="${imageUrl}" 
+                 alt="${title}" 
+                 class="hero-fullscreen-img"
+                 style="max-width: 95vw; max-height: 95vh; object-fit: contain;">
+        `;
+        
+        // Setup download button
+        if (downloadBtn) {
+            downloadBtn.onclick = function() {
+                const link = document.createElement('a');
+                link.href = imageUrl;
+                link.download = `hero-image-${Date.now()}.jpg`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            };
+        }
+    };
+    
+    img.onerror = function() {
+        // Jika gagal load gambar
+        imageContainer.innerHTML = `
+            <div class="text-center text-white">
+                <i class="bi bi-exclamation-triangle display-4"></i>
+                <p class="mt-3">Failed to load image</p>
+                <p class="small">${imageUrl}</p>
+            </div>
+        `;
+    };
+    
+    // Mulai load gambar
+    img.src = imageUrl;
+    
+    // Tampilkan modal
+    modal.show();
+    
+    // Tambahkan event untuk zoom dengan mouse wheel
+    const modalBody = document.querySelector('#heroFullscreenModal .modal-body');
+    let scale = 1;
+    
+    function handleWheel(e) {
+        e.preventDefault();
+        
+        if (e.deltaY < 0) {
+            // Zoom in
+            scale = Math.min(scale + 0.1, 3);
+        } else {
+            // Zoom out
+            scale = Math.max(scale - 0.1, 0.5);
+        }
+        
+        const img = imageContainer.querySelector('.hero-fullscreen-img');
+        if (img) {
+            img.style.transform = `scale(${scale})`;
+        }
+    }
+    
+    // Reset zoom saat modal ditutup
+    document.getElementById('heroFullscreenModal').addEventListener('hidden.bs.modal', function() {
+        scale = 1;
+        const img = imageContainer.querySelector('.hero-fullscreen-img');
+        if (img) {
+            img.style.transform = 'scale(1)';
+        }
+        
+        // Remove event listener
+        if (modalBody) {
+            modalBody.removeEventListener('wheel', handleWheel);
+        }
+    });
+    
+    // Add event listener for wheel
+    if (modalBody) {
+        modalBody.addEventListener('wheel', handleWheel, { passive: false });
+    }
+}
+
+// Fix untuk event click pada hero section
+document.addEventListener('DOMContentLoaded', function() {
+    const heroSection = document.getElementById('mainHeroSection');
+    
+    if (heroSection) {
+        // Pastikan onclick bekerja dengan baik
+        heroSection.addEventListener('click', function(e) {
+            // Cegah klik pada CTA button
+            if (e.target.closest('.hero-cta-button') || 
+                e.target.classList.contains('hero-cta-button')) {
+                return;
+            }
+            
+            // Cek jika ini image background
+            const bgImage = this.style.backgroundImage;
+            if (bgImage && bgImage !== 'none') {
+                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                if (match && match[1]) {
+                    const imageUrl = match[1];
+                    const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
+                    openHeroFullscreen(imageUrl, title);
+                }
+            }
+        });
+        
+        // Tambahkan efek visual untuk menunjukkan clickable
+        if (heroSection.style.backgroundImage && 
+            heroSection.style.backgroundImage !== 'none') {
+            
+            heroSection.style.cursor = 'pointer';
+            
+            // Efek hover
+            heroSection.addEventListener('mouseenter', function() {
+                this.style.opacity = '0.97';
+                this.style.boxShadow = 'inset 0 0 0 3px rgba(255,255,255,0.3)';
+            });
+            
+            heroSection.addEventListener('mouseleave', function() {
+                this.style.opacity = '1';
+                this.style.boxShadow = 'none';
+            });
+            
+            // Touch support untuk mobile
+            heroSection.addEventListener('touchstart', function() {
+                this.style.opacity = '0.97';
+            });
+            
+            heroSection.addEventListener('touchend', function() {
+                this.style.opacity = '1';
+            });
+        }
+    }
+    
+    // Click handler untuk zoom indicator
+    document.querySelectorAll('.zoom-indicator').forEach(indicator => {
+        indicator.addEventListener('click', function(e) {
+            e.stopPropagation();
+            const heroSection = this.closest('.hero-section');
+            if (heroSection) {
+                heroSection.click();
+            }
+        });
+    });
+});
+</script>
+
+</body>
+
+</html>
+
+// Tambahkan key listener untuk menutup modal dengan ESC
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        const modal = bootstrap.Modal.getInstance(document.getElementById('heroFullscreenModal'));
+        if (modal) {
+            modal.hide();
+        }
+    }
+});
     
     function generatePlayersHtml(players) {
         if (!players || players.length === 0) return '';
@@ -3033,6 +6584,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+
+<!-- Hero Fullscreen Modal -->
+<div class="modal fade" id="heroFullscreenModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex align-items-center justify-content-center p-0">
+                <div id="heroFullscreenImage" class="w-100 h-100 d-flex align-items-center justify-content-center">
+                    <!-- Gambar akan dimuat di sini -->
+                </div>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
+                    <i class="bi bi-x-lg me-2"></i> Close
+                </button>
+                <button type="button" class="btn btn-outline-light" id="downloadHeroBtn">
+                    <i class="bi bi-download me-2"></i> Download
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 </body>
 
 </html>
