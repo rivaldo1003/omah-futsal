@@ -5918,13 +5918,19 @@ document.addEventListener('DOMContentLoaded', function() {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Team Search Functionality
+// ==============================================
+// TEAM MANAGEMENT FUNCTIONS
+// ==============================================
+
+// Team Search Functionality
+function initTeamSearch() {
     const teamSearch = document.getElementById('teamSearch');
     const teamSort = document.getElementById('teamSort');
     const teamsGrid = document.getElementById('teamsGrid');
     const noTeamsFound = document.getElementById('noTeamsFound');
     const teamCards = document.querySelectorAll('.team-card');
+    
+    if (!teamSearch || !teamCards.length) return;
     
     // Store all teams data
     const teamsData = [];
@@ -5938,106 +5944,112 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    if (teamSearch && teamCards.length > 0) {
-        teamSearch.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            let visibleCount = 0;
+    teamSearch.addEventListener('input', function() {
+        const searchTerm = this.value.toLowerCase().trim();
+        let visibleCount = 0;
+        
+        teamCards.forEach(card => {
+            const teamName = card.getAttribute('data-team-name').toLowerCase();
+            const cardContent = card.textContent.toLowerCase();
             
-            teamCards.forEach(card => {
-                const teamName = card.getAttribute('data-team-name').toLowerCase();
-                const cardContent = card.textContent.toLowerCase();
-                
-                if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-            
-            // Show/hide no results message
-            if (visibleCount === 0) {
-                teamsGrid.classList.add('d-none');
-                noTeamsFound.classList.remove('d-none');
+            if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                card.style.display = 'block';
+                visibleCount++;
             } else {
-                teamsGrid.classList.remove('d-none');
-                noTeamsFound.classList.add('d-none');
-                
-                // Sort teams
-                sortTeams(teamSort.value);
+                card.style.display = 'none';
             }
         });
-    }
+        
+        // Show/hide no results message
+        if (visibleCount === 0) {
+            teamsGrid.classList.add('d-none');
+            noTeamsFound.classList.remove('d-none');
+        } else {
+            teamsGrid.classList.remove('d-none');
+            noTeamsFound.classList.add('d-none');
+            
+            // Sort teams
+            sortTeams(teamSort.value, teamCards);
+        }
+    });
     
     // Sort functionality
     if (teamSort) {
         teamSort.addEventListener('change', function() {
-            sortTeams(this.value);
+            sortTeams(this.value, teamCards);
         });
     }
+}
+
+function sortTeams(sortBy, teamCards) {
+    const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
     
-    function sortTeams(sortBy) {
-        const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
-        
-        cards.sort((a, b) => {
-            if (sortBy === 'name') {
-                const nameA = a.getAttribute('data-team-name');
-                const nameB = b.getAttribute('data-team-name');
-                return nameA.localeCompare(nameB);
-            } else if (sortBy === 'players') {
-                const playersA = parseInt(a.getAttribute('data-team-players') || 0);
-                const playersB = parseInt(b.getAttribute('data-team-players') || 0);
-                return playersB - playersA; // Descending
-            } else if (sortBy === 'tournaments') {
-                const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
-                const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
-                return tournamentsB - tournamentsA; // Descending
-            }
-            return 0;
-        });
-        
-        // Reorder the grid
+    cards.sort((a, b) => {
+        if (sortBy === 'name') {
+            const nameA = a.getAttribute('data-team-name');
+            const nameB = b.getAttribute('data-team-name');
+            return nameA.localeCompare(nameB);
+        } else if (sortBy === 'players') {
+            const playersA = parseInt(a.getAttribute('data-team-players') || 0);
+            const playersB = parseInt(b.getAttribute('data-team-players') || 0);
+            return playersB - playersA; // Descending
+        } else if (sortBy === 'tournaments') {
+            const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
+            const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
+            return tournamentsB - tournamentsA; // Descending
+        }
+        return 0;
+    });
+    
+    // Reorder the grid
+    if (cards.length > 0) {
         const container = cards[0].parentNode;
         cards.forEach(card => {
             container.appendChild(card);
         });
     }
-    
-    // Team Details Modal - TANPA API
-    const teamDetailsModal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
+}
+
+// ==============================================
+// TEAM DETAILS MODAL
+// ==============================================
+
+function initTeamDetailsModal() {
+    const teamDetailsModal = document.getElementById('teamDetailsModal');
     const viewTeamButtons = document.querySelectorAll('.view-team-details');
-    const loadMoreBtn = document.getElementById('loadMorePlayers');
-    const loadMoreText = document.getElementById('loadMoreText');
-    const loadMoreSpinner = document.getElementById('loadMoreSpinner');
+    const teamCards = document.querySelectorAll('.team-card');
     
-    let currentTeamCard = null;
-    let currentPlayers = [];
-    let currentPage = 1;
-    const playersPerPage = 25;
-    let allPlayersLoaded = false;
+    if (!teamDetailsModal || !viewTeamButtons.length) return;
+    
+    const modal = new bootstrap.Modal(teamDetailsModal);
     
     viewTeamButtons.forEach((button, index) => {
         button.addEventListener('click', function() {
             const teamIndex = this.getAttribute('data-team-index');
-            showTeamPlayers(teamIndex);
+            showTeamPlayers(teamIndex, teamCards, modal);
         });
     });
     
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
-            if (currentTeamCard && !allPlayersLoaded) {
-                loadMorePlayers();
-            }
-        });
-    }
-    
-    function showTeamPlayers(teamIndex) {
+    // Add hover effect to team cards
+    teamCards.forEach(card => {
+        const teamCard = card.querySelector('.team-compact-card');
+        if (teamCard) {
+            teamCard.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-3px)';
+                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+            });
+            
+            teamCard.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+            });
+        }
+    });
+}
+
+function showTeamPlayers(teamIndex, teamCards, modal) {
     const teamCard = teamCards[teamIndex];
     if (!teamCard) return;
-    
-    currentTeamCard = teamCard;
-    currentPage = 1;
-    allPlayersLoaded = false;
     
     // Get team data from data attributes
     const teamName = teamCard.querySelector('h6').textContent;
@@ -6045,33 +6057,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const teamLogo = teamCard.getAttribute('data-team-logo') || '';
     const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
     
-    // Parse players data - FIXED VERSION
+    // Parse players data
+    let currentPlayers = [];
     try {
         const playersJson = teamCard.getAttribute('data-players-json');
-        console.log('Players JSON:', playersJson);
         
-        if (!playersJson || playersJson.trim() === '') {
-            console.warn('No players data found');
-            currentPlayers = [];
-        } else {
-            // Clean JSON string jika perlu
+        if (playersJson && playersJson.trim() !== '') {
+            // Clean JSON string
             let cleanJson = playersJson;
-            // Replace escaped characters
             cleanJson = cleanJson.replace(/&quot;/g, '"')
                                 .replace(/&#039;/g, "'")
                                 .replace(/&amp;/g, '&')
                                 .replace(/&lt;/g, '<')
                                 .replace(/&gt;/g, '>');
             
-            console.log('Cleaned JSON:', cleanJson.substring(0, 200));
-            
             // Parse JSON
             currentPlayers = JSON.parse(cleanJson);
-            console.log('Parsed players:', currentPlayers.length, 'players');
         }
     } catch (e) {
         console.error('Error parsing players data:', e);
-        console.error('JSON string was:', teamCard.getAttribute('data-players-json'));
         currentPlayers = [];
     }
     
@@ -6089,6 +6093,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Get players for current page
+    const playersPerPage = 25;
     const startIndex = 0;
     const endIndex = Math.min(playersPerPage, currentPlayers.length);
     const pagePlayers = currentPlayers.slice(startIndex, endIndex);
@@ -6115,217 +6120,144 @@ document.addEventListener('DOMContentLoaded', function() {
         </div>
     `;
     
-    // Update load more button
-    if (loadMoreBtn) {
-        if (currentPlayers.length <= playersPerPage) {
-            loadMoreBtn.style.display = 'none';
-            allPlayersLoaded = true;
-        } else {
-            loadMoreBtn.style.display = 'block';
-            loadMoreText.textContent = 'Load More Players';
-            allPlayersLoaded = false;
-        }
-    }
-    
     // Show modal
-    teamDetailsModal.show();
+    modal.show();
 }
 
-
- 
-
-
-// Tambahkan juga event listener untuk klik hero section yang lebih baik
-document.addEventListener('DOMContentLoaded', function() {
-    const heroSection = document.getElementById('mainHeroSection');
+function generatePlayersHtml(players) {
+    if (!players || players.length === 0) return '';
     
-    if (heroSection) {
-        // Tambahkan cursor pointer jika hero memiliki gambar
-        const hasImage = heroSection.style.backgroundImage && 
-                         heroSection.style.backgroundImage !== 'none';
-        
-        if (hasImage) {
-            heroSection.style.cursor = 'pointer';
-            
-            // Tambahkan efek hover yang lebih jelas
-            heroSection.addEventListener('mouseenter', function() {
-                if (this.style.backgroundImage && this.style.backgroundImage !== 'none') {
-                    this.style.transform = 'scale(1.005)';
-                    this.style.transition = 'transform 0.3s ease, opacity 0.3s ease';
-                }
-            });
-            
-            heroSection.addEventListener('mouseleave', function() {
-                this.style.transform = 'scale(1)';
-            });
-            
-            // Pastikan klik bekerja
-            heroSection.addEventListener('click', function(e) {
-                // Cek apakah klik tidak pada tombol CTA
-                if (e.target.closest('.hero-cta-button')) {
-                    return; // Biarkan tombol CTA bekerja normal
-                }
-                
-                const bgImage = this.style.backgroundImage;
-                if (bgImage && bgImage !== 'none') {
-                    // Extract URL dari background-image
-                    const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-                    if (match && match[1]) {
-                        const imageUrl = match[1];
-                        const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
-                        openHeroFullscreen(imageUrl, title);
-                    }
-                }
-            });
+    let html = '';
+    players.forEach(player => {
+        // Photo HTML
+        let photoHtml = '';
+        if (player.photo) {
+            photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
+        } else {
+            const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
+            photoHtml = `<div class="player-initial">${initial}</div>`;
         }
+        
+        // Stats badges
+        let statsHtml = '';
+        if (player.goals > 0 || player.assists > 0) {
+            statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
+            if (player.goals > 0) {
+                statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
+            }
+            if (player.assists > 0) {
+                statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
+            }
+            statsHtml += '</div>';
+        }
+        
+        html += `
+        <div class="player-card-modal">
+            <div class="player-photo-container">
+                ${photoHtml}
+            </div>
+            <div class="player-info-modal">
+                <h6 class="mb-1 text-truncate">${player.name || 'Unknown'}</h6>
+                ${player.jersey_number ? `<div class="player-jersey mb-1">#${player.jersey_number}</div>` : ''}
+                ${player.position ? `<div class="player-position mb-2">${player.position}</div>` : ''}
+                ${statsHtml}
+            </div>
+        </div>
+        `;
+    });
+    
+    return html;
+}
+
+// ==============================================
+// HERO FULLSCREEN MODAL - FIXED VERSION
+// ==============================================
+
+let heroModalInstance = null;
+let heroScale = 1;
+
+function initHeroSection() {
+    const heroSection = document.getElementById('mainHeroSection');
+    if (!heroSection) return;
+    
+    // Check if hero has image background
+    const hasImage = heroSection.style.backgroundImage && 
+                     heroSection.style.backgroundImage !== 'none';
+    
+    if (hasImage) {
+        heroSection.style.cursor = 'pointer';
+        
+        // Add click event
+        heroSection.addEventListener('click', function(e) {
+            // Check if click is not on CTA button
+            if (e.target.closest('.hero-cta-button')) {
+                return;
+            }
+            
+            const bgImage = this.style.backgroundImage;
+            if (bgImage && bgImage !== 'none') {
+                // Extract URL from background-image
+                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                if (match && match[1]) {
+                    const imageUrl = match[1];
+                    const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
+                    openHeroFullscreen(imageUrl, title);
+                }
+            }
+        });
     }
     
-    // Tambahkan animasi untuk zoom indicator
+    // Add animation for zoom indicator
     const zoomIndicators = document.querySelectorAll('.zoom-indicator');
     zoomIndicators.forEach(indicator => {
         indicator.addEventListener('click', function(e) {
-            e.stopPropagation(); // Mencegah bubbling ke hero section
+            e.stopPropagation();
             const heroSection = this.closest('.hero-section');
             if (heroSection) {
-                heroSection.click(); // Trigger klik pada hero section
+                heroSection.click();
             }
         });
     });
-});
+}
 
-// Tambahkan key listener untuk menutup modal dengan ESC
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('heroFullscreenModal'));
-        if (modal) {
-            modal.hide();
-        }
-    }
-});
-    
-    function generatePlayersHtml(players) {
-        if (!players || players.length === 0) return '';
-        
-        let html = '';
-        players.forEach(player => {
-            // Photo HTML
-            let photoHtml = '';
-            if (player.photo) {
-                photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
-            } else {
-                const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
-                photoHtml = `<div class="player-initial">${initial}</div>`;
-            }
-            
-            // Stats badges
-            let statsHtml = '';
-            if (player.goals > 0 || player.assists > 0) {
-                statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
-                if (player.goals > 0) {
-                    statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
-                }
-                if (player.assists > 0) {
-                    statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
-                }
-                statsHtml += '</div>';
-            }
-            
-            html += `
-            <div class="player-card-modal">
-                <div class="player-photo-container">
-                    ${photoHtml}
-                </div>
-                <div class="player-info-modal">
-                    <h6 class="mb-1 text-truncate">${player.name || 'Unknown'}</h6>
-                    ${player.jersey_number ? `<div class="player-jersey mb-1">#${player.jersey_number}</div>` : ''}
-                    ${player.position ? `<div class="player-position mb-2">${player.position}</div>` : ''}
-                    ${statsHtml}
-                </div>
-            </div>
-            `;
-        });
-        
-        return html;
-    }
-    
-    function loadMorePlayers() {
-        if (!currentTeamCard || allPlayersLoaded) return;
-        
-        currentPage++;
-        const startIndex = (currentPage - 1) * playersPerPage;
-        const endIndex = Math.min(startIndex + playersPerPage, currentPlayers.length);
-        
-        if (startIndex >= currentPlayers.length) {
-            allPlayersLoaded = true;
-            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-            return;
-        }
-        
-        const pagePlayers = currentPlayers.slice(startIndex, endIndex);
-        const playersHtml = generatePlayersHtml(pagePlayers);
-        
-        const playersGrid = document.getElementById('playersGrid');
-        if (playersGrid) {
-            playersGrid.innerHTML += playersHtml;
-        }
-        
-        // Check if all players loaded
-        if (endIndex >= currentPlayers.length) {
-            allPlayersLoaded = true;
-            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-        }
-        
-        // Update button text
-        if (loadMoreBtn && loadMoreText) {
-            const remaining = currentPlayers.length - endIndex;
-            if (remaining > 0) {
-                loadMoreText.textContent = `Load ${Math.min(remaining, playersPerPage)} More`;
-            } else {
-                loadMoreText.textContent = 'All Players Loaded';
-            }
-        }
-    }
-    
-    // Add hover effect to team cards
-    teamCards.forEach(card => {
-        const teamCard = card.querySelector('.team-compact-card');
-        if (teamCard) {
-            teamCard.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
-            });
-            
-            teamCard.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
-            });
-        }
-    });
-});
-
-// Function untuk membuka hero image fullscreen
 function openHeroFullscreen(imageUrl, title) {
-    console.log('Opening fullscreen:', imageUrl, title);
+    console.log('Opening fullscreen modal for:', imageUrl);
     
-    // Dapatkan modal
-    const modal = new bootstrap.Modal(document.getElementById('heroFullscreenModal'));
+    // Get modal element
+    const modalEl = document.getElementById('heroFullscreenModal');
+    if (!modalEl) {
+        console.error('Hero fullscreen modal not found!');
+        return;
+    }
+    
+    // Create new modal instance
+    heroModalInstance = new bootstrap.Modal(modalEl, {
+        keyboard: true,
+        backdrop: true
+    });
+    
     const imageContainer = document.getElementById('heroFullscreenImage');
     const downloadBtn = document.getElementById('downloadHeroBtn');
     
-    // Tampilkan loading
+    if (!imageContainer) {
+        console.error('Hero image container not found!');
+        return;
+    }
+    
+    // Show loading
     imageContainer.innerHTML = `
         <div class="hero-loading-spinner">
-            <div class="spinner-border" role="status">
+            <div class="spinner-border text-light" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     `;
     
-    // Buat element gambar
+    // Create image element
     const img = new Image();
     
     img.onload = function() {
-        // Setelah gambar selesai load, tampilkan
+        // After image loads, display it
         imageContainer.innerHTML = `
             <img src="${imageUrl}" 
                  alt="${title}" 
@@ -6347,7 +6279,7 @@ function openHeroFullscreen(imageUrl, title) {
     };
     
     img.onerror = function() {
-        // Jika gagal load gambar
+        // If failed to load image
         imageContainer.innerHTML = `
             <div class="text-center text-white">
                 <i class="bi bi-exclamation-triangle display-4"></i>
@@ -6357,257 +6289,141 @@ function openHeroFullscreen(imageUrl, title) {
         `;
     };
     
-    // Mulai load gambar
+    // Start loading image
     img.src = imageUrl;
     
-    // Tampilkan modal
-    modal.show();
+    // Add cleanup on modal hide
+    modalEl.addEventListener('hidden.bs.modal', function() {
+        console.log('Hero modal hidden, cleaning up...');
+        
+        // Reset scale
+        heroScale = 1;
+        const img = imageContainer.querySelector('.hero-fullscreen-img');
+        if (img) {
+            img.style.transform = 'scale(1)';
+        }
+        
+        // Clear image container
+        imageContainer.innerHTML = '';
+        
+        // Clean up modal instance
+        if (heroModalInstance) {
+            heroModalInstance.dispose();
+            heroModalInstance = null;
+        }
+        
+        // Ensure body is scrollable
+        document.body.classList.remove('modal-open');
+        document.body.style.overflow = '';
+        document.body.style.paddingRight = '';
+        
+        // Remove any lingering backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => {
+            backdrop.remove();
+        });
+        
+        console.log('Cleanup completed');
+    }, { once: true });
     
-    // Tambahkan event untuk zoom dengan mouse wheel
-    const modalBody = document.querySelector('#heroFullscreenModal .modal-body');
-    let scale = 1;
+    // Add wheel event for zoom
+    const modalBody = modalEl.querySelector('.modal-body');
+    heroScale = 1;
     
     function handleWheel(e) {
         e.preventDefault();
         
         if (e.deltaY < 0) {
             // Zoom in
-            scale = Math.min(scale + 0.1, 3);
+            heroScale = Math.min(heroScale + 0.1, 3);
         } else {
             // Zoom out
-            scale = Math.max(scale - 0.1, 0.5);
+            heroScale = Math.max(heroScale - 0.1, 0.5);
         }
         
         const img = imageContainer.querySelector('.hero-fullscreen-img');
         if (img) {
-            img.style.transform = `scale(${scale})`;
+            img.style.transform = `scale(${heroScale})`;
         }
     }
     
-    // Reset zoom saat modal ditutup
-    document.getElementById('heroFullscreenModal').addEventListener('hidden.bs.modal', function() {
-        scale = 1;
-        const img = imageContainer.querySelector('.hero-fullscreen-img');
-        if (img) {
-            img.style.transform = 'scale(1)';
-        }
-        
-        // Remove event listener
-        if (modalBody) {
-            modalBody.removeEventListener('wheel', handleWheel);
-        }
-    });
-    
-    // Add event listener for wheel
+    // Add wheel event listener
     if (modalBody) {
         modalBody.addEventListener('wheel', handleWheel, { passive: false });
+        
+        // Remove on modal hide
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            modalBody.removeEventListener('wheel', handleWheel);
+        }, { once: true });
     }
+    
+    // Show modal
+    heroModalInstance.show();
 }
 
-// Fix untuk event click pada hero section
-document.addEventListener('DOMContentLoaded', function() {
-    const heroSection = document.getElementById('mainHeroSection');
-    
-    if (heroSection) {
-        // Pastikan onclick bekerja dengan baik
-        heroSection.addEventListener('click', function(e) {
-            // Cegah klik pada CTA button
-            if (e.target.closest('.hero-cta-button') || 
-                e.target.classList.contains('hero-cta-button')) {
-                return;
-            }
-            
-            // Cek jika ini image background
-            const bgImage = this.style.backgroundImage;
-            if (bgImage && bgImage !== 'none') {
-                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-                if (match && match[1]) {
-                    const imageUrl = match[1];
-                    const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
-                    openHeroFullscreen(imageUrl, title);
-                }
-            }
-        });
-        
-        // Tambahkan efek visual untuk menunjukkan clickable
-        if (heroSection.style.backgroundImage && 
-            heroSection.style.backgroundImage !== 'none') {
-            
-            heroSection.style.cursor = 'pointer';
-            
-            // Efek hover
-            heroSection.addEventListener('mouseenter', function() {
-                this.style.opacity = '0.97';
-                this.style.boxShadow = 'inset 0 0 0 3px rgba(255,255,255,0.3)';
-            });
-            
-            heroSection.addEventListener('mouseleave', function() {
-                this.style.opacity = '1';
-                this.style.boxShadow = 'none';
-            });
-            
-            // Touch support untuk mobile
-            heroSection.addEventListener('touchstart', function() {
-                this.style.opacity = '0.97';
-            });
-            
-            heroSection.addEventListener('touchend', function() {
-                this.style.opacity = '1';
-            });
-        }
-    }
-    
-    // Click handler untuk zoom indicator
-    document.querySelectorAll('.zoom-indicator').forEach(indicator => {
-        indicator.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const heroSection = this.closest('.hero-section');
-            if (heroSection) {
-                heroSection.click();
-            }
-        });
-    });
-});
-</script>
+// ==============================================
+// GLOBAL EVENT LISTENERS
+// ==============================================
 
-</body>
-
-</html>
-
-// Tambahkan key listener untuk menutup modal dengan ESC
+// ESC key to close modal
 document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
-        const modal = bootstrap.Modal.getInstance(document.getElementById('heroFullscreenModal'));
-        if (modal) {
-            modal.hide();
+        const modalEl = document.getElementById('heroFullscreenModal');
+        if (modalEl && modalEl.classList.contains('show')) {
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if (modal) {
+                modal.hide();
+            }
         }
     }
 });
+
+// ==============================================
+// INITIALIZE ALL FUNCTIONS ON DOM LOAD
+// ==============================================
+
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing scripts...');
     
-    function generatePlayersHtml(players) {
-        if (!players || players.length === 0) return '';
-        
-        let html = '';
-        players.forEach(player => {
-            // Photo HTML
-            let photoHtml = '';
-            if (player.photo) {
-                photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
-            } else {
-                const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
-                photoHtml = `<div class="player-initial">${initial}</div>`;
-            }
-            
-            // Stats badges
-            let statsHtml = '';
-            if (player.goals > 0 || player.assists > 0) {
-                statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
-                if (player.goals > 0) {
-                    statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
-                }
-                if (player.assists > 0) {
-                    statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
-                }
-                statsHtml += '</div>';
-            }
-            
-            html += `
-            <div class="player-card-modal">
-                <div class="player-photo-container">
-                    ${photoHtml}
-                </div>
-                <div class="player-info-modal">
-                    <h6 class="mb-1 text-truncate">${player.name || 'Unknown'}</h6>
-                    ${player.jersey_number ? `<div class="player-jersey mb-1">#${player.jersey_number}</div>` : ''}
-                    ${player.position ? `<div class="player-position mb-2">${player.position}</div>` : ''}
-                    ${statsHtml}
-                </div>
-            </div>
-            `;
+    // Initialize team search
+    initTeamSearch();
+    
+    // Initialize team details modal
+    initTeamDetailsModal();
+    
+    // Initialize hero section
+    initHeroSection();
+    
+    console.log('All scripts initialized successfully');
+});
+
+// Fix for modal backdrop issues
+document.addEventListener('DOMContentLoaded', function() {
+    // Ensure modal backdrop cleanup
+    const modalEl = document.getElementById('heroFullscreenModal');
+    
+    if (modalEl) {
+        // Additional cleanup on modal hide
+        modalEl.addEventListener('hidden.bs.modal', function() {
+            // Double-check backdrop removal
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => {
+                    if (backdrop.parentNode) {
+                        backdrop.parentNode.removeChild(backdrop);
+                    }
+                });
+                
+                // Ensure body is scrollable
+                document.body.classList.remove('modal-open');
+                document.body.style.cssText = '';
+            }, 100);
         });
-        
-        return html;
     }
-    
-    function loadMorePlayers() {
-        if (!currentTeamCard || allPlayersLoaded) return;
-        
-        currentPage++;
-        const startIndex = (currentPage - 1) * playersPerPage;
-        const endIndex = Math.min(startIndex + playersPerPage, currentPlayers.length);
-        
-        if (startIndex >= currentPlayers.length) {
-            allPlayersLoaded = true;
-            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-            return;
-        }
-        
-        const pagePlayers = currentPlayers.slice(startIndex, endIndex);
-        const playersHtml = generatePlayersHtml(pagePlayers);
-        
-        const playersGrid = document.getElementById('playersGrid');
-        if (playersGrid) {
-            playersGrid.innerHTML += playersHtml;
-        }
-        
-        // Check if all players loaded
-        if (endIndex >= currentPlayers.length) {
-            allPlayersLoaded = true;
-            if (loadMoreBtn) loadMoreBtn.style.display = 'none';
-        }
-        
-        // Update button text
-        if (loadMoreBtn && loadMoreText) {
-            const remaining = currentPlayers.length - endIndex;
-            if (remaining > 0) {
-                loadMoreText.textContent = `Load ${Math.min(remaining, playersPerPage)} More`;
-            } else {
-                loadMoreText.textContent = 'All Players Loaded';
-            }
-        }
-    }
-    
-    // Add hover effect to team cards
-    teamCards.forEach(card => {
-        const teamCard = card.querySelector('.team-compact-card');
-        if (teamCard) {
-            teamCard.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
-            });
-            
-            teamCard.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
-            });
-        }
-    });
 });
 </script>
 
-<!-- Hero Fullscreen Modal -->
-<div class="modal fade" id="heroFullscreenModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen">
-        <div class="modal-content bg-dark">
-            <div class="modal-header border-0">
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body d-flex align-items-center justify-content-center p-0">
-                <div id="heroFullscreenImage" class="w-100 h-100 d-flex align-items-center justify-content-center">
-                    <!-- Gambar akan dimuat di sini -->
-                </div>
-            </div>
-            <div class="modal-footer border-0 justify-content-center">
-                <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">
-                    <i class="bi bi-x-lg me-2"></i> Close
-                </button>
-                <button type="button" class="btn btn-outline-light" id="downloadHeroBtn">
-                    <i class="bi bi-download me-2"></i> Download
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 </body>
 
