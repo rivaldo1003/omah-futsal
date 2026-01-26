@@ -13,21 +13,6 @@ use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    private function getFallbackTopScorers()
-    {
-        return Player::with('team')
-            ->orderBy('goals', 'desc')
-            ->limit(5)
-            ->get()
-            ->map(function ($player) {
-                $player->goals = $player->goals ?? 0;
-                $player->yellow_cards = $player->yellow_cards ?? 0;
-                $player->red_cards = $player->red_cards ?? 0;
-
-                return $player;
-            });
-    }
-
     public function index()
     {
         // ==============================
@@ -36,7 +21,7 @@ class HomeController extends Controller
         $heroSetting = HeroSetting::first();
 
         // Jika tidak ada setting, buat default
-        if (! $heroSetting) {
+        if (!$heroSetting) {
             $heroSetting = (object) [
                 'title' => 'OFS Champions League 2025',
                 'subtitle' => 'The ultimate futsal championship featuring elite teams competing for glory',
@@ -48,45 +33,84 @@ class HomeController extends Controller
             ];
         }
 
-        // DEBUG: Cek semua tournaments
-        $allTournaments = Tournament::all();
-
-        // Get active tournament - coba ambil tournament apapun yang ada
+        // PERUBAHAN: Hanya ambil tournament dengan status 'ongoing'
         $activeTournament = Tournament::where('status', 'ongoing')->first();
 
-        // Jika tidak ada tournament ongoing, ambil yang upcoming
-        if (! $activeTournament) {
-            $activeTournament = Tournament::where('status', 'upcoming')->first();
+        // Jika tidak ada tournament ongoing, tampilkan pesan kosong
+        if (!$activeTournament) {
+            return view('home', [
+                'heroSetting' => $heroSetting,
+                'activeTournament' => null,
+                'todayMatches' => collect(),
+                'upcomingMatches' => collect(),
+                'recentResults' => collect(),
+                'topScorers' => collect(),
+                'standings' => [],
+                'teams' => collect(),
+                'totalTeams' => 0,
+                'matchesCount' => 0,
+                'totalGoals' => 0,
+                'daysLeft' => 0,
+                'debugInfo' => [
+                    'has_active_tournament' => 'NO',
+                    'message' => 'No ongoing tournament found'
+                ],
+                'recentHighlights' => collect(),
+                'tournamentType' => null,
+                'isCupType' => false,
+                'isLeagueType' => false,
+                'hasGroups' => false,
+                'knockoutMatches' => collect(),
+                'bracketData' => null, // NEW
+            ]);
         }
 
-        // Jika masih tidak ada, ambil tournament apapun
-        if (! $activeTournament) {
-            $activeTournament = Tournament::first();
+        $tournamentId = $activeTournament->id;
+
+        // NEW: Determine tournament type
+        $tournamentType = $activeTournament->type;
+        $isCupType = ($tournamentType === 'knockout');
+        $isLeagueType = ($tournamentType === 'league');
+        $hasGroups = ($tournamentType === 'group_knockout');
+
+        // ==============================
+        // NEW: Get bracket data for knockout tournament
+        // ==============================
+        $bracketData = null;
+        if ($isCupType) {
+            $bracketData = $this->getKnockoutBracketData($tournamentId);
         }
 
         // ==============================
-        // GET TEAMS DATA
+        // GET TEAMS DATA (hanya dari tournament aktif)
         // ==============================
-        $teams = Team::withCount(['players', 'tournaments'])
-            ->with(['players' => function ($query) {
-                // Ambil SEMUA players, jangan dibatasi di sini
-                $query->orderBy('goals', 'desc')
-                    ->orderBy('position')
-                    ->orderBy('name');
-            }])
+        $teams = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
+            $query->where('tournament_id', $tournamentId);
+        })
+            ->withCount(['players', 'tournaments'])
+            ->with([
+                'players' => function ($query) use ($tournamentId) {
+                    $query->orderBy('goals', 'desc')
+                        ->orderBy('position')
+                        ->orderBy('name');
+                }
+            ])
             ->where('status', 'active')
             ->orderBy('name')
-            ->limit(value: 12)
+            ->limit(12)
             ->get();
 
-        // Get today's matches
-        $todayMatches = Game::with(['homeTeam', 'awayTeam'])
+        // PERUBAHAN: Hanya ambil matches dengan status 'ongoing' dari tournament aktif
+        $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+            ->where('tournament_id', $tournamentId)
+            ->where('status', 'ongoing')
             ->whereDate('match_date', Carbon::today())
             ->orderBy('time_start')
             ->get();
 
-        // Get upcoming matches (next 5)
+        // PERUBAHAN: Upcoming matches hanya dari tournament aktif
         $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->where('tournament_id', $tournamentId)
             ->where('status', 'upcoming')
             ->whereDate('match_date', '>=', Carbon::today())
             ->orderBy('match_date')
@@ -94,160 +118,108 @@ class HomeController extends Controller
             ->limit(5)
             ->get();
 
-        // Get recent results (last 5 completed matches) - Filter per tournament
-        if ($activeTournament) {
-            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
-                ->where('tournament_id', $activeTournament->id)
-                ->where('status', 'completed')
-                ->orderBy('match_date', 'desc')
-                ->orderBy('time_start', 'desc')
-                ->limit(5)
-                ->get();
-        } else {
-            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
-                ->where('status', 'completed')
-                ->orderBy('match_date', 'desc')
-                ->orderBy('time_start', 'desc')
-                ->limit(5)
+        // PERUBAHAN: Recent results hanya dari tournament aktif
+        $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+            ->where('tournament_id', $tournamentId)
+            ->where('status', 'completed')
+            ->orderBy('match_date', 'desc')
+            ->orderBy('time_start', 'desc')
+            ->limit(5)
+            ->get();
+
+        // ==============================
+        // NEW: Get knockout matches for cup tournament (untuk backup view)
+        // ==============================
+        $knockoutMatches = collect();
+        if ($isCupType) {
+            $knockoutMatches = Game::with(['homeTeam', 'awayTeam'])
+                ->where('tournament_id', $tournamentId)
+                ->whereIn('round_type', [
+                    'round_of_16',
+                    'quarterfinal',
+                    'semifinal',
+                    'final',
+                    'third_place',
+                    'qualifying',
+                    'preliminary'
+                ])
+                ->orderByRaw("
+                    CASE 
+                        WHEN round_type = 'final' THEN 1
+                        WHEN round_type = 'semifinal' THEN 2
+                        WHEN round_type = 'quarterfinal' THEN 3
+                        WHEN round_type = 'round_of_16' THEN 4
+                        WHEN round_type = 'third_place' THEN 5
+                        WHEN round_type = 'qualifying' THEN 6
+                        WHEN round_type = 'preliminary' THEN 7
+                        ELSE 8
+                    END
+                ")
+                ->orderBy('match_date')
+                ->limit(8)
                 ->get();
         }
 
         // ==============================
-        // GET TOP SCORERS PER TOURNAMENT - DENGAN PERINGKAT YANG SAMA
+        // GET TOP SCORERS HANYA DARI TOURNAMENT AKTIF
         // ==============================
-        $topScorers = collect();
+        $topScorers = $this->getTopScorersForTournament($tournamentId);
 
-        if ($activeTournament) {
-            try {
-                $tournamentId = $activeTournament->id;
-
-                // Hitung gol, assist, dan kartu per pemain dalam tournament
-                $playerStats = DB::table('players')
-                    ->select([
-                        'players.id',
-                        'players.name',
-                        'players.jersey_number',
-                        'players.position',
-                        'players.team_id',
-                        'teams.name as team_name',
-                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "goal" AND me.is_own_goal = 0 THEN me.id END) as goals'),
-                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "assist" THEN me.id END) as assists'),
-                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "yellow_card" THEN me.id END) as yellow_cards'),
-                        DB::raw('COUNT(DISTINCT CASE WHEN me.event_type = "red_card" THEN me.id END) as red_cards'),
-                    ])
-                    ->join('teams', 'players.team_id', '=', 'teams.id')
-                    ->join('team_tournament', 'teams.id', '=', 'team_tournament.team_id')
-                    ->leftJoin('match_events as me', 'players.id', '=', 'me.player_id')
-                    ->leftJoin('games', function ($join) use ($tournamentId) {
-                        $join->on('me.game_id', '=', 'games.id')
-                            ->where('games.tournament_id', '=', $tournamentId);
-                    })
-                    ->where('team_tournament.tournament_id', $tournamentId)
-                    ->groupBy(
-                        'players.id',
-                        'players.name',
-                        'players.jersey_number',
-                        'players.position',
-                        'players.team_id',
-                        'teams.name'
-                    )
-                    ->having('goals', '>', 0) // Hanya yang punya gol
-                    ->orderBy('goals', 'DESC')
-                    ->orderBy('assists', 'DESC')
-                    ->orderBy('yellow_cards', 'ASC') // Kartu lebih sedikit lebih baik
-                    ->orderBy('red_cards', 'ASC')    // Kartu merah lebih sedikit lebih baik
-                    ->orderBy('players.name', 'ASC') // Jika semua sama, urutkan nama
-                    ->limit(10)
-                    ->get();
-
-                // Tambahkan peringkat dengan tie-handling
-                $rank = 1;
-                $previousGoals = null;
-                $skipRank = 0;
-
-                $topScorers = $playerStats->map(function ($player, $index) use (&$rank, &$previousGoals, &$skipRank) {
-                    // Jika gol sama dengan sebelumnya, gunakan peringkat yang sama
-                    if ($previousGoals !== null && $player->goals == $previousGoals) {
-                        $skipRank++; // Tidak naikkan peringkat
-                        $player->rank = $rank - 1;
-                    } else {
-                        $rank += $skipRank; // Naikkan peringkat dengan skip
-                        $skipRank = 1; // Reset skip
-                        $player->rank = $rank;
-                        $rank++; // Siap untuk pemain berikutnya
-                    }
-
-                    $previousGoals = $player->goals;
-
-                    // Konversi ke object yang bisa digunakan di view
-                    return (object) [
-                        'id' => $player->id,
-                        'name' => $player->name,
-                        'jersey_number' => $player->jersey_number,
-                        'position' => $player->position,
-                        'team_id' => $player->team_id,
-                        'team_name' => $player->team_name,
-                        'goals' => $player->goals,
-                        'assists' => $player->assists,
-                        'yellow_cards' => $player->yellow_cards,
-                        'red_cards' => $player->red_cards,
-                        'rank' => $player->rank, // Peringkat setelah tie-handling
-                        'display_rank' => $player->rank, // Untuk ditampilkan
-                    ];
-                })->take(5); // Ambil 5 teratas
-
-                \Log::info('Top Scorers with Ranks:', [
-                    'players' => $topScorers->map(function ($p) {
-                        return $p->name.' - '.$p->goals.' gol (Rank: '.$p->rank.')';
-                    })->toArray(),
-                ]);
-
-            } catch (\Exception $e) {
-                \Log::error('Error getting tournament top scorers: '.$e->getMessage());
-                $topScorers = $this->getFallbackTopScorersWithRank();
-            }
-        } else {
-            $topScorers = $this->getFallbackTopScorersWithRank();
+        // GET STANDINGS hanya dari tournament aktif (jika bukan cup)
+        $standings = [];
+        if (!$isCupType) {
+            $standings = $this->getAllGroupStandingsFixed($activeTournament);
         }
 
-        // Pastikan diurutkan benar sebelum dikirim ke view
-        $topScorers = $topScorers->sortByDesc('goals')->values();
+        // Statistics untuk tournament aktif
+        $totalTeams = $teams->count();
 
-        // GET STANDINGS dengan semua tim termasuk yang belum bermain
-        $standings = $this->getAllGroupStandingsFixed($activeTournament);
+        // PERBAIKAN: Gunakan nama tabel yang benar - 'matches' bukan 'games'
+        $matchesCount = Game::where('tournament_id', $tournamentId)->count();
 
-        // Statistics for hero section
-        $totalTeams = Team::count();
-        $matchesCount = Game::count();
-        $totalGoals = Player::sum('goals');
+        // PERBAIKAN: Total goals dalam tournament aktif - gunakan tabel 'matches'
+        $totalGoals = 0;
+        try {
+            $totalGoals = DB::table('match_events')
+                ->join('matches', 'match_events.match_id', '=', 'matches.id')  // <-- BENAR
+                ->where('matches.tournament_id', $tournamentId)
+                ->where('match_events.event_type', 'goal')
+                ->where('match_events.is_own_goal', false)
+                ->count();
+        } catch (\Exception $e) {
+            \Log::error('Error calculating total goals: ' . $e->getMessage());
+            $totalGoals = 0;
+        }
 
         // Calculate days left for active tournament
         $daysLeft = 0;
-        if ($activeTournament) {
+        if ($activeTournament && $activeTournament->end_date) {
             $endDate = Carbon::parse($activeTournament->end_date);
             $daysLeft = max(0, Carbon::now()->diffInDays($endDate, false));
         }
 
-        // DEBUG: Kirim data debug ke view
-        $debugInfo = [
-            'has_active_tournament' => $activeTournament ? 'YES' : 'NO',
-            'tournament_name' => $activeTournament ? $activeTournament->name : 'No Tournament',
-            'tournament_status' => $activeTournament ? $activeTournament->status : 'N/A',
-            'total_tournaments' => $allTournaments->count(),
-            'standings_count' => is_array($standings) ? count($standings) : 0,
-            'teams_in_tournament' => $activeTournament ?
-                DB::table('team_tournament')->where('tournament_id', $activeTournament->id)->count() : 0,
-            'top_scorers_count' => $topScorers->count(),
-            'top_scorers_has_tournament_data' => $topScorers->first() && isset($topScorers->first()->tournament_goals) ? 'YES' : 'NO',
-            'top_scorer_goals' => $topScorers->first() ? ($topScorers->first()->tournament_goals ?? 'N/A') : 'N/A',
-            'teams_count' => $teams->count(),
-        ];
-
-        $recentHighlights = Game::whereNotNull('youtube_id')
+        // PERUBAHAN: Highlights hanya dari tournament aktif
+        $recentHighlights = Game::where('tournament_id', $tournamentId)
+            ->whereNotNull('youtube_id')
             ->with(['homeTeam', 'awayTeam'])
             ->orderBy('youtube_uploaded_at', 'desc')
             ->limit(3)
             ->get();
+
+        // Debug info
+        $debugInfo = [
+            'has_active_tournament' => $activeTournament ? 'YES' : 'NO',
+            'tournament_name' => $activeTournament ? $activeTournament->name : 'No Tournament',
+            'tournament_status' => $activeTournament ? $activeTournament->status : 'N/A',
+            'tournament_type' => $tournamentType,
+            'ongoing_matches_count' => $todayMatches->count(),
+            'standings_count' => is_array($standings) ? count($standings) : 0,
+            'top_scorers_count' => $topScorers->count(),
+            'matches_count' => $matchesCount,
+            'total_goals' => $totalGoals,
+            'knockout_matches_count' => $knockoutMatches->count(),
+            'has_bracket_data' => $bracketData ? 'YES' : 'NO',
+        ];
 
         return view('home', compact(
             'heroSetting',
@@ -257,14 +229,269 @@ class HomeController extends Controller
             'recentResults',
             'topScorers',
             'standings',
-            'teams', // Data teams yang baru
-            'totalTeams', // Ubah dari $teams ke $totalTeams untuk statistik
+            'teams',
+            'totalTeams',
             'matchesCount',
             'totalGoals',
             'daysLeft',
             'debugInfo',
-            'recentHighlights'
+            'recentHighlights',
+            // NEW: Add tournament type flags
+            'tournamentType',
+            'isCupType',
+            'isLeagueType',
+            'hasGroups',
+            'knockoutMatches',
+            'bracketData' // NEW
         ));
+    }
+
+    /**
+     * Get knockout bracket visualization data
+     */
+    /**
+     * Get knockout bracket visualization data - FIXED VERSION (Read from JSON settings)
+     */
+    private function getKnockoutBracketData($tournamentId)
+    {
+        try {
+            $tournament = Tournament::find($tournamentId);
+
+            if (!$tournament) {
+                \Log::error('Tournament not found: ' . $tournamentId);
+                return null;
+            }
+
+            // Cek tournament type
+            if ($tournament->type !== 'knockout') {
+                \Log::info('Tournament is not knockout type. Type: ' . $tournament->type);
+                return null;
+            }
+
+            // Cek settings JSON
+            $settings = json_decode($tournament->settings, true) ?? [];
+            \Log::info('Tournament settings:', $settings);
+
+            // ... rest of the code ...
+
+        } catch (\Exception $e) {
+            \Log::error('Error in getKnockoutBracketData: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Get round order based on bracket size
+     */
+    private function getRoundOrderForBracketSize($bracketSize, $hasThirdPlace = false)
+    {
+        $roundOrder = [];
+
+        if ($bracketSize >= 16) {
+            $roundOrder['round_of_16'] = ['name' => 'Round of 16', 'matches_needed' => 8];
+        }
+        if ($bracketSize >= 8) {
+            $roundOrder['quarterfinal'] = ['name' => 'Quarter Final', 'matches_needed' => 4];
+        }
+        if ($bracketSize >= 4) {
+            $roundOrder['semifinal'] = ['name' => 'Semi Final', 'matches_needed' => 2];
+        }
+
+        $roundOrder['final'] = ['name' => 'Final', 'matches_needed' => 1];
+
+        if ($hasThirdPlace) {
+            $roundOrder['third_place'] = ['name' => '3rd Place', 'matches_needed' => 1];
+        }
+
+        return $roundOrder;
+    }
+
+    /**
+     * Calculate bracket completion progress
+     */
+    private function calculateBracketProgress($rounds)
+    {
+        $totalMatches = 0;
+        $completedMatches = 0;
+        $totalRounds = count($rounds);
+        $completedRounds = 0;
+
+        foreach ($rounds as $round) {
+            $totalMatches += $round['total_matches'];
+
+            // Count completed matches in this round
+            foreach ($round['matches'] as $match) {
+                if ($match['completed']) {
+                    $completedMatches++;
+                }
+            }
+
+            // Check if round is complete (all needed matches exist)
+            if ($round['total_matches'] >= $round['matches_needed']) {
+                $completedRounds++;
+            }
+        }
+
+        return [
+            'total_matches' => $totalMatches,
+            'completed_matches' => $completedMatches,
+            'total_rounds' => $totalRounds,
+            'completed_rounds' => $completedRounds,
+            'match_percentage' => $totalMatches > 0 ? round(($completedMatches / $totalMatches) * 100) : 0,
+            'round_percentage' => $totalRounds > 0 ? round(($completedRounds / $totalRounds) * 100) : 0,
+        ];
+    }
+
+    private function getTopScorersForTournament($tournamentId)
+    {
+        try {
+            // DEBUG: Log tournament ID dan cek data langsung
+            \Log::info('=== DEBUG TOP SCORERS START ===');
+            \Log::info('Tournament ID: ' . $tournamentId);
+
+            // Cek langsung data di match_events untuk tournament ini
+            $directGoals = DB::table('match_events as me')
+                ->join('matches as m', 'me.match_id', '=', 'm.id')
+                ->join('players as p', 'me.player_id', '=', 'p.id')
+                ->join('teams as t', 'p.team_id', '=', 't.id')
+                ->where('m.tournament_id', $tournamentId)
+                ->where('me.event_type', 'goal')
+                ->where(function ($query) {
+                    $query->where('me.is_own_goal', 0)
+                        ->orWhereNull('me.is_own_goal');
+                })
+                ->select(
+                    'p.id as player_id',
+                    'p.name as player_name',
+                    't.name as team_name',
+                    DB::raw('COUNT(DISTINCT me.id) as goals_count')
+                )
+                ->groupBy('p.id', 'p.name', 't.name')
+                ->orderBy('goals_count', 'desc')
+                ->get();
+
+            \Log::info('Direct goals query result:', $directGoals->toArray());
+
+            // Query utama dengan perbaikan JOIN
+            $playerStats = DB::table('players as p')
+                ->select([
+                    'p.id',
+                    'p.name',
+                    'p.jersey_number',
+                    'p.position',
+                    'p.team_id',
+                    't.name as team_name',
+                    // PERBAIKAN: Hitung goals hanya dari tournament ini
+                    DB::raw('COUNT(DISTINCT CASE 
+                    WHEN me.event_type = "goal" 
+                    AND (me.is_own_goal = 0 OR me.is_own_goal IS NULL)
+                    THEN me.id 
+                    END) as goals'),
+                    DB::raw('0 as assists'),
+                    DB::raw('COUNT(DISTINCT CASE 
+                    WHEN me.event_type = "yellow_card" 
+                    THEN me.id 
+                    END) as yellow_cards'),
+                    DB::raw('COUNT(DISTINCT CASE 
+                    WHEN me.event_type = "red_card" 
+                    THEN me.id 
+                    END) as red_cards'),
+                ])
+                ->join('teams as t', 'p.team_id', '=', 't.id')
+                ->join('team_tournament as tt', 't.id', '=', 'tt.team_id')
+                ->leftJoin('match_events as me', function ($join) use ($tournamentId) {
+                    $join->on('p.id', '=', 'me.player_id')
+                        ->where(function ($query) use ($tournamentId) {
+                            $query->where(function ($q) use ($tournamentId) {
+                                // Join dengan matches untuk filter tournament
+                                $q->whereExists(function ($subQuery) use ($tournamentId) {
+                                    $subQuery->select(DB::raw(1))
+                                        ->from('matches as m')
+                                        ->whereColumn('m.id', 'me.match_id')
+                                        ->where('m.tournament_id', $tournamentId);
+                                });
+                            });
+                        });
+                })
+                ->where('tt.tournament_id', $tournamentId)
+                ->groupBy('p.id', 'p.name', 'p.jersey_number', 'p.position', 'p.team_id', 't.name')
+                ->having('goals', '>', 0)
+                ->orderBy('goals', 'DESC')
+                ->orderBy('p.name', 'ASC')
+                ->limit(10)
+                ->get();
+
+            \Log::info('Main query result:', [
+                'count' => $playerStats->count(),
+                'data' => $playerStats->toArray()
+            ]);
+
+            \Log::info('=== DEBUG TOP SCORERS END ===');
+
+            // Jika tidak ada data, coba query alternatif
+            if ($playerStats->isEmpty() && !$directGoals->isEmpty()) {
+                \Log::info('Using direct goals data instead');
+
+                $playerStats = $directGoals->map(function ($item) {
+                    // Ambil data player lengkap
+                    $player = Player::find($item->player_id);
+
+                    return (object) [
+                        'id' => $item->player_id,
+                        'name' => $item->player_name,
+                        'jersey_number' => $player ? $player->jersey_number : '?',
+                        'position' => $player ? $player->position : '?',
+                        'team_id' => $player ? $player->team_id : null,
+                        'team_name' => $item->team_name,
+                        'goals' => $item->goals_count,
+                        'assists' => 0,
+                        'yellow_cards' => 0,
+                        'red_cards' => 0,
+                    ];
+                });
+            }
+
+            // Tambahkan peringkat dengan tie-handling
+            $rank = 1;
+            $previousGoals = null;
+            $skipRank = 0;
+
+            $topScorers = $playerStats->map(function ($player, $index) use (&$rank, &$previousGoals, &$skipRank) {
+                if ($previousGoals !== null && $player->goals == $previousGoals) {
+                    $skipRank++;
+                    $player->rank = $rank - 1;
+                } else {
+                    $rank += $skipRank;
+                    $skipRank = 1;
+                    $player->rank = $rank;
+                    $rank++;
+                }
+
+                $previousGoals = $player->goals;
+
+                return (object) [
+                    'id' => $player->id,
+                    'name' => $player->name,
+                    'jersey_number' => $player->jersey_number,
+                    'position' => $player->position,
+                    'team_id' => $player->team_id,
+                    'team_name' => $player->team_name,
+                    'goals' => $player->goals,
+                    'assists' => $player->assists,
+                    'yellow_cards' => $player->yellow_cards,
+                    'red_cards' => $player->red_cards,
+                    'rank' => $player->rank,
+                    'display_rank' => $player->rank,
+                ];
+            })->take(5);
+
+            return $topScorers;
+
+        } catch (\Exception $e) {
+            \Log::error('Error getting tournament top scorers: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return collect();
+        }
     }
 
     private function getFallbackTopScorersWithRank()
@@ -315,28 +542,13 @@ class HomeController extends Controller
      */
     private function getAllGroupStandingsFixed($activeTournament = null)
     {
-        if (! $activeTournament) {
-            // DEBUG: Log jika tidak ada tournament
-            \Log::info('No active tournament found in getAllGroupStandingsFixed');
-
+        if (!$activeTournament) {
             return [];
         }
 
         $tournamentId = $activeTournament->id;
 
         try {
-            // DEBUG: Cek apakah ada data di team_tournament
-            $teamTournamentCount = DB::table('team_tournament')
-                ->where('tournament_id', $tournamentId)
-                ->count();
-
-            \Log::info("Team tournament count for tournament {$tournamentId}: {$teamTournamentCount}");
-
-            if ($teamTournamentCount === 0) {
-                // Coba ambil data dari standings langsung
-                return $this->getStandingsDirectly($tournamentId);
-            }
-
             // 1. Get all teams in this tournament from team_tournament table
             $teamsInTournament = DB::table('team_tournament')
                 ->join('teams', 'team_tournament.team_id', '=', 'teams.id')
@@ -366,7 +578,7 @@ class HomeController extends Controller
                     $group = 'Ungrouped';
                 }
 
-                if (! isset($groupedTeams[$group])) {
+                if (!isset($groupedTeams[$group])) {
                     $groupedTeams[$group] = [];
                 }
 
@@ -406,7 +618,6 @@ class HomeController extends Controller
             }
 
             // 4. Sort each group
-            // GANTI kode sorting yang lama dengan ini:
             foreach ($groupedTeams as $group => $standings) {
                 usort($groupedTeams[$group], function ($a, $b) use ($tournamentId, $group) {
                     // 1. Points (Poin)
@@ -420,7 +631,7 @@ class HomeController extends Controller
                         return $headToHeadResult;
                     }
 
-                    // 3. Goal Difference (Selisih Gol) - SETELAH HEAD-TO-HEAD
+                    // 3. Goal Difference (Selisih Gol)
                     if ($b->goal_difference != $a->goal_difference) {
                         return $b->goal_difference - $a->goal_difference;
                     }
@@ -440,7 +651,7 @@ class HomeController extends Controller
                 });
             }
 
-            // 5. Sort groups alphabetically, tapi keluarkan 'Ungrouped' terakhir
+            // 5. Sort groups alphabetically
             uksort($groupedTeams, function ($a, $b) {
                 if ($a === 'Ungrouped') {
                     return 1;
@@ -448,19 +659,14 @@ class HomeController extends Controller
                 if ($b === 'Ungrouped') {
                     return -1;
                 }
-
                 return strcmp($a, $b);
             });
-
-            \Log::info('Grouped standings created with '.count($groupedTeams).' groups');
 
             return $groupedTeams;
 
         } catch (\Exception $e) {
-            \Log::error('Error in getAllGroupStandingsFixed: '.$e->getMessage());
-
-            // Fallback ke method simple
-            return $this->getStandingsDirectly($tournamentId);
+            \Log::error('Error in getAllGroupStandingsFixed: ' . $e->getMessage());
+            return [];
         }
     }
 
@@ -534,12 +740,12 @@ class HomeController extends Controller
             }
 
             $grouped = $standings->groupBy('group_name')->toArray();
-            \Log::info('Direct standings found: '.count($grouped).' groups');
+            \Log::info('Direct standings found: ' . count($grouped) . ' groups');
 
             return $grouped;
 
         } catch (\Exception $e) {
-            \Log::error('Error in getStandingsDirectly: '.$e->getMessage());
+            \Log::error('Error in getStandingsDirectly: ' . $e->getMessage());
 
             return [];
         }
@@ -593,7 +799,7 @@ class HomeController extends Controller
             return $standings->groupBy('group_name')->toArray();
 
         } catch (\Exception $e) {
-            \Log::error('Error in getStandingsSimple: '.$e->getMessage());
+            \Log::error('Error in getStandingsSimple: ' . $e->getMessage());
 
             return [];
         }
@@ -717,7 +923,7 @@ class HomeController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to load team details: '.$e->getMessage(),
+                'message' => 'Failed to load team details: ' . $e->getMessage(),
             ], 500);
         }
     }

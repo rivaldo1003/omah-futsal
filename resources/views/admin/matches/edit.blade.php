@@ -67,20 +67,31 @@
                         </div>
 
                         <!-- Round Type -->
-                        <div class="mb-3">
-                            <label for="round_type" class="form-label">Round Type *</label>
-                            <select name="round_type" id="round_type" class="form-select @error('round_type') is-invalid @enderror" required>
-                                <option value="">Select Round Type</option>
-                                <option value="group" {{ old('round_type', $match->round_type) == 'group' ? 'selected' : '' }}>Group Stage</option>
-                                <option value="quarterfinal" {{ old('round_type', $match->round_type) == 'quarterfinal' ? 'selected' : '' }}>Quarter Final</option>
-                                <option value="semifinal" {{ old('round_type', $match->round_type) == 'semifinal' ? 'selected' : '' }}>Semi Final</option>
-                                <option value="final" {{ old('round_type', $match->round_type) == 'final' ? 'selected' : '' }}>Final</option>
-                                <option value="third_place" {{ old('round_type', $match->round_type) == 'third_place' ? 'selected' : '' }}>Third Place</option>
-                            </select>
-                            @error('round_type')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+<div class="mb-3">
+    <label for="round_type" class="form-label">Round Type *</label>
+    <select name="round_type" id="round_type" class="form-select @error('round_type') is-invalid @enderror" required>
+        <option value="">Select Round Type</option>
+        
+        <!-- Qualifying/Preliminary Rounds -->
+        <option value="preliminary" {{ old('round_type', $match->round_type) == 'preliminary' ? 'selected' : '' }}>Preliminary Round</option>
+        <option value="qualifying" {{ old('round_type', $match->round_type) == 'qualifying' ? 'selected' : '' }}>Qualifying Round</option>
+        
+        <!-- Main Knockout Rounds -->
+        <option value="round_of_64" {{ old('round_type', $match->round_type) == 'round_of_64' ? 'selected' : '' }}>Round of 64</option>
+        <option value="round_of_32" {{ old('round_type', $match->round_type) == 'round_of_32' ? 'selected' : '' }}>Round of 32</option>
+        <option value="round_of_16" {{ old('round_type', $match->round_type) == 'round_of_16' ? 'selected' : '' }}>Round of 16</option>
+        <option value="quarterfinal" {{ old('round_type', $match->round_type) == 'quarterfinal' ? 'selected' : '' }}>Quarter Final</option>
+        <option value="semifinal" {{ old('round_type', $match->round_type) == 'semifinal' ? 'selected' : '' }}>Semi Final</option>
+        <option value="final" {{ old('round_type', $match->round_type) == 'final' ? 'selected' : '' }}>Final</option>
+        <option value="third_place" {{ old('round_type', $match->round_type) == 'third_place' ? 'selected' : '' }}>Third Place</option>
+        
+        <!-- Group Stage (for group+knockout tournaments) -->
+        <option value="group" {{ old('round_type', $match->round_type) == 'group' ? 'selected' : '' }}>Group Stage</option>
+    </select>
+    @error('round_type')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
                         <!-- Group Name (only show if group stage) -->
                         <div class="mb-3" id="groupField" style="{{ old('round_type', $match->round_type) == 'group' ? '' : 'display: none;' }}">

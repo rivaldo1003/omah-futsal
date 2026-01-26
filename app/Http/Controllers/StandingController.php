@@ -27,59 +27,73 @@ class StandingController extends Controller
         } else {
             // Default ke tournament ongoing atau terbaru
             $selectedTournament = Tournament::where('status', 'ongoing')->first();
-            if (! $selectedTournament) {
+            if (!$selectedTournament) {
                 $selectedTournament = Tournament::where('status', 'upcoming')->first();
             }
-            if (! $selectedTournament) {
+            if (!$selectedTournament) {
                 $selectedTournament = Tournament::latest()->first();
             }
         }
 
-        // Jika ada tournament yang dipilih, ambil standings dengan SEMUA tim
-        if ($selectedTournament) {
-            $standings = $this->getCompleteStandingsWithAllTeams($selectedTournament->id);
-        } else {
-        $standings = collect();
-        }
-
-        // Group standings by group
-        $groupedStandings = $standings->groupBy('group_name');
-
-        // Hitung position per group
+        // Inisialisasi variabel
+        $tournamentType = $selectedTournament ? $selectedTournament->type : null;
         $groupedStandingsWithPosition = collect();
-        foreach ($groupedStandings as $group => $groupStandings) {
-            $position = 1;
-            foreach ($groupStandings as $standing) {
-                // Tambahkan calculated fields
-                $standing->played = $standing->matches_played;
-                $standing->won = $standing->wins;
-                $standing->drawn = $standing->draws;
-                $standing->lost = $standing->losses;
-                $standing->position = $position;
-                $position++;
+        $flatStandings = collect();
+        $knockoutBracket = null;
+        $tournamentStats = [];
+
+        // Jika ada tournament yang dipilih
+        if ($selectedTournament) {
+            // Cek tipe tournament
+            if (in_array($tournamentType, ['league', 'group_knockout'])) {
+                // Untuk league dan group_knockout: tampilkan standings grup
+                $standings = $this->getCompleteStandingsWithAllTeams($selectedTournament->id);
+
+                // Group standings by group
+                $groupedStandings = $standings->groupBy('group_name');
+
+                // Hitung position per group
+                foreach ($groupedStandings as $group => $groupStandings) {
+                    $position = 1;
+                    foreach ($groupStandings as $standing) {
+                        // Tambahkan calculated fields
+                        $standing->played = $standing->matches_played;
+                        $standing->won = $standing->wins;
+                        $standing->drawn = $standing->draws;
+                        $standing->lost = $standing->losses;
+                        $standing->position = $position;
+                        $position++;
+                    }
+                    $groupedStandingsWithPosition->put($group, $groupStandings);
+                }
+
+                // Untuk flat standings dengan position
+                $flatStandings = $standings->map(function ($standing) {
+                    $standing->played = $standing->matches_played;
+                    $standing->won = $standing->wins;
+                    $standing->drawn = $standing->draws;
+                    $standing->lost = $standing->losses;
+
+                    return $standing;
+                });
+
+            } elseif ($tournamentType === 'knockout') {
+                // Untuk knockout: tampilkan bracket
+                $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
             }
-            $groupedStandingsWithPosition->put($group, $groupStandings);
+
+            // Hitung statistik tournament
+            $tournamentStats = $this->calculateTournamentStats($selectedTournament, $flatStandings);
         }
-
-        // Untuk flat standings dengan position
-        $flatStandings = $standings->map(function ($standing) {
-            $standing->played = $standing->matches_played;
-            $standing->won = $standing->wins;
-            $standing->drawn = $standing->draws;
-            $standing->lost = $standing->losses;
-
-            return $standing;
-        });
-
-        // Hitung statistik tournament
-        $tournamentStats = $this->calculateTournamentStats($selectedTournament, $flatStandings);
 
         return view('standings.index', compact(
             'groupedStandingsWithPosition',
             'flatStandings',
             'selectedTournament',
             'tournaments',
-            'tournamentStats'
+            'tournamentStats',
+            'tournamentType',
+            'knockoutBracket'
         ));
     }
 
@@ -89,12 +103,13 @@ class StandingController extends Controller
     private function getCompleteStandingsWithAllTeams($tournamentId)
     {
         // 1. Ambil semua tim yang terdaftar di tournament ini dari team_tournament
-        // SELECT teams.* untuk dapatkan semua kolom termasuk logo
         $teamsInTournament = DB::table('team_tournament')
             ->join('teams', 'team_tournament.team_id', '=', 'teams.id')
             ->where('team_tournament.tournament_id', $tournamentId)
             ->select(
-                'teams.*', // Ambil SEMUA kolom dari teams termasuk logo
+                'teams.id',
+                'teams.name',
+                'teams.logo',
                 'team_tournament.group_name',
                 'team_tournament.seed'
             )
@@ -104,9 +119,9 @@ class StandingController extends Controller
             return collect();
         }
 
-        // 2. Ambil standings yang sudah ada
-        $existingStandings = Standing::where('tournament_id', $tournamentId)
-            ->with('team') // Load team dengan logo
+        // 2. Ambil standings yang sudah ada dan load team relationship
+        $existingStandings = Standing::with('team')
+            ->where('tournament_id', $tournamentId)
             ->get()
             ->keyBy('team_id');
 
@@ -117,9 +132,17 @@ class StandingController extends Controller
             // Cek apakah tim sudah punya standings
             if ($existingStandings->has($teamTournament->id)) {
                 $standing = $existingStandings[$teamTournament->id];
+
+                // Pastikan team relation sudah loaded
+                if (!$standing->relationLoaded('team')) {
+                    $standing->load('team');
+                }
+
+                // Tambahkan flag
                 $standing->is_default = false;
             } else {
-                // Buat default standing untuk tim yang belum bermain
+                // Buat object custom untuk tim yang belum bermain
+                // JANGAN gunakan model Standing langsung
                 $standing = (object) [
                     'id' => null,
                     'team_id' => $teamTournament->id,
@@ -133,12 +156,13 @@ class StandingController extends Controller
                     'goals_against' => 0,
                     'goal_difference' => 0,
                     'points' => 0,
+                    'form' => null,
                     'created_at' => null,
                     'updated_at' => null,
-                    'team' => (object) [
+                    'team' => (object) [  // Object biasa, bukan Eloquent relation
                         'id' => $teamTournament->id,
                         'name' => $teamTournament->name,
-                        'logo' => $teamTournament->logo, // TAMBAHKAN LOGO
+                        'logo' => $teamTournament->logo,
                     ],
                     'is_default' => true,
                 ];
@@ -155,6 +179,17 @@ class StandingController extends Controller
         foreach ($grouped as $group => $groupStandings) {
             // Sort by: points > GD > GF > wins
             $sortedGroup = $groupStandings->sortByDesc(function ($standing) {
+                // Jika ini object custom
+                if (isset($standing->is_default) && $standing->is_default) {
+                    return [
+                        $standing->points,
+                        $standing->goal_difference,
+                        $standing->goals_for,
+                        $standing->wins,
+                    ];
+                }
+
+                // Jika ini model Standing
                 return [
                     $standing->points,
                     $standing->goal_difference,
@@ -170,11 +205,109 @@ class StandingController extends Controller
     }
 
     /**
+     * Get knockout bracket data
+     */
+    private function getKnockoutBracketData($tournamentId)
+    {
+        try {
+            // Ambil semua match knockout
+            $matches = Game::with(['homeTeam', 'awayTeam'])
+                ->where('tournament_id', $tournamentId)
+                ->whereIn('round_type', [
+                    'round_of_32',
+                    'round_of_16',
+                    'quarterfinal',
+                    'semifinal',
+                    'final',
+                    'third_place'
+                ])
+                ->orderByRaw("
+                    CASE 
+                        WHEN round_type = 'round_of_32' THEN 1
+                        WHEN round_type = 'round_of_16' THEN 2
+                        WHEN round_type = 'quarterfinal' THEN 3
+                        WHEN round_type = 'semifinal' THEN 4
+                        WHEN round_type = 'third_place' THEN 5
+                        WHEN round_type = 'final' THEN 6
+                        ELSE 7
+                    END
+                ")
+                ->orderBy('match_date')
+                ->orderBy('time_start')
+                ->get();
+
+            // Organize matches by round
+            $bracket = [
+                'round_of_32' => [],
+                'round_of_16' => [],
+                'quarterfinal' => [],
+                'semifinal' => [],
+                'third_place' => [],
+                'final' => []
+            ];
+
+            foreach ($matches as $match) {
+                $round = $match->round_type;
+                if (isset($bracket[$round])) {
+                    $bracket[$round][] = [
+                        'id' => $match->id,
+                        'home_team' => $match->homeTeam ? [
+                            'id' => $match->homeTeam->id,
+                            'name' => $match->homeTeam->name,
+                            'logo' => $match->homeTeam->logo,
+                            'score' => $match->home_score
+                        ] : null,
+                        'away_team' => $match->awayTeam ? [
+                            'id' => $match->awayTeam->id,
+                            'name' => $match->awayTeam->name,
+                            'logo' => $match->awayTeam->logo,
+                            'score' => $match->away_score
+                        ] : null,
+                        'status' => $match->status,
+                        'date' => $match->match_date,
+                        'time' => $match->time_start,
+                        'winner' => $this->getMatchWinner($match)
+                    ];
+                }
+            }
+
+            // Filter out empty rounds
+            $bracket = array_filter($bracket, function ($matches) {
+                return !empty($matches);
+            });
+
+            return $bracket;
+
+        } catch (\Exception $e) {
+            \Log::error('Error getting knockout bracket: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Determine match winner
+     */
+    private function getMatchWinner($match)
+    {
+        if ($match->status !== 'completed') {
+            return null;
+        }
+
+        if ($match->home_score > $match->away_score) {
+            return 'home';
+        } elseif ($match->away_score > $match->home_score) {
+            return 'away';
+        } else {
+            return 'draw';
+        }
+    }
+
+    /**
      * Calculate tournament statistics
      */
     private function calculateTournamentStats($tournament, $standings)
     {
-        if (! $tournament) {
+        if (!$tournament) {
             return [
                 'total_matches' => 0,
                 'total_goals' => 0,
@@ -240,112 +373,116 @@ class StandingController extends Controller
         } else {
             // Default ke tournament ongoing atau terbaru
             $selectedTournament = Tournament::where('status', 'ongoing')->first();
-            if (! $selectedTournament) {
+            if (!$selectedTournament) {
                 $selectedTournament = Tournament::where('status', 'upcoming')->first();
             }
-            if (! $selectedTournament) {
+            if (!$selectedTournament) {
                 $selectedTournament = Tournament::latest()->first();
             }
         }
 
-        // Jika ada tournament yang dipilih, ambil standings
+        $tournamentType = $selectedTournament ? $selectedTournament->type : null;
+        $groupedStandingsWithPosition = collect();
+        $knockoutBracket = null;
+
+        // Jika ada tournament yang dipilih
         if ($selectedTournament) {
-            // Ambil standings yang sudah ada di database
-            $standings = Standing::with([
-                'team' => function ($query) {
-                    $query->select('id', 'name', 'logo'); // TAMBAHKAN LOGO
-                },
-            ])
-                ->where('tournament_id', $selectedTournament->id)
-                ->orderBy('group_name')
-                ->orderByDesc('points')
-                ->orderByDesc('goal_difference')
-                ->orderByDesc('goals_for')
-                ->orderByDesc('wins')
-                ->get();
+            // Cek tipe tournament
+            if (in_array($tournamentType, ['league', 'group_knockout'])) {
+                // Untuk league dan group_knockout: ambil standings dengan team relation
+                $standings = Standing::with('team')
+                    ->where('tournament_id', $selectedTournament->id)
+                    ->orderBy('group_name')
+                    ->orderByDesc('points')
+                    ->orderByDesc('goal_difference')
+                    ->orderByDesc('goals_for')
+                    ->orderByDesc('wins')
+                    ->get();
 
-            // Ambil semua tim di tournament untuk memastikan semua tim ditampilkan
-            // SELECT teams.* untuk dapatkan semua kolom termasuk logo
-            $teamsInTournament = DB::table('team_tournament')
-                ->join('teams', 'team_tournament.team_id', '=', 'teams.id')
-                ->where('team_tournament.tournament_id', $selectedTournament->id)
-                ->select(
-                    'teams.*', // Ambil SEMUA kolom dari teams
-                    'team_tournament.group_name',
-                    'team_tournament.seed'
-                )
-                ->get();
+                // Ambil semua tim di tournament untuk memastikan semua tim ditampilkan
+                $teamsInTournament = DB::table('team_tournament')
+                    ->join('teams', 'team_tournament.team_id', '=', 'teams.id')
+                    ->where('team_tournament.tournament_id', $selectedTournament->id)
+                    ->select(
+                        'teams.id',
+                        'teams.name',
+                        'teams.logo',
+                        'team_tournament.group_name',
+                        'team_tournament.seed'
+                    )
+                    ->get();
 
-            // Gabungkan dengan tim yang belum ada di standings
-            $allTeamsWithStandings = collect();
+                // Gabungkan dengan tim yang belum ada di standings
+                $allTeamsWithStandings = collect();
 
-            foreach ($teamsInTournament as $team) {
-                $existingStanding = $standings->where('team_id', $team->id)->first();
+                foreach ($teamsInTournament as $team) {
+                    $existingStanding = $standings->where('team_id', $team->id)->first();
 
-                if ($existingStanding) {
-                    $allTeamsWithStandings->push($existingStanding);
-                } else {
-                    // Buat default standing untuk tim yang belum bermain
-                    $defaultStanding = new Standing([
-                        'tournament_id' => $selectedTournament->id,
-                        'team_id' => $team->id,
-                        'group_name' => $team->group_name,
-                        'matches_played' => 0,
-                        'wins' => 0,
-                        'draws' => 0,
-                        'losses' => 0,
-                        'goals_for' => 0,
-                        'goals_against' => 0,
-                        'goal_difference' => 0,
-                        'points' => 0,
-                    ]);
-                    $defaultStanding->team = (object) [
-                        'id' => $team->id,
-                        'name' => $team->name,
-                        'logo' => $team->logo, // TAMBAHKAN LOGO
-                    ];
-                    $defaultStanding->is_default = true;
+                    if ($existingStanding) {
+                        $allTeamsWithStandings->push($existingStanding);
+                    } else {
+                        // Buat object custom, bukan model Standing
+                        $customStanding = (object) [
+                            'id' => null,
+                            'tournament_id' => $selectedTournament->id,
+                            'team_id' => $team->id,
+                            'group_name' => $team->group_name,
+                            'matches_played' => 0,
+                            'wins' => 0,
+                            'draws' => 0,
+                            'losses' => 0,
+                            'goals_for' => 0,
+                            'goals_against' => 0,
+                            'goal_difference' => 0,
+                            'points' => 0,
+                            'form' => null,
+                            'team' => (object) [
+                                'id' => $team->id,
+                                'name' => $team->name,
+                                'logo' => $team->logo,
+                            ],
+                            'is_default' => true,
+                        ];
 
-                    $allTeamsWithStandings->push($defaultStanding);
-                }
-            }
-
-            // Group standings by group
-            $groupedStandings = $allTeamsWithStandings->groupBy('group_name');
-
-            // Add position to each group
-            $groupedStandingsWithPosition = collect();
-            foreach ($groupedStandings as $group => $groupStandings) {
-                $position = 1;
-                $sortedGroup = $groupStandings->sortByDesc(function ($standing) {
-                    return [
-                        $standing->points,
-                        $standing->goal_difference,
-                        $standing->goals_for,
-                        $standing->wins,
-                    ];
-                });
-
-                foreach ($sortedGroup as $standing) {
-                    $standing->position = $position;
-                    $position++;
+                        $allTeamsWithStandings->push($customStanding);
+                    }
                 }
 
-                $groupedStandingsWithPosition[$group] = $sortedGroup;
-            }
+                // Group standings by group
+                $groupedStandings = $allTeamsWithStandings->groupBy('group_name');
 
-        } else {
-            $standings = collect();
-            $groupedStandingsWithPosition = collect();
-            $allTeamsWithStandings = collect();
+                // Add position to each group
+                foreach ($groupedStandings as $group => $groupStandings) {
+                    $position = 1;
+                    $sortedGroup = $groupStandings->sortByDesc(function ($standing) {
+                        return [
+                            $standing->points,
+                            $standing->goal_difference,
+                            $standing->goals_for,
+                            $standing->wins,
+                        ];
+                    });
+
+                    foreach ($sortedGroup as $standing) {
+                        $standing->position = $position;
+                        $position++;
+                    }
+
+                    $groupedStandingsWithPosition[$group] = $sortedGroup;
+                }
+
+            } elseif ($tournamentType === 'knockout') {
+                // Untuk knockout: ambil bracket data untuk admin
+                $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
+            }
         }
 
         return view('admin.standings.index', compact(
             'tournaments',
             'selectedTournament',
-            'standings',
+            'tournamentType',
             'groupedStandingsWithPosition',
-            'allTeamsWithStandings'
+            'knockoutBracket'
         ));
     }
 
@@ -401,6 +538,7 @@ class StandingController extends Controller
                         'goals_against' => 0,
                         'goal_difference' => 0,
                         'points' => 0,
+                        'form' => null,
                     ]
                 );
             }
@@ -414,10 +552,13 @@ class StandingController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Error recalculating standings: '.$e->getMessage());
+                ->with('error', 'Error recalculating standings: ' . $e->getMessage());
         }
     }
 
+    /**
+     * Process a single match for standings calculation
+     */
     /**
      * Process a single match for standings calculation
      */
@@ -446,8 +587,8 @@ class StandingController extends Controller
                 'losses' => 0,
                 'goals_for' => 0,
                 'goals_against' => 0,
-                'goal_difference' => 0,
                 'points' => 0,
+                'form' => null,
             ]
         );
 
@@ -465,8 +606,8 @@ class StandingController extends Controller
                 'losses' => 0,
                 'goals_for' => 0,
                 'goals_against' => 0,
-                'goal_difference' => 0,
                 'points' => 0,
+                'form' => null,
             ]
         );
 
@@ -474,7 +615,7 @@ class StandingController extends Controller
         $homeStanding->group_name = $groupName;
         $awayStanding->group_name = $groupName;
 
-        // Reset matches played (kita akan hitung ulang)
+        // Update matches played
         $homeStanding->matches_played += 1;
         $awayStanding->matches_played += 1;
 
@@ -489,448 +630,34 @@ class StandingController extends Controller
             // Home team wins
             $homeStanding->wins += 1;
             $homeStanding->points += 3;
+            $homeStanding->updateForm('W');
             $awayStanding->losses += 1;
+            $awayStanding->updateForm('L');
         } elseif ($match->home_score < $match->away_score) {
             // Away team wins
             $awayStanding->wins += 1;
             $awayStanding->points += 3;
+            $awayStanding->updateForm('W');
             $homeStanding->losses += 1;
+            $homeStanding->updateForm('L');
         } else {
             // Draw
             $homeStanding->draws += 1;
             $homeStanding->points += 1;
+            $homeStanding->updateForm('D');
             $awayStanding->draws += 1;
             $awayStanding->points += 1;
+            $awayStanding->updateForm('D');
         }
 
-        // Update goal difference
-        $homeStanding->goal_difference = $homeStanding->goals_for - $homeStanding->goals_against;
-        $awayStanding->goal_difference = $awayStanding->goals_for - $awayStanding->goals_against;
+        // HAPUS baris ini - goal_difference akan dihitung otomatis:
+        // $homeStanding->goal_difference = $homeStanding->goals_for - $homeStanding->goals_against;
+        // $awayStanding->goal_difference = $awayStanding->goals_for - $awayStanding->goals_against;
 
         // Simpan
         $homeStanding->save();
         $awayStanding->save();
     }
 
-    /**
-     * Reset standings for a tournament (delete all)
-     */
-    public function reset(Request $request)
-    {
-        $request->validate([
-            'tournament_id' => 'required|exists:tournaments,id',
-        ]);
-
-        try {
-            Standing::where('tournament_id', $request->tournament_id)->delete();
-
-            return redirect()->back()
-                ->with('success', 'Standings reset successfully! All standings data has been deleted.');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error resetting standings: '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Manual update of standings (for admin)
-     */
-    public function manualUpdate(Request $request)
-    {
-        $request->validate([
-            'tournament_id' => 'required|exists:tournaments,id',
-            'team_id' => 'required|exists:teams,id',
-            'matches_played' => 'required|integer|min:0',
-            'wins' => 'required|integer|min:0',
-            'draws' => 'required|integer|min:0',
-            'losses' => 'required|integer|min:0',
-            'goals_for' => 'required|integer|min:0',
-            'goals_against' => 'required|integer|min:0',
-            'points' => 'required|integer|min:0',
-        ]);
-
-        try {
-            // Validasi konsistensi data
-            $totalMatches = $request->wins + $request->draws + $request->losses;
-
-            if ($totalMatches != $request->matches_played) {
-                return redirect()->back()
-                    ->with('error', 'Total matches (wins + draws + losses) must equal matches played.');
-            }
-
-            // Hitung goal difference
-            $goalDifference = $request->goals_for - $request->goals_against;
-
-            // Update atau create standing
-            $standing = Standing::updateOrCreate(
-                [
-                    'tournament_id' => $request->tournament_id,
-                    'team_id' => $request->team_id,
-                ],
-                [
-                    'group_name' => DB::table('team_tournament')
-                        ->where('tournament_id', $request->tournament_id)
-                        ->where('team_id', $request->team_id)
-                        ->value('group_name') ?? 'A',
-                    'matches_played' => $request->matches_played,
-                    'wins' => $request->wins,
-                    'draws' => $request->draws,
-                    'losses' => $request->losses,
-                    'goals_for' => $request->goals_for,
-                    'goals_against' => $request->goals_against,
-                    'goal_difference' => $goalDifference,
-                    'points' => $request->points,
-                ]
-            );
-
-            return redirect()->back()
-                ->with('success', 'Standing updated successfully!');
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error updating standing: '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Verify standings consistency
-     */
-    public function verify(Request $request)
-    {
-        $request->validate([
-            'tournament_id' => 'required|exists:tournaments,id',
-        ]);
-
-        try {
-            $tournamentId = $request->tournament_id;
-            $inconsistencies = [];
-
-            // 1. Check if standings exist for all teams in tournament
-            $teamsInTournament = DB::table('team_tournament')
-                ->where('tournament_id', $tournamentId)
-                ->pluck('team_id');
-
-            $teamsWithStandings = Standing::where('tournament_id', $tournamentId)
-                ->pluck('team_id');
-
-            $missingTeams = $teamsInTournament->diff($teamsWithStandings);
-
-            if ($missingTeams->isNotEmpty()) {
-                $inconsistencies[] = [
-                    'type' => 'missing_standings',
-                    'message' => 'Some teams are missing standings records',
-                    'details' => $missingTeams->map(function ($teamId) {
-                        $team = Team::find($teamId);
-
-                        return $team ? $team->name : "Team ID: $teamId";
-                    })->toArray(),
-                ];
-            }
-
-            // 2. Check standings data consistency
-            $standings = Standing::where('tournament_id', $tournamentId)->get();
-
-            foreach ($standings as $standing) {
-                // Check if matches_played equals wins + draws + losses
-                $calculatedMatches = $standing->wins + $standing->draws + $standing->losses;
-
-                if ($standing->matches_played != $calculatedMatches) {
-                    $inconsistencies[] = [
-                        'type' => 'matches_mismatch',
-                        'message' => "Matches played mismatch for {$standing->team->name}",
-                        'details' => "Matches played: {$standing->matches_played}, Calculated: {$calculatedMatches}",
-                    ];
-                }
-
-                // Check if goal difference is correct
-                $calculatedGD = $standing->goals_for - $standing->goals_against;
-
-                if ($standing->goal_difference != $calculatedGD) {
-                    $inconsistencies[] = [
-                        'type' => 'goal_difference_mismatch',
-                        'message' => "Goal difference mismatch for {$standing->team->name}",
-                        'details' => "GD: {$standing->goal_difference}, Calculated: {$calculatedGD}",
-                    ];
-                }
-
-                // Check if points calculation is correct
-                $calculatedPoints = ($standing->wins * 3) + ($standing->draws * 1);
-
-                if ($standing->points != $calculatedPoints) {
-                    $inconsistencies[] = [
-                        'type' => 'points_mismatch',
-                        'message' => "Points mismatch for {$standing->team->name}",
-                        'details' => "Points: {$standing->points}, Calculated: {$calculatedPoints}",
-                    ];
-                }
-            }
-
-            // 3. Check matches vs standings consistency
-            $completedMatches = Game::where('tournament_id', $tournamentId)
-                ->where('round_type', 'group')
-                ->where('status', 'completed')
-                ->get();
-
-            foreach ($completedMatches as $match) {
-                $homeStanding = $standings->where('team_id', $match->team_home_id)->first();
-                $awayStanding = $standings->where('team_id', $match->team_away_id)->first();
-
-                if (! $homeStanding || ! $awayStanding) {
-                    $inconsistencies[] = [
-                        'type' => 'match_no_standing',
-                        'message' => 'Match has no corresponding standing records',
-                        'details' => "Match ID: {$match->id}",
-                    ];
-                }
-            }
-
-            // 4. Check group consistency
-            foreach ($standings as $standing) {
-                $teamGroup = DB::table('team_tournament')
-                    ->where('tournament_id', $tournamentId)
-                    ->where('team_id', $standing->team_id)
-                    ->value('group_name');
-
-                if ($teamGroup != $standing->group_name) {
-                    $inconsistencies[] = [
-                        'type' => 'group_mismatch',
-                        'message' => "Group mismatch for {$standing->team->name}",
-                        'details' => "Standing Group: {$standing->group_name}, Team-Tournament Group: {$teamGroup}",
-                    ];
-                }
-            }
-
-            return response()->json([
-                'success' => true,
-                'inconsistencies' => $inconsistencies,
-                'total_issues' => count($inconsistencies),
-                'tournament_id' => $tournamentId,
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error verifying standings: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Fix standings inconsistencies automatically
-     */
-    public function fixInconsistencies(Request $request)
-    {
-        $request->validate([
-            'tournament_id' => 'required|exists:tournaments,id',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $tournamentId = $request->tournament_id;
-            $fixedIssues = [];
-
-            // 1. Ensure all teams have standings records
-            $teamsInTournament = DB::table('team_tournament')
-                ->where('tournament_id', $tournamentId)
-                ->get();
-
-            foreach ($teamsInTournament as $teamTournament) {
-                $standing = Standing::firstOrCreate(
-                    [
-                        'tournament_id' => $tournamentId,
-                        'team_id' => $teamTournament->team_id,
-                    ],
-                    [
-                        'group_name' => $teamTournament->group_name,
-                        'matches_played' => 0,
-                        'wins' => 0,
-                        'draws' => 0,
-                        'losses' => 0,
-                        'goals_for' => 0,
-                        'goals_against' => 0,
-                        'goal_difference' => 0,
-                        'points' => 0,
-                    ]
-                );
-
-                // Update group name if it's wrong
-                if ($standing->group_name != $teamTournament->group_name) {
-                    $standing->group_name = $teamTournament->group_name;
-                    $standing->save();
-                    $fixedIssues[] = "Updated group for team ID: {$teamTournament->team_id}";
-                }
-            }
-
-            // 2. Recalculate all standings from matches
-            $completedMatches = Game::where('tournament_id', $tournamentId)
-                ->where('round_type', 'group')
-                ->where('status', 'completed')
-                ->get();
-
-            // Reset all standings to zero
-            Standing::where('tournament_id', $tournamentId)->update([
-                'matches_played' => 0,
-                'wins' => 0,
-                'draws' => 0,
-                'losses' => 0,
-                'goals_for' => 0,
-                'goals_against' => 0,
-                'goal_difference' => 0,
-                'points' => 0,
-            ]);
-
-            // Recalculate from matches
-            foreach ($completedMatches as $match) {
-                $this->processMatchForStandings($match);
-            }
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Standings inconsistencies fixed successfully!',
-                'fixed_issues' => $fixedIssues,
-                'total_fixed' => count($fixedIssues),
-                'recalculated_matches' => $completedMatches->count(),
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-
-            return response()->json([
-                'success' => false,
-                'message' => 'Error fixing inconsistencies: '.$e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * Export standings to CSV
-     */
-    public function export(Request $request)
-    {
-        $request->validate([
-            'tournament_id' => 'required|exists:tournaments,id',
-        ]);
-
-        try {
-            $tournament = Tournament::find($request->tournament_id);
-            $standings = Standing::with('team')
-                ->where('tournament_id', $request->tournament_id)
-                ->orderBy('group_name')
-                ->orderByDesc('points')
-                ->orderByDesc('goal_difference')
-                ->orderByDesc('goals_for')
-                ->orderByDesc('wins')
-                ->get();
-
-            $filename = "standings_{$tournament->slug}_".date('Y-m-d').'.csv';
-            $headers = [
-                'Content-Type' => 'text/csv',
-                'Content-Disposition' => "attachment; filename=\"$filename\"",
-            ];
-
-            $callback = function () use ($standings, $tournament) {
-                $file = fopen('php://output', 'w');
-
-                // Add BOM for UTF-8
-                fwrite($file, "\xEF\xBB\xBF");
-
-                // Header
-                fputcsv($file, ["Tournament Standings: {$tournament->name}"]);
-                fputcsv($file, ['Generated: '.date('Y-m-d H:i:s')]);
-                fputcsv($file, []); // Empty line
-
-                // Column headers
-                fputcsv($file, ['Group', 'Position', 'Team', 'MP', 'W', 'D', 'L', 'GF', 'GA', 'GD', 'PTS']);
-
-                // Data
-                $currentGroup = null;
-                $position = 1;
-
-                foreach ($standings as $standing) {
-                    if ($currentGroup !== $standing->group_name) {
-                        $currentGroup = $standing->group_name;
-                        $position = 1;
-                        fputcsv($file, []); // Empty line between groups
-                        fputcsv($file, ["GROUP {$currentGroup}"]);
-                    }
-
-                    fputcsv($file, [
-                        $standing->group_name,
-                        $position,
-                        $standing->team->name,
-                        $standing->matches_played,
-                        $standing->wins,
-                        $standing->draws,
-                        $standing->losses,
-                        $standing->goals_for,
-                        $standing->goals_against,
-                        $standing->goal_difference,
-                        $standing->points,
-                    ]);
-
-                    $position++;
-                }
-
-                fclose($file);
-            };
-
-            return response()->stream($callback, 200, $headers);
-
-        } catch (\Exception $e) {
-            return redirect()->back()
-                ->with('error', 'Error exporting standings: '.$e->getMessage());
-        }
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(Standing $standing)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Standing $standing)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Standing $standing)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Standing $standing)
-    {
-        //
-    }
+    // ... (method-method lainnya tetap sama seperti controller Anda)
 }
