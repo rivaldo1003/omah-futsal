@@ -19,7 +19,7 @@ class Standing extends Model
         'losses',
         'goals_for',
         'goals_against',
-        'goal_difference',
+        // 'goal_difference',
         'points',
         'form',
     ];
@@ -62,7 +62,7 @@ class Standing extends Model
     public function updateForm($result)
     {
         $form = $this->form ?? '';
-        $form = substr($form.$result, -5); // Keep only last 5 matches
+        $form = substr($form . $result, -5); // Keep only last 5 matches
         $this->update(['form' => $form]);
     }
 

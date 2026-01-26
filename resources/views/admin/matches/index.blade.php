@@ -3,892 +3,758 @@
 @section('title', 'Matches Management')
 
 @section('styles')
-<style>
-    :root {
-        --primary: #1e3a8a;
-        --primary-light: #3b82f6;
-        --secondary: #6b7280;
-        --bg-main: #f8fafc;
-        --bg-card: #ffffff;
-        --border-color: #e5e7eb;
-        --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Page Header */
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .page-header h1 {
-        color: var(--primary);
-        font-weight: 600;
-        margin: 0;
-        font-size: 1.5rem;
-    }
-
-    .btn-create {
-        background: var(--primary);
-        color: white;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        text-decoration: none;
-        font-size: 0.875rem;
-    }
-
-    .btn-create:hover {
-        background: #1d4ed8;
-        color: white;
-    }
-
-    .page-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        /* <-- bikin tinggi rata tengah */
-        margin-bottom: 20px;
-    }
-
-    .search-box {
-        position: relative;
-    }
-
-    .search-box .search-icon {
-        position: absolute;
-        top: 50%;
-        left: 8px;
-        transform: translateY(-50%);
-        color: #888;
-    }
-
-    .search-box input {
-        padding-left: 28px;
-    }
-
-    .btn-create {
-        background: #0d6efd;
-        color: white;
-        border-radius: 4px;
-        padding: 5px 12px;
-        font-size: 14px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        text-decoration: none;
-    }
-
-    /* Search & Filters */
-    .search-box {
-        position: relative;
-        width: 300px;
-    }
-
-    .search-box input {
-        padding-left: 2.5rem;
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        width: 100%;
-        font-size: 0.875rem;
-    }
-
-    .search-box input:focus {
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: var(--secondary);
-        pointer-events: none;
-    }
-
-    .filter-select {
-        border-radius: 6px;
-        border: 1px solid var(--border-color);
-        padding: 0.5rem;
-        background: white;
-        color: var(--primary);
-        font-size: 0.875rem;
-        min-width: 120px;
-    }
-
-    .filter-select:focus {
-        border-color: var(--primary-light);
-        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-        outline: none;
-    }
-
-    /* Stats Cards */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-card {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        padding: 1rem;
-    }
-
-    .stat-title {
-        font-size: 0.75rem;
-        color: var(--secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-value {
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: var(--primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-left: auto;
-    }
-
-    /* Main Card */
-    .main-card {
-        background: var(--bg-card);
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        overflow: hidden;
-    }
-
-    .card-header {
-        background: #f8fafc;
-        border-bottom: 1px solid var(--border-color);
-        padding: 1rem;
-    }
-
-    .card-header h5 {
-        margin: 0;
-        font-weight: 600;
-        font-size: 1rem;
-        color: var(--primary);
-    }
-
-    /* Table Styling */
-    .table {
-        margin: 0;
-        font-size: 0.875rem;
-    }
-
-    .table thead th {
-        background: #f8fafc;
-        color: var(--secondary);
-        font-weight: 600;
-        border-bottom: 1px solid var(--border-color);
-        padding: 0.75rem 1rem;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-    }
-
-    .table tbody td {
-        padding: 0.75rem 1rem;
-        vertical-align: middle;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    .table tbody tr:hover {
-        background-color: rgba(59, 130, 246, 0.02);
-    }
-
-    /* Match Info */
-    .match-date {
-        font-weight: 500;
-        color: var(--primary);
-        margin-bottom: 2px;
-        font-size: 0.875rem;
-    }
-
-    .match-time {
-        font-size: 0.75rem;
-        color: var(--secondary);
-    }
-
-    .match-teams {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .team-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .team-logo-small {
-        width: 24px;
-        height: 24px;
-        border-radius: 4px;
-        /* border: 1px solid var(--border-color); */
-        overflow: hidden;
-        background: #f8fafc;
-        flex-shrink: 0;
-    }
-
-    .team-logo-small img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .team-initial {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
-        color: white;
-        font-weight: 600;
-        font-size: 0.75rem;
-    }
-
-    .team-name {
-        font-weight: 500;
-        color: var(--primary);
-        flex: 1;
-        text-align: right;
-        font-size: 0.875rem;
-    }
-
-    .team-name.away {
-        text-align: left;
-    }
-
-    .vs {
-        color: var(--secondary);
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 0 0.5rem;
-    }
-
-    .score {
-        font-weight: 600;
-        color: var(--primary);
-        font-size: 0.875rem;
-        text-align: center;
-        margin-top: 0.25rem;
-    }
-
-    /* Stage Badge */
-    .badge {
-    font-size: 0.75rem;
-    font-weight: 600; /* Tambahkan ini untuk teks lebih tebal */
-    padding: 0.35rem 0.75rem; /* Sedikit lebih besar padding */
-    border-radius: 6px; /* Border radius lebih bulat */
-    display: inline-block;
-    text-transform: uppercase; /* Membuat teks semua kapital */
-    letter-spacing: 0.5px; /* Spasi huruf sedikit */
-    }
-
-    .badge-group {
-    background: #3b82f6; /* Warna solid biru */
-    color: black; /* Teks putih untuk kontras maksimal */
-    border: none;
-    box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-    }
-
-    .badge-knockout {
-        background: #f59e0b; /* Warna solid kuning/orange */
-        color: white; /* Teks putih */
-        border: none;
-        box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
-    }
-
-    /* Status Badge */
-    .status-badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        display: inline-block;
-    }
-
-    .status-upcoming {
-        background: rgba(107, 114, 128, 0.1);
-        color: #6b7280;
-    }
-
-    .status-ongoing {
-        background: rgba(245, 158, 11, 0.1);
-        color: #d97706;
-    }
-
-    .status-completed {
-        background: rgba(34, 197, 94, 0.1);
-        color: #16a34a;
-    }
-
-    .status-postponed {
-        background: rgba(239, 68, 68, 0.1);
-        color: #dc2626;
-    }
-
-    /* Action Buttons */
-    .action-buttons {
-        display: flex;
-        gap: 0.25rem;
-    }
-
-    .btn-highlight {
-        background: #ff0000;
-        color: white;
-        border-color: #ff0000;
-    }
-
-    .btn-highlight:hover {
-        background: #cc0000;
-        color: white;
-        border-color: #cc0000;
-    }
-
-    .btn-small {
-        width: 32px;
-        height: 32px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 4px;
-        border: 1px solid var(--border-color);
-        background: white;
-        color: var(--secondary);
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-
-    .btn-small:hover {
-        border-color: var(--primary-light);
-    }
-
-    .btn-edit:hover {
-        background: var(--primary-light);
-        color: white;
-    }
-
-    .btn-events:hover {
-        background: #10b981;
-        color: white;
-    }
-
-    .btn-score:hover {
-        background: #f59e0b;
-        color: white;
-    }
-
-    .btn-delete:hover {
-        background: #dc2626;
-        color: white;
-    }
-
-    /* Empty State */
-    .empty-state {
-        padding: 3rem 1rem;
-        text-align: center;
-    }
-
-    .empty-state-icon {
-        font-size: 2.5rem;
-        color: #d1d5db;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state-title {
-        color: var(--primary);
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-    }
-
-    .empty-state-text {
-        color: var(--secondary);
-        font-size: 0.875rem;
-        margin-bottom: 1.5rem;
-    }
-
-    @media (max-width: 768px) {
-
-        /* Tambahkan ini */
-        .modal {
-            z-index: 1050;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --primary-light: #3b82f6;
+            --secondary: #6b7280;
+            --bg-main: #f8fafc;
+            --bg-card: #ffffff;
+            --border-color: #e5e7eb;
+            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
         }
 
-        .modal-dialog {
-            margin: 0.5rem;
-            max-height: 90vh;
-            overflow-y: auto;
-        }
-
-        /* Perbaikan untuk input di mobile */
-        .modal-body input[type="url"],
-        .modal-body input[type="text"] {
-            font-size: 16px;
-            /* Mencegah zoom di iOS */
-            width: 100%;
-            height: 44px;
-            /* Minimum touch target size */
-        }
-
-        /* Pastikan tombol mudah diklik */
-        .modal-footer .btn {
-            min-height: 44px;
-            padding: 10px 20px;
-        }
-    }
-
-    /* Pagination */
-    .pagination-container {
-        padding: 0.75rem 1rem;
-        border-top: 1px solid var(--border-color);
-        background: #f8fafc;
-    }
-
-    .pagination-info {
-        font-size: 0.75rem;
-        color: var(--secondary);
-    }
-
-    .pagination-controls {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .pagination-btn {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
-        border-radius: 4px;
-        border: 1px solid var(--border-color);
-        background: white;
-        color: var(--secondary);
-        text-decoration: none;
-        transition: all 0.2s;
-        display: inline-flex;
-        align-items: center;
-        gap: 0.25rem;
-    }
-
-    .pagination-btn:hover {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-
-    .pagination-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        background: #f8fafc;
-    }
-
-    .pagination-pages {
-        display: flex;
-        gap: 0.25rem;
-    }
-
-    .page-link {
-        padding: 0.375rem 0.75rem;
-        font-size: 0.75rem;
-        border-radius: 4px;
-        border: 1px solid var(--border-color);
-        background: white;
-        color: var(--secondary);
-        text-decoration: none;
-        transition: all 0.2s;
-        min-width: 32px;
-        text-align: center;
-    }
-
-    .page-link:hover {
-        background: #f8fafc;
-        color: var(--primary);
-        border-color: var(--primary-light);
-    }
-
-    .page-link.active {
-        background: var(--primary);
-        color: white;
-        border-color: var(--primary);
-    }
-
-    .page-link.disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    /* Alert */
-    .alert {
-        border-radius: 6px;
-        padding: 0.75rem 1rem;
-        font-size: 0.875rem;
-        margin-bottom: 1rem;
-        border: none;
-    }
-
-    .alert-success {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    /* Modal */
-    .modal-content {
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-    }
-
-    .modal-header {
-        border-bottom: 1px solid var(--border-color);
-        padding: 1rem;
-    }
-
-    .modal-body {
-        padding: 1.5rem;
-    }
-
-    /* Mobile Responsive */
-    @media (max-width: 768px) {
+        /* Page Header */
         .page-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-header h1 {
+            color: var(--primary);
+            font-weight: 600;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .btn-create {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+            font-size: 0.875rem;
+        }
+
+        .btn-create:hover {
+            background: #1d4ed8;
+            color: white;
         }
 
         .search-box {
+            position: relative;
+        }
+
+        .search-box .search-icon {
+            position: absolute;
+            top: 50%;
+            left: 8px;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .search-box input {
+            padding-left: 28px;
+        }
+
+        /* Search & Filters */
+        .search-box {
+            position: relative;
+            width: 300px;
+        }
+
+        .search-box input {
+            padding-left: 2.5rem;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
             width: 100%;
+            font-size: 0.875rem;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--secondary);
+            pointer-events: none;
         }
 
         .filter-select {
-            width: 100%;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            background: white;
+            color: var(--primary);
+            font-size: 0.875rem;
+            min-width: 120px;
+        }
+
+        .filter-select:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            outline: none;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .stat-title {
+            font-size: 0.75rem;
+            color: var(--secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--primary);
             margin-bottom: 0.5rem;
         }
 
-        .stats-grid {
-            grid-template-columns: 1fr 1fr;
+        .stat-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: auto;
         }
 
-        .table-responsive {
+        /* Main Card */
+        .main-card {
+            background: var(--bg-card);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .card-header {
+            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--primary);
+        }
+
+        /* Table Styling */
+        .table {
+            margin: 0;
+            font-size: 0.875rem;
+        }
+
+        .table thead th {
+            background: #f8fafc;
+            color: var(--secondary);
+            font-weight: 600;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 1rem;
+            text-transform: uppercase;
             font-size: 0.75rem;
+            letter-spacing: 0.5px;
         }
 
-        .table thead th,
         .table tbody td {
-            padding: 0.5rem;
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(59, 130, 246, 0.02);
+        }
+
+        /* Match Info */
+        .match-date {
+            font-weight: 500;
+            color: var(--primary);
+            margin-bottom: 2px;
+            font-size: 0.875rem;
+        }
+
+        .match-time {
+            font-size: 0.75rem;
+            color: var(--secondary);
         }
 
         .match-teams {
-            flex-direction: column;
+            display: flex;
+            align-items: center;
             gap: 0.5rem;
         }
 
         .team-info {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .team-logo-small {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            overflow: hidden;
+            background: #f8fafc;
+            flex-shrink: 0;
+        }
+
+        .team-logo-small img {
             width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .team-initial {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            font-weight: 600;
+            font-size: 0.75rem;
         }
 
         .team-name {
-            text-align: center !important;
-            flex: none;
+            font-weight: 500;
+            color: var(--primary);
+            flex: 1;
+            text-align: right;
+            font-size: 0.875rem;
         }
 
+        .team-name.away {
+            text-align: left;
+        }
+
+        .vs {
+            color: var(--secondary);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0 0.5rem;
+        }
+
+        .score {
+            font-weight: 600;
+            color: var(--primary);
+            font-size: 0.875rem;
+            text-align: center;
+            margin-top: 0.25rem;
+        }
+
+        /* Stage Badge */
+        .badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            display: inline-block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-group {
+            background: #3b82f6;
+            color: black;
+            border: none;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
+        }
+
+        .badge-knockout {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
+        }
+
+        /* Status Badge */
+        .status-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            display: inline-block;
+        }
+
+        .status-upcoming {
+            background: rgba(107, 114, 128, 0.1);
+            color: #6b7280;
+        }
+
+        .status-ongoing {
+            background: rgba(245, 158, 11, 0.1);
+            color: #d97706;
+        }
+
+        .status-completed {
+            background: rgba(34, 197, 94, 0.1);
+            color: #16a34a;
+        }
+
+        .status-postponed {
+            background: rgba(239, 68, 68, 0.1);
+            color: #dc2626;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .btn-highlight {
+            background: #ff0000;
+            color: white;
+            border-color: #ff0000;
+        }
+
+        .btn-highlight:hover {
+            background: #cc0000;
+            color: white;
+            border-color: #cc0000;
+        }
+
+        .btn-small {
+            width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .btn-small:hover {
+            border-color: var(--primary-light);
+        }
+
+        .btn-edit:hover {
+            background: var(--primary-light);
+            color: white;
+        }
+
+        .btn-events:hover {
+            background: #10b981;
+            color: white;
+        }
+
+        .btn-score:hover {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background: #dc2626;
+            color: white;
+        }
+
+        /* Empty State */
+        .empty-state {
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 2.5rem;
+            color: #d1d5db;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state-title {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state-text {
+            color: var(--secondary);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .modal {
+                z-index: 1050;
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .modal-dialog {
+                margin: 0.5rem;
+                max-height: 90vh;
+                overflow-y: auto;
+            }
+
+            /* Perbaikan untuk input di mobile */
+            .modal-body input[type="url"],
+            .modal-body input[type="text"] {
+                font-size: 16px;
+                width: 100%;
+                height: 44px;
+            }
+
+            /* Pastikan tombol mudah diklik */
+            .modal-footer .btn {
+                min-height: 44px;
+                padding: 10px 20px;
+            }
+        }
+
+        /* Pagination */
         .pagination-container {
-            flex-direction: column;
-            gap: 0.75rem;
-            x
+            padding: 0.75rem 1rem;
+            border-top: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        .pagination-info {
+            font-size: 0.75rem;
+            color: var(--secondary);
         }
 
         .pagination-controls {
-            flex-wrap: wrap;
+            display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .pagination-btn {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .pagination-btn:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: #f8fafc;
         }
 
         .pagination-pages {
-            order: -1;
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-bottom: 0.5rem;
+            display: flex;
+            gap: 0.25rem;
         }
-    }
 
-    .team-logo-modal {
-        width: 50px;
-        height: 50px;
-        border-radius: 8px;
-        /* border: 2px solid var(--border-color); */
-        overflow: hidden;
-        margin: 0 auto;
-        background: #f8fafc;
-    }
+        .page-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+            min-width: 32px;
+            text-align: center;
+        }
 
-    .team-logo-modal img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+        .page-link:hover {
+            background: #f8fafc;
+            color: var(--primary);
+            border-color: var(--primary-light);
+        }
 
-    .team-initial-modal {
-        width: 100%;
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: linear-gradient(135deg, var(--primary), var(--primary-light));
-        color: white;
-        font-weight: 700;
-        font-size: 1.25rem;
-    }
+        .page-link.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
 
-    /* Highlight button colors */
-    .btn-highlight {
-        background: #8b5cf6;
-        color: white;
-        border-color: #8b5cf6;
-    }
+        .page-link.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-    .btn-highlight:hover {
-        background: #7c3aed;
-        color: white;
-        border-color: #7c3aed;
-    }
+        /* Alert */
+        .alert {
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            margin-bottom: 1rem;
+            border: none;
+        }
 
-    .btn-upload {
-        background: #10b981;
-        color: white;
-        border-color: #10b981;
-    }
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+        }
 
-    .btn-upload:hover {
-        background: #059669;
-        color: white;
-        border-color: #059669;
-    }
+        /* Modal */
+        .modal-content {
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
 
-    .team-modal-info {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
+        .modal-header {
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem;
+        }
 
-    /* Tambahkan di bagian atas style */
-    .modal-backdrop {
-        z-index: 1040;
-    }
+        .modal-body {
+            padding: 1.5rem;
+        }
 
-    /* Pastikan modal bisa discroll di mobile */
-    .modal-open {
-        overflow: hidden;
-        position: fixed;
-        width: 100%;
-    }
-
-    /* Perbaikan untuk iframe YouTube di mobile */
-    .modal-body .ratio-16x9 iframe {
-        width: 100%;
-        height: 100%;
-        border: none;
-        pointer-events: auto;
-    }
-
-    /* Pastikan semua interactive elements memiliki ukuran minimum untuk touch */
-    .btn-small,
-    .btn,
-    input,
-    select,
-    textarea {
-        min-height: 44px;
-        min-width: 44px;
-    }
-
-    /* Additional styles for highlight modals */
-    .file-upload-area {
-        border: 2px dashed #e5e7eb;
-        border-radius: 8px;
-        padding: 1.5rem;
-        text-align: center;
-        background: #f8fafc;
-        transition: border-color 0.3s;
-    }
-
-    .file-upload-area:hover {
-        border-color: var(--primary-light);
-    }
-
-    .file-upload-area input[type="file"] {
-        background: white;
-        border: 1px solid var(--border-color);
-        border-radius: 6px;
-    }
-
-    #videoPreview video {
-        max-height: 200px;
-        background: #000;
-    }
-
-    #highlightPlayerContainer video {
-        width: 100%;
-        height: auto;
-        background: #000;
-    }
-
-    .ratio-16x9 {
-        position: relative;
-        padding-bottom: 56.25%;
-        /* 16:9 Aspect Ratio */
-        height: 0;
-        overflow: hidden;
-    }
-
-    .ratio-16x9 video {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-    }
-
-    @media (max-width: 576px) {
+        /* Team Logo Modal */
         .team-logo-modal {
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 0 auto;
+            background: #f8fafc;
+        }
+
+        .team-logo-modal img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .team-initial-modal {
-            font-size: 1rem;
-        }
-    }
-
-
-
-
-    .modal {
-        -webkit-overflow-scrolling: touch;
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 1050;
-        display: none;
-        overflow: hidden;
-        outline: 0;
-        background-color: rgba(0, 0, 0, 0.5);
-    }
-
-    .modal.show {
-        display: block;
-        overflow-x: hidden;
-        overflow-y: auto;
-    }
-
-    .modal-dialog {
-        position: relative;
-        width: auto;
-        margin: 10px;
-        max-height: calc(100% - 20px);
-        pointer-events: none;
-    }
-
-    .modal-content {
-        position: relative;
-        display: flex;
-        flex-direction: column;
-        width: 100%;
-        pointer-events: auto;
-        background-color: #fff;
-        background-clip: padding-box;
-        border: 1px solid rgba(0, 0, 0, 0.2);
-        border-radius: 0.3rem;
-        outline: 0;
-        max-height: 100%;
-        overflow-y: auto;
-    }
-    }
-
-    /* Fix untuk semua device mobile */
-    @media (max-width: 768px) {
-        .modal {
-            padding-right: 0 !important;
-            padding-left: 0 !important;
-        }
-
-        .modal-open .modal {
-            overflow-x: hidden;
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .modal-dialog {
-            margin: 10px;
-            max-height: calc(100% - 20px);
-        }
-
-        .modal-content {
-            border-radius: 6px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-        }
-    }
-
-    /* Pastikan input tidak zoom di iOS */
-    @media screen and (-webkit-min-device-pixel-ratio:0) {
-
-        input[type="text"],
-        input[type="url"],
-        input[type="number"],
-        input[type="email"],
-        input[type="tel"],
-        textarea,
-        select {
-            font-size: 16px !important;
-        }
-    }
-
-    @media (max-width: 576px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .action-buttons {
-            flex-wrap: wrap;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
             justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            color: white;
+            font-weight: 700;
+            font-size: 1.25rem;
         }
 
-        .modal-dialog {
-            margin: 0.5rem;
+        .team-modal-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-    }
-</style>
 
+        /* Additional styles for highlight modals */
+        .file-upload-area {
+            border: 2px dashed #e5e7eb;
+            border-radius: 8px;
+            padding: 1.5rem;
+            text-align: center;
+            background: #f8fafc;
+            transition: border-color 0.3s;
+        }
+
+        .file-upload-area:hover {
+            border-color: var(--primary-light);
+        }
+
+        .file-upload-area input[type="file"] {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+        }
+
+        #videoPreview video {
+            max-height: 200px;
+            background: #000;
+        }
+
+        #highlightPlayerContainer video {
+            width: 100%;
+            height: auto;
+            background: #000;
+        }
+
+        .ratio-16x9 {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+        }
+
+        .ratio-16x9 video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        /* Fix untuk semua device mobile */
+        @media (max-width: 768px) {
+            .modal {
+                padding-right: 0 !important;
+                padding-left: 0 !important;
+            }
+
+            .modal-open .modal {
+                overflow-x: hidden;
+                overflow-y: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .modal-dialog {
+                margin: 10px;
+                max-height: calc(100% - 20px);
+            }
+
+            .modal-content {
+                border-radius: 6px;
+                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .search-box {
+                width: 100%;
+            }
+
+            .filter-select {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .table-responsive {
+                font-size: 0.75rem;
+            }
+
+            .table thead th,
+            .table tbody td {
+                padding: 0.5rem;
+            }
+
+            .match-teams {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .team-info {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .team-name {
+                text-align: center !important;
+                flex: none;
+            }
+
+            .pagination-container {
+                flex-direction: column;
+                gap: 0.75rem;
+            }
+
+            .pagination-controls {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .pagination-pages {
+                order: -1;
+                flex-wrap: wrap;
+                justify-content: center;
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        /* Pastikan input tidak zoom di iOS */
+        @media screen and (-webkit-min-device-pixel-ratio:0) {
+
+            input[type="text"],
+            input[type="url"],
+            input[type="number"],
+            input[type="email"],
+            input[type="tel"],
+            textarea,
+            select {
+                font-size: 16px !important;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .action-buttons {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+
+            .team-logo-modal {
+                width: 40px;
+                height: 40px;
+            }
+
+            .team-initial-modal {
+                font-size: 1rem;
+            }
+        }
+    </style>
+@endsection
 
 @section('content')
     <nav aria-label="breadcrumb" class="mb-3">
@@ -984,23 +850,33 @@
 
     <!-- Filters -->
     <div class="d-flex gap-2 mb-3 flex-wrap">
+        <!-- Tournament Filter -->
+        <select id="tournamentFilter" class="filter-select">
+            <option value="">All Tournaments</option>
+            @foreach($tournaments as $tournament)
+                <option value="{{ $tournament->id }}" {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
+                    {{ $tournament->name }}
+                </option>
+            @endforeach
+        </select>
+
         <select id="statusFilter" class="filter-select">
             <option value="">All Status</option>
-            <option value="upcoming">Upcoming</option>
-            <option value="ongoing">Ongoing</option>
-            <option value="completed">Completed</option>
-            <option value="postponed">Postponed</option>
+            <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
+            <option value="ongoing" {{ request('status') == 'ongoing' ? 'selected' : '' }}>Ongoing</option>
+            <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
+            <option value="postponed" {{ request('status') == 'postponed' ? 'selected' : '' }}>Postponed</option>
         </select>
 
         <select id="roundFilter" class="filter-select">
             <option value="">All Rounds</option>
-            <option value="group">Group Stage</option>
-            <option value="quarterfinal">Quarterfinal</option>
-            <option value="semifinal">Semifinal</option>
-            <option value="final">Final</option>
+            <option value="group" {{ request('round') == 'group' ? 'selected' : '' }}>Group Stage</option>
+            <option value="quarterfinal" {{ request('round') == 'quarterfinal' ? 'selected' : '' }}>Quarterfinal</option>
+            <option value="semifinal" {{ request('round') == 'semifinal' ? 'selected' : '' }}>Semifinal</option>
+            <option value="final" {{ request('round') == 'final' ? 'selected' : '' }}>Final</option>
         </select>
 
-        <input type="date" id="dateFrom" class="filter-select" placeholder="Date from">
+        <input type="date" id="dateFrom" class="filter-select" placeholder="Date from" value="{{ request('date') }}">
 
         <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" id="resetFilters">
             <i class="bi bi-arrow-clockwise me-1"></i> Reset
@@ -1020,6 +896,7 @@
                             <tr>
                                 <th>Date & Time</th>
                                 <th>Match</th>
+                                <th>Tournament</th>
                                 <th>Stage</th>
                                 <th>Status</th>
                                 <th class="text-end">Actions</th>
@@ -1028,7 +905,8 @@
                         <tbody>
                             @foreach($matches as $match)
                                 <tr class="match-row" data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
-                                    data-date="{{ $match->match_date->format('Y-m-d') }}">
+                                    data-date="{{ $match->match_date->format('Y-m-d') }}"
+                                    data-tournament="{{ $match->tournament_id }}">
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
                                         <div class="match-time">
@@ -1092,6 +970,11 @@
                                         @endif
                                     </td>
                                     <td>
+                                        <span class="badge" style="background: #e0e7ff; color: #3730a3;">
+                                            {{ $match->tournament->name ?? 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
                                         @if($match->round_type === 'group')
                                             <span class="badge badge-group">
                                                 {{ $match->group_name }}
@@ -1152,19 +1035,13 @@
                                                     <i class="bi bi-youtube"></i>
                                                 </button>
                                             @endif
-
-
-
-
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
-
                         </tbody>
                     </table>
                 </div>
-
-
 
                 @if($matches->hasPages())
                     <div class="pagination-container d-flex justify-content-between align-items-center flex-wrap">
@@ -1248,6 +1125,7 @@
             @endif
         </div>
     </div>
+
     <!-- YouTube Highlight Modal -->
     <div class="modal fade" id="youtubeHighlightModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog">
@@ -1536,14 +1414,9 @@
             </div>
         </div>
     </div>
-
 @endsection
 
-
-
 @section('scripts')
-
-
     <script>
         function isIOS() {
             return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
@@ -1553,9 +1426,9 @@
         if (isIOS()) {
             // Fix backdrop click untuk iOS
             document.addEventListener('touchstart', function (e) {
-                if (e.target.classList.contains('modal-backdrop')) {
-                    e.preventDefault();
-                    e.stopPropagation();
+                if (e.target.classList.contains('modal-backdrop') ||
+                    e.target.classList.contains('modal') &&
+                    !e.target.classList.contains('modal-dialog')) {
 
                     // Tutup semua modal yang terbuka
                     document.querySelectorAll('.modal.show').forEach(modalEl => {
@@ -1564,6 +1437,9 @@
                             modal.hide();
                         }
                     });
+
+                    e.preventDefault();
+                    e.stopPropagation();
                 }
             }, {
                 passive: false
@@ -1582,209 +1458,299 @@
                 document.body.style.width = '';
             });
         }
+
         // Filter functionality
+        const tournamentFilter = document.getElementById('tournamentFilter');
         const statusFilter = document.getElementById('statusFilter');
         const roundFilter = document.getElementById('roundFilter');
         const dateFrom = document.getElementById('dateFrom');
         const resetFilters = document.getElementById('resetFilters');
+        const searchInput = document.getElementById('searchInput');
         const matchRows = document.querySelectorAll('.match-row');
 
+        // Function to filter matches
         function filterMatches() {
+            const tournament = tournamentFilter.value;
             const status = statusFilter.value;
             const round = roundFilter.value;
             const date = dateFrom.value;
+            const search = searchInput.value.toLowerCase();
 
             matchRows.forEach(row => {
+                const rowTournament = row.dataset.tournament;
                 const rowStatus = row.dataset.status;
                 const rowRound = row.dataset.round;
                 const rowDate = row.dataset.date;
 
+                // Get team names for search
+                const homeTeam = row.querySelector('.team-name:not(.away)')?.textContent.toLowerCase() || '';
+                const awayTeam = row.querySelector('.team-name.away')?.textContent.toLowerCase() || '';
+
                 let show = true;
 
+                if (tournament && rowTournament !== tournament) show = false;
                 if (status && rowStatus !== status) show = false;
                 if (round && rowRound !== round) show = false;
                 if (date && rowDate < date) show = false;
+                if (search && !homeTeam.includes(search) && !awayTeam.includes(search)) show = false;
 
                 row.style.display = show ? '' : 'none';
             });
         }
 
-        // Event listeners for filters
-        if (statusFilter) statusFilter.addEventListener('change', filterMatches);
-        if (roundFilter) roundFilter.addEventListener('change', filterMatches);
-        if (dateFrom) dateFrom.addEventListener('change', filterMatches);
+        // Function to apply URL filters
+        function applyUrlFilters() {
+            const urlParams = new URLSearchParams(window.location.search);
 
-        // Reset filters
-        if (resetFilters) {
-            resetFilters.addEventListener('click', function () {
-                statusFilter.value = '';
-                roundFilter.value = '';
-                dateFrom.value = '';
-                filterMatches();
-            });
+            if (urlParams.has('tournament_id')) {
+                const tournamentId = urlParams.get('tournament_id');
+                if (tournamentFilter) {
+                    tournamentFilter.value = tournamentId;
+                }
+            }
+
+            if (urlParams.has('status')) {
+                const status = urlParams.get('status');
+                if (statusFilter) {
+                    statusFilter.value = status;
+                }
+            }
+
+            if (urlParams.has('round')) {
+                const round = urlParams.get('round');
+                if (roundFilter) {
+                    roundFilter.value = round;
+                }
+            }
+
+            if (urlParams.has('date')) {
+                const date = urlParams.get('date');
+                if (dateFrom) {
+                    dateFrom.value = date;
+                }
+            }
+
+            if (urlParams.has('search')) {
+                const search = urlParams.get('search');
+                if (searchInput) {
+                    searchInput.value = search;
+                }
+            }
+
+            // Apply filters on page load
+            filterMatches();
         }
 
-       // Score Update Modal
-let scoreUpdateModal = null;
+        // Event listeners for filters
+        document.addEventListener('DOMContentLoaded', function () {
+            applyUrlFilters();
 
-// Initialize modals after DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    const scoreUpdateModalEl = document.getElementById('scoreUpdateModal');
-    if (scoreUpdateModalEl) {
-        scoreUpdateModal = new bootstrap.Modal(scoreUpdateModalEl);
-    }
+            if (tournamentFilter) tournamentFilter.addEventListener('change', function () {
+                updateUrlParam('tournament_id', this.value);
+                filterMatches();
+            });
 
-    const scoreUpdateForm = document.getElementById('scoreUpdateForm');
+            if (statusFilter) statusFilter.addEventListener('change', function () {
+                updateUrlParam('status', this.value);
+                filterMatches();
+            });
 
-    // Handle update score button clicks
-    document.querySelectorAll('.update-score-btn').forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
+            if (roundFilter) roundFilter.addEventListener('change', function () {
+                updateUrlParam('round', this.value);
+                filterMatches();
+            });
 
-            // Get data from button attributes
-            const matchId = this.dataset.matchId;
-            const homeTeam = this.dataset.homeTeam;
-            const awayTeam = this.dataset.awayTeam;
-            const homeScore = this.dataset.homeScore;
-            const awayScore = this.dataset.awayScore;
-            const updateUrl = this.dataset.updateUrl;
+            if (dateFrom) dateFrom.addEventListener('change', function () {
+                updateUrlParam('date', this.value);
+                filterMatches();
+            });
 
-            // Cari row match untuk mendapatkan logo
-            const matchRow = this.closest('.match-row');
-            
-            // DAPATKAN LOGO DARI ROW YANG SAMA
-            let homeLogoHtml = '<div class="team-initial-modal">' + 
-                              (homeTeam ? homeTeam.charAt(0).toUpperCase() : 'H') + 
-                              '</div>';
-            let awayLogoHtml = '<div class="team-initial-modal">' + 
-                              (awayTeam ? awayTeam.charAt(0).toUpperCase() : 'A') + 
-                              '</div>';
+            if (searchInput) searchInput.addEventListener('input', function () {
+                updateUrlParam('search', this.value);
+                filterMatches();
+            });
 
-            // Coba ambil logo dari tabel
-            if (matchRow) {
-                // Home team logo dari row
-                const homeLogoContainer = matchRow.querySelector('.team-info:first-child .team-logo-small');
-                if (homeLogoContainer) {
-                    // Clone logo content dari tabel
-                    homeLogoHtml = homeLogoContainer.innerHTML;
-                }
+            // Reset filters
+            if (resetFilters) {
+                resetFilters.addEventListener('click', function () {
+                    // Clear all filters
+                    if (tournamentFilter) tournamentFilter.value = '';
+                    if (statusFilter) statusFilter.value = '';
+                    if (roundFilter) roundFilter.value = '';
+                    if (dateFrom) dateFrom.value = '';
+                    if (searchInput) searchInput.value = '';
 
-                // Away team logo dari row
-                const awayLogoContainer = matchRow.querySelector('.team-info:last-child .team-logo-small');
-                if (awayLogoContainer) {
-                    // Clone logo content dari tabel
-                    awayLogoHtml = awayLogoContainer.innerHTML;
-                }
-            }
+                    // Clear URL parameters
+                    clearUrlParams();
 
-            // Set modal data
-            document.getElementById('modalHomeTeam').textContent = homeTeam;
-            document.getElementById('modalAwayTeam').textContent = awayTeam;
-            document.getElementById('modalHomeScore').value = homeScore;
-            document.getElementById('modalAwayScore').value = awayScore;
-            
-            // SET LOGO KE MODAL
-            const modalHomeLogo = document.getElementById('modalHomeLogo');
-            const modalAwayLogo = document.getElementById('modalAwayLogo');
-            
-            if (modalHomeLogo) {
-                modalHomeLogo.innerHTML = '';
-                
-                // Buat container logo baru untuk modal
-                const homeLogoDiv = document.createElement('div');
-                homeLogoDiv.className = 'team-logo-modal';
-                
-                // Ambil hanya elemen gambar atau initial dari HTML tabel
-                if (homeLogoHtml.includes('<img')) {
-                    // Jika ada gambar, extract src dan alt
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = homeLogoHtml;
-                    const img = tempDiv.querySelector('img');
-                    if (img) {
-                        const newImg = document.createElement('img');
-                        newImg.src = img.src;
-                        newImg.alt = img.alt || homeTeam;
-                        newImg.style.width = '100%';
-                        newImg.style.height = '100%';
-                        newImg.style.objectFit = 'cover';
-                        homeLogoDiv.appendChild(newImg);
-                    } else {
-                        homeLogoDiv.innerHTML = homeLogoHtml;
-                    }
-                } else {
-                    // Jika hanya initial/fallback
-                    homeLogoDiv.innerHTML = homeLogoHtml;
-                }
-                
-                modalHomeLogo.appendChild(homeLogoDiv);
-            }
-            
-            if (modalAwayLogo) {
-                modalAwayLogo.innerHTML = '';
-                
-                // Buat container logo baru untuk modal
-                const awayLogoDiv = document.createElement('div');
-                awayLogoDiv.className = 'team-logo-modal';
-                
-                // Ambil hanya elemen gambar atau initial dari HTML tabel
-                if (awayLogoHtml.includes('<img')) {
-                    // Jika ada gambar, extract src dan alt
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = awayLogoHtml;
-                    const img = tempDiv.querySelector('img');
-                    if (img) {
-                        const newImg = document.createElement('img');
-                        newImg.src = img.src;
-                        newImg.alt = img.alt || awayTeam;
-                        newImg.style.width = '100%';
-                        newImg.style.height = '100%';
-                        newImg.style.objectFit = 'cover';
-                        awayLogoDiv.appendChild(newImg);
-                    } else {
-                        awayLogoDiv.innerHTML = awayLogoHtml;
-                    }
-                } else {
-                    // Jika hanya initial/fallback
-                    awayLogoDiv.innerHTML = awayLogoHtml;
-                }
-                
-                modalAwayLogo.appendChild(awayLogoDiv);
-            }
-
-            // Set form action
-            if (scoreUpdateForm) {
-                scoreUpdateForm.action = updateUrl;
-            }
-
-            // Show modal
-            if (scoreUpdateModal) {
-                scoreUpdateModal.show();
+                    // Apply filters
+                    filterMatches();
+                });
             }
         });
-    });
-});
 
+        // Function to update URL parameter
+        function updateUrlParam(key, value) {
+            const url = new URL(window.location);
 
-        document.addEventListener('touchstart', function (e) {
-            // Jika yang diklik adalah backdrop modal
-            if (e.target.classList.contains('modal-backdrop') ||
-                e.target.classList.contains('modal') &&
-                !e.target.classList.contains('modal-dialog')) {
-
-                // Tutup modal yang aktif
-                const activeModal = document.querySelector('.modal.show');
-                if (activeModal) {
-                    const modalInstance = bootstrap.Modal.getInstance(activeModal);
-                    if (modalInstance) {
-                        modalInstance.hide();
-                    }
-                }
-
-                e.preventDefault();
-                e.stopPropagation();
+            if (value) {
+                url.searchParams.set(key, value);
+            } else {
+                url.searchParams.delete(key);
             }
-        }, {
-            passive: false
+
+            // Preserve pagination if exists
+            const pageParam = url.searchParams.get('page');
+
+            // Update URL without reloading page
+            history.replaceState({}, '', url.toString());
+        }
+
+        // Function to clear all URL parameters
+        function clearUrlParams() {
+            const url = new URL(window.location);
+            url.search = '';
+            history.replaceState({}, '', url.toString());
+        }
+
+        // Score Update Modal
+        let scoreUpdateModal = null;
+
+        // Initialize modals after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            const scoreUpdateModalEl = document.getElementById('scoreUpdateModal');
+            if (scoreUpdateModalEl) {
+                scoreUpdateModal = new bootstrap.Modal(scoreUpdateModalEl);
+            }
+
+            const scoreUpdateForm = document.getElementById('scoreUpdateForm');
+
+            // Handle update score button clicks
+            document.querySelectorAll('.update-score-btn').forEach(button => {
+                button.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    // Get data from button attributes
+                    const matchId = this.dataset.matchId;
+                    const homeTeam = this.dataset.homeTeam;
+                    const awayTeam = this.dataset.awayTeam;
+                    const homeScore = this.dataset.homeScore;
+                    const awayScore = this.dataset.awayScore;
+                    const updateUrl = this.dataset.updateUrl;
+
+                    // Cari row match untuk mendapatkan logo
+                    const matchRow = this.closest('.match-row');
+
+                    // DAPATKAN LOGO DARI ROW YANG SAMA
+                    let homeLogoHtml = '<div class="team-initial-modal">' +
+                        (homeTeam ? homeTeam.charAt(0).toUpperCase() : 'H') +
+                        '</div>';
+                    let awayLogoHtml = '<div class="team-initial-modal">' +
+                        (awayTeam ? awayTeam.charAt(0).toUpperCase() : 'A') +
+                        '</div>';
+
+                    // Coba ambil logo dari tabel
+                    if (matchRow) {
+                        // Home team logo dari row
+                        const homeLogoContainer = matchRow.querySelector('.team-info:first-child .team-logo-small');
+                        if (homeLogoContainer) {
+                            // Clone logo content dari tabel
+                            homeLogoHtml = homeLogoContainer.innerHTML;
+                        }
+
+                        // Away team logo dari row
+                        const awayLogoContainer = matchRow.querySelector('.team-info:last-child .team-logo-small');
+                        if (awayLogoContainer) {
+                            // Clone logo content dari tabel
+                            awayLogoHtml = awayLogoContainer.innerHTML;
+                        }
+                    }
+
+                    // Set modal data
+                    document.getElementById('modalHomeTeam').textContent = homeTeam;
+                    document.getElementById('modalAwayTeam').textContent = awayTeam;
+                    document.getElementById('modalHomeScore').value = homeScore;
+                    document.getElementById('modalAwayScore').value = awayScore;
+
+                    // SET LOGO KE MODAL
+                    const modalHomeLogo = document.getElementById('modalHomeLogo');
+                    const modalAwayLogo = document.getElementById('modalAwayLogo');
+
+                    if (modalHomeLogo) {
+                        modalHomeLogo.innerHTML = '';
+
+                        // Buat container logo baru untuk modal
+                        const homeLogoDiv = document.createElement('div');
+                        homeLogoDiv.className = 'team-logo-modal';
+
+                        // Ambil hanya elemen gambar atau initial dari HTML tabel
+                        if (homeLogoHtml.includes('<img')) {
+                            // Jika ada gambar, extract src dan alt
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = homeLogoHtml;
+                            const img = tempDiv.querySelector('img');
+                            if (img) {
+                                const newImg = document.createElement('img');
+                                newImg.src = img.src;
+                                newImg.alt = img.alt || homeTeam;
+                                newImg.style.width = '100%';
+                                newImg.style.height = '100%';
+                                newImg.style.objectFit = 'cover';
+                                homeLogoDiv.appendChild(newImg);
+                            } else {
+                                homeLogoDiv.innerHTML = homeLogoHtml;
+                            }
+                        } else {
+                            // Jika hanya initial/fallback
+                            homeLogoDiv.innerHTML = homeLogoHtml;
+                        }
+
+                        modalHomeLogo.appendChild(homeLogoDiv);
+                    }
+
+                    if (modalAwayLogo) {
+                        modalAwayLogo.innerHTML = '';
+
+                        // Buat container logo baru untuk modal
+                        const awayLogoDiv = document.createElement('div');
+                        awayLogoDiv.className = 'team-logo-modal';
+
+                        // Ambil hanya elemen gambar atau initial dari HTML tabel
+                        if (awayLogoHtml.includes('<img')) {
+                            // Jika ada gambar, extract src dan alt
+                            const tempDiv = document.createElement('div');
+                            tempDiv.innerHTML = awayLogoHtml;
+                            const img = tempDiv.querySelector('img');
+                            if (img) {
+                                const newImg = document.createElement('img');
+                                newImg.src = img.src;
+                                newImg.alt = img.alt || awayTeam;
+                                newImg.style.width = '100%';
+                                newImg.style.height = '100%';
+                                newImg.style.objectFit = 'cover';
+                                awayLogoDiv.appendChild(newImg);
+                            } else {
+                                awayLogoDiv.innerHTML = awayLogoHtml;
+                            }
+                        } else {
+                            // Jika hanya initial/fallback
+                            awayLogoDiv.innerHTML = awayLogoHtml;
+                        }
+
+                        modalAwayLogo.appendChild(awayLogoDiv);
+                    }
+
+                    // Set form action
+                    if (scoreUpdateForm) {
+                        scoreUpdateForm.action = updateUrl;
+                    }
+
+                    // Show modal
+                    if (scoreUpdateModal) {
+                        scoreUpdateModal.show();
+                    }
+                });
+            });
         });
 
         // Highlight Upload Functionality
@@ -2337,7 +2303,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // Load current highlight information
-        // GANTI fungsi loadCurrentHighlight dengan yang ini:
         function loadCurrentHighlight(matchId) {
             const currentVideoContainer = document.getElementById('currentVideoContainer');
             const currentVideoInfo = document.getElementById('currentVideoInfo');
@@ -2616,58 +2581,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Validate YouTube URL and show preview
-        function validateYoutubeUrl(url) {
-            const previewSection = document.getElementById('youtubePreview');
-            const previewContainer = document.getElementById('previewContainer');
-            const previewInfo = document.getElementById('previewInfo');
-
-            if (!url || !previewSection || !previewContainer) {
-                if (previewSection) previewSection.classList.add('d-none');
-                return false;
-            }
-
-            // Simple YouTube URL validation
-            const youtubePatterns = [
-                /youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-                /youtu\.be\/([a-zA-Z0-9_-]{11})/,
-                /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
-                /youtube\.com\/v\/([a-zA-Z0-9_-]{11})/,
-                /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/
-            ];
-
-            let videoId = null;
-            for (const pattern of youtubePatterns) {
-                const match = url.match(pattern);
-                if (match) {
-                    videoId = match[1];
-                    break;
-                }
-            }
-
-            if (!videoId) {
-                previewSection.classList.add('d-none');
-                showYoutubeStatus('Invalid YouTube URL format', 'danger');
-                return false;
-            }
-
-            // Show preview
-            previewContainer.innerHTML = `
-            <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
-                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen style="border-radius: 4px;">
-            </iframe>
-        `;
-
-            if (previewInfo) {
-                previewInfo.textContent = `Video ID: ${videoId}`;
-            }
-
-            previewSection.classList.remove('d-none');
-            showYoutubeStatus('Valid YouTube URL detected', 'success');
-            return true;
-        }
-
         // Helper function to get CSRF token safely
         function getCsrfToken() {
             // Try multiple sources
@@ -2807,17 +2720,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 setTimeout(() => {
                     statusDiv.classList.add('d-none');
                 }, 5000);
-            }
-        }
-
-        // Function to toggle form visibility
-        function toggleHighlightForm(showAddForm) {
-            if (showAddForm) {
-                if (currentHighlightSection) currentHighlightSection.classList.add('d-none');
-                if (addHighlightForm) addHighlightForm.classList.remove('d-none');
-            } else {
-                if (currentHighlightSection) currentHighlightSection.classList.remove('d-none');
-                if (addHighlightForm) addHighlightForm.classList.add('d-none');
             }
         }
     </script>

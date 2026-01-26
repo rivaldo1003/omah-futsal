@@ -20,47 +20,55 @@ class GameController extends Controller
      */
     public function schedule(Request $request)
     {
-        $perPage = 20;
-        $search = $request->input('search');
-        $group = $request->input('group');
-        $status = $request->input('status');
-        $date = $request->input('date');
-        $tournamentId = $request->input('tournament_id');
+        // Get active tournament (ongoing) as default
+        $activeTournament = Tournament::where('status', 'ongoing')->first();
 
-        $query = Game::with(['homeTeam', 'awayTeam', 'tournament'])
+        // Get all tournaments for filter dropdown
+        $allTournaments = Tournament::whereIn('status', ['upcoming', 'ongoing', 'completed'])
             ->orderByRaw("
-            CASE 
-                WHEN status = 'ongoing' THEN 1
-                WHEN status = 'upcoming' THEN 2
-                WHEN status = 'completed' THEN 3
-                ELSE 4
-            END
-        ")
-            ->orderByRaw("
-            CASE 
-                WHEN status = 'upcoming' THEN match_date
-                ELSE '9999-12-31'
-            END ASC
-        ")
-            ->orderBy('time_start');
+                CASE 
+                    WHEN status = 'ongoing' THEN 1
+                    WHEN status = 'upcoming' THEN 2
+                    WHEN status = 'completed' THEN 3
+                    ELSE 4
+                END
+            ")
+            ->orderBy('start_date', 'desc')
+            ->get();
 
-        if ($tournamentId && $tournamentId !== 'all') {
-            $query->where('tournament_id', $tournamentId);
+        // Get unique groups from matches for filter
+        $groups = Game::select('group_name')
+            ->whereNotNull('group_name')
+            ->distinct()
+            ->orderBy('group_name')
+            ->pluck('group_name')
+            ->filter()
+            ->values();
+
+        // Initialize query
+        $query = Game::with(['homeTeam', 'awayTeam', 'tournament']);
+
+        // Apply tournament filter - jika ada filter tournament
+        if ($request->filled('tournament') && $request->tournament !== 'all') {
+            $selectedTournamentId = $request->tournament;
+            $selectedTournament = Tournament::find($selectedTournamentId);
+            $query->where('tournament_id', $selectedTournamentId);
+        }
+        // Jika tidak ada filter, default ke tournament aktif
+        elseif ($activeTournament) {
+            $selectedTournamentId = $activeTournament->id;
+            $selectedTournament = $activeTournament;
+            $query->where('tournament_id', $selectedTournamentId);
+        }
+        // Jika tidak ada tournament aktif, tampilkan semua
+        else {
+            $selectedTournamentId = null;
+            $selectedTournament = null;
         }
 
-        if ($group && $group !== 'all') {
-            $query->where('group_name', $group);
-        }
-
-        if ($status && $status !== 'all') {
-            $query->where('status', $status);
-        }
-
-        if ($date) {
-            $query->whereDate('match_date', $date);
-        }
-
-        if ($search) {
+        // Apply other filters
+        if ($request->filled('search')) {
+            $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('homeTeam', function ($q) use ($search) {
                     $q->where('name', 'like', "%{$search}%");
@@ -70,16 +78,61 @@ class GameController extends Controller
             });
         }
 
-        $matches = $query->paginate($perPage);
-        $teams = Team::all();
-        $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])->get();
+        if ($request->filled('group') && $request->group !== 'all') {
+            $query->where('group_name', $request->group);
+        }
 
-        $groupedMatches = $matches->groupBy(function ($item) {
-            return $item->match_date->format('Y-m-d');
+        if ($request->filled('status') && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        } else {
+            // Default: show upcoming and ongoing first
+            $query->orderByRaw("
+                CASE 
+                    WHEN status = 'ongoing' THEN 1
+                    WHEN status = 'upcoming' THEN 2
+                    WHEN status = 'completed' THEN 3
+                    ELSE 4
+                END
+            ");
+        }
+
+        if ($request->filled('date')) {
+            $query->whereDate('match_date', $request->date);
+        }
+
+        // Order matches
+        $query->orderBy('match_date')
+            ->orderBy('time_start');
+
+        // Paginate results
+        $perPage = $request->get('per_page', 20);
+        $matches = $query->paginate($perPage)->withQueryString();
+
+        // Group matches by date for display
+        $groupedMatches = $matches->groupBy(function ($match) {
+            return Carbon::parse($match->match_date)->format('Y-m-d');
         });
 
-        return view('games.schedule', compact('matches', 'groupedMatches', 'teams', 'tournaments'));
+        // Get statistics
+        $totalMatches = $matches->total();
+        $completedMatches = $matches->where('status', 'completed')->count();
+        $upcomingMatches = $matches->where('status', 'upcoming')->count();
+        $ongoingMatches = $matches->where('status', 'ongoing')->count();
+
+        return view('games.schedule', compact(
+            'matches',
+            'groupedMatches',
+            'activeTournament',
+            'allTournaments',
+            'selectedTournament',
+            'groups',
+            'totalMatches',
+            'completedMatches',
+            'upcomingMatches',
+            'ongoingMatches'
+        ));
     }
+
 
     /**
      * Display match details for public
@@ -213,7 +266,7 @@ class GameController extends Controller
             $tournament = Tournament::find($tournamentId);
             $tournamentType = $tournament->type;
             $groupOptions = [];
-            
+
             // Hanya tampilkan group untuk group_knockout
             if ($tournamentType === 'group_knockout' && $tournament->groups_count) {
                 $groupOptions = array_map(function ($i) {
@@ -222,7 +275,7 @@ class GameController extends Controller
             } else {
                 $groupOptions = []; // League dan knockout TIDAK punya group options
             }
-            
+
             $tournamentSettings = json_decode($tournament->settings, true) ?? [];
         } else {
             $teams = collect();
@@ -253,15 +306,15 @@ class GameController extends Controller
     {
         // Cari tournament terlebih dahulu
         $tournament = Tournament::find($request->tournament_id);
-        
+
         if (!$tournament) {
             return redirect()->back()
                 ->with('error', 'Tournament not found.')
                 ->withInput();
         }
-        
+
         $tournamentType = $tournament->type;
-        
+
         // ===== PERBAIKAN UTAMA: Validasi dinamis berdasarkan tournament type =====
         $rules = [
             'tournament_id' => 'required|exists:tournaments,id',
@@ -278,13 +331,13 @@ class GameController extends Controller
             'round' => 'nullable|integer|min:1',
             'stage' => 'nullable|in:group,knockout,league,qualification',
         ];
-        
+
         // PERBAIKAN: Tentukan validasi round_type berdasarkan tournament type
         if ($tournamentType === 'league') {
             // Untuk league: round_type harus 'league' dan group_name tidak perlu
             $rules['round_type'] = 'required|in:league';
             $rules['group_name'] = 'nullable|string|max:1';
-            
+
             // Force set round_type ke 'league'
             $request->merge(['round_type' => 'league']);
         } elseif ($tournamentType === 'knockout') {
@@ -294,7 +347,7 @@ class GameController extends Controller
         } elseif ($tournamentType === 'group_knockout') {
             // Untuk group_knockout: round_type bisa group atau knockout
             $rules['round_type'] = 'required|in:group,quarterfinal,semifinal,final,third_place';
-            
+
             // PERBAIKAN: Group name hanya required untuk round_type group
             if ($request->round_type === 'group') {
                 $rules['group_name'] = 'required|string|max:1';
@@ -302,7 +355,7 @@ class GameController extends Controller
                 $rules['group_name'] = 'nullable|string|max:1';
             }
         }
-        
+
         $request->validate($rules);
 
         // ===== PERBAIKAN: Auto-set values berdasarkan tournament type =====
@@ -375,7 +428,7 @@ class GameController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error creating match: '.$e->getMessage())
+                ->with('error', 'Error creating match: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -392,7 +445,7 @@ class GameController extends Controller
 
         $groupOptions = [];
         $tournament = $match->tournament;
-        
+
         // PERBAIKAN: Hanya tampilkan group options untuk group_knockout
         if ($tournament && $tournament->type === 'group_knockout' && $tournament->groups_count) {
             $groupOptions = array_map(function ($i) {
@@ -422,15 +475,15 @@ class GameController extends Controller
     {
         // Cari tournament terlebih dahulu
         $tournament = Tournament::find($request->tournament_id);
-        
+
         if (!$tournament) {
             return redirect()->back()
                 ->with('error', 'Tournament not found.')
                 ->withInput();
         }
-        
+
         $tournamentType = $tournament->type;
-        
+
         // ===== PERBAIKAN: Validasi dinamis berdasarkan tournament type =====
         $rules = [
             'tournament_id' => 'required|exists:tournaments,id',
@@ -445,7 +498,7 @@ class GameController extends Controller
             'away_score' => 'nullable|integer|min:0',
             'notes' => 'nullable|string',
         ];
-        
+
         // PERBAIKAN: Tentukan validasi round_type dan group_name berdasarkan tournament type
         if ($tournamentType === 'league') {
             $rules['round_type'] = 'required|in:league';
@@ -455,7 +508,7 @@ class GameController extends Controller
             $rules['group_name'] = 'nullable|string|max:1';
         } elseif ($tournamentType === 'group_knockout') {
             $rules['round_type'] = 'required|in:group,quarterfinal,semifinal,final,third_place';
-            
+
             // Group name hanya required untuk round_type group
             if ($request->round_type === 'group') {
                 $rules['group_name'] = 'required|string|max:1';
@@ -502,7 +555,7 @@ class GameController extends Controller
                 ->with('success', 'Match updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating match: '.$e->getMessage())
+                ->with('error', 'Error updating match: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -525,7 +578,7 @@ class GameController extends Controller
                 ->with('success', 'Match deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting match: '.$e->getMessage());
+                ->with('error', 'Error deleting match: ' . $e->getMessage());
         }
     }
 
@@ -562,7 +615,7 @@ class GameController extends Controller
                 ->with('success', 'Score updated successfully! Standings have been recalculated.');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating score: '.$e->getMessage());
+                ->with('error', 'Error updating score: ' . $e->getMessage());
         }
     }
 
@@ -591,15 +644,15 @@ class GameController extends Controller
                     case 'league':
                         $this->generateLeagueMatches($tournament, $teams);
                         break;
-                        
+
                     case 'knockout':
                         $this->generateKnockoutMatches($tournament, $teams);
                         break;
-                        
+
                     case 'group_knockout':
                         $this->generateGroupKnockoutMatches($tournament, $teams);
                         break;
-                        
+
                     default:
                         throw new \Exception('Unsupported tournament type');
                 }
@@ -621,11 +674,11 @@ class GameController extends Controller
     {
         try {
             $matchCount = Game::where('tournament_id', $tournament->id)->count();
-            
+
             DB::transaction(function () use ($tournament) {
                 // Delete all matches for this tournament
                 Game::where('tournament_id', $tournament->id)->delete();
-                
+
                 // Reset standings if any
                 Standing::where('tournament_id', $tournament->id)->delete();
             });
@@ -659,7 +712,7 @@ class GameController extends Controller
     {
         $match = Game::find($matchId);
 
-        if (! $match) {
+        if (!$match) {
             return response()->json([
                 'success' => false,
                 'message' => 'Match not found.',
@@ -681,7 +734,7 @@ class GameController extends Controller
         $youtubeUrl = $request->input('youtube_url');
 
         // Validate YouTube URL format
-        if (! Game::isValidYoutubeUrl($youtubeUrl)) {
+        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid YouTube URL format. Please provide a valid YouTube link.',
@@ -690,7 +743,7 @@ class GameController extends Controller
 
         $youtubeId = Game::parseYoutubeId($youtubeUrl);
 
-        if (! $youtubeId) {
+        if (!$youtubeId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Could not extract YouTube video ID. Please check the URL format.',
@@ -723,7 +776,7 @@ class GameController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error adding YouTube highlight: '.$e->getMessage(),
+                'message' => 'Error adding YouTube highlight: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -735,7 +788,7 @@ class GameController extends Controller
     {
         $match = Game::find($matchId);
 
-        if (! $match) {
+        if (!$match) {
             return response()->json([
                 'success' => false,
                 'message' => 'Match not found.',
@@ -748,7 +801,7 @@ class GameController extends Controller
 
         $youtubeUrl = $request->input('youtube_url');
 
-        if (! Game::isValidYoutubeUrl($youtubeUrl)) {
+        if (!Game::isValidYoutubeUrl($youtubeUrl)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Invalid YouTube URL format.',
@@ -757,7 +810,7 @@ class GameController extends Controller
 
         $youtubeId = Game::parseYoutubeId($youtubeUrl);
 
-        if (! $youtubeId) {
+        if (!$youtubeId) {
             return response()->json([
                 'success' => false,
                 'message' => 'Could not extract YouTube video ID.',
@@ -787,7 +840,7 @@ class GameController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error updating YouTube highlight: '.$e->getMessage(),
+                'message' => 'Error updating YouTube highlight: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -799,7 +852,7 @@ class GameController extends Controller
     {
         $match = Game::find($matchId);
 
-        if (! $match) {
+        if (!$match) {
             return response()->json([
                 'success' => false,
                 'message' => 'Match not found.',
@@ -822,7 +875,7 @@ class GameController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error removing highlight: '.$e->getMessage(),
+                'message' => 'Error removing highlight: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -834,14 +887,14 @@ class GameController extends Controller
     {
         $match = Game::find($matchId);
 
-        if (! $match) {
+        if (!$match) {
             return response()->json([
                 'success' => false,
                 'message' => 'Match not found.',
             ], 404);
         }
 
-        $hasHighlight = ! empty($match->youtube_id);
+        $hasHighlight = !empty($match->youtube_id);
 
         return response()->json([
             'success' => true,
@@ -856,10 +909,10 @@ class GameController extends Controller
                 'uploaded_relative' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->diffForHumans() : null,
                 'match_info' => [
                     'id' => $match->id,
-                    'teams' => ($match->homeTeam->name ?? 'Home').' vs '.($match->awayTeam->name ?? 'Away'),
+                    'teams' => ($match->homeTeam->name ?? 'Home') . ' vs ' . ($match->awayTeam->name ?? 'Away'),
                     'date' => $match->match_date->format('Y-m-d'),
                     'status' => $match->status,
-                    'score' => $match->home_score !== null ? $match->home_score.' - '.$match->away_score : null,
+                    'score' => $match->home_score !== null ? $match->home_score . ' - ' . $match->away_score : null,
                 ],
             ],
         ]);
@@ -885,7 +938,7 @@ class GameController extends Controller
         if (!in_array($roundType, $compatibility[$tournamentType])) {
             $allowedTypes = implode(', ', $compatibility[$tournamentType]);
             return [
-                'valid' => false, 
+                'valid' => false,
                 'message' => "For {$tournamentType} tournament, round type must be one of: {$allowedTypes}"
             ];
         }
@@ -904,7 +957,7 @@ class GameController extends Controller
         $timeSlots = explode(',', $settings['match_time_slots'] ?? '14:00,16:00,18:00,20:00');
         $timeSlots = array_map('trim', $timeSlots);
         $rounds = $settings['league_rounds'] ?? 1;
-        
+
         // Group teams jika league memiliki groups
         $groups = [];
         if ($tournament->groups_count > 1) {
@@ -919,27 +972,28 @@ class GameController extends Controller
             // League tanpa grup
             $groups['single'] = $teams->pluck('id')->toArray();
         }
-        
+
         $currentDate = Carbon::parse($tournament->start_date);
         $endDate = Carbon::parse($tournament->end_date);
         $matchCount = 0;
         $timeSlotIndex = 0;
-        
+
         foreach ($groups as $groupName => $teamIds) {
             $teamCount = count($teamIds);
-            
-            if ($teamCount < 2) continue;
-            
+
+            if ($teamCount < 2)
+                continue;
+
             // Generate all possible pairings
             $pairings = [];
-            
+
             for ($i = 0; $i < $teamCount - 1; $i++) {
                 for ($j = $i + 1; $j < $teamCount; $j++) {
                     $pairings[] = [
                         'home' => $teamIds[$i],
                         'away' => $teamIds[$j]
                     ];
-                    
+
                     // Add return match if double round
                     if ($rounds == 2) {
                         $pairings[] = [
@@ -949,23 +1003,23 @@ class GameController extends Controller
                     }
                 }
             }
-            
+
             // Shuffle pairings for random scheduling
             shuffle($pairings);
-            
+
             foreach ($pairings as $pairing) {
                 if ($matchCount % $matchesPerDay == 0 && $matchCount > 0) {
                     $currentDate->addDay();
-                    
+
                     // Check if tournament end date is reached
                     if ($currentDate > $endDate) {
                         throw new \Exception('Tournament duration too short for all matches. Please extend the end date.');
                     }
                 }
-                
+
                 $timeStart = $timeSlots[$timeSlotIndex % count($timeSlots)];
                 $timeEnd = Carbon::parse($timeStart)->addMinutes($matchDuration)->format('H:i');
-                
+
                 Game::create([
                     'tournament_id' => $tournament->id,
                     'match_date' => $currentDate->format('Y-m-d'),
@@ -978,12 +1032,12 @@ class GameController extends Controller
                     'round_type' => 'league',
                     'group_name' => $tournament->groups_count > 1 ? $groupName : null,
                 ]);
-                
+
                 $matchCount++;
                 $timeSlotIndex++;
             }
         }
-        
+
         return $matchCount;
     }
 
@@ -995,36 +1049,36 @@ class GameController extends Controller
         $teamIds = $teams->pluck('id')->toArray();
         $teamsCount = count($teamIds);
         $bracketSize = $tournament->knockout_teams ?? 8;
-        
+
         // Validasi jumlah tim
         if ($teamsCount > $bracketSize) {
             throw new \Exception("Knockout tournament can only have {$bracketSize} teams maximum. You have {$teamsCount} teams.");
         }
-        
+
         if ($teamsCount < 2) {
             throw new \Exception("Knockout tournament must have at least 2 teams.");
         }
-        
+
         // Shuffle teams
         shuffle($teamIds);
-        
+
         // Generate bracket
         $matches = [];
         $matchDates = $this->generateMatchDates($tournament->start_date, $tournament->end_date, $bracketSize);
-        
+
         // Round 1 matches
         $roundNumber = 1;
         $totalRounds = log($bracketSize, 2);
-        
+
         for ($i = 0; $i < $bracketSize; $i += 2) {
             $homeTeam = isset($teamIds[$i]) ? $teamIds[$i] : null;
             $awayTeam = isset($teamIds[$i + 1]) ? $teamIds[$i + 1] : null;
-            
+
             $matchData = [
                 'tournament_id' => $tournament->id,
                 'match_date' => $matchDates[0],
-                'time_start' => $this->getTimeSlot($i/2, $tournament),
-                'time_end' => $this->getTimeEnd($this->getTimeSlot($i/2, $tournament), $tournament),
+                'time_start' => $this->getTimeSlot($i / 2, $tournament),
+                'time_end' => $this->getTimeEnd($this->getTimeSlot($i / 2, $tournament), $tournament),
                 'team_home_id' => $homeTeam,
                 'team_away_id' => $awayTeam,
                 'venue' => $tournament->location ?? 'Main Field',
@@ -1032,7 +1086,7 @@ class GameController extends Controller
                 'round_type' => $this->getRoundType($bracketSize, $roundNumber),
                 'group_name' => null,
             ];
-            
+
             // Jika ada bye (tim kosong), set status completed
             if (is_null($homeTeam) || is_null($awayTeam)) {
                 $matchData['status'] = 'completed';
@@ -1044,17 +1098,17 @@ class GameController extends Controller
                     $matchData['away_score'] = 0;
                 }
             }
-            
+
             $matches[] = $matchData;
         }
-        
+
         // Subsequent rounds (quarter, semi, final)
         $roundMatchCount = $bracketSize / 2;
         $roundNumber = 2;
-        
+
         while ($roundMatchCount > 1) {
             $nextRoundMatches = $roundMatchCount / 2;
-            
+
             for ($i = 0; $i < $nextRoundMatches; $i++) {
                 $matches[] = [
                     'tournament_id' => $tournament->id,
@@ -1069,11 +1123,11 @@ class GameController extends Controller
                     'group_name' => null,
                 ];
             }
-            
+
             $roundMatchCount = $nextRoundMatches;
             $roundNumber++;
         }
-        
+
         // Third place match jika diperlukan
         if ($tournament->knockout_third_place) {
             $matches[] = [
@@ -1089,7 +1143,7 @@ class GameController extends Controller
                 'group_name' => null,
             ];
         }
-        
+
         // Create all matches
         foreach ($matches as $matchData) {
             Game::create($matchData);
@@ -1104,13 +1158,13 @@ class GameController extends Controller
         $groupsCount = $tournament->groups_count ?? 2;
         $teamsPerGroup = $tournament->teams_per_group ?? 4;
         $totalTeams = $teams->count();
-        
+
         // Validasi jumlah tim
         $expectedTeams = $groupsCount * $teamsPerGroup;
         if ($totalTeams != $expectedTeams) {
             throw new \Exception("Expected {$expectedTeams} teams for {$groupsCount} groups with {$teamsPerGroup} teams each, but got {$totalTeams}");
         }
-        
+
         // Assign teams to groups dari database
         $groupAssignments = [];
         foreach ($teams as $team) {
@@ -1119,7 +1173,7 @@ class GameController extends Controller
                 ->first()
                 ->pivot
                 ->group_name ?? null;
-            
+
             if (!$groupName) {
                 // Fallback: assign groups alphabetically
                 $teamsArray = $teams->toArray();
@@ -1130,19 +1184,19 @@ class GameController extends Controller
                 }
                 break;
             }
-            
+
             $groupAssignments[$groupName][] = $team->id;
         }
-        
+
         // Generate group stage matches
         $groupStageMatches = [];
         $currentDate = Carbon::parse($tournament->start_date);
-        
+
         foreach ($groupAssignments as $groupLetter => $teamIds) {
             // Generate all pairings within group
             $pairings = [];
             $teamCount = count($teamIds);
-            
+
             for ($i = 0; $i < $teamCount - 1; $i++) {
                 for ($j = $i + 1; $j < $teamCount; $j++) {
                     $pairings[] = [
@@ -1151,11 +1205,11 @@ class GameController extends Controller
                     ];
                 }
             }
-            
+
             // Shuffle and schedule
             shuffle($pairings);
             $matchInGroup = 0;
-            
+
             foreach ($pairings as $pairing) {
                 $timeSlot = $matchInGroup % 4; // 4 match slots per day
                 $groupStageMatches[] = [
@@ -1170,24 +1224,24 @@ class GameController extends Controller
                     'round_type' => 'group',
                     'group_name' => $groupLetter,
                 ];
-                
+
                 $matchInGroup++;
                 if ($matchInGroup % 4 == 0) {
                     $currentDate->addDay();
                 }
             }
-            
+
             // Add day if not all matches scheduled for the day
             if ($matchInGroup % 4 != 0) {
                 $currentDate->addDay();
             }
         }
-        
+
         // Create group stage matches
         foreach ($groupStageMatches as $matchData) {
             Game::create($matchData);
         }
-        
+
         // Generate knockout stage matches
         $this->scheduleKnockoutStage($tournament, $currentDate, $groupsCount);
     }
@@ -1199,15 +1253,15 @@ class GameController extends Controller
     {
         $qualifyPerGroup = $tournament->qualify_per_group ?? 2;
         $knockoutTeams = $groupsCount * $qualifyPerGroup;
-        
+
         if ($knockoutTeams < 2) {
             return; // Tidak ada knockout stage jika kurang dari 2 tim
         }
-        
+
         // Determine round types based on number of teams
         $roundTypes = [];
         $teamCount = $knockoutTeams;
-        
+
         while ($teamCount > 1) {
             if ($teamCount >= 8) {
                 $roundTypes[] = 'quarterfinal';
@@ -1220,18 +1274,18 @@ class GameController extends Controller
                 $teamCount = $teamCount / 2;
             }
         }
-        
+
         // Add third place match if needed
         if ($tournament->knockout_third_place) {
             $roundTypes[] = 'third_place';
         }
-        
+
         // Create placeholder matches for knockout stage
         $matchDate = $startDate->copy()->addDays(2); // 2 days break after group stage
-        
+
         foreach ($roundTypes as $roundType) {
             $matchesInRound = $this->getMatchesInRound($roundType, $knockoutTeams);
-            
+
             for ($i = 0; $i < $matchesInRound; $i++) {
                 Game::create([
                     'tournament_id' => $tournament->id,
@@ -1246,7 +1300,7 @@ class GameController extends Controller
                     'group_name' => null,
                 ]);
             }
-            
+
             $matchDate->addDays(2); // 2 days between rounds
         }
     }
@@ -1403,7 +1457,7 @@ class GameController extends Controller
             ->where('group_name', $groupName)
             ->first();
 
-        if (! $homeStanding || ! $awayStanding) {
+        if (!$homeStanding || !$awayStanding) {
             return;
         }
 
@@ -1465,7 +1519,7 @@ class GameController extends Controller
 
         // Determine next round based on current round
         $nextRound = $this->getNextRoundType($match->round_type);
-        
+
         if (!$nextRound) {
             return; // Final match, no next round
         }
@@ -1475,7 +1529,7 @@ class GameController extends Controller
             ->where('round_type', $nextRound)
             ->where(function ($query) {
                 $query->whereNull('team_home_id')
-                      ->orWhereNull('team_away_id');
+                    ->orWhereNull('team_away_id');
             })
             ->orderBy('match_date')
             ->orderBy('time_start')
@@ -1506,7 +1560,7 @@ class GameController extends Controller
         // For third place match
         if ($match->round_type === 'semifinal' && $tournament->knockout_third_place) {
             $loserId = ($match->home_score < $match->away_score) ? $match->team_home_id : $match->team_away_id;
-            
+
             $thirdPlaceMatch = Game::where('tournament_id', $tournament->id)
                 ->where('round_type', 'third_place')
                 ->first();
@@ -1529,7 +1583,7 @@ class GameController extends Controller
     {
         // Clear the next match slots
         $nextRound = $this->getNextRoundType($match->round_type);
-        
+
         if ($nextRound) {
             $nextMatches = Game::where('tournament_id', $tournament->id)
                 ->where('round_type', $nextRound)
@@ -1639,7 +1693,7 @@ class GameController extends Controller
                 ->with('success', 'Event added successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error adding event: '.$e->getMessage());
+                ->with('error', 'Error adding event: ' . $e->getMessage());
         }
     }
 
@@ -1667,7 +1721,7 @@ class GameController extends Controller
                 ->with('success', 'Event deleted successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting event: '.$e->getMessage());
+                ->with('error', 'Error deleting event: ' . $e->getMessage());
         }
     }
 
@@ -1698,7 +1752,7 @@ class GameController extends Controller
                     ->where('team_id', $matchData['team_away_id'])
                     ->exists();
 
-                if (! $homeTeamInTournament || ! $awayTeamInTournament) {
+                if (!$homeTeamInTournament || !$awayTeamInTournament) {
                     throw new \Exception('One or both teams are not in this tournament');
                 }
 
@@ -1724,7 +1778,7 @@ class GameController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Error creating matches: '.$e->getMessage())
+                ->with('error', 'Error creating matches: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -1787,7 +1841,7 @@ class GameController extends Controller
                 ->with('success', 'Match status updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error updating match status: '.$e->getMessage());
+                ->with('error', 'Error updating match status: ' . $e->getMessage());
         }
     }
 
@@ -1801,17 +1855,17 @@ class GameController extends Controller
         $start = Carbon::parse($startDate);
         $end = Carbon::parse($endDate);
         $interval = $start->diffInDays($end);
-        
+
         $dates = [];
         $rounds = log($bracketSize, 2);
-        
+
         for ($i = 0; $i < $rounds; $i++) {
             $date = $start->copy()->addDays($i * 2); // 2 days between rounds
             if ($date <= $end) {
                 $dates[] = $date->format('Y-m-d');
             }
         }
-        
+
         return $dates;
     }
 
@@ -1842,24 +1896,28 @@ class GameController extends Controller
         if ($bracketSize == 2) {
             return 'final';
         }
-        
+
         $totalRounds = log($bracketSize, 2);
-        
+
         if ($roundNumber == 1) {
-            if ($bracketSize >= 32) return 'round_of_32';
-            if ($bracketSize >= 16) return 'round_of_16';
-            if ($bracketSize >= 8) return 'quarterfinal';
-            if ($bracketSize >= 4) return 'semifinal';
+            if ($bracketSize >= 32)
+                return 'round_of_32';
+            if ($bracketSize >= 16)
+                return 'round_of_16';
+            if ($bracketSize >= 8)
+                return 'quarterfinal';
+            if ($bracketSize >= 4)
+                return 'semifinal';
         }
-        
+
         if ($roundNumber == $totalRounds) {
             return 'final';
         }
-        
+
         if ($roundNumber == $totalRounds - 1) {
             return 'semifinal';
         }
-        
+
         return 'quarterfinal';
     }
 
@@ -1876,7 +1934,7 @@ class GameController extends Controller
             'final' => null,
             'third_place' => null,
         ];
-        
+
         return $progression[$currentRound] ?? null;
     }
 
@@ -1886,13 +1944,20 @@ class GameController extends Controller
     private function getMatchesInRound($roundType, $totalTeams)
     {
         switch ($roundType) {
-            case 'quarterfinal': return ceil($totalTeams / 8);
-            case 'semifinal': return ceil($totalTeams / 4);
-            case 'final': return 1;
-            case 'third_place': return 1;
-            case 'round_of_16': return ceil($totalTeams / 16);
-            case 'round_of_32': return ceil($totalTeams / 32);
-            default: return 0;
+            case 'quarterfinal':
+                return ceil($totalTeams / 8);
+            case 'semifinal':
+                return ceil($totalTeams / 4);
+            case 'final':
+                return 1;
+            case 'third_place':
+                return 1;
+            case 'round_of_16':
+                return ceil($totalTeams / 16);
+            case 'round_of_32':
+                return ceil($totalTeams / 32);
+            default:
+                return 0;
         }
     }
 
@@ -1902,12 +1967,12 @@ class GameController extends Controller
     public function calculateTotalMatches(Tournament $tournament)
     {
         $teamCount = $tournament->teams()->count();
-        
+
         switch ($tournament->type) {
             case 'league':
                 $rounds = $tournament->league_rounds ?? 1;
                 return ($teamCount * ($teamCount - 1) / 2) * $rounds;
-                
+
             case 'knockout':
                 $bracketSize = $tournament->knockout_teams ?? 8;
                 $total = $bracketSize - 1;
@@ -1915,24 +1980,24 @@ class GameController extends Controller
                     $total += 1;
                 }
                 return $total;
-                
+
             case 'group_knockout':
                 $groupsCount = $tournament->groups_count ?? 2;
                 $teamsPerGroup = $tournament->teams_per_group ?? 4;
                 $qualifyPerGroup = $tournament->qualify_per_group ?? 2;
-                
+
                 // Group stage matches
                 $groupMatches = $groupsCount * ($teamsPerGroup * ($teamsPerGroup - 1) / 2);
-                
+
                 // Knockout matches
                 $knockoutTeams = $groupsCount * $qualifyPerGroup;
                 $knockoutMatches = $knockoutTeams - 1;
                 if ($tournament->knockout_third_place) {
                     $knockoutMatches += 1;
                 }
-                
+
                 return $groupMatches + $knockoutMatches;
-                
+
             default:
                 return 0;
         }

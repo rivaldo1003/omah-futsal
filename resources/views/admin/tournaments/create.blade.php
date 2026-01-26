@@ -1687,7 +1687,7 @@
                                             </label>
                                             <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
                                                 <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Select tournament format</option>
-                                                <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option>
+                                                {{-- <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option> --}}
                                                 <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Knockout (Cup)</option>
                                                 <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Group Stage + Knockout</option>
                                             </select>
@@ -2259,156 +2259,61 @@
                     </div>
 
                     <!-- STEP 3 CONTENT - KNOCKOUT -->
-                    <div class="step-content step3-knockout" id="step3Knockout" 
-                         style="display: {{ ($currentStep == 3 && (old('type', $tournamentData['type'] ?? 'group_knockout') == 'knockout')) ? 'block' : 'none' }};">
-                        <div class="card">
-                            <div class="card-header">
-                                <h5><i class="bi bi-diagram-2"></i> Knockout Bracket Setup</h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="alert alert-info mb-4">
-                                    <i class="bi bi-info-circle"></i>
-                                    <strong>Knockout (Cup) Tournament Setup</strong><br>
-                                    Single elimination bracket. Teams that lose are eliminated from the tournament.
-                                </div>
-
-                                <div class="row mb-4">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="bracket_size" class="form-label">
-                                                <i class="bi bi-grid-3x3-gap"></i>
-                                                Bracket Size
-                                                <span class="required">*</span>
-                                            </label>
-                                            <select class="form-select" id="bracket_size" name="bracket_size" required>
-                                                <option value="2" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 2 ? 'selected' : '' }}>2 Teams (Final)</option>
-                                                <option value="4" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 4 ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
-                                                <option value="8" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 8 ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
-                                                <option value="16" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 16 ? 'selected' : '' }}>16 Teams (Round of 16)</option>
-                                                <option value="32" {{ old('bracket_size', $tournamentData['bracket_size'] ?? 8) == 32 ? 'selected' : '' }}>32 Teams</option>
-                                            </select>
-                                            <div class="form-text">Number of teams in the knockout bracket</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="bracket_type" class="form-label">
-                                                <i class="bi bi-diagram-3"></i>
-                                                Bracket Type
-                                            </label>
-                                            <select class="form-select" id="bracket_type" name="bracket_type">
-                                                <option value="single" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'single' ? 'selected' : '' }}>Single Elimination</option>
-                                                <option value="double" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'double' ? 'selected' : '' }}>Double Elimination</option>
-                                                <option value="consolation" {{ old('bracket_type', $tournamentData['bracket_type'] ?? 'single') == 'consolation' ? 'selected' : '' }}>With Consolation</option>
-                                            </select>
-                                            <div class="form-text">Tournament bracket format</div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                @if(!empty($tournamentData['teams']))
-                                    <div class="settings-section">
-                                        <h6><i class="bi bi-list-ol"></i> Bracket Seeding</h6>
-                                        <p class="text-muted mb-3">Set bracket positions (drag and drop or use auto-seed):</p>
-                                        
-                                        <div class="row mb-3">
-                                            <div class="col-md-12">
-                                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="autoSeedKnockout()">
-                                                    <i class="bi bi-shuffle"></i> Auto-seed teams
-                                                </button>
-                                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="clearKnockoutSeeds()">
-                                                    <i class="bi bi-arrow-clockwise"></i> Clear seeds
-                                                </button>
-                                            </div>
-                                        </div>
-                                        
-                                        <div class="row">
-                                            <div class="col-md-8">
-                                                <div class="bracket-preview mb-4">
-                                                    <div class="bracket-container" id="bracketPreview">
-                                                        <!-- Bracket will be generated by JavaScript -->
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="available-teams-knockout">
-                                                    <h6><i class="bi bi-people"></i> Available Teams</h6>
-                                                    <div class="list-group" id="availableKnockoutTeams">
-                                                        @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
-                                                            @php
-                                                                $logoUrl = $team->logo ? Storage::url($team->logo) : null;
-                                                            @endphp
-                                                            <div class="list-group-item draggable-team" data-team-id="{{ $team->id }}" 
-                                                                 data-team-name="{{ $team->name }}" data-team-logo="{{ $logoUrl }}" 
-                                                                 draggable="true" ondragstart="dragKnockoutTeam(event)">
-                                                                <div class="d-flex align-items-center">
-                                                                    @if($logoUrl)
-                                                                        <img src="{{ $logoUrl }}" alt="{{ $team->name }}" 
-                                                                             class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
-                                                                    @else
-                                                                        <div class="rounded-circle bg-secondary text-white d-flex align-items-center justify-content-center me-2" 
-                                                                             style="width: 30px; height: 30px;">
-                                                                            {{ substr($team->name, 0, 2) }}
-                                                                        </div>
-                                                                    @endif
-                                                                    <div>
-                                                                        <div class="fw-bold">{{ $team->name }}</div>
-                                                                        @if($team->coach_name)
-                                                                            <small class="text-muted">Coach: {{ $team->coach_name }}</small>
-                                                                        @endif
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        @endforeach
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        
-                                        <input type="hidden" name="knockout_seeds" id="knockoutSeeds" 
-                                               value="{{ json_encode($tournamentData['knockout_seeds'] ?? []) }}">
-                                        <div class="form-text">
-                                            <i class="bi bi-info-circle"></i>
-                                            Drag teams to bracket positions or use auto-seed. Higher seeds have easier matchups.
-                                        </div>
-                                    </div>
-                                @endif
-
-                                <div class="row mt-4">
-                                    <div class="col-md-6">
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="knockout_third_place_step3" 
-                                                   name="knockout_third_place" value="1" 
-                                                   {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="knockout_third_place_step3">
-                                                Include third place match
-                                            </label>
-                                        </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="knockout_byes_enabled" 
-                                                   name="knockout_byes_enabled" value="1" 
-                                                   {{ old('knockout_byes_enabled', $tournamentData['knockout_byes_enabled'] ?? false) ? 'checked' : '' }}>
-                                            <label class="form-check-label" for="knockout_byes_enabled">
-                                                Allow byes (teams advance without playing)
-                                            </label>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="info-box">
-                                    <i class="bi bi-calculator"></i>
-                                    <p>
-                                        <strong>Knockout Calculation:</strong><br>
-                                        Total matches: <span id="knockoutMatchesCount">0</span><br>
-                                        Rounds: <span id="knockoutRoundsCount">0</span><br>
-                                        Byes available: <span id="availableByes">0</span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                   <!-- STEP 3 CONTENT - KNOCKOUT -->
+<div class="step-content step3-knockout" id="step3Knockout" 
+     style="display: {{ ($currentStep == 3 && (old('type', $tournamentData['type'] ?? 'group_knockout') == 'knockout')) ? 'block' : 'none' }};">
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="bi bi-diagram-2"></i> Knockout Bracket Setup</h5>
+        </div>
+        <div class="card-body">
+            <!-- HAPUS SEMUA REFERENSI KE GRUP -->
+            <!-- FOKUS PADA BRACKET SETUP SAJA -->
+            
+            <div class="alert alert-info mb-4">
+                <i class="bi bi-info-circle"></i>
+                <strong>Knockout (Cup) Tournament Setup</strong><br>
+                In a knockout tournament, teams compete in a direct elimination bracket. 
+                <strong>No group stage.</strong>
+            </div>
+            
+            <!-- KONFIGURASI BRACKET -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label for="bracket_size" class="form-label">
+                            <i class="bi bi-grid-3x3-gap"></i>
+                            Bracket Size
+                            <span class="required">*</span>
+                        </label>
+                        <select class="form-select" id="bracket_size" name="bracket_size" required>
+                            <option value="2">2 Teams (Final)</option>
+                            <option value="4" selected>4 Teams (Semi-Finals)</option>
+                            <option value="8">8 Teams (Quarter-Finals)</option>
+                            <option value="16">16 Teams (Round of 16)</option>
+                            <option value="32">32 Teams</option>
+                        </select>
+                        <div class="form-text">Number of teams in the knockout bracket</div>
                     </div>
+                </div>
+                <!-- TAMBAHKAN SETTING LAINNYA -->
+            </div>
+            
+            <!-- BRACKET PREVIEW -->
+            <div id="knockoutBracketPreview">
+                <!-- TAMPILKAN PREVIEW BRACKET -->
+            </div>
+            
+            <!-- HAPUS BAGIAN INI (karena knockout tidak perlu grup) -->
+            <!--
+            <div class="card mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <h6 class="mb-0"><i class="bi bi-people"></i> Available Teams</h6>
+                </div>
+            -->
+        </div>
+    </div>
+</div>
 
                     <!-- Step 4: Match Rules -->
                     <div class="step-content" id="step4" style="display: {{ $currentStep == 4 ? 'block' : 'none' }};">

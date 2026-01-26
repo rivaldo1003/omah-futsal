@@ -1976,200 +1976,235 @@ body.modal-open {
                 </div>
 
                 <!-- Group Standings -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-bar-chart-line"></i> Group Standing
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            @if(isset($standings) && count($standings) > 0)
-                                @foreach($standings as $group => $groupStandings)
-                                    <div class="col-12 col-md-6 mb-4">
-                                        <h6 class="group-title">GROUP {{ $group }}</h6>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 40px;">#</th>
-                                                        <th>Team</th>
-                                                        <th class="text-center">P</th>
-                                                        <th class="text-center">W</th>
-                                                        <th class="text-center">D</th>
-                                                        <th class="text-center">L</th>
-                                                        <th class="text-center">GD</th>
-                                                        <th class="text-center">PTS</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($groupStandings as $index => $standing)
-                                                        @php
-                                                            $team = $standing->team ?? null;
-                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                            $teamLogo = $team->logo ?? null;
-                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+                <!-- ============================================== -->
+<!-- GROUP STANDINGS - PERBAIKAN FINAL -->
+<!-- ============================================== -->
 
-                                                            // Abbreviation for logo
-                                                            $teamAbbr = '';
-                                                            if (!empty($teamName)) {
-                                                                $words = explode(' ', $teamName);
-                                                                if (count($words) >= 2) {
-                                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                                                } else {
-                                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
-                                                                }
-                                                            }
-
-                                                            // Goal difference
-                                                            $gdValue = $standing->goal_difference ?? 0;
-                                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
-                                                        @endphp
-                                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                            <td class="text-center align-middle">
-                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                                    {{ $index + 1 }}
-                                                                </div>
-                                                            </td>
-                                                            <td class="align-middle">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="team-logo-container" style="
-                                                                        width: 32px;
-                                                                        height: 32px;
-                                                                        background: transparent !important;
-                                                                        border-radius: 5px;
-                                                                        display: flex;
-                                                                        align-items: center;
-                                                                        justify-content: center;
-                                                                        overflow: hidden;
-                                                                        margin-right: 0.6rem;
-                                                                        flex-shrink: 0;
-                                                                        border: none !important;
-                                                                    ">
-                                                                        @php
-                                                                            $logoExists = false;
-
-                                                                            if ($teamLogo) {
-                                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                                                    $logoExists = true;
-                                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                                                    $logoExists = true;
-                                                                                }
-                                                                            }
-                                                                        @endphp
-
-                                                                        @if($logoExists)
-                                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                                alt="{{ $teamName }}"
-                                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
-                                                                        @else
-                                                                            <span
-                                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
-                                                                                {{ $teamAbbr }}
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-
-                                                                    <div class="text-truncate">
-                                                                        <strong class="d-block text-truncate"
-                                                                            style="font-size: 0.85rem;">
-                                                                            {{ Str::limit($teamName, 15) }}
-                                                                        </strong>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                {{ $standing->matches_played ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold text-success"
-                                                                style="font-size: 0.9rem;">
-                                                                {{ $standing->wins ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                                {{ $standing->draws ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle text-danger"
-                                                                style="font-size: 0.9rem;">
-                                                                {{ $standing->losses ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                <span
-                                                                    style="
-                                                                        display: inline-block;
-                                                                        padding: 2px 6px;
-                                                                        border-radius: 4px;
-                                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                        min-width: 40px;
-                                                                    ">
-                                                                    {{ $gdDisplay }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                <span
-                                                                    style="
-                                                                        display: inline-block;
-                                                                        padding: 2px 8px;
-                                                                        border-radius: 4px;
-                                                                        background-color: rgba(59, 130, 246, 0.1);
-                                                                        color: #1d4ed8;
-                                                                        min-width: 40px;
-                                                                    ">
-                                                                    {{ $standing->points ?? 0 }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-
-
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="col-12">
-                                    <div class="alert alert-warning mb-0">
-                                        <i class="bi bi-exclamation-triangle me-2"></i>
-                                        No group standings available yet.
-                                    </div>
-                                </div>
-                            @endif
-                        </div>
-                       <!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
-<!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
-<div class="tie-breaker-info mt-2" style="
-    font-size: 0.7rem;
-    color: #64748b;
-    padding: 6px 8px;
-    background: #f8fafc;
-    border-radius: 4px;
-    border-left: 3px solid #3b82f6;
-    margin-top: 0px;
-">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
-        <div>
-            <strong>Penentuan Juara dan Runner-up:</strong>
-            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
-                <li>Poin (nilai) - jika sama</li>
-                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
-                <li>Selisih gol - jika sama</li>
-                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
-                <li>Nilai fairplay (kartu) - jika sama</li>
-                <li>Adu tendangan penalti</li>
-            </ol>
+@if(!$isCupType)
+    <!-- Hanya tampilkan untuk tournament NON-knockout -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-bar-chart-line"></i> Group Standing
         </div>
-    </div>
-</div>
-                        <div class="text-center mt-0 mb-4">
-                            <a href="{{ route('standings') }}" class="btn btn-dark">
-                                <i class="bi bi-table"></i> View Full Standings
-                            </a>
+        <div class="card-body">
+            @if(isset($standings) && count($standings) > 0)
+                <div class="row">
+                    @foreach($standings as $group => $groupStandings)
+                        <div class="col-12 col-md-6 mb-4">
+                            <h6 class="group-title">GROUP {{ $group }}</h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 40px;">#</th>
+                                            <th>Team</th>
+                                            <th class="text-center">P</th>
+                                            <th class="text-center">W</th>
+                                            <th class="text-center">D</th>
+                                            <th class="text-center">L</th>
+                                            <th class="text-center">GD</th>
+                                            <th class="text-center">PTS</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($groupStandings as $index => $standing)
+                                            @php
+                                                $team = $standing->team ?? null;
+                                                $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                $teamLogo = $team->logo ?? null;
+                                                $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+
+                                                // Abbreviation for logo
+                                                $teamAbbr = '';
+                                                if (!empty($teamName)) {
+                                                    $words = explode(' ', $teamName);
+                                                    if (count($words) >= 2) {
+                                                        $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                    } else {
+                                                        $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                    }
+                                                }
+
+                                                // Goal difference
+                                                $gdValue = $standing->goal_difference ?? 0;
+                                                $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                            @endphp
+                                            <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                <td class="text-center align-middle">
+                                                    <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                        {{ $index + 1 }}
+                                                    </div>
+                                                </td>
+                                                <td class="align-middle">
+                                                    <div class="d-flex align-items-center">
+                                                        <div class="team-logo-container" style="
+                                                            width: 32px;
+                                                            height: 32px;
+                                                            background: transparent !important;
+                                                            border-radius: 5px;
+                                                            display: flex;
+                                                            align-items: center;
+                                                            justify-content: center;
+                                                            overflow: hidden;
+                                                            margin-right: 0.6rem;
+                                                            flex-shrink: 0;
+                                                            border: none !important;
+                                                        ">
+                                                            @php
+                                                                $logoExists = false;
+
+                                                                if ($teamLogo) {
+                                                                    if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                        $logoExists = true;
+                                                                    } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                        $logoExists = true;
+                                                                    }
+                                                                }
+                                                            @endphp
+
+                                                            @if($logoExists)
+                                                                <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                    alt="{{ $teamName }}"
+                                                                    style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                            @else
+                                                                <span
+                                                                    style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                    {{ $teamAbbr }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="text-truncate">
+                                                            <strong class="d-block text-truncate"
+                                                                style="font-size: 0.85rem;">
+                                                                {{ Str::limit($teamName, 15) }}
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                    {{ $standing->matches_played ?? 0 }}
+                                                </td>
+                                                <td class="text-center align-middle fw-bold text-success"
+                                                    style="font-size: 0.9rem;">
+                                                    {{ $standing->wins ?? 0 }}
+                                                </td>
+                                                <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                    {{ $standing->draws ?? 0 }}
+                                                </td>
+                                                <td class="text-center align-middle text-danger"
+                                                    style="font-size: 0.9rem;">
+                                                    {{ $standing->losses ?? 0 }}
+                                                </td>
+                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                    <span
+                                                        style="
+                                                            display: inline-block;
+                                                            padding: 2px 6px;
+                                                            border-radius: 4px;
+                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                            min-width: 40px;
+                                                        ">
+                                                        {{ $gdDisplay }}
+                                                    </span>
+                                                </td>
+                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                    <span
+                                                        style="
+                                                            display: inline-block;
+                                                            padding: 2px 8px;
+                                                            border-radius: 4px;
+                                                            background-color: rgba(59, 130, 246, 0.1);
+                                                            color: #1d4ed8;
+                                                            min-width: 40px;
+                                                        ">
+                                                        {{ $standing->points ?? 0 }}
+                                                    </span>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- INFO TIE-BREAKER -->
+                <div class="tie-breaker-info mt-2" style="
+                    font-size: 0.7rem;
+                    color: #64748b;
+                    padding: 6px 8px;
+                    background: #f8fafc;
+                    border-radius: 4px;
+                    border-left: 3px solid #3b82f6;
+                    margin-top: 0px;
+                ">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+                        <div>
+                            <strong>Penentuan Juara dan Runner-up:</strong>
+                            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                                <li>Poin (nilai) - jika sama</li>
+                                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                                <li>Selisih gol - jika sama</li>
+                                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                                <li>Nilai fairplay (kartu) - jika sama</li>
+                                <li>Adu tendangan penalti</li>
+                            </ol>
                         </div>
                     </div>
                 </div>
 
-                <!-- Teams Section - COMPACT VERSION -->
-                <!-- Teams Section - TANPA API -->
+                <div class="text-center mt-0 mb-4">
+                    <a href="{{ route('standings') }}" class="btn btn-dark">
+                        <i class="bi bi-table"></i> View Full Standings
+                    </a>
+                </div>
+            @else
+                <!-- No standings available for league tournament -->
+                <div class="empty-state text-center py-5">
+                    <i class="bi bi-bar-chart display-4 text-muted mb-3"></i>
+                    <h5 class="text-muted mb-2">No Group Standings Available</h5>
+                    <p class="text-muted small mb-0">
+                        Group standings will appear here when matches are played
+                    </p>
+                </div>
+            @endif
+        </div>
+    </div>
+@else
+    <!-- Untuk tournament KNOCKOUT - Tampilkan pesan info -->
+    @if($activeTournament)
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-trophy-fill"></i> Tournament Format
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info mb-0">
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-diagram-2-fill me-3" style="font-size: 1.5rem;"></i>
+                        <div>
+                            <h6 class="mb-1">{{ $activeTournament->name }} - Knockout Tournament</h6>
+                            <p class="mb-2">This is a knockout-style tournament. Group standings are not applicable for this format.</p>
+                            <p class="mb-0 small">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Follow the knockout bracket progression instead.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endif
+@endif
+
+<!-- ============================================== -->
+<!-- TEAMS SECTION - LANJUTAN -->
+<!-- ============================================== -->
+
+<!-- Teams Section - COMPACT VERSION -->
 <div class="card mt-4 teams-section">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
@@ -2358,8 +2393,8 @@ body.modal-open {
                             @endif
                         </div>
                         @if($activeTournament)
-                            <small
-                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small>
+                            {{-- <small
+                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small> --}}
                         @endif
                     </div>
                     <div class="card-body">
@@ -2403,12 +2438,12 @@ body.modal-open {
                                 </div>
                             @endforeach
 
-                            <div class="text-center mt-4">
+                            {{-- <div class="text-center mt-4">
                                 <a href="{{ route('top-scorers') }}?tournament={{ $activeTournament->id ?? '' }}"
                                     class="btn btn-success w-100">
                                     <i class="bi bi-arrow-right-circle me-2"></i> View All Scorers
                                 </a>
-                            </div>
+                            </div> --}}
                         @else
                             <div class="empty-state">
                                 <i class="bi bi-person-x"></i>
@@ -4248,6 +4283,90 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    /* Bracket Styles */
+.bracket-container {
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+}
+
+.bracket-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.bracket-container::-webkit-scrollbar-track {
+    background: #f1f5f9;
+    border-radius: 3px;
+}
+
+.bracket-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.bracket-match.completed {
+    border-color: #10b981 !important;
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.05), rgba(16, 185, 129, 0.02)) !important;
+}
+
+.bracket-match.upcoming:hover {
+    border-color: #3b82f6;
+    transform: translateY(-1px);
+    transition: all 0.2s ease;
+}
+
+.bracket-round {
+    position: relative;
+}
+
+.bracket-round:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    width: 40px;
+    height: 2px;
+    background: #e2e8f0;
+    z-index: 1;
+}
+
+.very-small {
+    font-size: 0.7rem;
+    opacity: 0.8;
+}
+
+/* Responsive Bracket */
+@media (max-width: 768px) {
+    .bracket-round {
+        min-width: 180px !important;
+    }
+    
+    .bracket-match {
+        padding: 10px !important;
+    }
+    
+    .team-logo-small {
+        width: 20px !important;
+        height: 20px !important;
+    }
+}
+
+/* Animation for bracket matches */
+@keyframes slideInBracket {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.bracket-match {
+    animation: slideInBracket 0.3s ease forwards;
+    animation-delay: calc(var(--match-index, 0) * 0.1s);
+}
+
     @media (min-width: 768px) {
         body {
             font-size: 16px;
@@ -5045,198 +5164,458 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
 
-                <!-- Group Standings -->
-                <div class="card">
-                    <div class="card-header">
-                        <i class="bi bi-bar-chart-line"></i> Group Standing
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            @if(isset($standings) && count($standings) > 0)
-                                @foreach($standings as $group => $groupStandings)
-                                    <div class="col-12 col-md-6 mb-4">
-                                        <h6 class="group-title">GROUP {{ $group }}</h6>
-                                        <div class="table-responsive">
-                                            <table class="table table-sm">
-                                                <thead>
-                                                    <tr>
-                                                        <th style="width: 40px;">#</th>
-                                                        <th>Team</th>
-                                                        <th class="text-center">P</th>
-                                                        <th class="text-center">W</th>
-                                                        <th class="text-center">D</th>
-                                                        <th class="text-center">L</th>
-                                                        <th class="text-center">GD</th>
-                                                        <th class="text-center">PTS</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    @foreach($groupStandings as $index => $standing)
-                                                        @php
-                                                            $team = $standing->team ?? null;
-                                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                            $teamLogo = $team->logo ?? null;
-                                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+               <!-- ============================================== -->
+<!-- GROUP STANDINGS SECTION - PERBAIKAN -->
+<!-- ============================================== -->
 
-                                                            // Abbreviation for logo
-                                                            $teamAbbr = '';
-                                                            if (!empty($teamName)) {
-                                                                $words = explode(' ', $teamName);
-                                                                if (count($words) >= 2) {
-                                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                                                } else {
-                                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
+<!-- Group Standings - Hanya untuk tournament yang BUKAN knockout -->
+@if(!$isCupType && isset($standings) && count($standings) > 0)
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-bar-chart-line"></i> Group Standing
+        </div>
+        <div class="card-body">
+            <div class="row">
+                @foreach($standings as $group => $groupStandings)
+                    <div class="col-12 col-md-6 mb-4">
+                        <h6 class="group-title">GROUP {{ $group }}</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px;">#</th>
+                                        <th>Team</th>
+                                        <th class="text-center">P</th>
+                                        <th class="text-center">W</th>
+                                        <th class="text-center">D</th>
+                                        <th class="text-center">L</th>
+                                        <th class="text-center">GD</th>
+                                        <th class="text-center">PTS</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($groupStandings as $index => $standing)
+                                        @php
+                                            $team = $standing->team ?? null;
+                                            $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                            $teamLogo = $team->logo ?? null;
+                                            $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+
+                                            // Abbreviation for logo
+                                            $teamAbbr = '';
+                                            if (!empty($teamName)) {
+                                                $words = explode(' ', $teamName);
+                                                if (count($words) >= 2) {
+                                                    $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                } else {
+                                                    $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                }
+                                            }
+
+                                            // Goal difference
+                                            $gdValue = $standing->goal_difference ?? 0;
+                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                        @endphp
+                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                            <td class="text-center align-middle">
+                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                    {{ $index + 1 }}
+                                                </div>
+                                            </td>
+                                            <td class="align-middle">
+                                                <div class="d-flex align-items-center">
+                                                    <div class="team-logo-container" style="
+                                                        width: 32px;
+                                                        height: 32px;
+                                                        background: transparent !important;
+                                                        border-radius: 5px;
+                                                        display: flex;
+                                                        align-items: center;
+                                                        justify-content: center;
+                                                        overflow: hidden;
+                                                        margin-right: 0.6rem;
+                                                        flex-shrink: 0;
+                                                        border: none !important;
+                                                    ">
+                                                        @php
+                                                            $logoExists = false;
+
+                                                            if ($teamLogo) {
+                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                    $logoExists = true;
+                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                    $logoExists = true;
                                                                 }
                                                             }
-
-                                                            // Goal difference
-                                                            $gdValue = $standing->goal_difference ?? 0;
-                                                            $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
                                                         @endphp
-                                                        <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                            <td class="text-center align-middle">
-                                                                <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                                    {{ $index + 1 }}
-                                                                </div>
-                                                            </td>
-                                                            <td class="align-middle">
-                                                                <div class="d-flex align-items-center">
-                                                                    <div class="team-logo-container" style="
-                                                                        width: 32px;
-                                                                        height: 32px;
-                                                                        background: transparent !important;
-                                                                        border-radius: 5px;
-                                                                        display: flex;
-                                                                        align-items: center;
-                                                                        justify-content: center;
-                                                                        overflow: hidden;
-                                                                        margin-right: 0.6rem;
-                                                                        flex-shrink: 0;
-                                                                        border: none !important;
-                                                                    ">
-                                                                        @php
-                                                                            $logoExists = false;
 
-                                                                            if ($teamLogo) {
-                                                                                if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                                                    $logoExists = true;
-                                                                                } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                                                    $logoExists = true;
-                                                                                }
-                                                                            }
-                                                                        @endphp
+                                                        @if($logoExists)
+                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                alt="{{ $teamName }}"
+                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                        @else
+                                                            <span
+                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                {{ $teamAbbr }}
+                                                            </span>
+                                                        @endif
+                                                    </div>
 
-                                                                        @if($logoExists)
-                                                                            <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                                alt="{{ $teamName }}"
-                                                                                style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
-                                                                        @else
-                                                                            <span
-                                                                                style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
-                                                                                {{ $teamAbbr }}
-                                                                            </span>
-                                                                        @endif
-                                                                    </div>
-
-                                                                    <div class="text-truncate">
-                                                                        <strong class="d-block text-truncate"
-                                                                            style="font-size: 0.85rem;">
-                                                                            {{ Str::limit($teamName, 15) }}
-                                                                        </strong>
-                                                                    </div>
-                                                                </div>
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                {{ $standing->matches_played ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold text-success"
-                                                                style="font-size: 0.9rem;">
-                                                                {{ $standing->wins ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                                {{ $standing->draws ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle text-danger"
-                                                                style="font-size: 0.9rem;">
-                                                                {{ $standing->losses ?? 0 }}
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                <span
-                                                                    style="
-                                                                        display: inline-block;
-                                                                        padding: 2px 6px;
-                                                                        border-radius: 4px;
-                                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                        min-width: 40px;
-                                                                    ">
-                                                                    {{ $gdDisplay }}
-                                                                </span>
-                                                            </td>
-                                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                <span
-                                                                    style="
-                                                                        display: inline-block;
-                                                                        padding: 2px 8px;
-                                                                        border-radius: 4px;
-                                                                        background-color: rgba(59, 130, 246, 0.1);
-                                                                        color: #1d4ed8;
-                                                                        min-width: 40px;
-                                                                    ">
-                                                                    {{ $standing->points ?? 0 }}
-                                                                </span>
-                                                            </td>
-                                                        </tr>
-                                                    @endforeach
-                                                </tbody>
-                                            </table>
-
-
-                                        </div>
-                                    </div>
-                                @endforeach
-                            @else
-                                <div class="col-12">
-                                    <div class="alert alert-warning mb-0">
-                                        <i class="bi bi-exclamation-triangle me-2"></i>
-                                        No group standings available yet.
-                                    </div>
-                                </div>
-                            @endif
+                                                    <div class="text-truncate">
+                                                        <strong class="d-block text-truncate"
+                                                            style="font-size: 0.85rem;">
+                                                            {{ Str::limit($teamName, 15) }}
+                                                        </strong>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                {{ $standing->matches_played ?? 0 }}
+                                            </td>
+                                            <td class="text-center align-middle fw-bold text-success"
+                                                style="font-size: 0.9rem;">
+                                                {{ $standing->wins ?? 0 }}
+                                            </td>
+                                            <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                {{ $standing->draws ?? 0 }}
+                                            </td>
+                                            <td class="text-center align-middle text-danger"
+                                                style="font-size: 0.9rem;">
+                                                {{ $standing->losses ?? 0 }}
+                                            </td>
+                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                <span
+                                                    style="
+                                                        display: inline-block;
+                                                        padding: 2px 6px;
+                                                        border-radius: 4px;
+                                                        background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                        color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                        min-width: 40px;
+                                                    ">
+                                                    {{ $gdDisplay }}
+                                                </span>
+                                            </td>
+                                            <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                <span
+                                                    style="
+                                                        display: inline-block;
+                                                        padding: 2px 8px;
+                                                        border-radius: 4px;
+                                                        background-color: rgba(59, 130, 246, 0.1);
+                                                        color: #1d4ed8;
+                                                        min-width: 40px;
+                                                    ">
+                                                    {{ $standing->points ?? 0 }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                       <!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
-<!-- INFO TIE-BREAKER - BARU DITAMBAHKAN -->
-<div class="tie-breaker-info mt-2" style="
-    font-size: 0.7rem;
-    color: #64748b;
-    padding: 6px 8px;
-    background: #f8fafc;
-    border-radius: 4px;
-    border-left: 3px solid #3b82f6;
-    margin-top: 0px;
-">
-    <div class="d-flex align-items-center">
-        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
-        <div>
-            <strong>Penentuan Juara dan Runner-up:</strong>
-            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
-                <li>Poin (nilai) - jika sama</li>
-                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
-                <li>Selisih gol - jika sama</li>
-                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
-                <li>Nilai fairplay (kartu) - jika sama</li>
-                <li>Adu tendangan penalti</li>
-            </ol>
+                    </div>
+                @endforeach
+            </div>
+            
+            <!-- INFO TIE-BREAKER -->
+            <div class="tie-breaker-info mt-2" style="
+                font-size: 0.7rem;
+                color: #64748b;
+                padding: 6px 8px;
+                background: #f8fafc;
+                border-radius: 4px;
+                border-left: 3px solid #3b82f6;
+                margin-top: 0px;
+            ">
+                <div class="d-flex align-items-center">
+                    <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+                    <div>
+                        <strong>Penentuan Juara dan Runner-up:</strong>
+                        <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                            <li>Poin (nilai) - jika sama</li>
+                            <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                            <li>Selisih gol - jika sama</li>
+                            <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                            <li>Nilai fairplay (kartu) - jika sama</li>
+                            <li>Adu tendangan penalti</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-0 mb-4">
+                <a href="{{ route('standings') }}" class="btn btn-dark">
+                    <i class="bi bi-table"></i> View Full Standings
+                </a>
+            </div>
+        </div>
+    </div>
+@elseif(!$isCupType)
+    <!-- Empty state untuk tournament non-knockout tapi belum ada standings -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-bar-chart-line"></i> Group Standing
+        </div>
+        <div class="card-body">
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-bar-chart display-4 text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">No Group Standings Available</h5>
+                <p class="text-muted small mb-4">
+                    Group standings will appear here when matches are played
+                </p>
+            </div>
+        </div>
+    </div>
+@endif
+
+<!-- ============================================== -->
+<!-- KNOCKOUT TOURNAMENT MESSAGE -->
+<!-- ============================================== -->
+@if($isCupType && $activeTournament)
+    <div class="alert alert-info mb-4">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-trophy-fill me-3" style="font-size: 1.5rem;"></i>
+            <div>
+                <h6 class="mb-1">{{ $activeTournament->name }} - Knockout Tournament</h6>
+                <p class="mb-0 small">This is a knockout-style tournament. Group standings are not applicable for this format.</p>
+            </div>
+        </div>
+    </div>
+@endif
+
+<!-- ============================================== -->
+<!-- DEBUG INFORMATION (Optional - bisa di-hidden) -->
+<!-- ============================================== -->
+<div class="alert alert-info d-none mb-4">
+    <h6><i class="bi bi-bug-fill me-2"></i> DEBUG INFORMATION</h6>
+    <div class="row small">
+        <div class="col-md-4">
+            <strong>Tournament Type:</strong> {{ $tournamentType ?? 'N/A' }}<br>
+            <strong>isCupType:</strong> {{ $isCupType ? 'YES' : 'NO' }}<br>
+            <strong>isLeagueType:</strong> {{ $isLeagueType ? 'YES' : 'NO' }}
+        </div>
+        <div class="col-md-4">
+            <strong>Active Tournament:</strong> {{ $activeTournament ? $activeTournament->name : 'NONE' }}<br>
+            <strong>Tournament Status:</strong> {{ $activeTournament ? $activeTournament->status : 'N/A' }}
+        </div>
+        <div class="col-md-4">
+            <strong>Standings Data:</strong> {{ isset($standings) && count($standings) > 0 ? 'YES' : 'NO' }}<br>
+            <strong>Standings Count:</strong> {{ isset($standings) ? count($standings) : 0 }} groups
         </div>
     </div>
 </div>
-                        <div class="text-center mt-0 mb-4">
-                            <a href="{{ route('standings') }}" class="btn btn-dark">
-                                <i class="bi bi-table"></i> View Full Standings
-                            </a>
-                        </div>
+
+<!-- Knockout Bracket Section - Tampilkan hanya untuk tournament knockout -->
+<!-- Knockout Bracket Section - Tampilkan hanya untuk tournament knockout -->
+@if($isCupType && $bracketData && $bracketData['has_matches'])
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-diagram-2-fill"></i>
+                <span>Knockout Bracket</span>
+                @if($activeTournament)
+                    <span class="badge bg-primary">{{ $activeTournament->name }}</span>
+                @endif
+            </div>
+            <div class="text-muted small">
+                Bracket Size: {{ $bracketData['bracket_size'] }} Teams
+                @if($bracketData['has_third_place'])
+                    <span class="ms-2">• 3rd Place Match</span>
+                @endif
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Bracket Progress -->
+            <div class="mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="small text-muted">
+                        Tournament Progress
+                    </div>
+                    <div class="small text-muted">
+                        {{ $bracketData['progress']['completed_matches'] }}/{{ $bracketData['progress']['total_matches'] }} Matches
                     </div>
                 </div>
+                <div class="progress" style="height: 8px;">
+                    <div class="progress-bar bg-success" 
+                         role="progressbar" 
+                         style="width: {{ $bracketData['progress']['match_percentage'] }}%"
+                         aria-valuenow="{{ $bracketData['progress']['match_percentage'] }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                    </div>
+                </div>
+                <div class="text-center small text-muted mt-1">
+                    {{ $bracketData['progress']['match_percentage'] }}% Complete
+                </div>
+            </div>
+
+            <!-- Bracket Visualization -->
+            <div class="bracket-container" style="overflow-x: auto;">
+                <div class="d-flex flex-nowrap justify-content-between align-items-stretch" style="min-width: 800px;">
+                    @foreach($bracketData['rounds'] as $roundKey => $round)
+                        <div class="bracket-round" style="flex: 1; min-width: 200px;">
+                            <h6 class="text-center mb-3 fw-bold text-primary">
+                                {{ $round['name'] }}
+                                @if($round['is_complete'])
+                                    <i class="bi bi-check-circle-fill text-success ms-1" style="font-size: 0.8rem;"></i>
+                                @endif
+                            </h6>
+                            
+                            <div class="d-flex flex-column gap-3">
+                                @if(count($round['matches']) > 0)
+                                    @foreach($round['matches'] as $match)
+                                        <div class="bracket-match {{ $match['completed'] ? 'completed' : 'upcoming' }}"
+                                             style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+                                            
+                                            <!-- Match Teams -->
+                                            <div class="match-teams">
+                                                <!-- Home Team -->
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        @if($match['home_team'])
+                                                            <div class="team-logo-small" style="width: 24px; height: 24px; border-radius: 4px; overflow: hidden;">
+                                                                @if($match['home_team']['logo'])
+                                                                    <img src="{{ asset('storage/' . $match['home_team']['logo']) }}" 
+                                                                         alt="{{ $match['home_team']['name'] }}"
+                                                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                                                @else
+                                                                    <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                                                                        <span class="fw-bold small">{{ substr($match['home_team']['name'], 0, 2) }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                            <span class="small fw-bold {{ $match['winner'] == 'home' ? 'text-success' : '' }}">
+                                                                {{ Str::limit($match['home_team']['name'], 15) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="small text-muted">TBD</span>
+                                                        @endif
+                                                    </div>
+                                                    @if($match['home_score'] !== null)
+                                                        <span class="fw-bold {{ $match['winner'] == 'home' ? 'text-success' : '' }}">
+                                                            {{ $match['home_score'] }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                                
+                                                <!-- Away Team -->
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        @if($match['away_team'])
+                                                            <div class="team-logo-small" style="width: 24px; height: 24px; border-radius: 4px; overflow: hidden;">
+                                                                @if($match['away_team']['logo'])
+                                                                    <img src="{{ asset('storage/' . $match['away_team']['logo']) }}" 
+                                                                         alt="{{ $match['away_team']['name'] }}"
+                                                                         style="width: 100%; height: 100%; object-fit: cover;">
+                                                                @else
+                                                                    <div class="bg-light d-flex align-items-center justify-content-center h-100">
+                                                                        <span class="fw-bold small">{{ substr($match['away_team']['name'], 0, 2) }}</span>
+                                                                    </div>
+                                                                @endif
+                                                            </div>
+                                                            <span class="small fw-bold {{ $match['winner'] == 'away' ? 'text-success' : '' }}">
+                                                                {{ Str::limit($match['away_team']['name'], 15) }}
+                                                            </span>
+                                                        @else
+                                                            <span class="small text-muted">TBD</span>
+                                                        @endif
+                                                    </div>
+                                                    @if($match['away_score'] !== null)
+                                                        <span class="fw-bold {{ $match['winner'] == 'away' ? 'text-success' : '' }}">
+                                                            {{ $match['away_score'] }}
+                                                        </span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Match Info -->
+                                            <div class="match-info mt-2 pt-2 border-top small text-muted">
+                                                <div class="d-flex justify-content-between">
+                                                    <span>
+                                                        @if($match['match_date'])
+                                                            {{ \Carbon\Carbon::parse($match['match_date'])->format('d M') }}
+                                                        @else
+                                                            TBD
+                                                        @endif
+                                                    </span>
+                                                    <span class="badge {{ $match['completed'] ? 'bg-success' : 'bg-secondary' }} small">
+                                                        {{ $match['completed'] ? 'FT' : 'Upcoming' }}
+                                                    </span>
+                                                </div>
+                                                @if($match['venue'])
+                                                    <div class="mt-1">
+                                                        <i class="bi bi-geo-alt"></i> {{ $match['venue'] }}
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                @else
+                                    <!-- Empty matches placeholder -->
+                                    @for($i = 0; $i < $round['matches_needed']; $i++)
+                                        <div class="bracket-match placeholder" 
+                                             style="border: 1px dashed #cbd5e1; border-radius: 8px; padding: 12px; background: #f8fafc;">
+                                            <div class="text-center text-muted small">
+                                                <i class="bi bi-clock"></i><br>
+                                                Match {{ $i + 1 }}<br>
+                                                <span class="very-small">To be scheduled</span>
+                                            </div>
+                                        </div>
+                                    @endfor
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="mt-4 pt-3 border-top">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <div class="legend-color" style="width: 12px; height: 12px; background-color: #10b981; border-radius: 3px;"></div>
+                            <span class="small text-muted">Winner advances</span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="legend-color" style="width: 12px; height: 12px; background-color: #f8fafc; border: 1px solid #cbd5e1; border-radius: 3px;"></div>
+                            <span class="small text-muted">Match not scheduled</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6 text-md-end">
+                        <a href="{{ route('schedule') }}?type=knockout" class="btn btn-sm btn-primary">
+                            <i class="bi bi-calendar-check"></i> View Knockout Schedule
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@elseif($isCupType)
+    <!-- Empty state jika knockout tournament tapi belum ada bracket -->
+    <div class="card">
+        <div class="card-header">
+            <i class="bi bi-diagram-2-fill"></i> Knockout Bracket
+        </div>
+        <div class="card-body">
+            <div class="empty-state text-center py-5">
+                <i class="bi bi-diagram-2 display-4 text-muted mb-3"></i>
+                <h5 class="text-muted mb-2">Bracket Not Available Yet</h5>
+                <p class="text-muted small mb-4">
+                    Knockout bracket will appear here when matches are scheduled
+                </p>
+                @if($knockoutMatches->count() > 0)
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        {{ $knockoutMatches->count() }} knockout matches have been scheduled.
+                        <a href="{{ route('schedule') }}?type=knockout" class="alert-link">View them here</a>
+                    </div>
+                @endif
+            </div>
+        </div>
+    </div>
+@endif
 
                 <!-- Teams Section - COMPACT VERSION -->
                 <!-- Teams Section - TANPA API -->

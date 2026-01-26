@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+<link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
 
 @section('title', 'Tournaments Management')@section('styles')
