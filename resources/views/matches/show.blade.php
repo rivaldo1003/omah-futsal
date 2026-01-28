@@ -149,10 +149,10 @@
                                             <td><span class="badge bg-dark">{{ $goal->minute }}'</span></td>
                                             <td>
                                                 <span class="badge 
-                                                            @if($goal->type == 'Penalty') bg-danger
-                                                            @elseif($goal->type == 'Free Kick') bg-info
-                                                            @else bg-primary
-                                                            @endif">
+                                                                                    @if($goal->type == 'Penalty') bg-danger
+                                                                                    @elseif($goal->type == 'Free Kick') bg-info
+                                                                                    @else bg-primary
+                                                                                    @endif">
                                                     {{ $goal->type }}
                                                 </span>
                                             </td>
@@ -202,9 +202,9 @@
                                             <td><span class="badge bg-dark">{{ $card->minute }}'</span></td>
                                             <td>
                                                 <span class="badge 
-                                                            @if($card->card_type == 'Red') bg-danger
-                                                            @else bg-warning
-                                                            @endif">
+                                                                                    @if($card->card_type == 'Red') bg-danger
+                                                                                    @else bg-warning
+                                                                                    @endif">
                                                     {{ $card->card_type }}
                                                 </span>
                                             </td>
