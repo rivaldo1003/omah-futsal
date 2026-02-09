@@ -388,11 +388,31 @@
                                     </div>
                                     
                                     <!-- Score -->
+                                   <!-- Score section di knockout bracket -->
                                     <div class="match-score">
                                         @if($match['status'] == 'completed')
-                                            <span class="score-badge-bracket {{ $match['home_team'] && $match['away_team'] && $match['home_team']['score'] == $match['away_team']['score'] ? 'draw' : '' }}">
-                                                {{ $match['home_team']['score'] ?? 0 }} - {{ $match['away_team']['score'] ?? 0 }}
-                                            </span>
+                                            <div class="score-display-bracket">
+                                                <span class="score-badge-bracket {{ $match['home_team'] && $match['away_team'] && $match['home_team']['score'] == $match['away_team']['score'] ? 'draw' : '' }}">
+                                                    {{ $match['home_team']['score'] ?? 0 }} - {{ $match['away_team']['score'] ?? 0 }}
+                                                </span>
+                                                
+                                                <!-- TAMBAH INI: Extra Time dan Penalty Info -->
+                                                @if(!empty($match['extras']))
+                                                    <div class="extra-score-info">
+                                                        @if(!empty($match['extras']['et_score']))
+                                                            <small class="et-badge-bracket">
+                                                                ET {{ $match['extras']['et_score'] }}
+                                                            </small>
+                                                        @endif
+                                                        
+                                                        @if(!empty($match['extras']['is_penalty']) && !empty($match['extras']['penalty_score']))
+                                                            <small class="penalty-badge-bracket">
+                                                                <i class="bi bi-flag"></i> {{ $match['extras']['penalty_score'] }}
+                                                            </small>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
                                         @elseif($match['status'] == 'ongoing')
                                             <span class="score-badge-bracket live">
                                                 {{ $match['home_team']['score'] ?? 0 }} - {{ $match['away_team']['score'] ?? 0 }}

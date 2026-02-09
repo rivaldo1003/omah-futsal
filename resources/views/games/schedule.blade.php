@@ -415,6 +415,54 @@
             display: inline-block;
         }
 
+        /* Add to your existing CSS */
+.score-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.extra-score-info {
+    display: flex;
+    gap: 4px;
+    margin-top: 3px;
+    font-size: 10px;
+}
+
+.et-badge {
+    background-color: #0dcaf0;
+    color: white;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-weight: 600;
+}
+
+.penalty-badge {
+    background-color: #ffc107;
+    color: #212529;
+    padding: 1px 5px;
+    border-radius: 3px;
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: 600;
+}
+
+.penalty-badge i {
+    font-size: 8px;
+}
+
+/* Untuk match yang ada penalty/extra time, beri border kiri khusus */
+.match-card.has-extras {
+    border-left: 3px solid #0dcaf0;
+}
+
+/* Hover effect untuk match dengan extras */
+.match-card.has-extras:hover {
+    border-left-color: #ffc107;
+    box-shadow: 0 2px 8px rgba(255, 193, 7, 0.2);
+}
+
         .score-badge.live {
             background: linear-gradient(135deg, #ef4444, #f87171);
             animation: pulse 2s infinite;
@@ -933,78 +981,97 @@
             </div>
 
             <!-- Matches List -->
-            @foreach($groupedMatches as $date => $matchesOnDate)
-                <div class="match-day">
-                    <div class="date-header">
-                        <div>
-                            <i class="bi bi-calendar-date me-1"></i>
-                            {{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}
-                        </div>
-                        <span class="badge">{{ $matchesOnDate->count() }} match{{ $matchesOnDate->count() > 1 ? 'es' : '' }}</span>
+           @foreach($groupedMatches as $date => $matchesOnDate)
+    <div class="match-day">
+        <div class="date-header">
+            <div>
+                <i class="bi bi-calendar-date me-1"></i>
+                {{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}
+            </div>
+            <span class="badge">{{ $matchesOnDate->count() }} match{{ $matchesOnDate->count() > 1 ? 'es' : '' }}</span>
+        </div>
+
+        @foreach($matchesOnDate as $match)
+            <div class="match-card">
+                <div class="match-info">
+                    <!-- Time -->
+                    <div class="match-time">
+                        {{ date('H:i', strtotime($match->time_start)) }}
+                        <div class="match-venue">{{ $match->venue ?? 'Main Field' }}</div>
                     </div>
 
-                    @foreach($matchesOnDate as $match)
-                        <div class="match-card">
-                            <div class="match-info">
-                                <!-- Time -->
-                                <div class="match-time">
-                                    {{ date('H:i', strtotime($match->time_start)) }}
-                                    <div class="match-venue">{{ $match->venue ?? 'Main Field' }}</div>
-                                </div>
+                    <!-- Teams & Score -->
+                    <div class="match-teams">
+                        <div class="team-name team-home">
+                            {{ $match->homeTeam->name ?? 'TBA' }}
+                        </div>
 
-                                <!-- Teams & Score -->
-                                <div class="match-teams">
-                                    <div class="team-name team-home">
-                                        {{ $match->homeTeam->name ?? 'TBA' }}
-                                    </div>
-
-                                    <div class="score-container">
-                                        @if($match->status == 'completed')
-                                            <div class="score-badge">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
-                                        @elseif($match->status == 'ongoing')
-                                            <div class="score-badge live">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
-                                        @else
-                                            <div class="score-badge">VS</div>
+                        <div class="score-container">
+                            @if($match->status == 'completed')
+                                <div class="score-display">
+                                    <div class="score-badge">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
+                                    
+                                    <!-- TAMBAHKAN: Extra Time dan Penalty Info -->
+                                    <div class="extra-score-info" style="margin-top: 3px;">
+                                        @if($match->et_score)
+                                            <small class="et-badge">
+                                                ET {{ $match->et_score }}
+                                            </small>
+                                        @endif
+                                        
+                                        @if($match->is_penalty && $match->penalty_score)
+                                            <small class="penalty-badge">
+                                                <i class="bi bi-flag"></i> {{ $match->penalty_score }}
+                                            </small>
                                         @endif
                                     </div>
-
-                                    <div class="team-name team-away">
-                                        {{ $match->awayTeam->name ?? 'TBA' }}
-                                    </div>
                                 </div>
-
-                                <!-- Details -->
-                                <div class="match-details">
-                                    @if($match->status == 'completed')
-                                        <span class="status-badge status-completed">Completed</span>
-                                    @elseif($match->status == 'ongoing')
-                                        <span class="status-badge status-ongoing">Live</span>
-                                    @else
-                                        <span class="status-badge status-upcoming">Upcoming</span>
-                                    @endif
-
-                                    @if($match->round_type)
-                                        <div class="round-badge mt-1">
-                                            @if($match->round_type == 'group')
-                                                Group {{ $match->group_name }}
-                                            @else
-                                                {{ ucfirst(str_replace('_', ' ', $match->round_type)) }}
-                                            @endif
-                                        </div>
-                                    @endif
-
-                                    <div class="mt-2">
-                                        <a href="{{ route('matches.show', $match->id) }}" 
-                                           class="btn btn-outline-primary btn-sm">
-                                            <i class="bi bi-eye me-1"></i>View
-                                        </a>
-                                    </div>
+                            @elseif($match->status == 'ongoing')
+                                <div class="score-display">
+                                    <div class="score-badge live">{{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}</div>
                                 </div>
-                            </div>
+                            @else
+                                <div class="score-badge">VS</div>
+                            @endif
                         </div>
-                    @endforeach
+
+                        <div class="team-name team-away">
+                            {{ $match->awayTeam->name ?? 'TBA' }}
+                        </div>
+                    </div>
+
+                    <!-- Details -->
+                    <div class="match-details">
+                        @if($match->status == 'completed')
+                            <span class="status-badge status-completed">Completed</span>
+                        @elseif($match->status == 'ongoing')
+                            <span class="status-badge status-ongoing">Live</span>
+                        @else
+                            <span class="status-badge status-upcoming">Upcoming</span>
+                        @endif
+
+                        @if($match->round_type)
+                            <div class="round-badge mt-1">
+                                @if($match->round_type == 'group')
+                                    Group {{ $match->group_name }}
+                                @else
+                                    {{ ucfirst(str_replace('_', ' ', $match->round_type)) }}
+                                @endif
+                            </div>
+                        @endif
+
+                        <div class="mt-2">
+                            <a href="{{ route('matches.show', $match->id) }}" 
+                               class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-eye me-1"></i>View
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            @endforeach
+            </div>
+        @endforeach
+    </div>
+@endforeach
 
             <!-- Pagination -->
             @if($matches->hasPages())

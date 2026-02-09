@@ -38,7 +38,7 @@ class MatchEventController extends Controller
             'home' => [
                 'goals' => $events->where('event_type', 'goal')
                     ->filter(function ($event) use ($match) {
-                        return $event->team_id == $match->team_home_id && ! $event->is_own_goal;
+                        return $event->team_id == $match->team_home_id && !$event->is_own_goal;
                     })->count(),
                 'yellow_cards' => $events->where('event_type', 'yellow_card')
                     ->where('team_id', $match->team_home_id)->count(),
@@ -50,7 +50,7 @@ class MatchEventController extends Controller
             'away' => [
                 'goals' => $events->where('event_type', 'goal')
                     ->filter(function ($event) use ($match) {
-                        return $event->team_id == $match->team_away_id && ! $event->is_own_goal;
+                        return $event->team_id == $match->team_away_id && !$event->is_own_goal;
                     })->count(),
                 'yellow_cards' => $events->where('event_type', 'yellow_card')
                     ->where('team_id', $match->team_away_id)->count(),
@@ -104,7 +104,7 @@ class MatchEventController extends Controller
     public function store(Request $request, Game $match)
     {
         $validated = $request->validate([
-            'team_id' => 'required|exists:teams,id|in:'.$match->team_home_id.','.$match->team_away_id,
+            'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
             'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury',
@@ -141,10 +141,12 @@ class MatchEventController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Gagal menambahkan event: '.$e->getMessage())
+                ->with('error', 'Gagal menambahkan event: ' . $e->getMessage())
                 ->withInput();
         }
     }
+
+
 
     /**
      * Show form to edit event
@@ -183,7 +185,7 @@ class MatchEventController extends Controller
     public function update(Request $request, Game $match, MatchEvent $event)
     {
         $validated = $request->validate([
-            'team_id' => 'required|exists:teams,id|in:'.$match->team_home_id.','.$match->team_away_id,
+            'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
             'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury',
@@ -227,7 +229,7 @@ class MatchEventController extends Controller
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Gagal memperbarui event: '.$e->getMessage())
+                ->with('error', 'Gagal memperbarui event: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -253,7 +255,7 @@ class MatchEventController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Gagal menghapus event: '.$e->getMessage());
+                ->with('error', 'Gagal menghapus event: ' . $e->getMessage());
         }
     }
 
@@ -451,7 +453,7 @@ class MatchEventController extends Controller
 
             return response()->json([
                 'success' => false,
-                'message' => 'Error: '.$e->getMessage(),
+                'message' => 'Error: ' . $e->getMessage(),
             ], 500);
         }
     }
@@ -487,7 +489,7 @@ class MatchEventController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Error: '.$e->getMessage(),
+                'message' => 'Error: ' . $e->getMessage(),
             ], 500);
         }
     }
