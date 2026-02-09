@@ -207,6 +207,9 @@ class StandingController extends Controller
     /**
      * Get knockout bracket data
      */
+    /**
+     * Get knockout bracket data with extras info
+     */
     private function getKnockoutBracketData($tournamentId)
     {
         try {
@@ -222,16 +225,16 @@ class StandingController extends Controller
                     'third_place'
                 ])
                 ->orderByRaw("
-                    CASE 
-                        WHEN round_type = 'round_of_32' THEN 1
-                        WHEN round_type = 'round_of_16' THEN 2
-                        WHEN round_type = 'quarterfinal' THEN 3
-                        WHEN round_type = 'semifinal' THEN 4
-                        WHEN round_type = 'third_place' THEN 5
-                        WHEN round_type = 'final' THEN 6
-                        ELSE 7
-                    END
-                ")
+                CASE 
+                    WHEN round_type = 'round_of_32' THEN 1
+                    WHEN round_type = 'round_of_16' THEN 2
+                    WHEN round_type = 'quarterfinal' THEN 3
+                    WHEN round_type = 'semifinal' THEN 4
+                    WHEN round_type = 'third_place' THEN 5
+                    WHEN round_type = 'final' THEN 6
+                    ELSE 7
+                END
+            ")
                 ->orderBy('match_date')
                 ->orderBy('time_start')
                 ->get();
@@ -249,6 +252,13 @@ class StandingController extends Controller
             foreach ($matches as $match) {
                 $round = $match->round_type;
                 if (isset($bracket[$round])) {
+
+                    // PERBAIKAN: Tentukan winner dengan mempertimbangkan penalty/extra time
+                    $winner = null;
+                    if ($match->status === 'completed') {
+                        $winner = $this->getMatchWinner($match);
+                    }
+
                     $bracket[$round][] = [
                         'id' => $match->id,
                         'home_team' => $match->homeTeam ? [
@@ -266,7 +276,9 @@ class StandingController extends Controller
                         'status' => $match->status,
                         'date' => $match->match_date,
                         'time' => $match->time_start,
-                        'winner' => $this->getMatchWinner($match)
+                        'winner' => $winner,
+                        // TAMBAHKAN INI: Informasi extras (penalty & extra time)
+                        'extras' => $this->getMatchExtrasInfo($match)
                     ];
                 }
             }
@@ -285,7 +297,7 @@ class StandingController extends Controller
     }
 
     /**
-     * Determine match winner
+     * Determine match winner dengan penalty dan extra time consideration
      */
     private function getMatchWinner($match)
     {
@@ -293,6 +305,27 @@ class StandingController extends Controller
             return null;
         }
 
+        // Jika ada penalti
+        if ($match->is_penalty && $match->penalty_score) {
+            list($penaltyHome, $penaltyAway) = explode('-', $match->penalty_score);
+            if ($penaltyHome > $penaltyAway) {
+                return 'home';
+            } else {
+                return 'away';
+            }
+        }
+
+        // Jika ada extra time
+        if ($match->et_score) {
+            list($etHome, $etAway) = explode('-', $match->et_score);
+            if ($etHome > $etAway) {
+                return 'home';
+            } else {
+                return 'away';
+            }
+        }
+
+        // Regular time
         if ($match->home_score > $match->away_score) {
             return 'home';
         } elseif ($match->away_score > $match->home_score) {
@@ -301,6 +334,35 @@ class StandingController extends Controller
             return 'draw';
         }
     }
+
+    /**
+     * Get match extras information
+     */
+    private function getMatchExtrasInfo($match)
+    {
+        if ($match->status !== 'completed') {
+            return null;
+        }
+
+        $extras = [];
+
+        // Extra time score
+        if ($match->et_score) {
+            $extras['et_score'] = $match->et_score;
+        }
+
+        // Penalty information
+        if ($match->is_penalty && $match->penalty_score) {
+            $extras['is_penalty'] = true;
+            $extras['penalty_score'] = $match->penalty_score;
+        }
+
+        // Flag apakah ada extras
+        $extras['has_extras'] = !empty($match->et_score) || ($match->is_penalty && !empty($match->penalty_score));
+
+        return !empty($extras) ? $extras : null;
+    }
+
 
     /**
      * Calculate tournament statistics

@@ -2588,87 +2588,106 @@ body.modal-open {
                 </div>
 
                 <!-- Recent Results -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="bi bi-clock-history"></i> Recent Results
-                    </div>
-                    <div class="card-body">
-                        @if($recentResults->count() > 0)
-                            @foreach($recentResults as $match)
-                                <div class="recent-result-item">
-                                    <div class="small text-muted mb-2">
-                                        {{ date('d M', strtotime($match->match_date)) }} •
-                                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
-                                        @if($match->group_name)
-                                            • Group {{ $match->group_name }}
-                                        @endif
-                                    </div>
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <div class="text-end" style="width: 45%;">
-                                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
-                                        </div>
-                                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
-                                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
-                                        </div>
-                                        <div class="text-start" style="width: 45%;">
-                                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
-                                        </div>
-                                    </div>
-
-                                    @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
-                                        <div class="goal-scorers">
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    @foreach($match->events->where(
-                                                            'team_id',
-                                                            $match->team_home_id
-                                                        )->where('event_type', 'goal') as $goal)
-                                                                    <div class="goal-item">
-                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
-                                                                        <small class="text-truncate">
-                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                                            @if($goal->is_penalty)
-                                                                                <span class="text-muted">(P)</span>
-                                                                            @endif
-                                                                            @if($goal->is_own_goal)
-                                                                                <span class="text-danger">(OG)</span>
-                                                                            @endif
-                                                                        </small>
-                                                                    </div>
-                                                    @endforeach
-                                                </div>
-                                                <div class="col-6">
-                                                    @foreach($match->events->where(
-                                                            'team_id',
-                                                            $match->team_away_id
-                                                        )->where('event_type', 'goal') as $goal)
-                                                                    <div class="goal-item">
-                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
-                                                                        <small class="text-truncate">
-                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                                            @if($goal->is_penalty)
-                                                                                <span class="text-muted">(P)</span>
-                                                                            @endif
-                                                                            @if($goal->is_own_goal)
-                                                                                <span class="text-danger">(OG)</span>
-                                                                            @endif
-                                                                        </small>
-                                                                    </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-                                </div>
-                            @endforeach
-                        @else
-                            <div class="empty-state">
-                                <i class="bi bi-emoji-frown"></i>
-                                <p class="mt-2">No recent matches</p>
-                            </div>
+                <!-- Recent Results -->
+<div class="card mb-4">
+    <div class="card-header">
+        <i class="bi bi-clock-history"></i> Recent Results
+    </div>
+    <div class="card-body">
+        @if($recentResults->count() > 0)
+            @foreach($recentResults as $match)
+                <div class="recent-result-item">
+                    <div class="small text-muted mb-2">
+                        {{ date('d M', strtotime($match->match_date)) }} •
+                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                        @if($match->group_name)
+                            • Group {{ $match->group_name }}
                         @endif
                     </div>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="text-end" style="width: 45%;">
+                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
+                        </div>
+                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
+                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                        </div>
+                        <div class="text-start" style="width: 45%;">
+                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
+                        </div>
+                    </div>
+
+                    <!-- TAMBAHKAN INI: Keterangan Extra Time dan Penalty -->
+                    <div class="match-extras text-center mb-2">
+                        @if($match->et_score)
+                            <span class="badge bg-info text-white me-1">
+                                <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
+                            </span>
+                        @endif
+                        
+                        @if($match->is_penalty && $match->penalty_score)
+                            <span class="badge bg-warning text-dark">
+                                <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
+                            </span>
+                        @endif
+                    </div>
+
+                    @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                        <div class="goal-scorers">
+                            <div class="row">
+                                <div class="col-6">
+                                    @foreach($match->events->where(
+                                            'team_id',
+                                            $match->team_home_id
+                                        )->where('event_type', 'goal') as $goal)
+                                        <div class="goal-item">
+                                            <span class="goal-minute">{{ $goal->minute }}'</span>
+                                            <small class="text-truncate">
+                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                @if($goal->is_penalty)
+                                                    <span class="text-muted">(P)</span>
+                                                @endif
+                                                @if($goal->is_own_goal)
+                                                    <span class="text-danger">(OG)</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="col-6">
+                                    @foreach($match->events->where(
+                                            'team_id',
+                                            $match->team_away_id
+                                        )->where('event_type', 'goal') as $goal)
+                                        <div class="goal-item">
+                                            <span class="goal-minute">{{ $goal->minute }}'</span>
+                                            <small class="text-truncate">
+                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                @if($goal->is_penalty)
+                                                    <span class="text-muted">(P)</span>
+                                                @endif
+                                                @if($goal->is_own_goal)
+                                                    <span class="text-danger">(OG)</span>
+                                                @endif
+                                            </small>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @endif
                 </div>
+                @if(!$loop->last)
+                    <hr class="my-2">
+                @endif
+            @endforeach
+        @else
+            <div class="empty-state">
+                <i class="bi bi-emoji-frown"></i>
+                <p class="mt-2">No recent matches</p>
+            </div>
+        @endif
+    </div>
+</div>
             </div>
         </div>
     </div>

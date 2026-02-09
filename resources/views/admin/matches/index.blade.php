@@ -617,6 +617,85 @@
             color: #065f46;
         }
 
+        /* Add to your existing CSS */
+        .score-display-admin {
+            margin-top: 5px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+
+        .score-display-admin .score {
+            font-weight: 700;
+            font-size: 14px;
+            color: #3730a3;
+        }
+
+        .score-display-admin .score.live {
+            color: #dc2626;
+            animation: pulse 2s infinite;
+        }
+
+        .extra-info-admin {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .extra-info-admin .badge {
+            padding: 2px 6px;
+            font-size: 9px;
+            font-weight: 600;
+        }
+
+        .extra-info-admin .badge i {
+            font-size: 8px;
+            margin-right: 2px;
+        }
+
+        /* Visual indicator untuk match dengan extras */
+        .match-row[style*="border-left"]:hover {
+            background-color: rgba(13, 202, 240, 0.05);
+        }
+
+        /* Tooltip untuk extra info */
+        .match-row .extra-info-admin .badge {
+            position: relative;
+            cursor: help;
+        }
+
+        .match-row .extra-info-admin .badge:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
         /* Modal */
         .modal-content {
             border-radius: 8px;
@@ -987,7 +1066,7 @@
                             @foreach($matches as $match)
                                 <tr class="match-row" data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
                                     data-date="{{ $match->match_date->format('Y-m-d') }}"
-                                    data-tournament="{{ $match->tournament_id }}">
+                                    data-tournament="{{ $match->tournament_id }}" @if($match->status == 'completed' && ($match->et_score || $match->is_penalty)) style="border-left: 3px solid #0dcaf0;" @endif>
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
                                         <div class="match-time">
@@ -1041,12 +1120,37 @@
                                                 <div class="team-name away">{{ $match->awayTeam->name ?? 'TBA' }}</div>
                                             </div>
                                         </div>
-                                        @if(
-                                                $match->status === 'completed' && $match->home_score !== null && $match->away_score !==
-                                                null
-                                            )
-                                            <div class="score">
-                                                {{ $match->home_score }} - {{ $match->away_score }}
+
+                                        <!-- Score Section with Extras Info -->
+                                        @if($match->status === 'completed' && $match->home_score !== null && $match->away_score !== null)
+                                            <div class="score-display-admin">
+                                                <span class="score">
+                                                    {{ $match->home_score }} - {{ $match->away_score }}
+                                                </span>
+
+                                                <!-- Extra Time and Penalty Info -->
+                                                @if($match->et_score || ($match->is_penalty && $match->penalty_score))
+                                                    <div class="extra-info-admin">
+                                                        @if($match->et_score)
+                                                            <small class="badge bg-info text-white me-1" style="font-size: 9px;">
+                                                                <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
+                                                            </small>
+                                                        @endif
+
+                                                        @if($match->is_penalty && $match->penalty_score)
+                                                            <small class="badge bg-warning text-dark" style="font-size: 9px;">
+                                                                <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
+                                                            </small>
+                                                        @endif
+                                                    </div>
+                                                @endif
+                                            </div>
+                                        @elseif($match->status === 'ongoing')
+                                            <div class="score-display-admin">
+                                                <span class="score live">
+                                                    {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                                </span>
+                                                <span class="badge bg-danger" style="font-size: 9px;">LIVE</span>
                                             </div>
                                         @endif
                                     </td>
@@ -1093,6 +1197,9 @@
                                                 data-away-team="{{ $match->awayTeam->name ?? 'Away Team' }}"
                                                 data-home-score="{{ $match->home_score ?? 0 }}"
                                                 data-away-score="{{ $match->away_score ?? 0 }}"
+                                                data-et-score="{{ $match->et_score ?? '' }}"
+                                                data-is-penalty="{{ $match->is_penalty ? '1' : '0' }}"
+                                                data-penalty-score="{{ $match->penalty_score ?? '' }}"
                                                 data-update-url="{{ route('admin.matches.update-score', $match) }}">
                                                 <i class="bi bi-bar-chart"></i>
                                             </button>
@@ -1293,8 +1400,9 @@
     </div>
 
     <!-- Score Update Modal -->
+    <!-- Score Update Modal -->
     <div class="modal fade" id="scoreUpdateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content">
                 <form id="scoreUpdateForm" method="POST">
                     @csrf
@@ -1303,47 +1411,79 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <p class="text-muted mb-3">Enter the final score:</p>
 
-                        <!-- Teams with Logos -->
-                        <div class="row align-items-center mb-4">
-                            <div class="col-5 text-center">
-                                <div class="team-modal-info">
-                                    <div class="team-logo-modal mb-2" id="modalHomeLogo">
-                                        <!-- Logo akan diisi oleh JavaScript -->
-                                    </div>
-                                    <div class="fw-semibold text-truncate" id="modalHomeTeam"></div>
+                        <!-- Regular Time -->
+                        <div class="mb-4">
+                            <h6 class="text-center mb-3 text-primary">Regular Time Score</h6>
+                            <div class="row align-items-center">
+                                <div class="col-5">
+                                    <input type="number" name="home_score" id="modalHomeScore"
+                                        class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
+                                        placeholder="0">
                                 </div>
-                            </div>
-                            <div class="col-2 text-center">
-                                <span class="text-muted fw-bold">VS</span>
-                            </div>
-                            <div class="col-5 text-center">
-                                <div class="team-modal-info">
-                                    <div class="team-logo-modal mb-2" id="modalAwayLogo">
-                                        <!-- Logo akan diisi oleh JavaScript -->
-                                    </div>
-                                    <div class="fw-semibold text-truncate" id="modalAwayTeam"></div>
+                                <div class="col-2 text-center">
+                                    <span class="fw-bold fs-4">:</span>
+                                </div>
+                                <div class="col-5">
+                                    <input type="number" name="away_score" id="modalAwayScore"
+                                        class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
+                                        placeholder="0">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Score Inputs -->
-                        <div class="row align-items-center">
-                            <div class="col-5">
-                                <input type="number" name="home_score" id="modalHomeScore"
-                                    class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
-                                    style="font-size: 1.25rem;">
+                        <!-- Extra Time (Optional) -->
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="hasExtraTime">
+                                <label class="form-check-label fw-bold" for="hasExtraTime">
+                                    <i class="bi bi-clock-history me-1"></i> Extra Time
+                                </label>
                             </div>
-                            <div class="col-2 text-center">
-                                <span class="fw-bold fs-4">:</span>
-                            </div>
-                            <div class="col-5">
-                                <input type="number" name="away_score" id="modalAwayScore"
-                                    class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
-                                    style="font-size: 1.25rem;">
+
+                            <div id="extraTimeSection" class="d-none">
+                                <div class="row align-items-center">
+                                    <div class="col-5">
+                                        <input type="text" name="et_score" id="modalETScore"
+                                            class="form-control text-center" pattern="\d+-\d+" placeholder="0-0"
+                                            title="Format: home-away (contoh: 1-0)">
+                                    </div>
+                                    <div class="col-2 text-center">
+                                        <span class="fw-bold">:</span>
+                                    </div>
+                                    <div class="col-5">
+                                        <small class="text-muted">Format: home-away</small>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Penalty Shootout (Optional) -->
+                        <div class="mb-4">
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="hasPenalty" name="is_penalty" value="1">
+                                <label class="form-check-label fw-bold" for="hasPenalty">
+                                    <i class="bi bi-flag me-1"></i> Penalty Shootout
+                                </label>
+                            </div>
+
+                            <div id="penaltySection" class="d-none">
+                                <div class="row align-items-center">
+                                    <div class="col-5">
+                                        <input type="text" name="penalty_score" id="modalPenaltyScore"
+                                            class="form-control text-center" pattern="\d+-\d+" placeholder="3-2"
+                                            title="Format: home-away (contoh: 3-2)">
+                                    </div>
+                                    <div class="col-2 text-center">
+                                        <span class="fw-bold">:</span>
+                                    </div>
+                                    <div class="col-5">
+                                        <small class="text-muted">Format: home-away</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -1353,6 +1493,37 @@
             </div>
         </div>
     </div>
+
+    <!-- JavaScript untuk toggle extra time & penalty -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Toggle Extra Time
+            document.getElementById('hasExtraTime').addEventListener('change', function () {
+                const extraTimeSection = document.getElementById('extraTimeSection');
+                if (this.checked) {
+                    extraTimeSection.classList.remove('d-none');
+                    document.getElementById('modalETScore').required = true;
+                } else {
+                    extraTimeSection.classList.add('d-none');
+                    document.getElementById('modalETScore').required = false;
+                    document.getElementById('modalETScore').value = '';
+                }
+            });
+
+            // Toggle Penalty
+            document.getElementById('hasPenalty').addEventListener('change', function () {
+                const penaltySection = document.getElementById('penaltySection');
+                if (this.checked) {
+                    penaltySection.classList.remove('d-none');
+                    document.getElementById('modalPenaltyScore').required = true;
+                } else {
+                    penaltySection.classList.add('d-none');
+                    document.getElementById('modalPenaltyScore').required = false;
+                    document.getElementById('modalPenaltyScore').value = '';
+                }
+            });
+        });
+    </script>
 
     <!-- Upload Highlight Modal -->
     <div class="modal fade" id="uploadHighlightModal" tabindex="-1" aria-hidden="true">
@@ -1747,9 +1918,9 @@
                         }
                     }
 
-                    // Set modal data
-                    document.getElementById('modalHomeTeam').textContent = homeTeam;
-                    document.getElementById('modalAwayTeam').textContent = awayTeam;
+                    // // Set modal data
+                    // document.getElementById('modalHomeTeam').textContent = homeTeam;
+                    // document.getElementById('modalAwayTeam').textContent = awayTeam;
                     document.getElementById('modalHomeScore').value = homeScore;
                     document.getElementById('modalAwayScore').value = awayScore;
 
@@ -2095,11 +2266,11 @@
                                 // Success
                                 if (statusDiv) {
                                     statusDiv.innerHTML = `
-                                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                                    <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
-                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                </div>
-                                            `;
+                                                                                            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                                                                <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
+                                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                            </div>
+                                                                                        `;
                                     statusDiv.classList.remove('d-none');
                                 }
 
@@ -2151,11 +2322,11 @@
 
                 if (statusDiv) {
                     statusDiv.innerHTML = `
-                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                    <i class="bi bi-exclamation-triangle"></i> ${message}
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                </div>
-                            `;
+                                                                            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                                                <i class="bi bi-exclamation-triangle"></i> ${message}
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                            </div>
+                                                                        `;
                     statusDiv.classList.remove('d-none');
                 }
 
@@ -2221,13 +2392,13 @@
                             // Create video player
                             if (playerContainer && highlight.video_url) {
                                 playerContainer.innerHTML = `
-                                        <div class="ratio ratio-16x9">
-                                            <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
-                                                <source src="${highlight.video_url}" type="video/mp4">
-                                                Your browser does not support the video tag.
-                                            </video>
-                                        </div>
-                                    `;
+                                                                                    <div class="ratio ratio-16x9">
+                                                                                        <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
+                                                                                            <source src="${highlight.video_url}" type="video/mp4">
+                                                                                            Your browser does not support the video tag.
+                                                                                        </video>
+                                                                                    </div>
+                                                                                `;
                             }
                         } else {
                             throw new Error(data.message || 'Failed to load highlight info');
@@ -2238,10 +2409,10 @@
 
                         if (playerContainer) {
                             playerContainer.innerHTML = `
-                                    <div class="alert alert-warning">
-                                        <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
-                                    </div>
-                                `;
+                                                                                <div class="alert alert-warning">
+                                                                                    <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
+                                                                                </div>
+                                                                            `;
                         }
 
                         if (infoSize) infoSize.textContent = 'Error';
@@ -2393,11 +2564,11 @@
 
             // Tampilkan loading
             currentVideoContainer.innerHTML = `
-                        <div class="text-center p-4">
-                            <div class="spinner-border text-primary" role="status"></div>
-                            <p class="mt-2">Loading highlight...</p>
-                        </div>
-                    `;
+                                                                    <div class="text-center p-4">
+                                                                        <div class="spinner-border text-primary" role="status"></div>
+                                                                        <p class="mt-2">Loading highlight...</p>
+                                                                    </div>
+                                                                `;
             currentVideoInfo.textContent = 'Loading...';
 
             // Coba load dari data yang sudah ada di tombol
@@ -2477,11 +2648,11 @@
             // Helper function untuk menampilkan embed
             function displayYoutubeEmbed(youtubeId) {
                 currentVideoContainer.innerHTML = `
-                            <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1" 
-                                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                    allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                            </iframe>
-                        `;
+                                                                        <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1" 
+                                                                                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                                                allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                        </iframe>
+                                                                    `;
             }
 
             // Helper function untuk fetch info tambahan
@@ -2508,10 +2679,10 @@
             // Helper function untuk menampilkan no highlight
             function showNoHighlight() {
                 currentVideoContainer.innerHTML = `
-                            <div class="alert alert-warning p-3 text-center">
-                                <i class="bi bi-exclamation-triangle"></i> No highlight available
-                            </div>
-                        `;
+                                                                        <div class="alert alert-warning p-3 text-center">
+                                                                            <i class="bi bi-exclamation-triangle"></i> No highlight available
+                                                                        </div>
+                                                                    `;
                 currentVideoInfo.textContent = 'No highlight available';
             }
         }
@@ -2556,11 +2727,11 @@
 
             // Show preview
             previewContainer.innerHTML = `
-                        <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
-                                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                        </iframe>
-                    `;
+                                                                    <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
+                                                                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                                            allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                    </iframe>
+                                                                `;
 
             if (previewInfo) {
                 previewInfo.textContent = `Video ID: ${videoId}`;
@@ -2786,14 +2957,14 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             statusDiv.innerHTML = `
-                        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                            <i class="bi ${type === 'success' ? 'bi-check-circle' :
+                                                                    <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                        <i class="bi ${type === 'success' ? 'bi-check-circle' :
                     type === 'danger' ? 'bi-exclamation-triangle' :
                         'bi-info-circle'}"></i> 
-                            ${message}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    `;
+                                                                        ${message}
+                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                    </div>
+                                                                `;
             statusDiv.classList.remove('d-none');
 
             // Auto-hide after 5 seconds (except for success which will auto-close)

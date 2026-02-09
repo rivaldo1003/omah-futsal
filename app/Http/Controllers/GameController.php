@@ -10,6 +10,7 @@ use App\Models\Tournament;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 
 class GameController extends Controller
 {
@@ -567,18 +568,44 @@ class GameController extends Controller
     {
         try {
             DB::transaction(function () use ($match) {
+                // Log sebelum delete
+                Log::info('========== START DELETE MATCH ==========');
+                Log::info('Match to delete:', [
+                    'match_id' => $match->id,
+                    'home_team' => $match->homeTeam->name ?? 'Unknown',
+                    'away_team' => $match->awayTeam->name ?? 'Unknown',
+                    'status' => $match->status,
+                    'event_count' => $match->events()->count()
+                ]);
+
+                // 1. Revert tournament standings jika match sudah completed
                 if ($match->status === 'completed') {
                     $this->revertMatchResults($match, $match->home_score, $match->away_score, $match->tournament);
                 }
 
+                // 2. Hapus match - Model Game akan otomatis memanggil revertAllPlayerStats()
+                // melalui event 'deleting' sebelum delete
                 $match->delete();
+
+                // Log setelah delete
+                Log::info('Successfully deleted match', [
+                    'match_id' => $match->id
+                ]);
+                Log::info('========== END DELETE MATCH ==========');
             });
 
             return redirect()->route('admin.matches.index')
-                ->with('success', 'Match deleted successfully!');
+                ->with('success', 'Match deleted successfully! All player statistics have been reverted.');
+
         } catch (\Exception $e) {
+            Log::error('Error deleting match', [
+                'match_id' => $match->id,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+
             return redirect()->back()
-                ->with('error', 'Error deleting match: ' . $e->getMessage());
+                ->with('error', 'Failed to delete match: ' . $e->getMessage());
         }
     }
 
@@ -590,6 +617,9 @@ class GameController extends Controller
         $request->validate([
             'home_score' => 'required|integer|min:0',
             'away_score' => 'required|integer|min:0',
+            'et_score' => 'nullable|string|regex:/^\d+-\d+$/',
+            'is_penalty' => 'nullable|boolean',
+            'penalty_score' => 'nullable|string|regex:/^\d+-\d+$/',
         ]);
 
         try {
@@ -598,9 +628,13 @@ class GameController extends Controller
                 $oldHomeScore = $match->home_score;
                 $oldAwayScore = $match->away_score;
 
+                // Update match
                 $match->update([
                     'home_score' => $request->home_score,
                     'away_score' => $request->away_score,
+                    'et_score' => $request->et_score,
+                    'is_penalty' => $request->boolean('is_penalty'),
+                    'penalty_score' => $request->penalty_score,
                     'status' => 'completed',
                 ]);
 
@@ -609,13 +643,45 @@ class GameController extends Controller
                 }
 
                 $this->updateMatchResults($match, $match->tournament);
+
+                // Update knockout bracket jika match knockout
+                if (in_array($match->round_type, ['knockout', 'quarterfinal', 'semifinal', 'final'])) {
+                    $this->updateKnockoutBracket($match);
+                }
             });
 
             return redirect()->back()
-                ->with('success', 'Score updated successfully! Standings have been recalculated.');
+                ->with('success', 'Score updated successfully!');
+
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error updating score: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Helper untuk update bracket knockout
+     */
+    private function updateKnockoutBracket(Game $match)
+    {
+        $winnerId = $match->getWinnerId();
+
+        // Cari next match di bracket (ini tergantung struktur bracket Anda)
+        $nextMatch = Game::where('tournament_id', $match->tournament_id)
+            ->where(function ($q) use ($match) {
+                // Logika mencari match berikutnya berdasarkan bracket
+                // Ini perlu disesuaikan dengan struktur bracket Anda
+            })
+            ->first();
+
+        if ($nextMatch) {
+            // Update team di next match
+            if (!$nextMatch->team_home_id) {
+                $nextMatch->team_home_id = $winnerId;
+            } elseif (!$nextMatch->team_away_id) {
+                $nextMatch->team_away_id = $winnerId;
+            }
+            $nextMatch->save();
         }
     }
 
@@ -1511,6 +1577,9 @@ class GameController extends Controller
     /**
      * Update knockout bracket progression
      */
+    /**
+     * Update knockout bracket progression - PERBAIKAN untuk handle penalty
+     */
     private function updateKnockoutProgression(Game $match, Tournament $tournament)
     {
         if ($match->status !== 'completed' || !in_array($match->round_type, ['quarterfinal', 'semifinal', 'final', 'third_place', 'round_of_16', 'round_of_32'])) {
@@ -1539,13 +1608,8 @@ class GameController extends Controller
             return; // No next match found
         }
 
-        // Determine winner
-        $winnerId = null;
-        if ($match->home_score > $match->away_score) {
-            $winnerId = $match->team_home_id;
-        } elseif ($match->away_score > $match->home_score) {
-            $winnerId = $match->team_away_id;
-        }
+        // PERBAIKAN: Determine winner dengan mempertimbangkan penalty dan extra time
+        $winnerId = $match->getWinnerId(); // Gunakan method getWinnerId() dari model
 
         if ($winnerId) {
             // Fill the next match slot
@@ -1557,15 +1621,15 @@ class GameController extends Controller
             $nextMatch->save();
         }
 
-        // For third place match
+        // PERBAIKAN: For third place match - get loser dengan mempertimbangkan penalty
         if ($match->round_type === 'semifinal' && $tournament->knockout_third_place) {
-            $loserId = ($match->home_score < $match->away_score) ? $match->team_home_id : $match->team_away_id;
+            $loserId = $match->getLoserId(); // Gunakan method getLoserId() dari model
 
             $thirdPlaceMatch = Game::where('tournament_id', $tournament->id)
                 ->where('round_type', 'third_place')
                 ->first();
 
-            if ($thirdPlaceMatch) {
+            if ($thirdPlaceMatch && $loserId) {
                 if (!$thirdPlaceMatch->team_home_id) {
                     $thirdPlaceMatch->team_home_id = $loserId;
                 } elseif (!$thirdPlaceMatch->team_away_id) {

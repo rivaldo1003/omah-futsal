@@ -73,26 +73,48 @@
                                             </td>
                                             <td>{{ $match->time_start }}</td>
                                             <td>
-                                                <div class="d-flex align-items-center">
-                                                    <div class="text-end" style="width: 120px;">
-                                                        <div class="team-name">{{ $match->homeTeam->name ?? 'TBD' }}</div>
-                                                        <small class="text-muted">Home</small>
-                                                    </div>
-                                                    <div class="text-center mx-3" style="width: 80px;">
-                                                        <div class="match-score {{ $match->status }}">
+                                                <div class="match-info">
+                                                    <div class="d-flex align-items-center mb-1">
+                                                        <!-- Home Team -->
+                                                        <div class="text-end" style="width: 45%;">
+                                                            <strong>{{ $match->homeTeam->name ?? 'TBD' }}</strong>
+                                                        </div>
+
+                                                        <!-- Score Box -->
+                                                        <div class="text-center" style="width: 10%;">
                                                             @if($match->status == 'completed')
-                                                                {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                                                <div class="final-score">
+                                                                    {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                                                </div>
                                                             @elseif($match->status == 'ongoing')
-                                                                <span class="live-indicator">LIVE</span>
+                                                                <span class="live-badge">LIVE</span>
                                                             @else
-                                                                VS
+                                                                <span class="vs-text">VS</span>
                                                             @endif
                                                         </div>
+
+                                                        <!-- Away Team -->
+                                                        <div class="text-start" style="width: 45%;">
+                                                            <strong>{{ $match->awayTeam->name ?? 'TBD' }}</strong>
+                                                        </div>
                                                     </div>
-                                                    <div class="text-start" style="width: 120px;">
-                                                        <div class="team-name">{{ $match->awayTeam->name ?? 'TBD' }}</div>
-                                                        <small class="text-muted">Away</small>
-                                                    </div>
+
+                                                    <!-- Extra Info (only for completed matches) -->
+                                                    @if($match->status == 'completed')
+                                                        <div class="extra-score-info text-center">
+                                                            @if($match->et_score)
+                                                                <span class="et-badge">
+                                                                    ET {{ $match->et_score }}
+                                                                </span>
+                                                            @endif
+
+                                                            @if($match->is_penalty && $match->penalty_score)
+                                                                <span class="penalty-badge">
+                                                                    <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    @endif
                                                 </div>
                                             </td>
                                             <td>{{ $match->venue ?? 'Main Court' }}</td>
@@ -205,6 +227,74 @@
             border-radius: 5px;
             font-weight: bold;
             border: 1px solid #dee2e6;
+        }
+
+        .final-score {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #2c3e50;
+            background: #f8f9fa;
+            padding: 3px 8px;
+            border-radius: 4px;
+            border: 1px solid #e0e0e0;
+            display: inline-block;
+            min-width: 60px;
+        }
+
+        .live-badge {
+            background: #dc3545;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .vs-text {
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .extra-score-info {
+            margin-top: 4px;
+            font-size: 0.75rem;
+        }
+
+        .et-badge {
+            background: #e3f2fd;
+            color: #1976d2;
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 5px;
+            display: inline-block;
+        }
+
+        .penalty-badge {
+            background: #fff3e0;
+            color: #ff9800;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .penalty-badge i {
+            margin-right: 2px;
         }
 
         .live-indicator {
