@@ -150,6 +150,27 @@ class GameController extends Controller
             'events.player.team',
         ]);
 
+        $tournamentId = $game->tournament_id;
+
+        // Ambil semua pemain dari kedua tim
+        $homeTeamPlayers = $game->homeTeam->players;
+        $awayTeamPlayers = $game->awayTeam->players;
+
+        // Hitung statistik PER TOURNAMENT untuk setiap pemain
+        foreach ($homeTeamPlayers as $player) {
+            $player->tournament_goals = $this->getPlayerTournamentStats($player->id, $tournamentId, 'goal');
+            $player->tournament_assists = $this->getPlayerTournamentAssists($player->id, $tournamentId);
+            $player->tournament_yellow_cards = $this->getPlayerTournamentStats($player->id, $tournamentId, 'yellow_card');
+            $player->tournament_red_cards = $this->getPlayerTournamentStats($player->id, $tournamentId, 'red_card');
+        }
+
+        foreach ($awayTeamPlayers as $player) {
+            $player->tournament_goals = $this->getPlayerTournamentStats($player->id, $tournamentId, 'goal');
+            $player->tournament_assists = $this->getPlayerTournamentAssists($player->id, $tournamentId);
+            $player->tournament_yellow_cards = $this->getPlayerTournamentStats($player->id, $tournamentId, 'yellow_card');
+            $player->tournament_red_cards = $this->getPlayerTournamentStats($player->id, $tournamentId, 'red_card');
+        }
+
         // Get match statistics
         $homeTeamStats = [
             'goals' => $game->home_score,
@@ -186,11 +207,42 @@ class GameController extends Controller
 
         return view('games.show', compact(
             'game',
+            'homeTeamPlayers',
+            'awayTeamPlayers',
             'homeTeamStats',
             'awayTeamStats',
             'homeTeamEvents',
             'awayTeamEvents'
         ));
+    }
+
+    /**
+     * Helper method untuk mendapatkan statistik pemain per tournament
+     */
+    private function getPlayerTournamentStats($playerId, $tournamentId, $eventType)
+    {
+        return DB::table('match_events')
+            ->join('matches', 'match_events.match_id', '=', 'matches.id')
+            ->where('matches.tournament_id', $tournamentId)
+            ->where('match_events.player_id', $playerId)
+            ->where('match_events.event_type', $eventType)
+            ->when($eventType === 'goal', function ($query) {
+                return $query->where('match_events.is_own_goal', false);
+            })
+            ->count();
+    }
+
+    /**
+     * Helper method untuk mendapatkan assists per tournament
+     */
+    private function getPlayerTournamentAssists($playerId, $tournamentId)
+    {
+        return DB::table('match_events')
+            ->join('matches', 'match_events.match_id', '=', 'matches.id')
+            ->where('matches.tournament_id', $tournamentId)
+            ->where('match_events.related_player_id', $playerId)
+            ->where('match_events.event_type', 'goal')
+            ->count();
     }
 
     // ==================== ADMIN ROUTES ====================
