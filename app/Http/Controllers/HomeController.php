@@ -540,6 +540,9 @@ class HomeController extends Controller
     /**
      * FIXED: Get all group standings including teams that haven't played yet
      */
+    /**
+     * FIXED: Get all group standings including teams that haven't played yet
+     */
     private function getAllGroupStandingsFixed($activeTournament = null)
     {
         if (!$activeTournament) {
@@ -617,28 +620,34 @@ class HomeController extends Controller
                 $groupedTeams[$group][] = $standing;
             }
 
-            // 4. Sort each group
+            // 4. Sort each group - UBAH URUTAN DI SINI
             foreach ($groupedTeams as $group => $standings) {
-                usort($groupedTeams[$group], function ($a, $b) use ($tournamentId, $group) {
+                // Get all completed matches in this group for head-to-head calculations
+                $groupMatches = Game::where('tournament_id', $tournamentId)
+                    ->where('group_name', $group)
+                    ->where('status', 'completed')
+                    ->get();
+
+                usort($groupedTeams[$group], function ($a, $b) use ($groupMatches, $group) {
                     // 1. Points (Poin)
                     if ($b->points != $a->points) {
                         return $b->points - $a->points;
                     }
 
-                    // 2. HEAD-TO-HEAD DULU (jika poin sama)
-                    $headToHeadResult = $this->calculateHeadToHead($a->team_id, $b->team_id, $tournamentId, $group);
-                    if ($headToHeadResult !== 0) {
-                        return $headToHeadResult;
-                    }
-
-                    // 3. Goal Difference (Selisih Gol)
+                    // 2. Goal Difference (Selisih Gol) - DULUKAN INI
                     if ($b->goal_difference != $a->goal_difference) {
                         return $b->goal_difference - $a->goal_difference;
                     }
 
-                    // 4. Goals For (Gol Memasukkan)
+                    // 3. Goals For (Gol Memasukkan) - TAMBAHKAN INI
                     if ($b->goals_for != $a->goals_for) {
                         return $b->goals_for - $a->goals_for;
+                    }
+
+                    // 4. HEAD-TO-HEAD (baru setelah selisih gol)
+                    $headToHeadResult = $this->calculateHeadToHeadAdvanced($a, $b, $groupMatches);
+                    if ($headToHeadResult !== 0) {
+                        return $headToHeadResult;
                     }
 
                     // 5. Wins (Jumlah Kemenangan)
@@ -668,6 +677,47 @@ class HomeController extends Controller
             \Log::error('Error in getAllGroupStandingsFixed: ' . $e->getMessage());
             return [];
         }
+    }
+
+    /**
+     * Advanced head-to-head calculation that considers all matches between teams
+     */
+    private function calculateHeadToHeadAdvanced($teamA, $teamB, $groupMatches)
+    {
+        // Filter matches between teamA and teamB
+        $headToHeadMatches = $groupMatches->filter(function ($match) use ($teamA, $teamB) {
+            return ($match->team_home_id == $teamA->team_id && $match->team_away_id == $teamB->team_id) ||
+                ($match->team_home_id == $teamB->team_id && $match->team_away_id == $teamA->team_id);
+        });
+
+        if ($headToHeadMatches->isEmpty()) {
+            return 0; // No head-to-head matches
+        }
+
+        $teamAPoints = 0;
+        $teamBPoints = 0;
+
+        foreach ($headToHeadMatches as $match) {
+            if ($match->home_score > $match->away_score) {
+                if ($match->team_home_id == $teamA->team_id) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } elseif ($match->home_score < $match->away_score) {
+                if ($match->team_away_id == $teamA->team_id) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } else {
+                $teamAPoints += 1;
+                $teamBPoints += 1;
+            }
+        }
+
+        // Return positive if team B should be ahead, negative if team A should be ahead
+        return $teamBPoints - $teamAPoints;
     }
 
     private function calculateHeadToHead($teamAId, $teamBId, $tournamentId, $group)

@@ -963,7 +963,7 @@
                                     @endif
                                     <small class="text-muted">
                                         @if($player->goals > 0)
-                                        {{ $player->goals }}G
+                                        {{-- {{ $player->goals }}G --}}
                                         @endif
                                         @if($player->assists > 0)
                                         {{ $player->assists > 0 && $player->goals > 0 ? '/' : '' }}{{ $player->assists }}A
@@ -973,28 +973,28 @@
                             </div>
 
                             <!-- Player Stats Badges -->
-                            <div class="player-stats">
-                                @if($player->goals > 0)
-                                <span class="badge bg-success" title="Goals">
-                                    <i class="bi bi-soccer me-1"></i>{{ $player->goals }}
-                                </span>
-                                @endif
-                                @if($player->assists > 0)
-                                <span class="badge bg-primary" title="Assists">
-                                    <i class="bi bi-share me-1"></i>{{ $player->assists }}
-                                </span>
-                                @endif
-                                @if($player->yellow_cards > 0)
-                                <span class="badge bg-warning" title="Yellow Cards">
-                                    <i class="bi bi-card-text me-1"></i>{{ $player->yellow_cards }}
-                                </span>
-                                @endif
-                                @if($player->red_cards > 0)
-                                <span class="badge bg-danger" title="Red Cards">
-                                    <i class="bi bi-card-text me-1"></i>{{ $player->red_cards }}
-                                </span>
-                                @endif
-                            </div>
+<div class="player-stats">
+    @if($player->tournament_goals > 0)
+    <span class="badge bg-success" title="Goals in this tournament">
+        <i class="bi bi-soccer me-1"></i>{{ $player->tournament_goals }}
+    </span>
+    @endif
+    @if($player->tournament_assists > 0)
+    <span class="badge bg-primary" title="Assists in this tournament">
+        <i class="bi bi-share me-1"></i>{{ $player->tournament_assists }}
+    </span>
+    @endif
+    @if($player->tournament_yellow_cards > 0)
+    <span class="badge bg-warning" title="Yellow Cards in this tournament">
+        <i class="bi bi-card-text me-1"></i>{{ $player->tournament_yellow_cards }}
+    </span>
+    @endif
+    @if($player->tournament_red_cards > 0)
+    <span class="badge bg-danger" title="Red Cards in this tournament">
+        <i class="bi bi-card-text me-1"></i>{{ $player->tournament_red_cards }}
+    </span>
+    @endif
+</div>
                         </div>
                         @endforeach
                         @else

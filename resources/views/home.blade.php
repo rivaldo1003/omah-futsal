@@ -2587,8 +2587,7 @@ body.modal-open {
                     </div>
                 </div>
 
-                <!-- Recent Results -->
-                <!-- Recent Results -->
+               <!-- Recent Results -->
 <div class="card mb-4">
     <div class="card-header">
         <i class="bi bi-clock-history"></i> Recent Results
@@ -2616,7 +2615,7 @@ body.modal-open {
                         </div>
                     </div>
 
-                    <!-- TAMBAHKAN INI: Keterangan Extra Time dan Penalty -->
+                    <!-- Extra Time dan Penalty -->
                     <div class="match-extras text-center mb-2">
                         @if($match->et_score)
                             <span class="badge bg-info text-white me-1">
@@ -2631,14 +2630,81 @@ body.modal-open {
                         @endif
                     </div>
 
-                    @if(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                    <!-- Goals & Cards -->
+                    @if(isset($match->events) && $match->events->count() > 0)
+                        <div class="match-events mt-2">
+                            <div class="row small">
+                                <!-- Home Team Events -->
+                                <div class="col-6">
+                                    @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                        <div class="mb-1">
+                                            @if($event->event_type == 'goal')
+                                                <span class="badge bg-success me-1">
+                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>
+                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                    @if($event->is_penalty)
+                                                        <span class="text-muted">(P)</span>
+                                                    @endif
+                                                    @if($event->is_own_goal)
+                                                        <span class="text-danger">(OG)</span>
+                                                    @endif
+                                                </small>
+                                            @elseif($event->event_type == 'yellow_card')
+                                                <span class="badge bg-warning me-1">
+                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                            @elseif($event->event_type == 'red_card')
+                                                <span class="badge bg-danger me-1">
+                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                                
+                                <!-- Away Team Events -->
+                                <div class="col-6">
+                                    @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                        <div class="mb-1">
+                                            @if($event->event_type == 'goal')
+                                                <span class="badge bg-success me-1">
+                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>
+                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                    @if($event->is_penalty)
+                                                        <span class="text-muted">(P)</span>
+                                                    @endif
+                                                    @if($event->is_own_goal)
+                                                        <span class="text-danger">(OG)</span>
+                                                    @endif
+                                                </small>
+                                            @elseif($event->event_type == 'yellow_card')
+                                                <span class="badge bg-warning me-1">
+                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                            @elseif($event->event_type == 'red_card')
+                                                <span class="badge bg-danger me-1">
+                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                </span>
+                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                            @endif
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                        </div>
+                    @elseif(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                        <!-- Fallback: Hanya goals (jika events ada tapi hanya goals) -->
                         <div class="goal-scorers">
                             <div class="row">
                                 <div class="col-6">
-                                    @foreach($match->events->where(
-                                            'team_id',
-                                            $match->team_home_id
-                                        )->where('event_type', 'goal') as $goal)
+                                    @foreach($match->events->where('team_id', $match->team_home_id)->where('event_type', 'goal') as $goal)
                                         <div class="goal-item">
                                             <span class="goal-minute">{{ $goal->minute }}'</span>
                                             <small class="text-truncate">
@@ -2654,10 +2720,7 @@ body.modal-open {
                                     @endforeach
                                 </div>
                                 <div class="col-6">
-                                    @foreach($match->events->where(
-                                            'team_id',
-                                            $match->team_away_id
-                                        )->where('event_type', 'goal') as $goal)
+                                    @foreach($match->events->where('team_id', $match->team_away_id)->where('event_type', 'goal') as $goal)
                                         <div class="goal-item">
                                             <span class="goal-minute">{{ $goal->minute }}'</span>
                                             <small class="text-truncate">
