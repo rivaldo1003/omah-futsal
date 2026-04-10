@@ -38,19 +38,46 @@ class HomeController extends Controller
 
         // Jika tidak ada tournament ongoing, tampilkan pesan kosong
         if (!$activeTournament) {
+            // Tetap tampilkan friendly matches walau tidak ada tournament ongoing
+            $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+                ->where('round_type', 'friendly')
+                ->where('status', 'ongoing')
+                ->whereDate('match_date', Carbon::today())
+                ->orderBy('time_start')
+                ->get();
+
+            $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+                ->where('round_type', 'friendly')
+                ->where('status', 'upcoming')
+                ->whereDate('match_date', '>=', Carbon::today())
+                ->orderBy('match_date')
+                ->orderBy('time_start')
+                ->limit(5)
+                ->get();
+
+            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+                ->where('round_type', 'friendly')
+                ->where('status', 'completed')
+                ->orderBy('match_date', 'desc')
+                ->orderBy('time_start', 'desc')
+                ->limit(5)
+                ->get();
+
             return view('home', [
                 'heroSetting' => $heroSetting,
                 'activeTournament' => null,
-                'todayMatches' => collect(),
-                'upcomingMatches' => collect(),
-                'recentResults' => collect(),
+                'todayMatches' => $todayMatches,
+                'upcomingMatches' => $upcomingMatches,
+                'recentResults' => $recentResults,
                 'topScorers' => collect(),
                 'standings' => [],
                 'teams' => collect(),
+                'teamsInActiveTournament' => collect(),
                 'totalTeams' => 0,
                 'matchesCount' => 0,
                 'totalGoals' => 0,
                 'daysLeft' => 0,
+                'playerTournamentStats' => [],
                 'debugInfo' => [
                     'has_active_tournament' => 'NO',
                     'message' => 'No ongoing tournament found'
@@ -82,27 +109,49 @@ class HomeController extends Controller
         }
 
         // ==============================
-        // GET TEAMS DATA (hanya dari tournament aktif)
+        // GET TEAMS DATA (peserta tournament aktif)
         // ==============================
-        $teams = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
+        $teamsInActiveTournament = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
             $query->where('tournament_id', $tournamentId);
         })
             ->withCount(['players', 'tournaments'])
             ->with([
-                'players' => function ($query) use ($tournamentId) {
+                'tournaments' => function ($query) use ($tournamentId) {
+                    $query->where('tournament_id', $tournamentId)
+                        ->select('tournaments.id', 'name');
+                },
+                'players' => function ($query) {
                     $query->orderBy('goals', 'desc')
                         ->orderBy('position')
                         ->orderBy('name');
                 }
             ])
-            ->where('status', 'active')
             ->orderBy('name')
-            ->limit(12)
+            ->get();
+
+        // ==============================
+        // GET TEAMS DATA (semua team terdaftar di sistem)
+        // ==============================
+        $teams = Team::withCount(['players', 'tournaments'])
+            ->with([
+                'tournaments' => function ($query) {
+                    $query->select('tournaments.id', 'name');
+                },
+                'players' => function ($query) {
+                    $query->orderBy('goals', 'desc')
+                        ->orderBy('position')
+                        ->orderBy('name');
+                }
+            ])
+            ->orderBy('name')
             ->get();
 
         // PERUBAHAN: Hanya ambil matches dengan status 'ongoing' dari tournament aktif
         $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
-            ->where('tournament_id', $tournamentId)
+            ->where(function ($query) use ($tournamentId) {
+                $query->where('tournament_id', $tournamentId)
+                    ->orWhere('round_type', 'friendly');
+            })
             ->where('status', 'ongoing')
             ->whereDate('match_date', Carbon::today())
             ->orderBy('time_start')
@@ -110,7 +159,10 @@ class HomeController extends Controller
 
         // PERUBAHAN: Upcoming matches hanya dari tournament aktif
         $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
-            ->where('tournament_id', $tournamentId)
+            ->where(function ($query) use ($tournamentId) {
+                $query->where('tournament_id', $tournamentId)
+                    ->orWhere('round_type', 'friendly');
+            })
             ->where('status', 'upcoming')
             ->whereDate('match_date', '>=', Carbon::today())
             ->orderBy('match_date')
@@ -120,7 +172,10 @@ class HomeController extends Controller
 
         // PERUBAHAN: Recent results hanya dari tournament aktif
         $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
-            ->where('tournament_id', $tournamentId)
+            ->where(function ($query) use ($tournamentId) {
+                $query->where('tournament_id', $tournamentId)
+                    ->orWhere('round_type', 'friendly');
+            })
             ->where('status', 'completed')
             ->orderBy('match_date', 'desc')
             ->orderBy('time_start', 'desc')
@@ -229,6 +284,7 @@ class HomeController extends Controller
             'recentResults',
             'topScorers',
             'standings',
+            'teamsInActiveTournament',
             'teams',
             'totalTeams',
             'matchesCount',

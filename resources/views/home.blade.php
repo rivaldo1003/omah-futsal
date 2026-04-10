@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>OFS Futsal Center - Home</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
@@ -300,6 +301,50 @@
             margin-bottom: 2rem;
         }
 
+        .teams-section.card {
+            border: 1px solid #dbe4ef;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+            background: #fff;
+        }
+
+        .teams-section .card-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #f8fafc;
+            border-bottom: 1px solid #1f334f;
+            padding: 0.85rem 1rem;
+        }
+
+        .teams-section .card-header .badge {
+            background: #2563eb !important;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .teams-section .card-body {
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+            padding: 1rem;
+        }
+
+        .teams-section .row.g-3 {
+            --bs-gutter-x: 0.7rem;
+            --bs-gutter-y: 0.7rem;
+        }
+
+        .teams-section #teamSearch,
+        .teams-section #teamSort {
+            border-radius: 10px;
+            border-color: #cfd8e3;
+            font-size: 0.9rem;
+        }
+
+        .teams-section .input-group-text {
+            background: #f8fafc;
+            border-color: #cfd8e3;
+            color: #475569;
+        }
+
         /* Team Card Compact Style */
         .team-compact-card {
             background: white;
@@ -310,6 +355,20 @@
             height: 100%;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
             position: relative;
+            padding: 0.75rem !important;
+            min-height: 210px;
+        }
+
+        .team-compact-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, #2563eb, #3b82f6);
+            opacity: 0;
+            transition: opacity 0.25s ease;
         }
 
         .team-compact-card:hover {
@@ -318,9 +377,13 @@
             border-color: var(--accent-color);
         }
 
+        .team-compact-card:hover::before {
+            opacity: 1;
+        }
+
         .team-compact-logo {
-            width: 50px;
-            height: 50px;
+            width: 42px;
+            height: 42px;
             border-radius: 8px;
             display: flex;
             align-items: center;
@@ -344,7 +407,7 @@
         }
 
         .team-compact-logo .logo-fallback {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 800;
             color: var(--primary-color);
         }
@@ -352,28 +415,48 @@
         .team-compact-stats {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-            margin-top: 10px;
+            gap: 6px;
+            margin-top: 6px;
         }
 
         .compact-stat {
             background: #f8fafc;
             border-radius: 6px;
-            padding: 6px;
+            padding: 5px 4px;
             text-align: center;
             border: 1px solid #e2e8f0;
         }
 
         .compact-stat-number {
-            font-size: 1rem;
+            font-size: 0.88rem;
             font-weight: 700;
             color: var(--accent-color);
             display: block;
             line-height: 1.2;
         }
 
+        .team-status {
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            display: inline-block;
+            line-height: 1.2;
+        }
+
+        .team-status.is-active {
+            color: #166534;
+            background: #dcfce7;
+        }
+
+        .team-status.is-inactive {
+            color: #b91c1c;
+            background: #fee2e2;
+        }
+
         .compact-stat-label {
-            font-size: 0.7rem;
+            font-size: 0.63rem;
             color: #64748b;
             text-transform: uppercase;
             letter-spacing: 0.5px;
@@ -384,132 +467,314 @@
             background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
             border: 1px solid #cbd5e1;
             border-radius: 16px;
-            padding: 3px 8px;
-            font-size: 0.7rem;
+            padding: 2px 7px;
+            font-size: 0.66rem;
             font-weight: 500;
             color: #475569;
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 3px;
             white-space: nowrap;
         }
 
         .compact-badge .jersey {
             background: var(--accent-color);
             color: white;
-            width: 18px;
-            height: 18px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.65rem;
+            font-size: 0.58rem;
             font-weight: 700;
             flex-shrink: 0;
         }
 
+        .teams-section .view-team-details {
+            border-radius: 8px;
+            padding-top: 0.35rem;
+            padding-bottom: 0.35rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
         /* Hero Fullscreen Modal Styles */
-#heroFullscreenModal .modal-content {
-    background: rgba(0, 0, 0, 0.95) !important;
-    border: none;
-}
+        #heroFullscreenModal .modal-content {
+            background: rgba(0, 0, 0, 0.95) !important;
+            border: none;
+        }
 
-#heroFullscreenModal .modal-header {
-    position: absolute;
-    top: 0;
-    right: 0;
-    z-index: 9999;
-    border: none;
-}
+        #heroFullscreenModal .modal-header {
+            position: absolute;
+            top: 0;
+            right: 0;
+            z-index: 9999;
+            border: none;
+        }
 
-#heroFullscreenModal .modal-body {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    padding: 0;
-}
+        #heroFullscreenModal .modal-body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 0;
+        }
 
-.hero-fullscreen-img {
-    max-width: 100%;
-    max-height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
+        .hero-fullscreen-img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            transition: transform 0.3s ease;
+        }
 
-.hero-fullscreen-img:hover {
-    transform: scale(1.02);
-}
+        .hero-fullscreen-img:hover {
+            transform: scale(1.02);
+        }
 
-.modal-fullscreen .modal-dialog {
-    max-width: 100%;
-    margin: 0;
-}
+        .modal-fullscreen .modal-dialog {
+            max-width: 100%;
+            margin: 0;
+        }
 
-#heroFullscreenModal .btn-close-white {
-    filter: invert(1);
-    opacity: 0.8;
-    background-size: 1.2rem;
-}
+        #heroFullscreenModal .btn-close-white {
+            filter: invert(1);
+            opacity: 0.8;
+            background-size: 1.2rem;
+        }
 
-#heroFullscreenModal .btn-close-white:hover {
-    opacity: 1;
-}
+        #heroFullscreenModal .btn-close-white:hover {
+            opacity: 1;
+        }
 
-/* Fix for modal backdrop */
-.modal-backdrop {
-    z-index: 1040 !important;
-}
+        /* Fix for modal backdrop */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
 
-#heroFullscreenModal {
-    z-index: 1050 !important;
-}
+        #heroFullscreenModal {
+            z-index: 1050 !important;
+        }
 
-/* Ensure modal is on top */
-.modal {
-    z-index: 1060 !important;
-}
+        /* Ensure modal is on top */
+        .modal {
+            z-index: 1060 !important;
+        }
 
-/* Prevent body scroll when modal is open */
-body.modal-open {
-    overflow: hidden;
-    padding-right: 0 !important;
-}
+        /* Prevent body scroll when modal is open */
+        body.modal-open {
+            overflow: hidden;
+            padding-right: 0 !important;
+        }
 
-/* Fix for modal closing animation */
-.modal.fade .modal-dialog {
-    transition: transform 0.3s ease-out;
-}
+        /* Fix for modal closing animation */
+        .modal.fade .modal-dialog {
+            transition: transform 0.3s ease-out;
+        }
 
-/* Loading spinner for image */
-.hero-loading-spinner {
-    color: white;
-    font-size: 2rem;
-}
+        /* Loading spinner for image */
+        .hero-loading-spinner {
+            color: white;
+            font-size: 2rem;
+        }
 
         /* Modal Styles */
         #teamDetailsModal .modal-dialog {
             max-width: 800px;
         }
 
+        #teamDetailsModal .modal-content {
+            border: 1px solid #dbe4ef;
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        #teamDetailsModal .modal-header {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            color: #f8fafc;
+            border-bottom: 1px solid #1f334f;
+            padding: 0.75rem 1rem;
+        }
+
+        #teamDetailsModal .modal-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        #teamDetailsModal .modal-header .btn-close {
+            filter: invert(1);
+            opacity: 0.9;
+        }
+
         #teamDetailsModal .modal-body {
             max-height: 70vh;
             overflow-y: auto;
+            padding: 0.85rem;
+            background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
         }
+
+        .team-modal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.7rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            margin-bottom: 0.75rem;
+        }
+
+        .team-modal-logo {
+            width: 52px;
+            height: 52px;
+            border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
+            background: #f1f5f9;
+        }
+
+        .team-modal-meta {
+            font-size: 0.78rem;
+            color: #64748b;
+            margin-top: 0.15rem;
+        }
+
+        .player-section-title {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: #334155;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0.25rem 0 0.5rem;
+        }
+
+        .player-selected-stats {
+            position: relative;
+            border: 1px solid rgba(148, 163, 184, 0.28);
+            border-radius: 20px;
+            padding: 1rem;
+            background:
+                radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 38%),
+                linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+            margin-bottom: 0.9rem;
+            box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+            overflow: hidden;
+        }
+
+        .player-selected-stats .title {
+            font-size: 0.74rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: #2563eb;
+            margin-bottom: 0.7rem;
+            font-weight: 700;
+        }
+
+
+        .selected-player-progress-bar span {
+            display: block;
+            height: 100%;
+            width: var(--target-width, 0%);
+            border-radius: inherit;
+            transform-origin: left center;
+            animation: progressSweep 700ms cubic-bezier(.22, 1, .36, 1);
+        }
+
+        .selected-player-progress-bar.is-impact span {
+            background: linear-gradient(90deg, #22c55e, #3b82f6);
+        }
+
+        .selected-player-progress-bar.is-discipline span {
+            background: linear-gradient(90deg, #f59e0b, #ef4444);
+        }
+
+        .selected-player-progress-bar.is-goalkeeper span {
+            background: linear-gradient(90deg, #1d4ed8, #0f172a);
+        }
+
+        @media (max-width: 768px) {
+            .selected-player-card {
+                grid-template-columns: 1fr;
+            }
+
+            .selected-player-hero {
+                padding: 1rem;
+            }
+
+            .selected-player-topline {
+                flex-direction: column;
+            }
+
+            .selected-player-highlights,
+            .selected-player-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @keyframes statsCardReveal {
+            from {
+                opacity: 0;
+                transform: translateY(14px) scale(0.98);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes statItemPop {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes progressSweep {
+            from {
+                transform: scaleX(0);
+            }
+
+            to {
+                transform: scaleX(1);
+            }
+        }
+
+        /* Hanya untuk container statistik */
+.player-selected-stats {
+    border: none;
+    border-radius: 24px;
+    padding: 0;
+    background: transparent;
+    margin-bottom: 1rem;
+    box-shadow: none;
+}
+
+.player-selected-stats .title {
+    display: none;
+}
 
         /* Player Grid in Modal */
         .player-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            margin-top: 8px;
         }
 
         .player-card-modal {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            padding: 15px;
+            border-radius: 9px;
+            padding: 10px;
             text-align: center;
             transition: all 0.3s ease;
         }
@@ -520,13 +785,20 @@ body.modal-open {
             border-color: var(--accent-color);
         }
 
+        .player-card-modal.is-selected {
+            transform: translateY(-4px) scale(1.01);
+            border-color: #2563eb;
+            box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+            background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+        }
+
         .player-photo-container {
-            width: 80px;
-            height: 80px;
+            width: 62px;
+            height: 62px;
             border-radius: 50%;
             overflow: hidden;
-            margin: 0 auto 12px;
-            border: 3px solid #e2e8f0;
+            margin: 0 auto 8px;
+            border: 2px solid #e2e8f0;
             background: linear-gradient(135deg, #f8fafc, #e2e8f0);
             display: flex;
             align-items: center;
@@ -540,7 +812,7 @@ body.modal-open {
         }
 
         .player-initial {
-            font-size: 1.5rem;
+            font-size: 1.15rem;
             font-weight: 800;
             color: var(--primary-color);
         }
@@ -548,24 +820,24 @@ body.modal-open {
         .player-info-modal h6 {
             margin: 0;
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.85rem;
             color: #334155;
             line-height: 1.3;
         }
 
         .player-position {
-            font-size: 0.8rem;
+            font-size: 0.7rem;
             color: #64748b;
             background: #f1f5f9;
             border-radius: 4px;
-            padding: 3px 8px;
+            padding: 2px 7px;
             display: inline-block;
-            margin-top: 5px;
+            margin-top: 4px;
             font-weight: 500;
         }
 
         .player-jersey {
-            font-size: 0.85rem;
+            font-size: 0.74rem;
             color: var(--accent-color);
             font-weight: 700;
             margin-top: 3px;
@@ -1453,6 +1725,8 @@ body.modal-open {
             .player-grid {
                 grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             }
+
+
         }
 
         /* Print Styles */
@@ -1467,6 +1741,400 @@ body.modal-open {
             .card {
                 box-shadow: none;
                 border: 1px solid #ddd;
+            }
+        }
+
+        /* ============================================== */
+        /* PLAYER STATISTICS CARD STYLES - TAMBAHKAN INI */
+        /* ============================================== */
+
+        .player-stats-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-direction: row;
+        }
+
+        .player-stats-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 30px 50px -12px rgba(0, 0, 0, 0.25);
+        }
+
+        @media (max-width: 768px) {
+            .player-stats-card {
+                flex-direction: column;
+            }
+        }
+
+        /* Left Side - Photo Area */
+        .player-photo-area {
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            padding: 40px 20px;
+            position: relative;
+            overflow: hidden;
+            width: 40%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .player-photo-area {
+                width: 100%;
+                padding: 30px 20px;
+            }
+        }
+
+        .player-photo-area::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(96, 165, 250, 0.1) 0%, transparent 70%);
+            animation: rotateBg 20s linear infinite;
+        }
+
+        @keyframes rotateBg {
+            from {
+                transform: rotate(0deg);
+            }
+
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .player-avatar-wrapper {
+            position: relative;
+            z-index: 2;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid rgba(96, 165, 250, 0.5);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            animation: floatAvatar 3s ease-in-out infinite;
+        }
+
+        @keyframes floatAvatar {
+
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .player-avatar-wrapper:hover {
+            transform: scale(1.02);
+            border-color: #3b82f6;
+        }
+
+        .player-avatar-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .player-name-large {
+            margin-top: 20px;
+            z-index: 2;
+            position: relative;
+        }
+
+        .player-name-large h3 {
+            color: white;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .player-number-badge {
+            color: #60a5fa;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .player-position-badge {
+            display: inline-block;
+            background: rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.3);
+            border-radius: 20px;
+            padding: 4px 12px;
+            font-size: 0.75rem;
+            color: #60a5fa;
+            margin-top: 8px;
+        }
+
+        /* Right Side - Statistics Area */
+        .player-stats-area {
+            padding: 30px;
+            background: white;
+            width: 60%;
+        }
+
+        @media (max-width: 768px) {
+            .player-stats-area {
+                width: 100%;
+                padding: 25px;
+            }
+        }
+
+        .stats-category {
+            margin-bottom: 25px;
+            animation: slideInRight 0.5s ease-out forwards;
+            opacity: 0;
+        }
+
+        .stats-category:nth-child(1) {
+            animation-delay: 0.1s;
+        }
+
+        .stats-category:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .stats-category:nth-child(3) {
+            animation-delay: 0.3s;
+        }
+
+        .stats-category:nth-child(4) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .category-header i {
+            font-size: 1.2rem;
+            color: #3b82f6;
+        }
+
+        .category-header h5 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #334155;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Progress Bar Items */
+        .stat-item {
+            margin-bottom: 16px;
+        }
+
+        .stat-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .stat-value {
+            color: #1e293b;
+            font-weight: 700;
+        }
+
+        .progress-wrapper {
+            background: #e2e8f0;
+            border-radius: 10px;
+            overflow: hidden;
+            height: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .progress-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            animation: shimmer 2s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .progress-blue {
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+        }
+
+        .progress-green {
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .progress-orange {
+            background: linear-gradient(90deg, #f59e0b, #fbbf24);
+        }
+
+        .progress-red {
+            background: linear-gradient(90deg, #ef4444, #f87171);
+        }
+
+        .progress-purple {
+            background: linear-gradient(90deg, #8b5cf6, #a78bfa);
+        }
+
+        .progress-pink {
+            background: linear-gradient(90deg, #ec4899, #f472b6);
+        }
+
+        .progress-cyan {
+            background: linear-gradient(90deg, #06b6d4, #22d3ee);
+        }
+
+        /* Key Stats Grid */
+        .key-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .key-stat-box {
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            padding: 12px 8px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 1px solid #e2e8f0;
+        }
+
+        .key-stat-box:hover {
+            transform: translateY(-3px);
+            background: linear-gradient(135deg, #eff6ff, #dbeafe);
+            border-color: #3b82f6;
+        }
+
+        .key-stat-icon {
+            font-size: 1.3rem;
+            color: #3b82f6;
+            margin-bottom: 6px;
+        }
+
+        .key-stat-number {
+            font-size: 1.3rem;
+            font-weight: 800;
+            color: #1e293b;
+        }
+
+        .key-stat-label {
+            font-size: 0.65rem;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Action Buttons */
+        .stats-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #e2e8f0;
+        }
+
+        .btn-stats {
+            flex: 1;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            border: none;
+        }
+
+        .btn-stats-primary {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: white;
+        }
+
+        .btn-stats-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-stats-outline {
+            background: transparent;
+            border: 2px solid #e2e8f0;
+            color: #64748b;
+        }
+
+        .btn-stats-outline:hover {
+            border-color: #3b82f6;
+            color: #3b82f6;
+            transform: translateY(-2px);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .player-avatar-wrapper {
+                width: 160px;
+                height: 160px;
+            }
+
+            .player-name-large h3 {
+                font-size: 1.2rem;
+            }
+
+            .player-stats-area {
+                padding: 20px;
+            }
+
+            .key-stat-number {
+                font-size: 1rem;
             }
         }
     </style>
@@ -1577,160 +2245,157 @@ body.modal-open {
     </nav>
     <!-- Hero Section -->
     <!-- ============================================== -->
-<!-- HERO SECTION (Update kode Anda) -->
-<!-- ============================================== -->
-@if($heroSetting->is_active)
-    <div class="hero-section" id="mainHeroSection" style="
-                @if($heroSetting->background_type === 'gradient')
-                    background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-                @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-                    background-color: {{ $heroSetting->background_color }};
-                @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                    background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-                    background-size: cover;
-                    background-position: center;
-                    background-repeat: no-repeat;
-                    cursor: pointer;
-                    transition: all 0.3s ease;
-                    @if($heroSetting->overlay_opacity > 0)
-                        position: relative;
+    <!-- HERO SECTION (Update kode Anda) -->
+    <!-- ============================================== -->
+    @if($heroSetting->is_active)
+        <div class="hero-section" id="mainHeroSection" style="
+                    @if($heroSetting->background_type === 'gradient')
+                        background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                    @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                        background-color: {{ $heroSetting->background_color }};
+                    @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                        background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                        background-size: cover;
+                        background-position: center;
+                        background-repeat: no-repeat;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        @if($heroSetting->overlay_opacity > 0)
+                            position: relative;
+                        @endif
+                    @else
+                        background: linear-gradient(135deg, #0f172a, #1e293b);
                     @endif
-                @else
-                    background: linear-gradient(135deg, #0f172a, #1e293b);
-                @endif
-                color: {{ $heroSetting->text_color }};
-                position: relative;
-                overflow: hidden;
-                min-height: 400px;
-            "
-            @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
-                onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
-                onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
-                title="Click to view full image"
-            @endif>
+                    color: {{ $heroSetting->text_color }};
+                    position: relative;
+                    overflow: hidden;
+                    min-height: 400px;
+                " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                    onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
+                    onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
+                    onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
+                title="Click to view full image" @endif>
 
-        @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
-            <!-- Overlay untuk image background -->
-            <div class="hero-overlay"
-                style="
+            @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
+                <!-- Overlay untuk image background -->
+                <div class="hero-overlay" style="
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                            z-index: 1;
+                            pointer-events: none;
+                        ">
+                </div>
+            @endif
+
+            <div class="container" style="position: relative; z-index: 2;">
+                <div class="row align-items-center justify-content-center text-center">
+                    <div class="col-lg-8">
+                        <h1 class="tournament-title" style="
+                            color: {{ $heroSetting->text_color }};
+                            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                        ">
+                            {{ $heroSetting->title }}
+                        </h1>
+                        <p class="hero-subtitle" style="
+                            color: {{ $heroSetting->text_color }};
+                            opacity: 0.9;
+                            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                            margin-left: auto;
+                            margin-right: auto;
+                        ">
+                            {{ $heroSetting->subtitle }}
+                        </p>
+
+                        @if($heroSetting->cta_button_text)
+                            <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
+                                style="
+                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                        border: none;
+                                        padding: 12px 30px;
+                                        border-radius: 8px;
+                                        font-weight: 600;
+                                        text-decoration: none;
+                                        display: inline-block;
+                                        margin-top: 20px;
+                                        transition: all 0.3s ease;
+                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                    "
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
+                                <i class="bi bi-arrow-right-circle me-2"></i>
+                                {{ $heroSetting->cta_button_text }}
+                            </a>
+                        @endif
+
+                        <!-- Zoom Indicator (hanya untuk image background) -->
+                        @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                            <div class="mt-4">
+                                <div class="zoom-indicator" style="
+                                        display: inline-flex;
+                                        align-items: center;
+                                        gap: 8px;
+                                        background: rgba(0, 0, 0, 0.4);
+                                        padding: 6px 15px;
+                                        border-radius: 25px;
+                                        border: 1px solid rgba(255, 255, 255, 0.2);
+                                        backdrop-filter: blur(5px);
+                                        animation: pulse 2s infinite;
+                                    ">
+                                    <i class="bi bi-zoom-in text-white"></i>
+                                    <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
+                                        Click background to view full image
+                                    </span>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            <!-- Animated elements -->
+            <div class="hero-particles" style="
                     position: absolute;
                     top: 0;
                     left: 0;
                     width: 100%;
                     height: 100%;
-                    background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                    z-index: 1;
                     pointer-events: none;
+                    z-index: 1;
+                    opacity: 0.3;
                 ">
-            </div>
-        @endif
-
-        <div class="container" style="position: relative; z-index: 2;">
-            <div class="row align-items-center justify-content-center text-center">
-                <div class="col-lg-8">
-                    <h1 class="tournament-title" style="
-                        color: {{ $heroSetting->text_color }};
-                        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-                    ">
-                        {{ $heroSetting->title }}
-                    </h1>
-                    <p class="hero-subtitle" style="
-                        color: {{ $heroSetting->text_color }};
-                        opacity: 0.9;
-                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-                        margin-left: auto;
-                        margin-right: auto;
-                    ">
-                        {{ $heroSetting->subtitle }}
-                    </p>
-
-                    @if($heroSetting->cta_button_text)
-                        <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
-                            style="
-                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                                border: none;
-                                padding: 12px 30px;
-                                border-radius: 8px;
-                                font-weight: 600;
-                                text-decoration: none;
-                                display: inline-block;
-                                margin-top: 20px;
-                                transition: all 0.3s ease;
-                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                            "
-                            onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
-                            onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
-                            <i class="bi bi-arrow-right-circle me-2"></i>
-                            {{ $heroSetting->cta_button_text }}
-                        </a>
-                    @endif
-
-                    <!-- Zoom Indicator (hanya untuk image background) -->
-                    @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                        <div class="mt-4">
-                            <div class="zoom-indicator" style="
-                                display: inline-flex;
-                                align-items: center;
-                                gap: 8px;
-                                background: rgba(0, 0, 0, 0.4);
-                                padding: 6px 15px;
-                                border-radius: 25px;
-                                border: 1px solid rgba(255, 255, 255, 0.2);
-                                backdrop-filter: blur(5px);
-                                animation: pulse 2s infinite;
-                            ">
-                                <i class="bi bi-zoom-in text-white"></i>
-                                <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
-                                    Click background to view full image
-                                </span>
-                            </div>
-                        </div>
-                    @endif
-                </div>
+                @for($i = 1; $i <= 15; $i++)
+                    <div class="particle" style="
+                                    position: absolute;
+                                    width: {{ rand(2, 5) }}px;
+                                    height: {{ rand(2, 5) }}px;
+                                    background-color: {{ $heroSetting->text_color }};
+                                    border-radius: 50%;
+                                    top: {{ rand(0, 100) }}%;
+                                    left: {{ rand(0, 100) }}%;
+                                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                                ">
+                    </div>
+                @endfor
             </div>
         </div>
-
-        <!-- Animated elements -->
-        <div class="hero-particles" style="
-                position: absolute;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                pointer-events: none;
-                z-index: 1;
-                opacity: 0.3;
-            ">
-            @for($i = 1; $i <= 15; $i++) <div class="particle"
-                        style="
-                            position: absolute;
-                            width: {{ rand(2, 5) }}px;
-                            height: {{ rand(2, 5) }}px;
-                            background-color: {{ $heroSetting->text_color }};
-                            border-radius: 50%;
-                            top: {{ rand(0, 100) }}%;
-                            left: {{ rand(0, 100) }}%;
-                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                        ">
-                </div>
-            @endfor
-    </div>
-    </div>
-@else
-    <!-- Hero section hidden message (optional) -->
-    <div class="container mt-4">
-        <div class="alert alert-info text-center">
-            <i class="bi bi-info-circle me-2"></i>
-            Hero section is currently disabled.
-            <a href="{{ route('admin.hero-settings.edit') }}" class="alert-link">
-                Enable it from admin settings
-            </a>
+    @else
+        <!-- Hero section hidden message (optional) -->
+        <div class="container mt-4">
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle me-2"></i>
+                Hero section is currently disabled.
+                <a href="{{ route('admin.hero-settings.edit') }}" class="alert-link">
+                    Enable it from admin settings
+                </a>
+            </div>
         </div>
-    </div>
-@endif
-<!-- ============================================== -->
+    @endif
+    <!-- ============================================== -->
 
     <!-- Main Content -->
     <div class="container main-container">
@@ -1888,6 +2553,9 @@ body.modal-open {
                                         <div class="d-flex align-items-center gap-2">
                                             <span class="badge bg-dark">{{ date('d M', strtotime($match->match_date)) }}</span>
                                             <span class="text-muted">{{ date('H:i', strtotime($match->time_start)) }}</span>
+                                            @if(($match->round_type ?? null) === 'friendly')
+                                                <span class="badge" style="background: #0f766e;">Friendly</span>
+                                            @endif
                                         </div>
                                         <span class="badge bg-warning text-dark">Upcoming</span>
                                     </div>
@@ -1952,7 +2620,10 @@ body.modal-open {
                                         <div class="d-flex flex-wrap gap-2 align-items-center">
                                             <i class="bi bi-geo-alt"></i>
                                             <span>{{ $match->venue ?? 'Main Field' }}</span>
-                                            @if($match->group_name)
+                                            @if(($match->round_type ?? null) === 'friendly')
+                                                <i class="bi bi-people ms-2"></i>
+                                                <span>Friendly Match</span>
+                                            @elseif($match->group_name)
                                                 <i class="bi bi-people ms-2"></i>
                                                 <span>Group {{ $match->group_name }}</span>
                                             @endif
@@ -1977,404 +2648,488 @@ body.modal-open {
 
                 <!-- Group Standings -->
                 <!-- ============================================== -->
-<!-- GROUP STANDINGS - PERBAIKAN FINAL -->
-<!-- ============================================== -->
+                <!-- GROUP STANDINGS - PERBAIKAN FINAL -->
+                <!-- ============================================== -->
 
-@if(!$isCupType)
-    <!-- Hanya tampilkan untuk tournament NON-knockout -->
-    <div class="card">
-        <div class="card-header">
-            <i class="bi bi-bar-chart-line"></i> Group Standing
-        </div>
-        <div class="card-body">
-            @if(isset($standings) && count($standings) > 0)
-                <div class="row">
-                    @foreach($standings as $group => $groupStandings)
-                        <div class="col-12 col-md-6 mb-4">
-                            <h6 class="group-title">GROUP {{ $group }}</h6>
-                            <div class="table-responsive">
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th style="width: 40px;">#</th>
-                                            <th>Team</th>
-                                            <th class="text-center">P</th>
-                                            <th class="text-center">W</th>
-                                            <th class="text-center">D</th>
-                                            <th class="text-center">L</th>
-                                            <th class="text-center">GD</th>
-                                            <th class="text-center">PTS</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($groupStandings as $index => $standing)
-                                            @php
-                                                $team = $standing->team ?? null;
-                                                $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                $teamLogo = $team->logo ?? null;
-                                                $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+                @if(!$isCupType)
+                    <!-- Hanya tampilkan untuk tournament NON-knockout -->
+                    <div class="card">
+                        <div class="card-header">
+                            <i class="bi bi-bar-chart-line"></i> Group Standing
+                        </div>
+                        <div class="card-body">
+                            @if(isset($standings) && count($standings) > 0)
+                                        <div class="row">
+                                            @foreach($standings as $group => $groupStandings)
+                                                <div class="col-12 col-md-6 mb-4">
+                                                    <h6 class="group-title">GROUP {{ $group }}</h6>
+                                                    <div class="table-responsive">
+                                                        <table class="table table-sm">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="width: 40px;">#</th>
+                                                                    <th>Team</th>
+                                                                    <th class="text-center">P</th>
+                                                                    <th class="text-center">W</th>
+                                                                    <th class="text-center">D</th>
+                                                                    <th class="text-center">L</th>
+                                                                    <th class="text-center">GD</th>
+                                                                    <th class="text-center">PTS</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+                                                                @foreach($groupStandings as $index => $standing)
+                                                                    @php
+                                                                        $team = $standing->team ?? null;
+                                                                        $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                                        $teamLogo = $team->logo ?? null;
+                                                                        $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
 
-                                                // Abbreviation for logo
-                                                $teamAbbr = '';
-                                                if (!empty($teamName)) {
-                                                    $words = explode(' ', $teamName);
-                                                    if (count($words) >= 2) {
-                                                        $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                                    } else {
-                                                        $teamAbbr = strtoupper(substr($teamName, 0, 2));
-                                                    }
-                                                }
+                                                                        // Abbreviation for logo
+                                                                        $teamAbbr = '';
+                                                                        if (!empty($teamName)) {
+                                                                            $words = explode(' ', $teamName);
+                                                                            if (count($words) >= 2) {
+                                                                                $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                            } else {
+                                                                                $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                            }
+                                                                        }
 
-                                                // Goal difference
-                                                $gdValue = $standing->goal_difference ?? 0;
-                                                $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
-                                            @endphp
-                                            <tr class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                <td class="text-center align-middle">
-                                                    <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                        {{ $index + 1 }}
+                                                                        // Goal difference
+                                                                        $gdValue = $standing->goal_difference ?? 0;
+                                                                        $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                                    @endphp
+                                                                    <tr
+                                                                        class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                                        <td class="text-center align-middle">
+                                                                            <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                                {{ $index + 1 }}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td class="align-middle">
+                                                                            <div class="d-flex align-items-center">
+                                                                                <div class="team-logo-container" style="
+                                                                                    width: 32px;
+                                                                                    height: 32px;
+                                                                                    background: transparent !important;
+                                                                                    border-radius: 5px;
+                                                                                    display: flex;
+                                                                                    align-items: center;
+                                                                                    justify-content: center;
+                                                                                    overflow: hidden;
+                                                                                    margin-right: 0.6rem;
+                                                                                    flex-shrink: 0;
+                                                                                    border: none !important;
+                                                                                ">
+                                                                                    @php
+                                                                                        $logoExists = false;
+
+                                                                                        if ($teamLogo) {
+                                                                                            if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                                $logoExists = true;
+                                                                                            } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                                $logoExists = true;
+                                                                                            }
+                                                                                        }
+                                                                                    @endphp
+
+                                                                                    @if($logoExists)
+                                                                                        <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                            alt="{{ $teamName }}"
+                                                                                            style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                                                    @else
+                                                                                        <span
+                                                                                            style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                                            {{ $teamAbbr }}
+                                                                                        </span>
+                                                                                    @endif
+                                                                                </div>
+
+                                                                                <div class="text-truncate">
+                                                                                    <strong class="d-block text-truncate"
+                                                                                        style="font-size: 0.85rem;">
+                                                                                        {{ Str::limit($teamName, 15) }}
+                                                                                    </strong>
+                                                                                </div>
+                                                                            </div>
+                                                                        </td>
+                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                            {{ $standing->matches_played ?? 0 }}
+                                                                        </td>
+                                                                        <td class="text-center align-middle fw-bold text-success"
+                                                                            style="font-size: 0.9rem;">
+                                                                            {{ $standing->wins ?? 0 }}
+                                                                        </td>
+                                                                        <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                            {{ $standing->draws ?? 0 }}
+                                                                        </td>
+                                                                        <td class="text-center align-middle text-danger"
+                                                                            style="font-size: 0.9rem;">
+                                                                            {{ $standing->losses ?? 0 }}
+                                                                        </td>
+                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                            <span style="
+                                                                                    display: inline-block;
+                                                                                    padding: 2px 6px;
+                                                                                    border-radius: 4px;
+                                                                                    background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                                    color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                                    min-width: 40px;
+                                                                                ">
+                                                                                {{ $gdDisplay }}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                            <span style="
+                                                                                    display: inline-block;
+                                                                                    padding: 2px 8px;
+                                                                                    border-radius: 4px;
+                                                                                    background-color: rgba(59, 130, 246, 0.1);
+                                                                                    color: #1d4ed8;
+                                                                                    min-width: 40px;
+                                                                                ">
+                                                                                {{ $standing->points ?? 0 }}
+                                                                            </span>
+                                                                        </td>
+                                                                    </tr>
+                                                                @endforeach
+                                                            </tbody>
+                                                        </table>
                                                     </div>
-                                                </td>
-                                                <td class="align-middle">
-                                                    <div class="d-flex align-items-center">
-                                                        <div class="team-logo-container" style="
-                                                            width: 32px;
-                                                            height: 32px;
-                                                            background: transparent !important;
-                                                            border-radius: 5px;
-                                                            display: flex;
-                                                            align-items: center;
-                                                            justify-content: center;
-                                                            overflow: hidden;
-                                                            margin-right: 0.6rem;
-                                                            flex-shrink: 0;
-                                                            border: none !important;
-                                                        ">
-                                                            @php
-                                                                $logoExists = false;
+                                                </div>
+                                            @endforeach
+                                        </div>
 
-                                                                if ($teamLogo) {
-                                                                    if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                                        $logoExists = true;
-                                                                    } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                                        $logoExists = true;
-                                                                    }
-                                                                }
-                                                            @endphp
-
-                                                            @if($logoExists)
-                                                                <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                    alt="{{ $teamName }}"
-                                                                    style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
-                                                            @else
-                                                                <span
-                                                                    style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
-                                                                    {{ $teamAbbr }}
-                                                                </span>
-                                                            @endif
-                                                        </div>
-
-                                                        <div class="text-truncate">
-                                                            <strong class="d-block text-truncate"
-                                                                style="font-size: 0.85rem;">
-                                                                {{ Str::limit($teamName, 15) }}
-                                                            </strong>
-                                                        </div>
-                                                    </div>
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    {{ $standing->matches_played ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle fw-bold text-success"
-                                                    style="font-size: 0.9rem;">
-                                                    {{ $standing->wins ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                    {{ $standing->draws ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle text-danger"
-                                                    style="font-size: 0.9rem;">
-                                                    {{ $standing->losses ?? 0 }}
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    <span
-                                                        style="
-                                                            display: inline-block;
-                                                            padding: 2px 6px;
-                                                            border-radius: 4px;
-                                                            background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                            color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                            min-width: 40px;
-                                                        ">
-                                                        {{ $gdDisplay }}
-                                                    </span>
-                                                </td>
-                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                    <span
-                                                        style="
-                                                            display: inline-block;
-                                                            padding: 2px 8px;
-                                                            border-radius: 4px;
-                                                            background-color: rgba(59, 130, 246, 0.1);
-                                                            color: #1d4ed8;
-                                                            min-width: 40px;
-                                                        ">
-                                                        {{ $standing->points ?? 0 }}
-                                                    </span>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <!-- INFO TIE-BREAKER -->
-                <div class="tie-breaker-info mt-2" style="
-                    font-size: 0.7rem;
-                    color: #64748b;
-                    padding: 6px 8px;
-                    background: #f8fafc;
-                    border-radius: 4px;
-                    border-left: 3px solid #3b82f6;
-                    margin-top: 0px;
-                ">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
-                        <div>
-                            <strong>Penentuan Juara dan Runner-up:</strong>
-                            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
-                                <li>Poin (nilai) - jika sama</li>
-                                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
-                                <li>Selisih gol - jika sama</li>
-                                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
-                                <li>Nilai fairplay (kartu) - jika sama</li>
-                                <li>Adu tendangan penalti</li>
-                            </ol>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="text-center mt-0 mb-4">
-                    <a href="{{ route('standings') }}" class="btn btn-dark">
-                        <i class="bi bi-table"></i> View Full Standings
-                    </a>
-                </div>
-            @else
-                <!-- No standings available for league tournament -->
-                <div class="empty-state text-center py-5">
-                    <i class="bi bi-bar-chart display-4 text-muted mb-3"></i>
-                    <h5 class="text-muted mb-2">No Group Standings Available</h5>
-                    <p class="text-muted small mb-0">
-                        Group standings will appear here when matches are played
-                    </p>
-                </div>
-            @endif
-        </div>
-    </div>
-@else
-    <!-- Untuk tournament KNOCKOUT - Tampilkan pesan info -->
-    @if($activeTournament)
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-trophy-fill"></i> Tournament Format
-            </div>
-            <div class="card-body">
-                <div class="alert alert-info mb-0">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-diagram-2-fill me-3" style="font-size: 1.5rem;"></i>
-                        <div>
-                            <h6 class="mb-1">{{ $activeTournament->name }} - Knockout Tournament</h6>
-                            <p class="mb-2">This is a knockout-style tournament. Group standings are not applicable for this format.</p>
-                            <p class="mb-0 small">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Follow the knockout bracket progression instead.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    @endif
-@endif
-
-<!-- ============================================== -->
-<!-- TEAMS SECTION - LANJUTAN -->
-<!-- ============================================== -->
-
-<!-- Teams Section - COMPACT VERSION -->
-<div class="card mt-4 teams-section">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-people-fill"></i>
-            <span>Teams & Players</span>
-            @if($teams->count() > 0)
-                <span class="badge bg-primary">{{ $teams->count() }} Teams</span>
-            @endif
-        </div>
-        <!-- <a href="{{ route('teams.index') }}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-arrow-right"></i> View All
-        </a> -->
-    </div>
-    <div class="card-body">
-        @if($teams->count() > 0)
-                        <!-- Search and Filter -->
-                        <div class="row mb-4">
-                            <div class="col-md-8">
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="bi bi-search"></i></span>
-                                    <input type="text" id="teamSearch" class="form-control" placeholder="Search teams or players...">
-                                </div>
-                            </div>
-                            <div class="col-md-4 mt-2 mt-md-0">
-                                <div class="input-group">
-                                                    <span class="input-group-text"><i class="bi bi-filter"></i></span>
-                                                    <select id="teamSort" class="form-select">
-                                                        <option value="name">Sort by Name</option>
-                                                        <option value="players">Sort by Players</option>
-                                                        <option value="tournaments">Sort by Tournaments</option>
-                                                    </select>
+                                        <!-- INFO TIE-BREAKER -->
+                                        <div class="tie-breaker-info mt-2" style="
+                                    font-size: 0.7rem;
+                                    color: #64748b;
+                                    padding: 6px 8px;
+                                    background: #f8fafc;
+                                    border-radius: 4px;
+                                    border-left: 3px solid #3b82f6;
+                                    margin-top: 0px;
+                                ">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+                                                <div>
+                                                    <strong>Penentuan Juara dan Runner-up:</strong>
+                                                    <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                                                        <li>Poin (nilai) - jika sama</li>
+                                                        <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                                                        <li>Selisih gol - jika sama</li>
+                                                        <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                                                        <li>Nilai fairplay (kartu) - jika sama</li>
+                                                        <li>Adu tendangan penalti</li>
+                                                    </ol>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <!-- Teams Grid - COMPACT LAYOUT -->
-                                        <!-- Teams Grid - COMPACT LAYOUT -->
-            <div class="row g-3" id="teamsGrid">
-                @foreach($teams as $index => $team)
-                    @php
-                        $totalPlayers = $team->players->count();
-                        $totalTournaments = $team->tournaments->count();
-                        $keyPlayers = $team->players->take(2);
-
-                        // Serialize players data untuk JavaScript - VERSION FIXED
-                        $playersData = $team->players->map(function ($player) {
-                            return [
-                                'id' => $player->id ?? 0,
-                                'name' => $player->name ?? 'Unknown',
-                                'jersey_number' => $player->jersey_number ?? '',
-                                'position' => $player->position ?? '',
-                                'photo' => $player->photo ?? '',
-                                'goals' => $player->goals ?? 0,
-                                'assists' => $player->assists ?? 0,
-                            ];
-                        })->toArray();
-
-                        // Convert to JSON with proper escaping
-                        $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
-                    @endphp
-                    <div class="col-xl-3 col-lg-4 col-md-6 team-card" 
-                         data-team-id="{{ $team->id }}"
-                         data-team-name="{{ strtolower($team->name) }}"
-                         data-team-players="{{ $totalPlayers }}"
-                         data-team-tournaments="{{ $totalTournaments }}"
-                         data-team-coach="{{ $team->coach_name }}"
-                         data-team-logo="{{ $team->logo }}"
-                         data-players-json="{{ $playersJson }}">
-                        <div class="team-compact-card h-100 d-flex flex-column p-3">
-                            <!-- Team Header -->
-                            <div class="d-flex align-items-center gap-3 mb-3">
-                                <div class="team-compact-logo">
-                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
-                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
-                                    @else
-                                        <div class="logo-fallback">
-                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                        <div class="text-center mt-3 mb-4">
+                                            <a href="{{ route('standings') }}" class="btn btn-dark px-4 py-2">
+                                                <i class="bi bi-table"></i> View Full Standings
+                                            </a>
                                         </div>
-                                    @endif
-                                </div>
-                                <div class="flex-grow-1">
-                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
-                                        {{ $team->name }}
-                                    </h6>
-                                    @if($team->coach_name)
-                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
-                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
-                                        </small>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <!-- Stats -->
-                            <div class="team-compact-stats mb-3">
-                                <div class="compact-stat">
-                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
-                                    <span class="compact-stat-label">Players</span>
-                                </div>
-                                <div class="compact-stat">
-                                    <span class="compact-stat-number">{{ $totalTournaments }}</span>
-                                    <span class="compact-stat-label">Tournaments</span>
-                                </div>
-                                <div class="compact-stat">
-                                    <span class="compact-stat-number">{{ $team->status }}</span>
-                                    <span class="compact-stat-label">Status</span>
-                                </div>
-                            </div>
-
-                            <!-- Key Players -->
-                            @if($keyPlayers->count() > 0)
-                                <div class="mb-3">
-                                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
-                                        <i class="bi bi-star-fill text-warning"></i> Key Players
-                                    </small>
-                                    <div class="d-flex flex-wrap gap-2">
-                                        @foreach($keyPlayers as $player)
-                                            <div class="compact-badge">
-                                                <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
-                                                <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
-                                            </div>
-                                        @endforeach
-                                        @if($totalPlayers > 2)
-                                            <div class="compact-badge">
-                                                <span>+{{ $totalPlayers - 2 }}</span>
-                                            </div>
-                                        @endif
-                                    </div>
+                            @else
+                                <!-- No standings available for league tournament -->
+                                <div class="empty-state text-center py-5">
+                                    <i class="bi bi-bar-chart display-4 text-muted mb-3"></i>
+                                    <h5 class="text-muted mb-2">No Group Standings Available</h5>
+                                    <p class="text-muted small mb-0">
+                                        Group standings will appear here when matches are played
+                                    </p>
                                 </div>
                             @endif
-
-                            <!-- Quick View Button -->
-                            <div class="mt-auto">
-                                <button class="btn btn-sm btn-primary w-100 view-team-details" 
-                                        data-team-index="{{ $index }}">
-                                    <i class="bi bi-eye"></i> Quick View
-                                </button>
-                            </div>
                         </div>
                     </div>
-                @endforeach
-            </div>
-
-                                        <!-- No Results Message -->
-                                        <div id="noTeamsFound" class="text-center py-5 d-none">
-                                            <i class="bi bi-people display-4 text-muted mb-3"></i>
-                                            <h5>No teams found</h5>
-                                            <p class="text-muted">Try changing your search criteria</p>
+                @else
+                    <!-- Untuk tournament KNOCKOUT - Tampilkan pesan info -->
+                    @if($activeTournament)
+                        <div class="card">
+                            <div class="card-header">
+                                <i class="bi bi-trophy-fill"></i> Tournament Format
+                            </div>
+                            <div class="card-body">
+                                <div class="alert alert-info mb-0">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-diagram-2-fill me-3" style="font-size: 1.5rem;"></i>
+                                        <div>
+                                            <h6 class="mb-1">{{ $activeTournament->name }} - Knockout Tournament</h6>
+                                            <p class="mb-2">This is a knockout-style tournament. Group standings are not
+                                                applicable for this format.</p>
+                                            <p class="mb-0 small">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                Follow the knockout bracket progression instead.
+                                            </p>
                                         </div>
-
-                                        <!-- View All Button -->
-                                        <!-- <div class="text-center mt-4">
-                                            <a href="{{ route('teams.index') }}" class="btn btn-primary">
-                                                <i class="bi bi-list-ul"></i> View All Teams
-                                            </a>
-                                        </div> -->
-        @else
-            <!-- Empty State -->
-            <div class="empty-state text-center py-5">
-                <i class="bi bi-people display-4 text-muted mb-3"></i>
-                <h5>No Teams Available</h5>
-                <p class="text-muted">Teams will appear here when they are created</p>
-                @auth
-                    @if(auth()->user()->role === 'admin')
-                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
-                            <i class="bi bi-plus-circle"></i> Create First Team
-                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     @endif
-                @endauth
-            </div>
-        @endif
+                @endif
+
+                <!-- ============================================== -->
+                <!-- TEAMS SECTION - LANJUTAN -->
+                <!-- ============================================== -->
+
+                <!-- Teams Section - Peserta Tournament Berlangsung -->
+                <div class="card mt-4 teams-section">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-trophy-fill"></i>
+                            <span>Teams in Ongoing Tournament</span>
+                            <span class="badge bg-primary">{{ $teamsInActiveTournament->count() }} Teams</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        @if($teamsInActiveTournament->count() > 0)
+                            <div class="row g-3">
+                                @foreach($teamsInActiveTournament as $team)
+                                    @php
+                                        $totalPlayers = $team->players->count();
+                                        $keyPlayers = $team->players->take(2);
+                                    @endphp
+                                    <div class="col-xl-3 col-lg-4 col-md-6">
+                                        <div class="team-compact-card h-100 d-flex flex-column p-3">
+                                            <div class="d-flex align-items-center gap-3 mb-3">
+                                                <div class="team-compact-logo">
+                                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                                                    @else
+                                                        <div class="logo-fallback">
+                                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                                        {{ $team->name }}
+                                                    </h6>
+                                                    @if($team->coach_name)
+                                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                            <div class="team-compact-stats mb-3">
+                                                <div class="compact-stat">
+                                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                                                    <span class="compact-stat-label">Players</span>
+                                                </div>
+                                                <div class="compact-stat">
+                                                    <span class="compact-stat-number">{{ $team->tournaments->count() }}</span>
+                                                    <span class="compact-stat-label">Tournament</span>
+                                                </div>
+                                                <div class="compact-stat">
+                                                    <span class="compact-stat-number team-status is-active">Active</span>
+                                                    <span class="compact-stat-label">Status</span>
+                                                </div>
+                                            </div>
+                                            @if($keyPlayers->count() > 0)
+                                                <div class="d-flex flex-wrap gap-2 mt-auto">
+                                                    @foreach($keyPlayers as $player)
+                                                        <div class="compact-badge">
+                                                            <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                                            <span class="text-truncate"
+                                                                style="max-width: 70px;">{{ $player->name }}</span>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                        @else
+                            <div class="empty-state text-center py-4">
+                                <i class="bi bi-people display-6 text-muted mb-2"></i>
+                                <h6 class="mb-1">No teams in ongoing tournament</h6>
+                                <p class="text-muted mb-0">Teams will appear here after being assigned to the running
+                                    tournament.</p>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Teams Section - COMPACT VERSION -->
+                <div class="card mt-4 teams-section">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-people-fill"></i>
+                            <span>All Registered Teams</span>
+                            @if($teams->count() > 0)
+                                <span class="badge bg-primary">{{ $teams->count() }} Teams</span>
+                            @endif
+                        </div>
+                        <!-- <a href="{{ route('teams.index') }}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-arrow-right"></i> View All
+        </a> -->
+                    </div>
+                    <div class="card-body">
+                        @if($teams->count() > 0)
+                            <!-- Search and Filter -->
+                            <div class="row mb-4">
+                                <div class="col-md-8">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-search"></i></span>
+                                        <input type="text" id="teamSearch" class="form-control"
+                                            placeholder="Search teams or players...">
+                                    </div>
+                                </div>
+                                <div class="col-md-4 mt-2 mt-md-0">
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-filter"></i></span>
+                                        <select id="teamSort" class="form-select">
+                                            <option value="name">Sort by Name</option>
+                                            <option value="players">Sort by Players</option>
+                                            <option value="tournaments">Sort by Tournaments</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Teams Grid - COMPACT LAYOUT -->
+                            <!-- Teams Grid - COMPACT LAYOUT -->
+                            <div class="row g-3" id="teamsGrid">
+                                @foreach($teams as $index => $team)
+                                    @php
+                                        $totalPlayers = $team->players->count();
+                                        $totalTournaments = $team->tournaments->count();
+                                        $keyPlayers = $team->players->take(2);
+
+                                        // Serialize players data untuk JavaScript - VERSION FIXED
+                                        $playersData = $team->players->map(function ($player) {
+                                            return [
+                                                'id' => $player->id ?? 0,
+                                                'name' => $player->name ?? 'Unknown',
+                                                'jersey_number' => $player->jersey_number ?? '',
+                                                'position' => $player->position ?? '',
+                                                'photo' => $player->photo ?? '',
+                                                'goals' => $player->goals ?? 0,
+                                                'assists' => $player->assists ?? 0,
+                                                'saves' => $player->saves ?? 0,
+                                                'clean_sheets' => $player->clean_sheets ?? 0,
+                                                'yellow_cards' => $player->yellow_cards ?? 0,
+                                                'red_cards' => $player->red_cards ?? 0,
+                                            ];
+                                        })->toArray();
+
+                                        // Convert to JSON with proper escaping
+                                        $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                                    @endphp
+                                    <div class="col-xl-3 col-lg-4 col-md-6 team-card" data-team-id="{{ $team->id }}"
+                                        data-team-name="{{ strtolower($team->name) }}" data-team-players="{{ $totalPlayers }}"
+                                        data-team-tournaments="{{ $totalTournaments }}"
+                                        data-team-coach="{{ $team->coach_name }}" data-team-logo="{{ $team->logo }}"
+                                        data-players-json="{{ $playersJson }}">
+                                        <div class="team-compact-card h-100 d-flex flex-column p-3">
+                                            <!-- Team Header -->
+                                            <div class="d-flex align-items-center gap-3 mb-3">
+                                                <div class="team-compact-logo">
+                                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                                                    @else
+                                                        <div class="logo-fallback">
+                                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                                        </div>
+                                                    @endif
+                                                </div>
+                                                <div class="flex-grow-1">
+                                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                                        {{ $team->name }}
+                                                    </h6>
+                                                    @if($team->coach_name)
+                                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                                                        </small>
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <!-- Stats -->
+                                            <div class="team-compact-stats mb-3">
+                                                <div class="compact-stat">
+                                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                                                    <span class="compact-stat-label">Players</span>
+                                                </div>
+                                                <div class="compact-stat">
+                                                    <span class="compact-stat-number">{{ $totalTournaments }}</span>
+                                                    <span class="compact-stat-label">Tournaments</span>
+                                                </div>
+                                                <div class="compact-stat">
+                                                    <span
+                                                        class="compact-stat-number team-status {{ strtolower($team->status ?? '') === 'active' ? 'is-active' : 'is-inactive' }}">{{ ucfirst($team->status ?? 'unknown') }}</span>
+                                                    <span class="compact-stat-label">Status</span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Key Players -->
+                                            @if($keyPlayers->count() > 0)
+                                                <div class="mb-3">
+                                                    <small class="text-muted d-block mb-2" style="font-size: 0.75rem;">
+                                                        <i class="bi bi-star-fill text-warning"></i> Key Players
+                                                    </small>
+                                                    <div class="d-flex flex-wrap gap-2">
+                                                        @foreach($keyPlayers as $player)
+                                                            <div class="compact-badge">
+                                                                <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                                                <span class="text-truncate"
+                                                                    style="max-width: 70px;">{{ $player->name }}</span>
+                                                            </div>
+                                                        @endforeach
+                                                        @if($totalPlayers > 2)
+                                                            <div class="compact-badge">
+                                                                <span>+{{ $totalPlayers - 2 }}</span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+                                            @endif
+
+                                            <!-- Quick View Button -->
+                                            <div class="mt-auto">
+                                                <button class="btn btn-sm btn-primary w-100 view-team-details"
+                                                    data-team-index="{{ $index }}">
+                                                    <i class="bi bi-eye"></i> Quick View
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <!-- No Results Message -->
+                            <div id="noTeamsFound" class="text-center py-5 d-none">
+                                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                <h5>No teams found</h5>
+                                <p class="text-muted">Try changing your search criteria</p>
+                            </div>
+
+                            <!-- View All Button -->
+                            <!-- <div class="text-center mt-4">
+                                                <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                                    <i class="bi bi-list-ul"></i> View All Teams
+                                                </a>
+                                            </div> -->
+                        @else
+                            <!-- Empty State -->
+                            <div class="empty-state text-center py-5">
+                                <i class="bi bi-people display-4 text-muted mb-3"></i>
+                                <h5>No Teams Available</h5>
+                                <p class="text-muted">Teams will appear here when they are created</p>
+                                @auth
+                                    @if(auth()->user()->role === 'admin')
+                                        <a href="{{ route('teams.create') }}" class="btn btn-primary mt-3">
+                                            <i class="bi bi-plus-circle"></i> Create First Team
+                                        </a>
+                                    @endif
+                                @endauth
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -2393,8 +3148,8 @@ body.modal-open {
                             @endif
                         </div>
                         @if($activeTournament)
-                            {{-- <small
-                                class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025' }}</small> --}}
+                            {{-- <small class="text-muted d-none d-md-block">{{ $activeTournament->season ?? 'Season 2025'
+                                }}</small> --}}
                         @endif
                     </div>
                     <div class="card-body">
@@ -2587,175 +3342,175 @@ body.modal-open {
                     </div>
                 </div>
 
-               <!-- Recent Results -->
-<div class="card mb-4">
-    <div class="card-header">
-        <i class="bi bi-clock-history"></i> Recent Results
-    </div>
-    <div class="card-body">
-        @if($recentResults->count() > 0)
-            @foreach($recentResults as $match)
-                <div class="recent-result-item">
-                    <div class="small text-muted mb-2">
-                        {{ date('d M', strtotime($match->match_date)) }} •
-                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
-                        @if($match->group_name)
-                            • Group {{ $match->group_name }}
-                        @endif
+                <!-- Recent Results -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <i class="bi bi-clock-history"></i> Recent Results
                     </div>
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <div class="text-end" style="width: 45%;">
-                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
-                        </div>
-                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
-                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
-                        </div>
-                        <div class="text-start" style="width: 45%;">
-                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
-                        </div>
-                    </div>
+                    <div class="card-body">
+                        @if($recentResults->count() > 0)
+                            @foreach($recentResults as $match)
+                                <div class="recent-result-item">
+                                    <div class="small text-muted mb-2">
+                                        {{ date('d M', strtotime($match->match_date)) }} •
+                                        {{ ucfirst(str_replace('_', ' ', $match->round_type ?? '')) }}
+                                        @if($match->group_name)
+                                            • Group {{ $match->group_name }}
+                                        @endif
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <div class="text-end" style="width: 45%;">
+                                            <small class="d-block">{{ $match->homeTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                        <div class="text-center fw-bold px-2" style="width: 10%; min-width: 50px;">
+                                            {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
+                                        </div>
+                                        <div class="text-start" style="width: 45%;">
+                                            <small class="d-block">{{ $match->awayTeam->name ?? 'TBA' }}</small>
+                                        </div>
+                                    </div>
 
-                    <!-- Extra Time dan Penalty -->
-                    <div class="match-extras text-center mb-2">
-                        @if($match->et_score)
-                            <span class="badge bg-info text-white me-1">
-                                <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
-                            </span>
-                        @endif
-                        
-                        @if($match->is_penalty && $match->penalty_score)
-                            <span class="badge bg-warning text-dark">
-                                <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
-                            </span>
+                                    <!-- Extra Time dan Penalty -->
+                                    <div class="match-extras text-center mb-2">
+                                        @if($match->et_score)
+                                            <span class="badge bg-info text-white me-1">
+                                                <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
+                                            </span>
+                                        @endif
+
+                                        @if($match->is_penalty && $match->penalty_score)
+                                            <span class="badge bg-warning text-dark">
+                                                <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
+                                            </span>
+                                        @endif
+                                    </div>
+
+                                    <!-- Goals & Cards -->
+                                    @if(isset($match->events) && $match->events->count() > 0)
+                                        <div class="match-events mt-2">
+                                            <div class="row small">
+                                                <!-- Home Team Events -->
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+
+                                                <!-- Away Team Events -->
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                                        <div class="mb-1">
+                                                            @if($event->event_type == 'goal')
+                                                                <span class="badge bg-success me-1">
+                                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>
+                                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
+                                                                    @if($event->is_penalty)
+                                                                        <span class="text-muted">(P)</span>
+                                                                    @endif
+                                                                    @if($event->is_own_goal)
+                                                                        <span class="text-danger">(OG)</span>
+                                                                    @endif
+                                                                </small>
+                                                            @elseif($event->event_type == 'yellow_card')
+                                                                <span class="badge bg-warning me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @elseif($event->event_type == 'red_card')
+                                                                <span class="badge bg-danger me-1">
+                                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
+                                                                </span>
+                                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
+                                                            @endif
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @elseif(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
+                                        <!-- Fallback: Hanya goals (jika events ada tapi hanya goals) -->
+                                        <div class="goal-scorers">
+                                            <div class="row">
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_home_id)->where('event_type', 'goal') as $goal)
+                                                        <div class="goal-item">
+                                                            <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                            <small class="text-truncate">
+                                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                @if($goal->is_penalty)
+                                                                    <span class="text-muted">(P)</span>
+                                                                @endif
+                                                                @if($goal->is_own_goal)
+                                                                    <span class="text-danger">(OG)</span>
+                                                                @endif
+                                                            </small>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                                <div class="col-6">
+                                                    @foreach($match->events->where('team_id', $match->team_away_id)->where('event_type', 'goal') as $goal)
+                                                        <div class="goal-item">
+                                                            <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                            <small class="text-truncate">
+                                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                @if($goal->is_penalty)
+                                                                    <span class="text-muted">(P)</span>
+                                                                @endif
+                                                                @if($goal->is_own_goal)
+                                                                    <span class="text-danger">(OG)</span>
+                                                                @endif
+                                                            </small>
+                                                        </div>
+                                                    @endforeach
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endif
+                                </div>
+                                @if(!$loop->last)
+                                    <hr class="my-2">
+                                @endif
+                            @endforeach
+                        @else
+                            <div class="empty-state">
+                                <i class="bi bi-emoji-frown"></i>
+                                <p class="mt-2">No recent matches</p>
+                            </div>
                         @endif
                     </div>
-
-                    <!-- Goals & Cards -->
-                    @if(isset($match->events) && $match->events->count() > 0)
-                        <div class="match-events mt-2">
-                            <div class="row small">
-                                <!-- Home Team Events -->
-                                <div class="col-6">
-                                    @foreach($match->events->where('team_id', $match->team_home_id) as $event)
-                                        <div class="mb-1">
-                                            @if($event->event_type == 'goal')
-                                                <span class="badge bg-success me-1">
-                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>
-                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
-                                                    @if($event->is_penalty)
-                                                        <span class="text-muted">(P)</span>
-                                                    @endif
-                                                    @if($event->is_own_goal)
-                                                        <span class="text-danger">(OG)</span>
-                                                    @endif
-                                                </small>
-                                            @elseif($event->event_type == 'yellow_card')
-                                                <span class="badge bg-warning me-1">
-                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @elseif($event->event_type == 'red_card')
-                                                <span class="badge bg-danger me-1">
-                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                                
-                                <!-- Away Team Events -->
-                                <div class="col-6">
-                                    @foreach($match->events->where('team_id', $match->team_away_id) as $event)
-                                        <div class="mb-1">
-                                            @if($event->event_type == 'goal')
-                                                <span class="badge bg-success me-1">
-                                                    <i class="bi bi-soccer"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>
-                                                    {{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}
-                                                    @if($event->is_penalty)
-                                                        <span class="text-muted">(P)</span>
-                                                    @endif
-                                                    @if($event->is_own_goal)
-                                                        <span class="text-danger">(OG)</span>
-                                                    @endif
-                                                </small>
-                                            @elseif($event->event_type == 'yellow_card')
-                                                <span class="badge bg-warning me-1">
-                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @elseif($event->event_type == 'red_card')
-                                                <span class="badge bg-danger me-1">
-                                                    <i class="bi bi-card-text"></i> {{ $event->minute }}'
-                                                </span>
-                                                <small>{{ $event->player->short_name ?? $event->player->name ?? 'Unknown' }}</small>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @elseif(isset($match->events) && $match->events->where('event_type', 'goal')->count() > 0)
-                        <!-- Fallback: Hanya goals (jika events ada tapi hanya goals) -->
-                        <div class="goal-scorers">
-                            <div class="row">
-                                <div class="col-6">
-                                    @foreach($match->events->where('team_id', $match->team_home_id)->where('event_type', 'goal') as $goal)
-                                        <div class="goal-item">
-                                            <span class="goal-minute">{{ $goal->minute }}'</span>
-                                            <small class="text-truncate">
-                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                @if($goal->is_penalty)
-                                                    <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($goal->is_own_goal)
-                                                    <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
-                                        </div>
-                                    @endforeach
-                                </div>
-                                <div class="col-6">
-                                    @foreach($match->events->where('team_id', $match->team_away_id)->where('event_type', 'goal') as $goal)
-                                        <div class="goal-item">
-                                            <span class="goal-minute">{{ $goal->minute }}'</span>
-                                            <small class="text-truncate">
-                                                {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                @if($goal->is_penalty)
-                                                    <span class="text-muted">(P)</span>
-                                                @endif
-                                                @if($goal->is_own_goal)
-                                                    <span class="text-danger">(OG)</span>
-                                                @endif
-                                            </small>
-                                        </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-                    @endif
                 </div>
-                @if(!$loop->last)
-                    <hr class="my-2">
-                @endif
-            @endforeach
-        @else
-            <div class="empty-state">
-                <i class="bi bi-emoji-frown"></i>
-                <p class="mt-2">No recent matches</p>
-            </div>
-        @endif
-    </div>
-</div>
             </div>
         </div>
     </div>
 
-    
+
 
     <!-- Footer -->
     <footer class="footer">
@@ -2802,25 +3557,25 @@ body.modal-open {
 
     <!-- Team Details Modal -->
     <!-- Team Details Modal - SIMPLIFIED -->
-<div class="modal fade" id="teamDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    <i class="bi bi-people-fill"></i> Team Players
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="teamDetailsContent">
-                <!-- Content akan diisi oleh JavaScript -->
-            </div>
-            <div class="modal-footer">
-                <!-- Hapus load more button atau simplifikasi -->
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+    <div class="modal fade" id="teamDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-people-fill"></i> Team Players
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="teamDetailsContent">
+                    <!-- Content akan diisi oleh JavaScript -->
+                </div>
+                <div class="modal-footer">
+                    <!-- Hapus load more button atau simplifikasi -->
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     @foreach($recentHighlights as $match)
         @if($match->youtube_id)
@@ -2963,12 +3718,13 @@ body.modal-open {
         @endif
     @endforeach
 
-     <!-- Hero Fullscreen Modal - TAMBAHKAN INI -->
+    <!-- Hero Fullscreen Modal - TAMBAHKAN INI -->
     <div class="modal fade" id="heroFullscreenModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
             <div class="modal-content bg-dark">
                 <div class="modal-header border-0">
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
                 </div>
                 <div class="modal-body d-flex align-items-center justify-content-center p-0">
                     <div id="heroFullscreenImage" class="w-100 h-100 d-flex align-items-center justify-content-center">
@@ -2989,126 +3745,121 @@ body.modal-open {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Team Search Functionality
-    const teamSearch = document.getElementById('teamSearch');
-    const teamSort = document.getElementById('teamSort');
-    const teamsGrid = document.getElementById('teamsGrid');
-    const noTeamsFound = document.getElementById('noTeamsFound');
-    const teamCards = document.querySelectorAll('.team-card');
-    
-    // Store all teams data
-    const teamsData = [];
-    teamCards.forEach(card => {
-        teamsData.push({
-            element: card,
-            name: card.getAttribute('data-team-name').toLowerCase(),
-            players: parseInt(card.getAttribute('data-team-players') || 0),
-            tournaments: parseInt(card.getAttribute('data-team-tournaments') || 0),
-            index: parseInt(card.getAttribute('data-team-id') || 0)
-        });
-    });
-    
-    if (teamSearch && teamCards.length > 0) {
-        teamSearch.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase().trim();
-            let visibleCount = 0;
-            
+        document.addEventListener('DOMContentLoaded', function () {
+            // Team Search Functionality
+            const teamSearch = document.getElementById('teamSearch');
+            const teamSort = document.getElementById('teamSort');
+            const teamsGrid = document.getElementById('teamsGrid');
+            const noTeamsFound = document.getElementById('noTeamsFound');
+            const teamCards = document.querySelectorAll('.team-card');
+
+            // Store all teams data
+            const teamsData = [];
             teamCards.forEach(card => {
-                const teamName = card.getAttribute('data-team-name').toLowerCase();
-                const cardContent = card.textContent.toLowerCase();
-                
-                if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
-                    card.style.display = 'block';
-                    visibleCount++;
-                } else {
-                    card.style.display = 'none';
-                }
+                teamsData.push({
+                    element: card,
+                    name: card.getAttribute('data-team-name').toLowerCase(),
+                    players: parseInt(card.getAttribute('data-team-players') || 0),
+                    tournaments: parseInt(card.getAttribute('data-team-tournaments') || 0),
+                    index: parseInt(card.getAttribute('data-team-id') || 0)
+                });
             });
-            
-            // Show/hide no results message
-            if (visibleCount === 0) {
-                teamsGrid.classList.add('d-none');
-                noTeamsFound.classList.remove('d-none');
-            } else {
-                teamsGrid.classList.remove('d-none');
-                noTeamsFound.classList.add('d-none');
-                
-                // Sort teams
-                sortTeams(teamSort.value);
+
+            if (teamSearch && teamCards.length > 0) {
+                teamSearch.addEventListener('input', function () {
+                    const searchTerm = this.value.toLowerCase().trim();
+                    let visibleCount = 0;
+
+                    teamCards.forEach(card => {
+                        const teamName = card.getAttribute('data-team-name').toLowerCase();
+                        const cardContent = card.textContent.toLowerCase();
+
+                        if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                            card.style.display = 'block';
+                            visibleCount++;
+                        } else {
+                            card.style.display = 'none';
+                        }
+                    });
+
+                    // Show/hide no results message
+                    if (visibleCount === 0) {
+                        teamsGrid.classList.add('d-none');
+                        noTeamsFound.classList.remove('d-none');
+                    } else {
+                        teamsGrid.classList.remove('d-none');
+                        noTeamsFound.classList.add('d-none');
+
+                        // Sort teams
+                        sortTeams(teamSort.value);
+                    }
+                });
             }
-        });
-    }
-    
-    // Sort functionality
-    if (teamSort) {
-        teamSort.addEventListener('change', function() {
-            sortTeams(this.value);
-        });
-    }
-    
-    function sortTeams(sortBy) {
-        const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
-        
-        cards.sort((a, b) => {
-            if (sortBy === 'name') {
-                const nameA = a.getAttribute('data-team-name');
-                const nameB = b.getAttribute('data-team-name');
-                return nameA.localeCompare(nameB);
-            } else if (sortBy === 'players') {
-                const playersA = parseInt(a.getAttribute('data-team-players') || 0);
-                const playersB = parseInt(b.getAttribute('data-team-players') || 0);
-                return playersB - playersA; // Descending
-            } else if (sortBy === 'tournaments') {
-                const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
-                const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
-                return tournamentsB - tournamentsA; // Descending
+
+            // Sort functionality
+            if (teamSort) {
+                teamSort.addEventListener('change', function () {
+                    sortTeams(this.value);
+                });
             }
-            return 0;
-        });
-        
-        // Reorder the grid
-        const container = cards[0].parentNode;
-        cards.forEach(card => {
-            container.appendChild(card);
-        });
-    }
-    
-    // Team Details Modal - TANPA API
-    const teamDetailsModal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
-    const viewTeamButtons = document.querySelectorAll('.view-team-details');
-    const loadMoreBtn = document.getElementById('loadMorePlayers');
-    const loadMoreText = document.getElementById('loadMoreText');
-    const loadMoreSpinner = document.getElementById('loadMoreSpinner');
-    
-    let currentTeamCard = null;
-    let currentPlayers = [];
-    let currentPage = 1;
-    const playersPerPage = 25;
-    let allPlayersLoaded = false;
-    
-    viewTeamButtons.forEach((button, index) => {
-        button.addEventListener('click', function() {
-            const teamIndex = this.getAttribute('data-team-index');
-            showTeamPlayers(teamIndex);
-        });
-    });
-    
-    if (loadMoreBtn) {
-        loadMoreBtn.addEventListener('click', function() {
-            if (currentTeamCard && !allPlayersLoaded) {
-                loadMorePlayers();
+
+            function sortTeams(sortBy) {
+                const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
+
+                cards.sort((a, b) => {
+                    if (sortBy === 'name') {
+                        const nameA = a.getAttribute('data-team-name');
+                        const nameB = b.getAttribute('data-team-name');
+                        return nameA.localeCompare(nameB);
+                    } else if (sortBy === 'players') {
+                        const playersA = parseInt(a.getAttribute('data-team-players') || 0);
+                        const playersB = parseInt(b.getAttribute('data-team-players') || 0);
+                        return playersB - playersA; // Descending
+                    } else if (sortBy === 'tournaments') {
+                        const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
+                        const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
+                        return tournamentsB - tournamentsA; // Descending
+                    }
+                    return 0;
+                });
+
+                // Reorder the grid
+                const container = cards[0].parentNode;
+                cards.forEach(card => {
+                    container.appendChild(card);
+                });
             }
-        });
-    }
-    
-    function showTeamPlayers(teamIndex) {
-    const teamCard = teamCards[teamIndex];
+
+            // Team Details Modal - TANPA API
+            const teamDetailsModal = new bootstrap.Modal(document.getElementById('teamDetailsModal'));
+            const viewTeamButtons = document.querySelectorAll('.view-team-details');
+            const loadMoreBtn = document.getElementById('loadMorePlayers');
+            const loadMoreText = document.getElementById('loadMoreText');
+            const loadMoreSpinner = document.getElementById('loadMoreSpinner');
+
+            let currentTeamCard = null;
+            let currentPlayers = [];
+            let currentPage = 1;
+            const playersPerPage = 25;
+            let allPlayersLoaded = false;
+
+            viewTeamButtons.forEach((button) => {
+                button.addEventListener('click', function () {
+                    const teamCard = this.closest('.team-card');
+                    showTeamPlayers(teamCard);
+                });
+            });
+
+            if (loadMoreBtn) {
+                loadMoreBtn.addEventListener('click', function () {
+                    if (currentTeamCard && !allPlayersLoaded) {
+                        loadMorePlayers();
+                    }
+                });
+            }
+
+            function showTeamPlayers(teamCard, modal) {
     if (!teamCard) return;
-    
-    currentTeamCard = teamCard;
-    currentPage = 1;
-    allPlayersLoaded = false;
     
     // Get team data from data attributes
     const teamName = teamCard.querySelector('h6').textContent;
@@ -3116,33 +3867,22 @@ document.addEventListener('DOMContentLoaded', function() {
     const teamLogo = teamCard.getAttribute('data-team-logo') || '';
     const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
     
-    // Parse players data - FIXED VERSION
+    // Parse players data
+    let currentPlayers = [];
     try {
         const playersJson = teamCard.getAttribute('data-players-json');
-        console.log('Players JSON:', playersJson);
         
-        if (!playersJson || playersJson.trim() === '') {
-            console.warn('No players data found');
-            currentPlayers = [];
-        } else {
-            // Clean JSON string jika perlu
+        if (playersJson && playersJson.trim() !== '') {
             let cleanJson = playersJson;
-            // Replace escaped characters
             cleanJson = cleanJson.replace(/&quot;/g, '"')
                                 .replace(/&#039;/g, "'")
                                 .replace(/&amp;/g, '&')
                                 .replace(/&lt;/g, '<')
                                 .replace(/&gt;/g, '>');
-            
-            console.log('Cleaned JSON:', cleanJson.substring(0, 200));
-            
-            // Parse JSON
             currentPlayers = JSON.parse(cleanJson);
-            console.log('Parsed players:', currentPlayers.length, 'players');
         }
     } catch (e) {
         console.error('Error parsing players data:', e);
-        console.error('JSON string was:', teamCard.getAttribute('data-players-json'));
         currentPlayers = [];
     }
     
@@ -3151,7 +3891,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show team info
     let logoHtml = '';
     if (teamLogo && teamLogo.trim() !== '') {
-        logoHtml = `<img src="{{ asset('storage/') }}/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        logoHtml = `<img src="/storage/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
     } else {
         const initials = teamName.substring(0, 2).toUpperCase();
         logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
@@ -3159,47 +3899,199 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>`;
     }
     
-    // Get players for current page
-    const startIndex = 0;
-    const endIndex = Math.min(playersPerPage, currentPlayers.length);
-    const pagePlayers = currentPlayers.slice(startIndex, endIndex);
-    
     // Generate players HTML
-    const playersHtml = generatePlayersHtml(pagePlayers);
+    const playersHtml = generatePlayersHtml(currentPlayers);
     
     contentDiv.innerHTML = `
-        <div class="team-info mb-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden;">
-                    ${logoHtml}
-                </div>
-                <div>
-                    <h4 class="mb-1">${teamName}</h4>
-                    ${coachName ? `<p class="text-muted mb-0"><i class="bi bi-person-badge"></i> ${coachName}</p>` : ''}
-                    <p class="text-muted mb-0"><i class="bi bi-people"></i> ${totalPlayers} Players</p>
+        <div class="team-modal-header">
+            <div class="team-modal-logo">${logoHtml}</div>
+            <div>
+                <h5 class="mb-0">${teamName}</h5>
+                <div class="team-modal-meta">
+                    ${coachName ? `<span><i class="bi bi-person-badge"></i> ${coachName}</span> • ` : ''}
+                    <span><i class="bi bi-people"></i> ${totalPlayers} Players</span>
                 </div>
             </div>
         </div>
-        <h5 class="mb-3">Players</h5>
+        <div class="player-section-title">Squad List</div>
+        <div id="selectedPlayerStats" class="player-selected-stats d-none"></div>
         <div class="player-grid" id="playersGrid">
             ${playersHtml || '<div class="col-12"><p class="text-muted text-center">No players found</p></div>'}
         </div>
     `;
+
+    const selectedPlayerStats = contentDiv.querySelector('#selectedPlayerStats');
     
-    // Update load more button
-    if (loadMoreBtn) {
-        if (currentPlayers.length <= playersPerPage) {
-            loadMoreBtn.style.display = 'none';
-            allPlayersLoaded = true;
-        } else {
-            loadMoreBtn.style.display = 'block';
-            loadMoreText.textContent = 'Load More Players';
-            allPlayersLoaded = false;
-        }
-    }
+    // Add click event to each player card
+    contentDiv.querySelectorAll('.player-card-modal').forEach((playerCard) => {
+        playerCard.addEventListener('click', function () {
+            // Remove selected class from all cards, add to current with animation
+            contentDiv.querySelectorAll('.player-card-modal').forEach(card => {
+                card.classList.remove('is-selected');
+                card.style.transform = 'scale(1)';
+            });
+            this.classList.add('is-selected');
+            
+            // Animate the clicked card
+            this.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                if (this.classList.contains('is-selected')) {
+                    this.style.transform = 'scale(1)';
+                }
+            }, 200);
+            
+            const playerName = this.getAttribute('data-player-name') || 'Unknown';
+            const goals = parseInt(this.getAttribute('data-player-goals') || '0', 10);
+            const assists = parseInt(this.getAttribute('data-player-assists') || '0', 10);
+            const yellowCards = parseInt(this.getAttribute('data-player-yellow-cards') || '0', 10);
+            const redCards = parseInt(this.getAttribute('data-player-red-cards') || '0', 10);
+            const playerPhoto = this.getAttribute('data-player-photo') || '';
+            const playerPosition = this.getAttribute('data-player-position') || '-';
+            const playerJersey = this.getAttribute('data-player-jersey') || '-';
+            const playerInitial = playerName.charAt(0).toUpperCase();
+            
+            const avatarHtml = (playerPhoto && playerPhoto !== '')
+                ? `<img src="${playerPhoto}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; animation: avatarZoom 0.5s ease-out;">`
+                : `<span style="font-size: 3rem; font-weight: 800; color: white; animation: avatarZoom 0.5s ease-out;">${playerInitial}</span>`;
+            
+            const totalContrib = goals + assists;
+            const discipline = yellowCards + (redCards * 2);
+            const contribCap = 10;
+            const disciplineCap = 8;
+
+            // Add animation class to stats card
+            selectedPlayerStats.style.animation = 'none';
+            selectedPlayerStats.offsetHeight; // trigger reflow
+            selectedPlayerStats.style.animation = 'statsCardReveal 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards';
+            
+            selectedPlayerStats.classList.remove('d-none');
+            selectedPlayerStats.innerHTML = `
+                <div class="player-stats-card" style="animation: cardGlow 0.6s ease-out;">
+                    <div class="player-photo-area">
+                        <div class="player-avatar-wrapper">${avatarHtml}</div>
+                        <div class="player-name-large">
+                            <h3>${playerName.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+                            <span class="player-number-badge">#${playerJersey}</span>
+                            <div class="player-position-badge">${playerPosition}</div>
+                        </div>
+                    </div>
+                    <div class="player-stats-area">
+                        <div class="category-header">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <h5>Performance Analytics</h5>
+                        </div>
+
+                        <div class="radar-chart-container mb-4" style="height: 220px; position: relative;">
+                            <canvas id="playerRadarChart"></canvas>
+                        </div>
+
+                        <div class="key-stats-grid">
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.05s; opacity: 0;">
+                                <i class="bi bi-soccer key-stat-icon"></i>
+                                <div class="key-stat-number" data-target="${goals}">0</div>
+                                <div class="key-stat-label">Goals</div>
+                            </div>
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.1s; opacity: 0;">
+                                <i class="bi bi-share key-stat-icon"></i>
+                                <div class="key-stat-number" data-target="${assists}">0</div>
+                                <div class="key-stat-label">Assists</div>
+                            </div>
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.15s; opacity: 0;">
+                                <i class="bi bi-lightning-fill key-stat-icon text-warning"></i>
+                                <div class="key-stat-number">${goals + assists}</div>
+                                <div class="key-stat-label">G/A Sum</div>
+                            </div>
+                        </div>
+
+                        <div class="stats-category">
+                            <div class="stat-item" style="animation: slideInRight 0.4s ease-out forwards; animation-delay: 0.2s; opacity: 0;">
+                                <div class="stat-info">
+                                    <span class="stat-label">Goal Contribution Impact</span>
+                                    <span class="stat-value fw-bold">${totalContrib} / ${contribCap}</span>
+                                </div>
+                                <div class="progress-wrapper">
+                                    <div class="progress-fill progress-blue" style="width: ${Math.min((totalContrib / contribCap) * 100, 100)}%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-item" style="animation: slideInRight 0.4s ease-out forwards; animation-delay: 0.3s; opacity: 0;">
+                                <div class="stat-info">
+                                    <span class="stat-label">Disciplinary Pressure</span>
+                                    <span class="stat-value fw-bold text-danger">${discipline} / ${disciplineCap}</span>
+                                </div>
+                                <div class="progress-wrapper">
+                                    <div class="progress-fill progress-red" style="width: ${Math.min((discipline / disciplineCap) * 100, 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-actions" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.4s; opacity: 0;">
+                            <div class="d-flex gap-2 w-100">
+                                <div class="flex-grow-1 text-center p-2 rounded-3" style="background: #fef3c7; transition: all 0.3s ease;">
+                                    <div class="fw-bold text-warning stat-number-animate" data-value="${yellowCards}">0</div>
+                                    <div class="small text-muted" style="font-size: 0.6rem;">YELLOW</div>
+                                </div>
+                                <div class="flex-grow-1 text-center p-2 rounded-3" style="background: #fee2e2; transition: all 0.3s ease;">
+                                    <div class="fw-bold text-danger stat-number-animate" data-value="${redCards}">0</div>
+                                    <div class="small text-muted" style="font-size: 0.6rem;">RED</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Animate numbers with better easing
+            const animateNumber = (element, target, duration = 600) => {
+                let start = 0;
+                const increment = target / (duration / 16);
+                const timer = setInterval(() => {
+                    start += increment;
+                    if (start >= target) {
+                        element.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(start);
+                    }
+                }, 16);
+            };
+            
+            // Animate key stat numbers
+            const keyStats = selectedPlayerStats.querySelectorAll('.key-stat-number[data-target]');
+            keyStats.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-target') || '0', 10);
+                animateNumber(stat, target, 500);
+            });
+            
+            // Animate yellow/red cards
+            const cardStats = selectedPlayerStats.querySelectorAll('.stat-number-animate');
+            cardStats.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-value') || '0', 10);
+                animateNumber(stat, target, 400);
+            });
+            
+            // Animate progress bars with delay
+            const progressBars = selectedPlayerStats.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+            
+            // Initialize radar chart with fade in
+            initRadarChart(playerName, playerJersey);
+            
+            // Scroll to top of modal body smoothly
+            const modalBody = document.querySelector('#teamDetailsModal .modal-body');
+            if (modalBody) {
+                modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
     
     // Show modal
-    teamDetailsModal.show();
+    modal.show();
 }
 
 
@@ -3567,6 +4459,50 @@ document.addEventListener('DOMContentLoaded', function() {
         margin-bottom: 2rem;
     }
 
+    .teams-section.card {
+        border: 1px solid #dbe4ef;
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.06);
+        background: #fff;
+    }
+
+    .teams-section .card-header {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #f8fafc;
+        border-bottom: 1px solid #1f334f;
+        padding: 0.85rem 1rem;
+    }
+
+    .teams-section .card-header .badge {
+        background: #2563eb !important;
+        color: #fff;
+        font-weight: 600;
+    }
+
+    .teams-section .card-body {
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+        padding: 1rem;
+    }
+
+    .teams-section .row.g-3 {
+        --bs-gutter-x: 0.7rem;
+        --bs-gutter-y: 0.7rem;
+    }
+
+    .teams-section #teamSearch,
+    .teams-section #teamSort {
+        border-radius: 10px;
+        border-color: #cfd8e3;
+        font-size: 0.9rem;
+    }
+
+    .teams-section .input-group-text {
+        background: #f8fafc;
+        border-color: #cfd8e3;
+        color: #475569;
+    }
+
     /* Team Card Compact Style */
     .team-compact-card {
         background: white;
@@ -3577,6 +4513,20 @@ document.addEventListener('DOMContentLoaded', function() {
         height: 100%;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         position: relative;
+        padding: 0.75rem !important;
+        min-height: 210px;
+    }
+
+    .team-compact-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: linear-gradient(90deg, #2563eb, #3b82f6);
+        opacity: 0;
+        transition: opacity 0.25s ease;
     }
 
     .team-compact-card:hover {
@@ -3585,9 +4535,13 @@ document.addEventListener('DOMContentLoaded', function() {
         border-color: var(--accent-color);
     }
 
+    .team-compact-card:hover::before {
+        opacity: 1;
+    }
+
     .team-compact-logo {
-        width: 50px;
-        height: 50px;
+        width: 42px;
+        height: 42px;
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -3611,7 +4565,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     .team-compact-logo .logo-fallback {
-        font-size: 1rem;
+        font-size: 0.85rem;
         font-weight: 800;
         color: var(--primary-color);
     }
@@ -3619,28 +4573,48 @@ document.addEventListener('DOMContentLoaded', function() {
     .team-compact-stats {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 8px;
-        margin-top: 10px;
+        gap: 6px;
+        margin-top: 6px;
     }
 
     .compact-stat {
         background: #f8fafc;
         border-radius: 6px;
-        padding: 6px;
+        padding: 5px 4px;
         text-align: center;
         border: 1px solid #e2e8f0;
     }
 
     .compact-stat-number {
-        font-size: 1rem;
+        font-size: 0.88rem;
         font-weight: 700;
         color: var(--accent-color);
         display: block;
         line-height: 1.2;
     }
 
+    .team-status {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.2px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        display: inline-block;
+        line-height: 1.2;
+    }
+
+    .team-status.is-active {
+        color: #166534;
+        background: #dcfce7;
+    }
+
+    .team-status.is-inactive {
+        color: #b91c1c;
+        background: #fee2e2;
+    }
+
     .compact-stat-label {
-        font-size: 0.7rem;
+        font-size: 0.63rem;
         color: #64748b;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -3651,28 +4625,127 @@ document.addEventListener('DOMContentLoaded', function() {
         background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
         border: 1px solid #cbd5e1;
         border-radius: 16px;
-        padding: 3px 8px;
-        font-size: 0.7rem;
+        padding: 2px 7px;
+        font-size: 0.66rem;
         font-weight: 500;
         color: #475569;
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 3px;
         white-space: nowrap;
     }
 
     .compact-badge .jersey {
         background: var(--accent-color);
         color: white;
-        width: 18px;
-        height: 18px;
+        width: 16px;
+        height: 16px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.65rem;
+        font-size: 0.58rem;
         font-weight: 700;
         flex-shrink: 0;
+    }
+
+    .teams-section .view-team-details {
+        border-radius: 8px;
+        padding-top: 0.35rem;
+        padding-bottom: 0.35rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+    }
+
+    /* All Registered Teams - modern refresh */
+    .teams-section {
+        border: 1px solid #dbe7f5;
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    .teams-section .card-header {
+        background: linear-gradient(120deg, #0f172a 0%, #1e3a8a 50%, #2563eb 100%);
+        color: #fff;
+        border-bottom: 0;
+    }
+
+    .teams-section .card-header i,
+    .teams-section .card-header span {
+        color: #fff;
+    }
+
+    .team-card {
+        opacity: 0;
+        transform: translateY(14px);
+        animation: teamCardReveal 0.45s ease forwards;
+    }
+
+    .team-card:nth-child(1) { animation-delay: 0.02s; }
+    .team-card:nth-child(2) { animation-delay: 0.05s; }
+    .team-card:nth-child(3) { animation-delay: 0.08s; }
+    .team-card:nth-child(4) { animation-delay: 0.11s; }
+    .team-card:nth-child(5) { animation-delay: 0.14s; }
+    .team-card:nth-child(6) { animation-delay: 0.17s; }
+    .team-card:nth-child(7) { animation-delay: 0.20s; }
+    .team-card:nth-child(8) { animation-delay: 0.23s; }
+
+    .team-compact-card {
+        background: linear-gradient(160deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #d7e4f4;
+        border-radius: 14px;
+        box-shadow: 0 6px 16px rgba(30, 58, 138, 0.08);
+        transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    }
+
+    .team-compact-card::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 14px;
+        background: radial-gradient(circle at top right, rgba(59, 130, 246, 0.12), transparent 55%);
+        pointer-events: none;
+        opacity: 0.8;
+    }
+
+    .team-compact-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 14px 26px rgba(30, 58, 138, 0.18);
+        border-color: #60a5fa;
+    }
+
+    .team-compact-logo {
+        width: 46px;
+        height: 46px;
+        border-radius: 12px;
+        box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+    }
+
+    .compact-stat {
+        background: linear-gradient(180deg, #ffffff 0%, #f1f5f9 100%);
+        border-radius: 8px;
+    }
+
+    .compact-badge {
+        border-radius: 999px;
+        border-color: #bfdbfe;
+        background: #eff6ff;
+    }
+
+    .teams-section .view-team-details {
+        background: linear-gradient(135deg, #2563eb, #3b82f6);
+        border: none;
+        box-shadow: 0 8px 14px rgba(37, 99, 235, 0.28);
+    }
+
+    .teams-section .view-team-details:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 18px rgba(37, 99, 235, 0.34);
+    }
+
+    @keyframes teamCardReveal {
+        from { opacity: 0; transform: translateY(14px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
     /* Modal Styles */
@@ -3680,24 +4753,507 @@ document.addEventListener('DOMContentLoaded', function() {
         max-width: 800px;
     }
 
+    #teamDetailsModal .modal-content {
+        border: 1px solid #dbe4ef;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    #teamDetailsModal .modal-header {
+        background: linear-gradient(135deg, #0f172a, #1e293b);
+        color: #f8fafc;
+        border-bottom: 1px solid #1f334f;
+        padding: 0.75rem 1rem;
+    }
+
+    #teamDetailsModal .modal-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #teamDetailsModal .modal-header .btn-close {
+        filter: invert(1);
+        opacity: 0.9;
+    }
+
     #teamDetailsModal .modal-body {
         max-height: 70vh;
         overflow-y: auto;
+        padding: 0.85rem;
+        background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+    }
+
+    .team-modal-header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.7rem 0.75rem;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        margin-bottom: 0.75rem;
+    }
+
+    .team-modal-logo {
+        width: 52px;
+        height: 52px;
+        border-radius: 10px;
+        overflow: hidden;
+        flex-shrink: 0;
+        background: #f1f5f9;
+    }
+
+    .team-modal-meta {
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-top: 0.15rem;
+    }
+
+    .player-section-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        color: #334155;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0.25rem 0 0.5rem;
+    }
+
+    .player-selected-stats {
+        position: relative;
+        border: 1px solid rgba(148, 163, 184, 0.28);
+        border-radius: 20px;
+        padding: 1rem;
+        background:
+            radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 38%),
+            linear-gradient(135deg, #f8fbff 0%, #eef4ff 100%);
+        margin-bottom: 0.9rem;
+        box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    .player-selected-stats .title {
+        font-size: 0.74rem;
+        text-transform: uppercase;
+        letter-spacing: 0.18em;
+        color: #2563eb;
+        margin-bottom: 0.7rem;
+        font-weight: 700;
+    }
+
+    .selected-player-card {
+        display: grid;
+        grid-template-columns: minmax(200px, 240px) minmax(0, 1fr);
+        gap: 1rem;
+        align-items: stretch;
+        animation: statsCardReveal 480ms cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .selected-player-hero {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 100%;
+        padding: 1.2rem 1rem;
+        border-radius: 18px;
+        background:
+            linear-gradient(160deg, rgba(15, 23, 42, 0.96), rgba(37, 99, 235, 0.9));
+        color: #fff;
+        overflow: hidden;
+    }
+
+    .selected-player-hero::before {
+        content: "";
+        position: absolute;
+        inset: auto -30% -35% auto;
+        width: 180px;
+        height: 180px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        filter: blur(8px);
+    }
+
+    .selected-player-avatar {
+        position: relative;
+        z-index: 1;
+        width: 124px;
+        height: 124px;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 3px solid rgba(255, 255, 255, 0.75);
+        background: linear-gradient(135deg, #dbeafe, #eff6ff);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 18px 32px rgba(15, 23, 42, 0.22);
+    }
+
+    .selected-player-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .selected-player-initial {
+        font-size: 2rem;
+        font-weight: 800;
+        color: #1e3a8a;
+    }
+
+    .selected-player-identity {
+        position: relative;
+        z-index: 1;
+        margin-top: 0.9rem;
+    }
+
+    .selected-player-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: inherit;
+        line-height: 1.2;
+    }
+
+    .selected-player-meta {
+        font-size: 0.8rem;
+        color: rgba(255, 255, 255, 0.78);
+        margin-top: 0.35rem;
+    }
+
+    .selected-player-jersey {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.78rem;
+        backdrop-filter: blur(8px);
+    }
+
+    .selected-player-badges {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        display: grid;
+        gap: 0.45rem;
+        margin-top: 1rem;
+    }
+
+    .selected-player-chip {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.55rem 0.8rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        font-size: 0.76rem;
+        color: rgba(255, 255, 255, 0.82);
+    }
+
+    .selected-player-chip strong {
+        font-size: 0.95rem;
+        color: #fff;
+    }
+
+    .selected-player-main {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+        padding: 0.2rem 0.1rem;
+    }
+
+    .selected-player-topline {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.8rem;
+    }
+
+    .selected-player-kicker {
+        font-size: 0.72rem;
+        text-transform: uppercase;
+        letter-spacing: 0.14em;
+        color: #64748b;
+        font-weight: 700;
+        margin-bottom: 0.2rem;
+    }
+
+    .selected-player-heading {
+        font-size: 1rem;
+        font-weight: 800;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .selected-player-role {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.45rem 0.7rem;
+        border-radius: 999px;
+        background: #dbeafe;
+        color: #1d4ed8;
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+
+    .selected-player-highlights {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .selected-highlight-card {
+        position: relative;
+        padding: 0.85rem 0.9rem;
+        border-radius: 16px;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        background: rgba(255, 255, 255, 0.84);
+        box-shadow: 0 12px 26px rgba(15, 23, 42, 0.06);
+        overflow: hidden;
+    }
+
+    .selected-highlight-card::after {
+        content: "";
+        position: absolute;
+        inset: auto 0 0 0;
+        height: 3px;
+        background: linear-gradient(90deg, #3b82f6, #22c55e);
+    }
+
+    .selected-highlight-label {
+        display: block;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #64748b;
+        margin-bottom: 0.3rem;
+    }
+
+    .selected-highlight-value {
+        display: block;
+        font-size: 1.5rem;
+        line-height: 1;
+        font-weight: 800;
+        color: #0f172a;
+    }
+
+    .selected-highlight-help {
+        display: block;
+        margin-top: 0.28rem;
+        font-size: 0.73rem;
+        color: #64748b;
+    }
+
+    .selected-player-stats {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.65rem;
+    }
+
+    .selected-player-stat {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        border-radius: 16px;
+        padding: 0.8rem;
+        font-size: 0.74rem;
+        background: rgba(255, 255, 255, 0.84);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+        transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+        animation: statItemPop 360ms ease-out both;
+        animation-delay: calc(var(--stat-index, 0) * 70ms);
+    }
+
+    .selected-player-stat:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 28px rgba(15, 23, 42, 0.1);
+        border-color: rgba(59, 130, 246, 0.3);
+    }
+
+    .selected-player-stat-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        font-size: 1rem;
+        color: #fff;
+        background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    }
+
+    .selected-player-stat.stat-goal .selected-player-stat-icon { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .selected-player-stat.stat-assist .selected-player-stat-icon { background: linear-gradient(135deg, #0891b2, #06b6d4); }
+    .selected-player-stat.stat-yellow .selected-player-stat-icon { background: linear-gradient(135deg, #f59e0b, #facc15); }
+    .selected-player-stat.stat-red .selected-player-stat-icon { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    .selected-player-stat.stat-save .selected-player-stat-icon { background: linear-gradient(135deg, #2563eb, #1e40af); }
+    .selected-player-stat.stat-clean-sheet .selected-player-stat-icon { background: linear-gradient(135deg, #0f172a, #334155); }
+
+    .selected-player-stat-meta {
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        flex: 1;
+    }
+
+    .selected-player-stat .label {
+        color: #64748b;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .selected-player-stat .hint {
+        color: #94a3b8;
+        font-size: 0.72rem;
+        margin-top: 0.18rem;
+    }
+
+    .selected-player-stat .value {
+        margin-left: auto;
+        font-weight: 800;
+        color: #0f172a;
+        font-size: 1.1rem;
+    }
+
+    .selected-player-stat .value-number {
+        min-width: 16px;
+        display: inline-block;
+        text-align: right;
+    }
+
+    .selected-player-progress-stack {
+        display: grid;
+        gap: 0.65rem;
+    }
+
+    .selected-player-progress-row {
+        padding: 0.75rem 0.85rem;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(226, 232, 240, 0.95);
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.04);
+    }
+
+    .selected-player-progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        font-size: 0.74rem;
+        color: #475569;
+        margin-bottom: 0.45rem;
+    }
+
+    .selected-player-progress-bar {
+        position: relative;
+        height: 9px;
+        border-radius: 999px;
+        overflow: hidden;
+        background: #e2e8f0;
+    }
+
+    .selected-player-progress-bar span {
+        display: block;
+        height: 100%;
+        width: var(--target-width, 0%);
+        border-radius: inherit;
+        transform-origin: left center;
+        animation: progressSweep 700ms cubic-bezier(.22, 1, .36, 1);
+    }
+
+    .selected-player-progress-bar.is-impact span {
+        background: linear-gradient(90deg, #22c55e, #3b82f6);
+    }
+
+    .selected-player-progress-bar.is-discipline span {
+        background: linear-gradient(90deg, #f59e0b, #ef4444);
+    }
+
+    .selected-player-progress-bar.is-goalkeeper span {
+        background: linear-gradient(90deg, #1d4ed8, #0f172a);
+    }
+
+    @media (max-width: 768px) {
+        .selected-player-card {
+            grid-template-columns: 1fr;
+        }
+
+        .selected-player-hero {
+            padding: 1rem;
+        }
+
+        .selected-player-topline {
+            flex-direction: column;
+        }
+
+        .selected-player-highlights,
+        .selected-player-stats {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @keyframes statsCardReveal {
+        from {
+            opacity: 0;
+            transform: translateY(14px) scale(0.98);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    @keyframes statItemPop {
+        from {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes progressSweep {
+        from {
+            transform: scaleX(0);
+        }
+        to {
+            transform: scaleX(1);
+        }
     }
 
     /* Player Grid in Modal */
     .player-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-        gap: 15px;
-        margin-top: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+        gap: 10px;
+        margin-top: 8px;
     }
 
     .player-card-modal {
         background: white;
         border: 1px solid #e2e8f0;
-        border-radius: 10px;
-        padding: 15px;
+        border-radius: 9px;
+        padding: 10px;
         text-align: center;
         transition: all 0.3s ease;
     }
@@ -3708,13 +5264,20 @@ document.addEventListener('DOMContentLoaded', function() {
         border-color: var(--accent-color);
     }
 
+    .player-card-modal.is-selected {
+        transform: translateY(-4px) scale(1.01);
+        border-color: #2563eb;
+        box-shadow: 0 12px 24px rgba(37, 99, 235, 0.18);
+        background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+    }
+
     .player-photo-container {
-        width: 80px;
-        height: 80px;
+        width: 62px;
+        height: 62px;
         border-radius: 50%;
         overflow: hidden;
-        margin: 0 auto 12px;
-        border: 3px solid #e2e8f0;
+        margin: 0 auto 8px;
+        border: 2px solid #e2e8f0;
         background: linear-gradient(135deg, #f8fafc, #e2e8f0);
         display: flex;
         align-items: center;
@@ -3728,7 +5291,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     .player-initial {
-        font-size: 1.5rem;
+        font-size: 1.15rem;
         font-weight: 800;
         color: var(--primary-color);
     }
@@ -3736,24 +5299,24 @@ document.addEventListener('DOMContentLoaded', function() {
     .player-info-modal h6 {
         margin: 0;
         font-weight: 600;
-        font-size: 0.95rem;
+        font-size: 0.85rem;
         color: #334155;
         line-height: 1.3;
     }
 
     .player-position {
-        font-size: 0.8rem;
+        font-size: 0.7rem;
         color: #64748b;
         background: #f1f5f9;
         border-radius: 4px;
-        padding: 3px 8px;
+        padding: 2px 7px;
         display: inline-block;
-        margin-top: 5px;
+        margin-top: 4px;
         font-weight: 500;
     }
 
     .player-jersey {
-        font-size: 0.85rem;
+        font-size: 0.74rem;
         color: var(--accent-color);
         font-weight: 700;
         margin-top: 3px;
@@ -4740,6 +6303,90 @@ document.addEventListener('DOMContentLoaded', function() {
             border: 1px solid #ddd;
         }
     }
+
+    /* Animations for player stats card */
+@keyframes cardGlow {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    }
+    50% {
+        opacity: 0.5;
+        transform: scale(1.02);
+        box-shadow: 0 0 0 8px rgba(59, 130, 246, 0.2);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+        box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.15);
+    }
+}
+
+@keyframes avatarZoom {
+    0% {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes numberPop {
+    0% {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+    80% {
+        transform: scale(1.2);
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.key-stat-number, .stat-number-animate {
+    animation: numberPop 0.4s ease-out forwards;
+}
+
+.player-card-modal {
+    transition: all 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+}
+
+.player-card-modal.is-selected {
+    transform: translateY(-4px) scale(1.02);
+    border-color: #2563eb;
+    box-shadow: 0 12px 24px rgba(37, 99, 235, 0.25);
+    background: linear-gradient(180deg, #ffffff 0%, #eff6ff 100%);
+}
     </style>
 </head>
 
@@ -5399,7 +7046,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 @endforeach
             </div>
-            
+
             <!-- INFO TIE-BREAKER -->
             <div class="tie-breaker-info mt-2" style="
                 font-size: 0.7rem;
@@ -5425,9 +7072,9 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                 </div>
             </div>
-            
-            <div class="text-center mt-0 mb-4">
-                <a href="{{ route('standings') }}" class="btn btn-dark">
+
+            <div class="text-center mt-3 mb-4">
+                <a href="{{ route('standings') }}" class="btn btn-dark px-4 py-2">
                     <i class="bi bi-table"></i> View Full Standings
                 </a>
             </div>
@@ -5543,13 +7190,13 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <i class="bi bi-check-circle-fill text-success ms-1" style="font-size: 0.8rem;"></i>
                                 @endif
                             </h6>
-                            
+
                             <div class="d-flex flex-column gap-3">
                                 @if(count($round['matches']) > 0)
                                     @foreach($round['matches'] as $match)
                                         <div class="bracket-match {{ $match['completed'] ? 'completed' : 'upcoming' }}"
                                              style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
-                                            
+
                                             <!-- Match Teams -->
                                             <div class="match-teams">
                                                 <!-- Home Team -->
@@ -5580,7 +7227,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                         </span>
                                                     @endif
                                                 </div>
-                                                
+
                                                 <!-- Away Team -->
                                                 <div class="d-flex justify-content-between align-items-center">
                                                     <div class="d-flex align-items-center gap-2">
@@ -5610,7 +7257,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                                     @endif
                                                 </div>
                                             </div>
-                                            
+
                                             <!-- Match Info -->
                                             <div class="match-info mt-2 pt-2 border-top small text-muted">
                                                 <div class="d-flex justify-content-between">
@@ -5699,13 +7346,91 @@ document.addEventListener('DOMContentLoaded', function() {
     </div>
 @endif
 
+                <!-- Teams Section - Peserta Tournament Berlangsung -->
+<div class="card mt-4 teams-section">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-trophy-fill"></i>
+            <span>Teams in Ongoing Tournament</span>
+            <span class="badge bg-primary">{{ $teamsInActiveTournament->count() }} Teams</span>
+        </div>
+    </div>
+    <div class="card-body">
+        @if($teamsInActiveTournament->count() > 0)
+            <div class="row g-3">
+                @foreach($teamsInActiveTournament as $team)
+                    @php
+                        $totalPlayers = $team->players->count();
+                        $keyPlayers = $team->players->take(2);
+                    @endphp
+                    <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="team-compact-card h-100 d-flex flex-column p-3">
+                            <div class="d-flex align-items-center gap-3 mb-3">
+                                <div class="team-compact-logo">
+                                    @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                        <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
+                                    @else
+                                        <div class="logo-fallback">
+                                            {{ strtoupper(substr($team->name, 0, 2)) }}
+                                        </div>
+                                    @endif
+                                </div>
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1 fw-bold text-truncate" style="font-size: 0.95rem;">
+                                        {{ $team->name }}
+                                    </h6>
+                                    @if($team->coach_name)
+                                        <small class="text-muted d-block text-truncate" style="font-size: 0.75rem;">
+                                            <i class="bi bi-person-badge"></i> {{ $team->coach_name }}
+                                        </small>
+                                    @endif
+                                </div>
+                            </div>
+                            <div class="team-compact-stats mb-3">
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $totalPlayers }}</span>
+                                    <span class="compact-stat-label">Players</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number">{{ $team->tournaments->count() }}</span>
+                                    <span class="compact-stat-label">Tournament</span>
+                                </div>
+                                <div class="compact-stat">
+                                    <span class="compact-stat-number team-status is-active">Active</span>
+                                    <span class="compact-stat-label">Status</span>
+                                </div>
+                            </div>
+                            @if($keyPlayers->count() > 0)
+                                <div class="d-flex flex-wrap gap-2 mt-auto">
+                                    @foreach($keyPlayers as $player)
+                                        <div class="compact-badge">
+                                            <span class="jersey">#{{ $player->jersey_number ?? '0' }}</span>
+                                            <span class="text-truncate" style="max-width: 70px;">{{ $player->name }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="empty-state text-center py-4">
+                <i class="bi bi-people display-6 text-muted mb-2"></i>
+                <h6 class="mb-1">No teams in ongoing tournament</h6>
+                <p class="text-muted mb-0">Teams will appear here after being assigned to the running tournament.</p>
+            </div>
+        @endif
+    </div>
+</div>
+
                 <!-- Teams Section - COMPACT VERSION -->
                 <!-- Teams Section - TANPA API -->
 <div class="card mt-4 teams-section">
     <div class="card-header d-flex justify-content-between align-items-center">
         <div class="d-flex align-items-center gap-2">
             <i class="bi bi-people-fill"></i>
-            <span>Teams & Players</span>
+            <span>All Registered Teams</span>
             @if($teams->count() > 0)
                 <span class="badge bg-primary">{{ $teams->count() }} Teams</span>
             @endif
@@ -5755,6 +7480,10 @@ document.addEventListener('DOMContentLoaded', function() {
                                 'photo' => $player->photo ?? '',
                                 'goals' => $player->goals ?? 0,
                                 'assists' => $player->assists ?? 0,
+                                'saves' => $player->saves ?? 0,
+                                'clean_sheets' => $player->clean_sheets ?? 0,
+                                'yellow_cards' => $player->yellow_cards ?? 0,
+                                'red_cards' => $player->red_cards ?? 0,
                             ];
                         })->toArray();
 
@@ -5804,7 +7533,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     <span class="compact-stat-label">Tournaments</span>
                                 </div>
                                 <div class="compact-stat">
-                                    <span class="compact-stat-number">{{ $team->status }}</span>
+                                    <span class="compact-stat-number team-status {{ strtolower($team->status ?? '') === 'active' ? 'is-active' : 'is-inactive' }}">{{ ucfirst($team->status ?? 'unknown') }}</span>
                                     <span class="compact-stat-label">Status</span>
                                 </div>
                             </div>
@@ -6119,18 +7848,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                                             'team_id',
                                                             $match->team_home_id
                                                         )->where('event_type', 'goal') as $goal)
-                                                                    <div class="goal-item">
-                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
-                                                                        <small class="text-truncate">
-                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                                            @if($goal->is_penalty)
-                                                                                <span class="text-muted">(P)</span>
-                                                                            @endif
-                                                                            @if($goal->is_own_goal)
-                                                                                <span class="text-danger">(OG)</span>
-                                                                            @endif
-                                                                        </small>
-                                                                    </div>
+                                                                                <div class="goal-item">
+                                                                                    <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                                    <small class="text-truncate">
+                                                                                        {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                                        @if($goal->is_penalty)
+                                                                                            <span class="text-muted">(P)</span>
+                                                                                        @endif
+                                                                                        @if($goal->is_own_goal)
+                                                                                            <span class="text-danger">(OG)</span>
+                                                                                        @endif
+                                                                                    </small>
+                                                                                </div>
                                                     @endforeach
                                                 </div>
                                                 <div class="col-6">
@@ -6138,18 +7867,18 @@ document.addEventListener('DOMContentLoaded', function() {
                                                             'team_id',
                                                             $match->team_away_id
                                                         )->where('event_type', 'goal') as $goal)
-                                                                    <div class="goal-item">
-                                                                        <span class="goal-minute">{{ $goal->minute }}'</span>
-                                                                        <small class="text-truncate">
-                                                                            {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
-                                                                            @if($goal->is_penalty)
-                                                                                <span class="text-muted">(P)</span>
-                                                                            @endif
-                                                                            @if($goal->is_own_goal)
-                                                                                <span class="text-danger">(OG)</span>
-                                                                            @endif
-                                                                        </small>
-                                                                    </div>
+                                                                                <div class="goal-item">
+                                                                                    <span class="goal-minute">{{ $goal->minute }}'</span>
+                                                                                    <small class="text-truncate">
+                                                                                        {{ $goal->player->short_name ?? $goal->player->name ?? 'Unknown' }}
+                                                                                        @if($goal->is_penalty)
+                                                                                            <span class="text-muted">(P)</span>
+                                                                                        @endif
+                                                                                        @if($goal->is_own_goal)
+                                                                                            <span class="text-danger">(OG)</span>
+                                                                                        @endif
+                                                                                    </small>
+                                                                                </div>
                                                     @endforeach
                                                 </div>
                                             </div>
@@ -6484,10 +8213,10 @@ function initTeamDetailsModal() {
     
     const modal = new bootstrap.Modal(teamDetailsModal);
     
-    viewTeamButtons.forEach((button, index) => {
+    viewTeamButtons.forEach((button) => {
         button.addEventListener('click', function() {
-            const teamIndex = this.getAttribute('data-team-index');
-            showTeamPlayers(teamIndex, teamCards, modal);
+            const teamCard = this.closest('.team-card');
+            showTeamPlayers(teamCard, modal);
         });
     });
     
@@ -6508,31 +8237,24 @@ function initTeamDetailsModal() {
     });
 }
 
-function showTeamPlayers(teamIndex, teamCards, modal) {
-    const teamCard = teamCards[teamIndex];
+function showTeamPlayers(teamCard, modal) {
     if (!teamCard) return;
     
-    // Get team data from data attributes
     const teamName = teamCard.querySelector('h6').textContent;
     const coachName = teamCard.getAttribute('data-team-coach') || '';
     const teamLogo = teamCard.getAttribute('data-team-logo') || '';
     const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
     
-    // Parse players data
     let currentPlayers = [];
     try {
         const playersJson = teamCard.getAttribute('data-players-json');
-        
         if (playersJson && playersJson.trim() !== '') {
-            // Clean JSON string
             let cleanJson = playersJson;
             cleanJson = cleanJson.replace(/&quot;/g, '"')
                                 .replace(/&#039;/g, "'")
                                 .replace(/&amp;/g, '&')
                                 .replace(/&lt;/g, '<')
                                 .replace(/&gt;/g, '>');
-            
-            // Parse JSON
             currentPlayers = JSON.parse(cleanJson);
         }
     } catch (e) {
@@ -6542,10 +8264,9 @@ function showTeamPlayers(teamIndex, teamCards, modal) {
     
     const contentDiv = document.getElementById('teamDetailsContent');
     
-    // Show team info
     let logoHtml = '';
     if (teamLogo && teamLogo.trim() !== '') {
-        logoHtml = `<img src="{{ asset('storage/') }}/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
+        logoHtml = `<img src="/storage/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
     } else {
         const initials = teamName.substring(0, 2).toUpperCase();
         logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
@@ -6553,55 +8274,290 @@ function showTeamPlayers(teamIndex, teamCards, modal) {
                     </div>`;
     }
     
-    // Get players for current page
-    const playersPerPage = 25;
-    const startIndex = 0;
-    const endIndex = Math.min(playersPerPage, currentPlayers.length);
-    const pagePlayers = currentPlayers.slice(startIndex, endIndex);
-    
-    // Generate players HTML
-    const playersHtml = generatePlayersHtml(pagePlayers);
+    const playersHtml = generatePlayersHtml(currentPlayers);
     
     contentDiv.innerHTML = `
-        <div class="team-info mb-4">
-            <div class="d-flex align-items-center gap-3 mb-3">
-                <div style="width: 60px; height: 60px; border-radius: 10px; overflow: hidden;">
-                    ${logoHtml}
-                </div>
-                <div>
-                    <h4 class="mb-1">${teamName}</h4>
-                    ${coachName ? `<p class="text-muted mb-0"><i class="bi bi-person-badge"></i> ${coachName}</p>` : ''}
-                    <p class="text-muted mb-0"><i class="bi bi-people"></i> ${totalPlayers} Players</p>
+        <div class="team-modal-header">
+            <div class="team-modal-logo">${logoHtml}</div>
+            <div>
+                <h5 class="mb-0">${teamName}</h5>
+                <div class="team-modal-meta">
+                    ${coachName ? `<span><i class="bi bi-person-badge"></i> ${coachName}</span> • ` : ''}
+                    <span><i class="bi bi-people"></i> ${totalPlayers} Players</span>
                 </div>
             </div>
         </div>
-        <h5 class="mb-3">Players</h5>
+        <div class="player-section-title">Squad List</div>
+        <div id="selectedPlayerStats" class="player-selected-stats d-none"></div>
         <div class="player-grid" id="playersGrid">
             ${playersHtml || '<div class="col-12"><p class="text-muted text-center">No players found</p></div>'}
         </div>
     `;
+
+    const selectedPlayerStats = contentDiv.querySelector('#selectedPlayerStats');
     
-    // Show modal
+    contentDiv.querySelectorAll('.player-card-modal').forEach((playerCard) => {
+        playerCard.addEventListener('click', function () {
+            contentDiv.querySelectorAll('.player-card-modal').forEach(card => {
+                card.classList.remove('is-selected');
+                card.style.transform = 'scale(1)';
+            });
+            this.classList.add('is-selected');
+            
+            this.style.transform = 'scale(1.02)';
+            setTimeout(() => {
+                if (this.classList.contains('is-selected')) {
+                    this.style.transform = 'scale(1)';
+                }
+            }, 200);
+            
+            const playerName = this.getAttribute('data-player-name') || 'Unknown';
+            const goals = parseInt(this.getAttribute('data-player-goals') || '0', 10);
+            const assists = parseInt(this.getAttribute('data-player-assists') || '0', 10);
+            const yellowCards = parseInt(this.getAttribute('data-player-yellow-cards') || '0', 10);
+            const redCards = parseInt(this.getAttribute('data-player-red-cards') || '0', 10);
+            const playerPhoto = this.getAttribute('data-player-photo') || '';
+            const playerPosition = this.getAttribute('data-player-position') || '-';
+            const playerJersey = this.getAttribute('data-player-jersey') || '-';
+            const playerInitial = playerName.charAt(0).toUpperCase();
+            
+            const avatarHtml = (playerPhoto && playerPhoto !== '')
+                ? `<img src="${playerPhoto}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; animation: avatarZoom 0.5s ease-out;">`
+                : `<span style="font-size: 3rem; font-weight: 800; color: white; animation: avatarZoom 0.5s ease-out;">${playerInitial}</span>`;
+            
+            const totalContrib = goals + assists;
+            const discipline = yellowCards + (redCards * 2);
+            const contribCap = 10;
+            const disciplineCap = 8;
+
+            selectedPlayerStats.style.animation = 'none';
+            selectedPlayerStats.offsetHeight;
+            selectedPlayerStats.style.animation = 'statsCardReveal 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards';
+            
+            selectedPlayerStats.classList.remove('d-none');
+            selectedPlayerStats.innerHTML = `
+                <div class="player-stats-card">
+                    <div class="player-photo-area">
+                        <div class="player-avatar-wrapper">${avatarHtml}</div>
+                        <div class="player-name-large">
+                            <h3>${playerName.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</h3>
+                            <span class="player-number-badge">#${playerJersey}</span>
+                            <div class="player-position-badge">${playerPosition}</div>
+                        </div>
+                    </div>
+                    <div class="player-stats-area">
+                        <div class="category-header">
+                            <i class="bi bi-graph-up-arrow"></i>
+                            <h5>Performance Analytics</h5>
+                        </div>
+
+                        <div class="radar-chart-container mb-4" style="height: 220px; position: relative;">
+                            <canvas id="playerRadarChart"></canvas>
+                        </div>
+
+                        <div class="key-stats-grid">
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.05s; opacity: 0;">
+                                <i class="bi bi-soccer key-stat-icon"></i>
+                                <div class="key-stat-number" data-target="${goals}">0</div>
+                                <div class="key-stat-label">Goals</div>
+                            </div>
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.1s; opacity: 0;">
+                                <i class="bi bi-share key-stat-icon"></i>
+                                <div class="key-stat-number" data-target="${assists}">0</div>
+                                <div class="key-stat-label">Assists</div>
+                            </div>
+                            <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.15s; opacity: 0;">
+                                <i class="bi bi-lightning-fill key-stat-icon text-warning"></i>
+                                <div class="key-stat-number">${goals + assists}</div>
+                                <div class="key-stat-label">G/A Sum</div>
+                            </div>
+                        </div>
+
+                        <div class="stats-category">
+                            <div class="stat-item" style="animation: slideInRight 0.4s ease-out forwards; animation-delay: 0.2s; opacity: 0;">
+                                <div class="stat-info">
+                                    <span class="stat-label">Goal Contribution Impact</span>
+                                    <span class="stat-value fw-bold">${totalContrib} / ${contribCap}</span>
+                                </div>
+                                <div class="progress-wrapper">
+                                    <div class="progress-fill progress-blue" style="width: ${Math.min((totalContrib / contribCap) * 100, 100)}%"></div>
+                                </div>
+                            </div>
+                            <div class="stat-item" style="animation: slideInRight 0.4s ease-out forwards; animation-delay: 0.3s; opacity: 0;">
+                                <div class="stat-info">
+                                    <span class="stat-label">Disciplinary Pressure</span>
+                                    <span class="stat-value fw-bold text-danger">${discipline} / ${disciplineCap}</span>
+                                </div>
+                                <div class="progress-wrapper">
+                                    <div class="progress-fill progress-red" style="width: ${Math.min((discipline / disciplineCap) * 100, 100)}%"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="stats-actions" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.4s; opacity: 0;">
+                            <div class="d-flex gap-2 w-100">
+                                <div class="flex-grow-1 text-center p-2 rounded-3" style="background: #fef3c7;">
+                                    <div class="fw-bold text-warning stat-number-animate" data-value="${yellowCards}">0</div>
+                                    <div class="small text-muted" style="font-size: 0.6rem;">YELLOW</div>
+                                </div>
+                                <div class="flex-grow-1 text-center p-2 rounded-3" style="background: #fee2e2;">
+                                    <div class="fw-bold text-danger stat-number-animate" data-value="${redCards}">0</div>
+                                    <div class="small text-muted" style="font-size: 0.6rem;">RED</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const animateNumber = (element, target, duration = 600) => {
+                let start = 0;
+                const increment = target / (duration / 16);
+                const timer = setInterval(() => {
+                    start += increment;
+                    if (start >= target) {
+                        element.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        element.textContent = Math.floor(start);
+                    }
+                }, 16);
+            };
+            
+            const keyStats = selectedPlayerStats.querySelectorAll('.key-stat-number[data-target]');
+            keyStats.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-target') || '0', 10);
+                animateNumber(stat, target, 500);
+            });
+            
+            const cardStats = selectedPlayerStats.querySelectorAll('.stat-number-animate');
+            cardStats.forEach(stat => {
+                const target = parseInt(stat.getAttribute('data-value') || '0', 10);
+                animateNumber(stat, target, 400);
+            });
+            
+            const progressBars = selectedPlayerStats.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 100);
+            });
+            
+            initRadarChart(playerName, playerJersey);
+            
+            const modalBody = document.querySelector('#teamDetailsModal .modal-body');
+            if (modalBody) {
+                modalBody.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
+    
     modal.show();
+}
+
+function animateStatNumbers(container) {
+    const counters = container.querySelectorAll('.value-number');
+    counters.forEach((counter) => {
+        const target = parseInt(counter.getAttribute('data-target') || '0', 10);
+        const duration = 480;
+        const startTime = performance.now();
+
+        const tick = (now) => {
+            const progress = Math.min((now - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            counter.textContent = Math.round(target * eased);
+            if (progress < 1) {
+                requestAnimationFrame(tick);
+            }
+        };
+
+        requestAnimationFrame(tick);
+    });
+}
+
+/**
+ * Initialize Radar Chart for Player Attributes
+ */
+function initRadarChart(playerName, jersey) {
+    const ctx = document.getElementById('playerRadarChart');
+    if (!ctx) return;
+
+    // Generate consistent mock attributes for demo based on player info
+    const seed = playerName.length + parseInt(jersey || 0);
+    const stats = [
+        70 + (seed % 25),       // Speed
+        65 + ((seed * 2) % 30), // Power
+        75 + ((seed * 3) % 20), // Accuracy
+        80 + ((seed * 4) % 15), // Stamina
+        72 + ((seed * 5) % 23)  // Technique
+    ];
+
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Speed', 'Power', 'Accuracy', 'Stamina', 'Technique'],
+            datasets: [{
+                data: stats,
+                fill: true,
+                backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                borderColor: 'rgb(59, 130, 246)',
+                pointBackgroundColor: 'rgb(59, 130, 246)',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: 'rgb(59, 130, 246)'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: { display: true, color: '#e2e8f0' },
+                    grid: { color: '#e2e8f0' },
+                    pointLabels: { font: { size: 11, weight: '600' }, color: '#64748b' },
+                    ticks: { display: false },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            },
+            plugins: { legend: { display: false } }
+        }
+    });
 }
 
 function generatePlayersHtml(players) {
     if (!players || players.length === 0) return '';
     
     let html = '';
+    const dummyAvatarStyles = ['adventurer', 'lorelei', 'micah', 'fun-emoji', 'bottts'];
+    const getDummyAvatar = (player) => {
+        const seed = encodeURIComponent(`${player.id || ''}-${player.name || 'player'}`);
+        const styleIndex = Math.abs((player.id || 0) + (player.name || '').length) % dummyAvatarStyles.length;
+        const style = dummyAvatarStyles[styleIndex];
+        return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundType=gradientLinear`;
+    };
+
     players.forEach(player => {
+        const position = (player.position || '').toLowerCase();
+        const isGoalkeeper = position.includes('goalkeeper')
+            || position.includes('kiper')
+            || position.includes('keeper')
+            || position.includes('gk');
+
         // Photo HTML
         let photoHtml = '';
+        const photoSource = player.photo ? `{{ asset('storage/') }}/${player.photo}` : getDummyAvatar(player);
         if (player.photo) {
-            photoHtml = `<img src="{{ asset('storage/') }}/${player.photo}" alt="${player.name}" class="player-photo">`;
+            photoHtml = `<img src="${photoSource}" alt="${player.name}" class="player-photo">`;
         } else {
-            const initial = player.name ? player.name.charAt(0).toUpperCase() : 'P';
-            photoHtml = `<div class="player-initial">${initial}</div>`;
+            photoHtml = `<img src="${photoSource}" alt="${player.name || 'Player'}" class="player-photo">`;
         }
         
         // Stats badges
         let statsHtml = '';
-        if (player.goals > 0 || player.assists > 0) {
+        if (player.goals > 0 || player.assists > 0 || (isGoalkeeper && ((player.saves || 0) > 0 || (player.clean_sheets || 0) > 0))) {
             statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
             if (player.goals > 0) {
                 statsHtml += `<span class="badge bg-success"><i class="bi bi-soccer"></i> ${player.goals}</span>`;
@@ -6609,11 +8565,27 @@ function generatePlayersHtml(players) {
             if (player.assists > 0) {
                 statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
             }
+            if (isGoalkeeper && (player.saves || 0) > 0) {
+                statsHtml += `<span class="badge bg-primary"><i class="bi bi-hand-index-thumb"></i> ${player.saves}</span>`;
+            }
+            if (isGoalkeeper && (player.clean_sheets || 0) > 0) {
+                statsHtml += `<span class="badge bg-dark"><i class="bi bi-shield-check"></i> ${player.clean_sheets}</span>`;
+            }
             statsHtml += '</div>';
         }
         
         html += `
-        <div class="player-card-modal">
+        <div class="player-card-modal"
+            data-player-name="${(player.name || 'Unknown').replace(/"/g, '&quot;')}"
+            data-player-goals="${player.goals || 0}"
+            data-player-assists="${player.assists || 0}"
+            data-player-saves="${player.saves || 0}"
+            data-player-clean-sheets="${player.clean_sheets || 0}"
+            data-player-yellow-cards="${player.yellow_cards || 0}"
+            data-player-red-cards="${player.red_cards || 0}"
+            data-player-photo="${photoSource.replace(/"/g, '&quot;')}"
+            data-player-position="${(player.position || '-').replace(/"/g, '&quot;')}"
+            data-player-jersey="${player.jersey_number || '-'}">
             <div class="player-photo-container">
                 ${photoHtml}
             </div>
@@ -6882,6 +8854,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
 </script>
 
 

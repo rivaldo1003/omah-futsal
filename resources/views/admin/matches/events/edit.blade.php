@@ -83,7 +83,10 @@
                                 name="player_id" required>
                                 <option value="">Select Player</option>
                                 @foreach($players as $player)
-                                    <option value="{{ $player->id }}" {{ old('player_id', $event->player_id) == $player->id ? 'selected' : '' }}>
+                                    <option value="{{ $player->id }}"
+                                        data-team-id="{{ $player->team_id }}"
+                                        data-position="{{ strtolower((string) $player->position) }}"
+                                        {{ old('player_id', $event->player_id) == $player->id ? 'selected' : '' }}>
                                         {{ $player->name }} ({{ $player->team->name ?? 'No Team' }})
                                     </option>
                                 @endforeach
@@ -112,7 +115,7 @@
                         </div>
 
                         <!-- Minute -->
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="minute" class="form-label">Minute *</label>
                             <input type="number" class="form-control @error('minute') is-invalid @enderror" id="minute"
                                 name="minute" value="{{ old('minute', $event->minute) }}" min="1" max="120" required>
@@ -121,8 +124,19 @@
                             @enderror
                         </div>
 
+                        <div class="col-md-3 mb-3">
+                            <label for="extra_minute" class="form-label">Extra Minute</label>
+                            <input type="number" class="form-control @error('extra_minute') is-invalid @enderror" id="extra_minute"
+                                name="extra_minute" value="{{ old('extra_minute', $event->extra_minute) }}" min="1" max="30"
+                                placeholder="+1">
+                            @error('extra_minute')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Contoh: 90 + 3</small>
+                        </div>
+
                         <!-- Checkboxes -->
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-6 mb-3">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="checkbox" id="is_own_goal" name="is_own_goal"
                                     value="1" {{ old('is_own_goal', $event->is_own_goal) ? 'checked' : '' }}>
@@ -151,9 +165,41 @@
                     <script>
                         document.addEventListener('DOMContentLoaded', function () {
                             const eventTypeSelect = document.getElementById('event_type');
+                            const teamSelect = document.getElementById('team_id');
+                            const playerSelect = document.getElementById('player_id');
                             const isOwnGoalCheck = document.getElementById('is_own_goal');
                             const isPenaltyCheck = document.getElementById('is_penalty');
                             const relatedPlayerSelect = document.getElementById('related_player_id');
+
+                            function isGoalkeeperPosition(position) {
+                                return position.includes('goalkeeper')
+                                    || position.includes('kiper')
+                                    || position.includes('keeper')
+                                    || position.includes('gk');
+                            }
+
+                            function filterPlayers() {
+                                const selectedEvent = eventTypeSelect.value;
+                                const selectedTeamId = teamSelect.value;
+                                const goalkeeperOnly = selectedEvent === 'save' || selectedEvent === 'clean_sheet';
+
+                                Array.from(playerSelect.options).forEach(function (option) {
+                                    if (!option.value) {
+                                        option.hidden = false;
+                                        return;
+                                    }
+
+                                    const matchesTeam = !selectedTeamId || option.dataset.teamId === selectedTeamId;
+                                    const matchesPosition = !goalkeeperOnly || isGoalkeeperPosition(option.dataset.position || '');
+
+                                    option.hidden = !(matchesTeam && matchesPosition);
+                                });
+
+                                const selectedOption = playerSelect.options[playerSelect.selectedIndex];
+                                if (selectedOption && selectedOption.hidden) {
+                                    playerSelect.value = '';
+                                }
+                            }
 
                             function toggleFields() {
                                 const selectedEvent = eventTypeSelect.value;
@@ -173,9 +219,12 @@
                                 } else {
                                     relatedPlayerSelect.closest('.mb-3').style.display = 'none';
                                 }
+
+                                filterPlayers();
                             }
 
                             eventTypeSelect.addEventListener('change', toggleFields);
+                            teamSelect.addEventListener('change', filterPlayers);
                             toggleFields(); // Initial call
                         });
                     </script>
