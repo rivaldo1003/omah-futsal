@@ -938,6 +938,10 @@
                 <i class="bi bi-plus"></i>
                 New Match
             </a>
+            <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create" style="background: #0f766e;">
+                <i class="bi bi-plus"></i>
+                Friendly Match
+            </a>
         </div>
     </div>
 

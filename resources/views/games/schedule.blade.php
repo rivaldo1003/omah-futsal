@@ -837,6 +837,7 @@
                     <form action="{{ route('schedule') }}" method="GET" class="d-flex gap-2">
                         <select name="tournament" class="form-select" onchange="this.form.submit()">
                             <option value="all" {{ !request('tournament') || request('tournament') == 'all' ? 'selected' : '' }}>All Tournaments</option>
+                            <option value="friendly" {{ request('tournament') == 'friendly' ? 'selected' : '' }}>Friendly Matches</option>
                             @foreach($allTournaments as $tournament)
                                 <option value="{{ $tournament->id }}" 
                                     {{ request('tournament') == $tournament->id ? 'selected' : '' }}
@@ -855,7 +856,14 @@
                     </form>
                 </div>
                 <div class="col-md-4 text-md-end">
-                    @if($selectedTournament)
+                    @if($selectedFriendly ?? false)
+                        <div class="d-inline-block">
+                            <span class="tournament-badge" style="background: #0f766e;">
+                                <i class="bi bi-people-fill me-1"></i>
+                                Friendly Matches
+                            </span>
+                        </div>
+                    @elseif($selectedTournament)
                         <div class="d-inline-block">
                             <span class="tournament-badge">
                                 <i class="bi bi-trophy-fill me-1"></i>
@@ -892,6 +900,22 @@
                             {{ ucfirst($selectedTournament->status) }}
                         </span>
                         <span class="badge bg-info ms-1">{{ ucfirst(str_replace('_', ' ', $selectedTournament->type)) }}</span>
+                    </div>
+                </div>
+            </div>
+        @elseif($selectedFriendly ?? false)
+            <div class="tournament-info">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h5 style="font-weight: 600; font-size: 0.95rem; margin-bottom: 0.25rem; color: #1e293b;">
+                            Friendly Matches (Ujicoba)
+                        </h5>
+                        <p class="mb-0" style="font-size: 0.8rem; color: #64748b;">
+                            Match ini tidak terikat tournament tertentu.
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-md-end">
+                        <span class="badge bg-success">Friendly</span>
                     </div>
                 </div>
             </div>
@@ -1052,7 +1076,9 @@
 
                         @if($match->round_type)
                             <div class="round-badge mt-1">
-                                @if($match->round_type == 'group')
+                                @if($match->round_type == 'friendly')
+                                    Friendly Match
+                                @elseif($match->round_type == 'group')
                                     Group {{ $match->group_name }}
                                 @else
                                     {{ ucfirst(str_replace('_', ' ', $match->round_type)) }}

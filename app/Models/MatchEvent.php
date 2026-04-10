@@ -18,6 +18,7 @@ class MatchEvent extends Model
         'related_player_id', // Kolom baru
         'event_type',
         'minute',
+        'extra_minute',
         'description',
         'is_own_goal',
         'is_penalty',

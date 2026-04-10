@@ -93,6 +93,8 @@ class MatchEventController extends Controller
             'penalty' => 'Penalty',
             'foul' => 'Foul',
             'injury' => 'Injury',
+            'save' => 'Save (Goalkeeper)',
+            'clean_sheet' => 'Clean Sheet (Goalkeeper)',
         ];
 
         return view('admin.matches.events.create', compact('match', 'teams', 'players', 'eventTypes'));
@@ -107,8 +109,9 @@ class MatchEventController extends Controller
             'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury',
+            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
+            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
             'is_penalty' => 'nullable|boolean',
@@ -117,6 +120,12 @@ class MatchEventController extends Controller
         $validated['match_id'] = $match->id;
         $validated['is_own_goal'] = $request->boolean('is_own_goal');
         $validated['is_penalty'] = $request->boolean('is_penalty');
+
+        if (!$this->isGoalkeeperEventAllowed($validated['event_type'], (int) $validated['player_id'])) {
+            return redirect()->back()
+                ->with('error', 'Event save/clean sheet hanya untuk pemain dengan posisi kiper.')
+                ->withInput();
+        }
 
         try {
             DB::beginTransaction();
@@ -174,6 +183,8 @@ class MatchEventController extends Controller
             'penalty' => 'Penalty',
             'foul' => 'Foul',
             'injury' => 'Injury',
+            'save' => 'Save (Goalkeeper)',
+            'clean_sheet' => 'Clean Sheet (Goalkeeper)',
         ];
 
         return view('admin.matches.events.edit', compact('match', 'event', 'teams', 'players', 'eventTypes'));
@@ -188,8 +199,9 @@ class MatchEventController extends Controller
             'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury',
+            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
+            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
             'is_penalty' => 'nullable|boolean',
@@ -202,14 +214,20 @@ class MatchEventController extends Controller
         $validated['is_own_goal'] = $request->boolean('is_own_goal');
         $validated['is_penalty'] = $request->boolean('is_penalty');
 
+        if (!$this->isGoalkeeperEventAllowed($validated['event_type'], (int) $validated['player_id'])) {
+            return redirect()->back()
+                ->with('error', 'Event save/clean sheet hanya untuk pemain dengan posisi kiper.')
+                ->withInput();
+        }
+
         try {
             DB::beginTransaction();
 
             // Revert old effects
             if ($oldEventType === 'goal') {
                 $this->revertMatchScore($match, $oldTeamId, $oldIsOwnGoal);
-                $this->revertPlayerStats($event);
             }
+            $this->revertPlayerStats($event);
 
             // Update the event
             $event->update($validated);
@@ -217,8 +235,8 @@ class MatchEventController extends Controller
             // Apply new effects
             if ($validated['event_type'] === 'goal') {
                 $this->updateMatchScore($match, $validated['team_id'], $validated['is_own_goal']);
-                $this->updatePlayerStats($event);
             }
+            $this->updatePlayerStats($event);
 
             DB::commit();
 
@@ -339,6 +357,12 @@ class MatchEventController extends Controller
             case 'penalty':
                 $player->increment('penalty_missed');
                 break;
+            case 'save':
+                $player->increment('saves');
+                break;
+            case 'clean_sheet':
+                $player->increment('clean_sheets');
+                break;
         }
 
         // Update related player stats if applicable
@@ -375,6 +399,12 @@ class MatchEventController extends Controller
 
             case 'penalty':
                 $player->decrement('penalty_missed');
+                break;
+            case 'save':
+                $player->decrement('saves');
+                break;
+            case 'clean_sheet':
+                $player->decrement('clean_sheets');
                 break;
         }
 
@@ -492,5 +522,23 @@ class MatchEventController extends Controller
                 'message' => 'Error: ' . $e->getMessage(),
             ], 500);
         }
+    }
+
+    private function isGoalkeeperEventAllowed(string $eventType, int $playerId): bool
+    {
+        if (!in_array($eventType, ['save', 'clean_sheet'], true)) {
+            return true;
+        }
+
+        $player = Player::find($playerId);
+        if (!$player) {
+            return false;
+        }
+
+        $position = strtolower((string) $player->position);
+        return str_contains($position, 'goalkeeper')
+            || str_contains($position, 'kiper')
+            || str_contains($position, 'keeper')
+            || str_contains($position, 'gk');
     }
 }

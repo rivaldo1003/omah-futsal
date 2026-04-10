@@ -50,27 +50,38 @@
                         
                         <!-- Tournament Selection -->
                         <div class="mb-3">
-                            <label for="tournament_id" class="form-label">Tournament *</label>
-                            <select name="tournament_id" id="tournament_id" class="form-select @error('tournament_id') is-invalid @enderror" required>
-                                <option value="">Select Tournament</option>
-                                @foreach($tournaments as $tournament)
-                                    <option value="{{ $tournament->id }}" 
-                                        {{ old('tournament_id', $match->tournament_id) == $tournament->id ? 'selected' : '' }}
-                                        data-groups-count="{{ $tournament->groups_count ?? 0 }}">
-                                        {{ $tournament->name }}
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('tournament_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            @if($isFriendly ?? false)
+                                <label class="form-label">Match Type</label>
+                                <div class="form-control bg-light">
+                                    <span class="badge" style="background: #0f766e;">Friendly Match</span>
+                                    <small class="text-muted ms-2">Tidak terikat tournament</small>
+                                </div>
+                            @else
+                                <label for="tournament_id" class="form-label">Tournament *</label>
+                                <select name="tournament_id" id="tournament_id" class="form-select @error('tournament_id') is-invalid @enderror" required>
+                                    <option value="">Select Tournament</option>
+                                    @foreach($tournaments as $tournament)
+                                        <option value="{{ $tournament->id }}" 
+                                            {{ old('tournament_id', $match->tournament_id) == $tournament->id ? 'selected' : '' }}
+                                            data-groups-count="{{ $tournament->groups_count ?? 0 }}">
+                                            {{ $tournament->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('tournament_id')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            @endif
                         </div>
 
                         <!-- Round Type -->
 <div class="mb-3">
     <label for="round_type" class="form-label">Round Type *</label>
-    <select name="round_type" id="round_type" class="form-select @error('round_type') is-invalid @enderror" required>
+    <select name="round_type" id="round_type" class="form-select @error('round_type') is-invalid @enderror" {{ ($isFriendly ?? false) ? '' : 'required' }}>
         <option value="">Select Round Type</option>
+        @if($isFriendly ?? false)
+            <option value="friendly" {{ old('round_type', $match->round_type) == 'friendly' ? 'selected' : '' }}>Friendly Match</option>
+        @endif
         
         <!-- Qualifying/Preliminary Rounds -->
         <option value="preliminary" {{ old('round_type', $match->round_type) == 'preliminary' ? 'selected' : '' }}>Preliminary Round</option>
@@ -517,13 +528,15 @@ document.getElementById('time_start').addEventListener('change', function() {
         }
         
         // Validate tournament selection
-        const tournamentId = tournamentSelect.value;
-        if (!tournamentId) {
-            e.preventDefault();
-            alert('Please select a tournament');
-            tournamentSelect.focus();
-            return false;
-        }
+        @if(!($isFriendly ?? false))
+            const tournamentId = tournamentSelect.value;
+            if (!tournamentId) {
+                e.preventDefault();
+                alert('Please select a tournament');
+                tournamentSelect.focus();
+                return false;
+            }
+        @endif
         
         // Validate group name for group stage
         if (roundType === 'group') {
@@ -587,14 +600,16 @@ document.getElementById('time_start').addEventListener('change', function() {
     });
 
     // Tournament change event
-    tournamentSelect.addEventListener('change', function() {
-        const tournamentId = this.value;
-        
-        if (tournamentId) {
-            // Refresh page with selected tournament
-            window.location.href = `{{ route('admin.matches.edit', $match) }}?tournament_id=${tournamentId}`;
-        }
-    });
+    if (tournamentSelect) {
+        tournamentSelect.addEventListener('change', function() {
+            const tournamentId = this.value;
+            
+            if (tournamentId) {
+                // Refresh page with selected tournament
+                window.location.href = `{{ route('admin.matches.edit', $match) }}?tournament_id=${tournamentId}`;
+            }
+        });
+    }
 });
 </script>
 @endsection

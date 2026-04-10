@@ -175,6 +175,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // ========== MATCHES MANAGEMENT ==========
     Route::resource('matches', GameController::class);
 
+    // Friendly match (ujicoba) - tidak terikat tournament
+    Route::get('friendly-matches/create', [GameController::class, 'createFriendly'])->name('friendly-matches.create');
+    Route::post('friendly-matches', [GameController::class, 'storeFriendly'])->name('friendly-matches.store');
+
+    // Alias route friendly match (lebih konsisten di dalam modul matches)
+    Route::get('matches/friendly/create', [GameController::class, 'createFriendly'])->name('matches.friendly.create');
+    Route::post('matches/friendly', [GameController::class, 'storeFriendly'])->name('matches.friendly.store');
+
     // Match Actions
     Route::post('matches/{match}/update-score', [GameController::class, 'updateScore'])->name('matches.update-score');
     Route::post('matches/{match}/add-event', [GameController::class, 'addEvent'])->name('matches.add-event');

@@ -101,7 +101,8 @@
                                 name="player_id" required>
                                 <option value="">Select Player</option>
                                 @foreach($players as $player)
-                                    <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}>
+                                    <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}
+                                        data-position="{{ strtolower($player->position ?? '') }}">
                                         {{ $player->name }} ({{ $player->team->name ?? 'No Team' }})
                                     </option>
                                 @endforeach
@@ -130,7 +131,7 @@
                         </div>
 
                         <!-- Minute -->
-                        <div class="col-md-4 mb-3">
+                        <div class="col-md-3 mb-3">
                             <label for="minute" class="form-label">Minute *</label>
                             <input type="number" class="form-control @error('minute') is-invalid @enderror" id="minute"
                                 name="minute" value="{{ old('minute') }}" min="1" max="120" required>
@@ -139,8 +140,18 @@
                             @enderror
                         </div>
 
+                        <div class="col-md-3 mb-3">
+                            <label for="extra_minute" class="form-label">Extra Minute</label>
+                            <input type="number" class="form-control @error('extra_minute') is-invalid @enderror" id="extra_minute"
+                                name="extra_minute" value="{{ old('extra_minute') }}" min="1" max="30" placeholder="+1">
+                            @error('extra_minute')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted">Contoh: 45 + 2</small>
+                        </div>
+
                         <!-- Checkboxes -->
-                        <div class="col-md-8 mb-3">
+                        <div class="col-md-6 mb-3">
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input" type="checkbox" id="is_own_goal" name="is_own_goal"
                                     value="1" {{ old('is_own_goal') ? 'checked' : '' }}>
@@ -172,9 +183,36 @@
                             const isOwnGoalCheck = document.getElementById('is_own_goal');
                             const isPenaltyCheck = document.getElementById('is_penalty');
                             const relatedPlayerSelect = document.getElementById('related_player_id');
+                            const playerSelect = document.getElementById('player_id');
 
                             function toggleFields() {
                                 const selectedEvent = eventTypeSelect.value;
+                                const isGoalkeeperEvent = selectedEvent === 'save' || selectedEvent === 'clean_sheet';
+
+                                // Filter players based on event type
+                                Array.from(playerSelect.options).forEach(option => {
+                                    if (option.value === "") return;
+
+                                    const position = option.getAttribute('data-position') || '';
+                                    const isGoalkeeper = position.includes('goalkeeper') || 
+                                                         position.includes('kiper') || 
+                                                         position.includes('keeper') || 
+                                                         position.includes('gk');
+
+                                    if (isGoalkeeperEvent) {
+                                        if (isGoalkeeper) {
+                                            option.hidden = false;
+                                            option.disabled = false;
+                                        } else {
+                                            option.hidden = true;
+                                            option.disabled = true;
+                                            if (option.selected) playerSelect.value = "";
+                                        }
+                                    } else {
+                                        option.hidden = false;
+                                        option.disabled = false;
+                                    }
+                                });
 
                                 // Toggle own goal checkbox (hanya untuk goal)
                                 if (selectedEvent === 'goal') {

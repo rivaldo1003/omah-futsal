@@ -21,6 +21,8 @@ class Player extends Model
         'assists',
         'yellow_cards',
         'red_cards',
+        'saves',
+        'clean_sheets',
     ];
 
     // Tambahkan ini

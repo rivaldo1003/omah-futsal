@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use App\Models\MatchEvent;
+use App\Models\Player;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\Tournament;
@@ -49,17 +50,30 @@ class GameController extends Controller
         // Initialize query
         $query = Game::with(['homeTeam', 'awayTeam', 'tournament']);
 
+        $selectedFriendly = false;
+
         // Apply tournament filter - jika ada filter tournament
         if ($request->filled('tournament') && $request->tournament !== 'all') {
-            $selectedTournamentId = $request->tournament;
-            $selectedTournament = Tournament::find($selectedTournamentId);
-            $query->where('tournament_id', $selectedTournamentId);
+            if ($request->tournament === 'friendly') {
+                $selectedTournamentId = null;
+                $selectedTournament = null;
+                $selectedFriendly = true;
+                $query->where('round_type', 'friendly');
+            } else {
+                $selectedTournamentId = $request->tournament;
+                $selectedTournament = Tournament::find($selectedTournamentId);
+                $query->where('tournament_id', $selectedTournamentId);
+            }
         }
         // Jika tidak ada filter, default ke tournament aktif
         elseif ($activeTournament) {
             $selectedTournamentId = $activeTournament->id;
             $selectedTournament = $activeTournament;
-            $query->where('tournament_id', $selectedTournamentId);
+            // Default: tournament aktif + friendly match
+            $query->where(function ($q) use ($selectedTournamentId) {
+                $q->where('tournament_id', $selectedTournamentId)
+                    ->orWhere('round_type', 'friendly');
+            });
         }
         // Jika tidak ada tournament aktif, tampilkan semua
         else {
@@ -126,6 +140,7 @@ class GameController extends Controller
             'activeTournament',
             'allTournaments',
             'selectedTournament',
+            'selectedFriendly',
             'groups',
             'totalMatches',
             'completedMatches',
@@ -304,6 +319,11 @@ class GameController extends Controller
      */
     public function create(Request $request)
     {
+        // Friendly create mode uses a dedicated UI without tournament binding
+        if ($request->query('mode') === 'friendly') {
+            return $this->createFriendly();
+        }
+
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])
             ->orderBy('name')
             ->get();
@@ -350,6 +370,18 @@ class GameController extends Controller
             'tournamentType',
             'tournamentSettings'
         ));
+    }
+
+    /**
+     * Show form to create new friendly match (ujicoba)
+     * Tidak terikat tournament dan tidak mempengaruhi standings tournament.
+     */
+    public function createFriendly()
+    {
+        $teams = Team::orderBy('name')->get();
+        $statusOptions = ['upcoming', 'ongoing', 'completed', 'postponed'];
+
+        return view('admin.matches.create-friendly', compact('teams', 'statusOptions'));
     }
 
     /**
@@ -487,14 +519,57 @@ class GameController extends Controller
     }
 
     /**
+     * Store a newly created friendly match (ujicoba).
+     * Tournament_id akan diset NULL dan round_type diset 'friendly'.
+     */
+    public function storeFriendly(Request $request)
+    {
+        $validated = $request->validate([
+            'match_date' => 'required|date',
+            'time_start' => 'required',
+            'time_end' => 'required',
+            'team_home_id' => 'required|exists:teams,id',
+            'team_away_id' => 'required|exists:teams,id|different:team_home_id',
+            'venue' => 'nullable|string|max:255',
+            'status' => 'required|in:upcoming,ongoing,completed,postponed',
+            'home_score' => 'nullable|integer|min:0',
+            'away_score' => 'nullable|integer|min:0',
+            'notes' => 'nullable|string',
+        ]);
+
+        $payload = array_merge($validated, [
+            'tournament_id' => null,
+            'round_type' => 'friendly',
+            'group_name' => null,
+            // Score opsional untuk friendly match, default 0 jika kosong
+            'home_score' => $validated['home_score'] ?? 0,
+            'away_score' => $validated['away_score'] ?? 0,
+        ]);
+
+        try {
+            Game::create($payload);
+
+            return redirect()->route('admin.matches.index')
+                ->with('success', 'Friendly match created successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->with('error', 'Error creating friendly match: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
      * Show form to edit match
      */
     public function edit(Game $match)
     {
+        $isFriendly = is_null($match->tournament_id) || $match->round_type === 'friendly';
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])->get();
-        $teams = Team::whereHas('tournaments', function ($query) use ($match) {
-            $query->where('tournament_id', $match->tournament_id);
-        })->orderBy('name')->get();
+        $teams = $isFriendly
+            ? Team::orderBy('name')->get()
+            : Team::whereHas('tournaments', function ($query) use ($match) {
+                $query->where('tournament_id', $match->tournament_id);
+            })->orderBy('name')->get();
 
         $groupOptions = [];
         $tournament = $match->tournament;
@@ -517,7 +592,8 @@ class GameController extends Controller
             'teams',
             'groupOptions',
             'roundTypes',
-            'statusOptions'
+            'statusOptions',
+            'isFriendly'
         ));
     }
 
@@ -526,6 +602,54 @@ class GameController extends Controller
      */
     public function update(Request $request, Game $match)
     {
+        $isFriendly = is_null($match->tournament_id) || $match->round_type === 'friendly';
+
+        if ($isFriendly) {
+            $validated = $request->validate([
+                'match_date' => 'required|date',
+                'time_start' => 'required',
+                'time_end' => 'required',
+                'team_home_id' => 'required|exists:teams,id',
+                'team_away_id' => 'required|exists:teams,id|different:team_home_id',
+                'venue' => 'nullable|string|max:255',
+                'status' => 'required|in:upcoming,ongoing,completed,postponed',
+                'home_score' => 'nullable|integer|min:0',
+                'away_score' => 'nullable|integer|min:0',
+                'notes' => 'nullable|string',
+            ]);
+
+            try {
+                DB::transaction(function () use ($match, $validated) {
+                    $oldStatus = $match->status;
+                    $oldHomeScore = $match->home_score;
+                    $oldAwayScore = $match->away_score;
+
+                    $match->update(array_merge($validated, [
+                        'tournament_id' => null,
+                        'round_type' => 'friendly',
+                        'group_name' => null,
+                        'home_score' => $validated['home_score'] ?? 0,
+                        'away_score' => $validated['away_score'] ?? 0,
+                    ]));
+
+                    if ($oldStatus === 'completed') {
+                        $this->revertMatchResults($match, $oldHomeScore, $oldAwayScore, null);
+                    }
+
+                    if ($match->status === 'completed') {
+                        $this->updateMatchResults($match, null);
+                    }
+                });
+
+                return redirect()->route('admin.matches.index')
+                    ->with('success', 'Friendly match updated successfully!');
+            } catch (\Exception $e) {
+                return redirect()->back()
+                    ->with('error', 'Error updating friendly match: ' . $e->getMessage())
+                    ->withInput();
+            }
+        }
+
         // Cari tournament terlebih dahulu
         $tournament = Tournament::find($request->tournament_id);
 
@@ -1426,9 +1550,14 @@ class GameController extends Controller
     /**
      * Update match results (standings and tournament progression)
      */
-    private function updateMatchResults(Game $match, Tournament $tournament)
+    private function updateMatchResults(Game $match, ?Tournament $tournament = null)
     {
         if ($match->status !== 'completed') {
+            return;
+        }
+
+        // Friendly match (tanpa tournament) tidak punya standings/bracket progression
+        if (is_null($match->tournament_id)) {
             return;
         }
 
@@ -1438,7 +1567,7 @@ class GameController extends Controller
         }
 
         // Update knockout bracket progression
-        if (in_array($match->round_type, ['quarterfinal', 'semifinal', 'final', 'third_place', 'round_of_16', 'round_of_32'])) {
+        if ($tournament && in_array($match->round_type, ['quarterfinal', 'semifinal', 'final', 'third_place', 'round_of_16', 'round_of_32'])) {
             $this->updateKnockoutProgression($match, $tournament);
         }
     }
@@ -1446,14 +1575,19 @@ class GameController extends Controller
     /**
      * Revert match results
      */
-    private function revertMatchResults(Game $match, $oldHomeScore, $oldAwayScore, Tournament $tournament)
+    private function revertMatchResults(Game $match, $oldHomeScore, $oldAwayScore, ?Tournament $tournament = null)
     {
+        // Friendly match (tanpa tournament) tidak punya standings/bracket progression
+        if (is_null($match->tournament_id)) {
+            return;
+        }
+
         if ($match->round_type === 'group') {
             $this->revertStandings($match, $oldHomeScore, $oldAwayScore);
         }
 
         // Revert knockout progression
-        if (in_array($match->round_type, ['quarterfinal', 'semifinal', 'final', 'third_place', 'round_of_16', 'round_of_32'])) {
+        if ($tournament && in_array($match->round_type, ['quarterfinal', 'semifinal', 'final', 'third_place', 'round_of_16', 'round_of_32'])) {
             $this->revertKnockoutProgression($match, $tournament);
         }
     }
@@ -1773,8 +1907,9 @@ class GameController extends Controller
     {
         $request->validate([
             'player_id' => 'required|exists:players,id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,assist,substitution,penalty',
+            'event_type' => 'required|in:goal,yellow_card,red_card,assist,substitution,penalty,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
+            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string',
             'is_own_goal' => 'boolean',
             'is_penalty' => 'boolean',
@@ -1782,11 +1917,15 @@ class GameController extends Controller
 
         try {
             DB::transaction(function () use ($request, $match) {
+                $player = Player::findOrFail($request->player_id);
+
                 $event = MatchEvent::create([
                     'match_id' => $match->id,
+                    'team_id' => $player->team_id,
                     'player_id' => $request->player_id,
                     'event_type' => $request->event_type,
                     'minute' => $request->minute,
+                    'extra_minute' => $request->extra_minute,
                     'description' => $request->description,
                     'is_own_goal' => $request->boolean('is_own_goal'),
                     'is_penalty' => $request->boolean('is_penalty'),
@@ -1802,6 +1941,12 @@ class GameController extends Controller
                 }
                 if ($request->event_type === 'red_card') {
                     $event->player->increment('red_cards');
+                }
+                if ($request->event_type === 'save') {
+                    $event->player->increment('saves');
+                }
+                if ($request->event_type === 'clean_sheet') {
+                    $event->player->increment('clean_sheets');
                 }
             });
 
@@ -1828,6 +1973,12 @@ class GameController extends Controller
                 }
                 if ($event->event_type === 'red_card') {
                     $event->player->decrement('red_cards');
+                }
+                if ($event->event_type === 'save') {
+                    $event->player->decrement('saves');
+                }
+                if ($event->event_type === 'clean_sheet') {
+                    $event->player->decrement('clean_sheets');
                 }
 
                 $event->delete();
