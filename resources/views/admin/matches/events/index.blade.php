@@ -580,9 +580,6 @@
                         <div class="timeline-item">
                             <div class="timeline-time">
                                 <div class="time-main">{{ $event->minute }}'</div>
-                                @if($event->extra_minute)
-                                    <div class="time-extra">+{{ $event->extra_minute }}'</div>
-                                @endif
                             </div>
                             <div class="timeline-content">
                                 <div class="event-main">

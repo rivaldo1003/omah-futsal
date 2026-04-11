@@ -124,17 +124,6 @@
                             @enderror
                         </div>
 
-                        <div class="col-md-3 mb-3">
-                            <label for="extra_minute" class="form-label">Extra Minute</label>
-                            <input type="number" class="form-control @error('extra_minute') is-invalid @enderror" id="extra_minute"
-                                name="extra_minute" value="{{ old('extra_minute', $event->extra_minute) }}" min="1" max="30"
-                                placeholder="+1">
-                            @error('extra_minute')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">Contoh: 90 + 3</small>
-                        </div>
-
                         <!-- Checkboxes -->
                         <div class="col-md-6 mb-3">
                             <div class="form-check form-check-inline">
