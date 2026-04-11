@@ -1907,12 +1907,13 @@ class GameController extends Controller
     {
         $request->validate([
             'player_id' => 'required|exists:players,id',
+            'team_id' => 'required|exists:teams,id',
             'event_type' => 'required|in:goal,yellow_card,red_card,assist,substitution,penalty,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
-            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string',
             'is_own_goal' => 'boolean',
             'is_penalty' => 'boolean',
+            'related_player_id' => 'nullable|exists:players,id',
         ]);
 
         try {
@@ -1921,32 +1922,54 @@ class GameController extends Controller
 
                 $event = MatchEvent::create([
                     'match_id' => $match->id,
-                    'team_id' => $player->team_id,
+                    'team_id' => $request->team_id,
                     'player_id' => $request->player_id,
+                    'related_player_id' => $request->related_player_id,
                     'event_type' => $request->event_type,
                     'minute' => $request->minute,
-                    'extra_minute' => $request->extra_minute,
                     'description' => $request->description,
                     'is_own_goal' => $request->boolean('is_own_goal'),
                     'is_penalty' => $request->boolean('is_penalty'),
                 ]);
 
+                // UPDATE SKOR PERTANDINGAN JIKA GOAL
                 if ($request->event_type === 'goal') {
-                    $player = $event->player;
+                    $isOwnGoal = $request->boolean('is_own_goal');
+                    $teamId = $request->team_id;
+
+                    // Jika gol bunuh diri, poin diberikan ke tim lawan
+                    if ($isOwnGoal) {
+                        $scoringTeamId = ($teamId == $match->team_home_id) ? $match->team_away_id : $match->team_home_id;
+                    } else {
+                        $scoringTeamId = $teamId;
+                    }
+
+                    if ($scoringTeamId == $match->team_home_id) {
+                        $match->increment('home_score');
+                    } else {
+                        $match->increment('away_score');
+                    }
+
+                    if ($match->status === 'upcoming') {
+                        $match->update(['status' => 'ongoing']);
+                    }
+                }
+
+                if ($request->event_type === 'goal') {
                     $player->increment('goals');
                 }
 
                 if ($request->event_type === 'yellow_card') {
-                    $event->player->increment('yellow_cards');
+                    $player->increment('yellow_cards');
                 }
                 if ($request->event_type === 'red_card') {
-                    $event->player->increment('red_cards');
+                    $player->increment('red_cards');
                 }
                 if ($request->event_type === 'save') {
-                    $event->player->increment('saves');
+                    $player->increment('saves');
                 }
                 if ($request->event_type === 'clean_sheet') {
-                    $event->player->increment('clean_sheets');
+                    $player->increment('clean_sheets');
                 }
             });
 

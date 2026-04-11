@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         // Menggunakan Schema::table karena tabel sudah ada
@@ -31,8 +30,13 @@ return new class extends Migration
                 'goal',
                 'yellow_card',
                 'red_card',
-                'substitution', // Nilai baru yang ditambahkan
-                // Tambahkan lagi event type lama (misal 'assist', jika ada di versi lama)
+                'substitution',
+                'penalty',
+                'foul',
+                'injury',
+                'assist',
+                'save',
+                'clean_sheet'
             ])->change();
 
             // Opsional: Drop index lama yang mungkin sudah ada di event_type sebelum diubah

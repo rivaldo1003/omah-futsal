@@ -32,6 +32,8 @@ return new class extends Migration {
         Schema::table('players', function (Blueprint $table) {
             $table->unsignedInteger('saves')->default(0)->after('red_cards');
             $table->unsignedInteger('clean_sheets')->default(0)->after('saves');
+            $table->unsignedInteger('penalty_goals')->default(0)->after('clean_sheets');
+            $table->unsignedInteger('penalty_missed')->default(0)->after('penalty_goals');
         });
     }
 
@@ -56,8 +58,7 @@ return new class extends Migration {
         ");
 
         Schema::table('players', function (Blueprint $table) {
-            $table->dropColumn(['saves', 'clean_sheets']);
+            $table->dropColumn(['saves', 'clean_sheets', 'penalty_goals', 'penalty_missed']);
         });
     }
 };
-

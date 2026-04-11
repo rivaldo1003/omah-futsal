@@ -72,7 +72,8 @@ class MatchEventController extends Controller
      */
     public function create(Game $match)
     {
-        $teams = Team::whereIn('id', [$match->team_home_id, $match->awayTeam->id])->get();
+        // Gunakan team_away_id secara langsung untuk menghindari error jika relasi belum dimuat
+        $teams = Team::whereIn('id', [$match->team_home_id, $match->team_away_id])->get();
 
         // Ambil players dari kedua tim
         $homeTeamPlayers = Player::where('team_id', $match->team_home_id)
@@ -106,20 +107,27 @@ class MatchEventController extends Controller
     public function store(Request $request, Game $match)
     {
         $validated = $request->validate([
-            'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
+            'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
             'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
-            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
             'is_penalty' => 'nullable|boolean',
         ]);
 
+        // Validasi tambahan: pastikan tim yang dipilih adalah salah satu yang bertanding
+        if (!in_array((int) $validated['team_id'], [$match->team_home_id, $match->team_away_id])) {
+            return redirect()->back()
+                ->with('error', 'Tim yang dipilih tidak terdaftar di pertandingan ini.')
+                ->withInput();
+        }
+
         $validated['match_id'] = $match->id;
-        $validated['is_own_goal'] = $request->boolean('is_own_goal');
-        $validated['is_penalty'] = $request->boolean('is_penalty');
+        // Pastikan nilai boolean terkonversi dengan benar untuk SQL
+        $validated['is_own_goal'] = $request->has('is_own_goal') ? 1 : 0;
+        $validated['is_penalty'] = $request->has('is_penalty') ? 1 : 0;
 
         if (!$this->isGoalkeeperEventAllowed($validated['event_type'], (int) $validated['player_id'])) {
             return redirect()->back()
@@ -201,7 +209,6 @@ class MatchEventController extends Controller
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
             'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
             'minute' => 'required|integer|min:1|max:120',
-            'extra_minute' => 'nullable|integer|min:1|max:30',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
             'is_penalty' => 'nullable|boolean',
