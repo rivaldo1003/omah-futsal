@@ -354,7 +354,36 @@ class MatchEventController extends Controller
                 break;
 
             case 'yellow_card':
-                $player->increment('yellow_cards');
+                // Cari kartu kuning lain milik pemain ini di pertandingan yang sama (selain event ini)
+                $otherYellow = MatchEvent::where('match_id', $event->match_id)
+                    ->where('player_id', $player->id)
+                    ->where('event_type', 'yellow_card')
+                    ->where('id', '!=', $event->id)
+                    ->first();
+
+                if ($otherYellow) {
+                    // Jika ini kartu kuning kedua:
+                    // 1. Buat event kartu merah otomatis
+                    MatchEvent::updateOrCreate(
+                        [
+                            'match_id' => $event->match_id,
+                            'player_id' => $player->id,
+                            'event_type' => 'red_card',
+                            'description' => 'Kartu Kuning Kedua (Indirect Red)'
+                        ],
+                        [
+                            'team_id' => $event->team_id,
+                            'minute' => $event->minute,
+                        ]
+                    );
+
+                    // 2. Update Statistik: Merah +1, Kuning -1 (membatalkan kuning pertama)
+                    $player->increment('red_cards');
+                    $player->yellow_cards = max(0, $player->yellow_cards - 1);
+                    $player->save();
+                } else {
+                    $player->increment('yellow_cards');
+                }
                 break;
 
             case 'red_card':
@@ -397,7 +426,26 @@ class MatchEventController extends Controller
                 break;
 
             case 'yellow_card':
-                $player->decrement('yellow_cards');
+                // Jika menghapus kartu kuning, cek apakah dia punya kartu merah "Indirect Red"
+                $autoRed = MatchEvent::where('match_id', $event->match_id)
+                    ->where('player_id', $event->player_id)
+                    ->where('event_type', 'red_card')
+                    ->where('description', 'Kartu Kuning Kedua (Indirect Red)')
+                    ->first();
+
+                if ($autoRed) {
+                    // Jika yang dihapus adalah kartu kuning yang memicu merah:
+                    // 1. Kembalikan status kartu kuning pertama ke statistik
+                    $player->yellow_cards += 1;
+                    // 2. Kurangi kartu merah dari statistik
+                    $player->red_cards = max(0, $player->red_cards - 1);
+                    $player->save();
+                    // 3. Hapus event merah otomatisnya
+                    $autoRed->delete();
+                } else {
+                    $player->yellow_cards = max(0, $player->yellow_cards - 1);
+                    $player->save();
+                }
                 break;
 
             case 'red_card':
