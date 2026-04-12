@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('match_events', function (Blueprint $table) {
@@ -26,7 +25,11 @@ return new class extends Migration
                 'goal',
                 'yellow_card',
                 'red_card',
-                'substitution', // Menggabungkan in/out, lihat catatan di bawah
+                'substitution',
+                'assist',
+                'penalty',
+                'save',
+                'clean_sheet',
             ]);
 
             // Detail Event

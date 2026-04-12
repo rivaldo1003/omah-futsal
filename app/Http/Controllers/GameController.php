@@ -1955,11 +1955,46 @@ class GameController extends Controller
                     }
                 }
 
+                // LOGIC KARTU KUNING KEDUA -> OTOMATIS MERAH
+                $isSecondYellow = false;
+                if ($request->event_type === 'yellow_card') {
+                    $existingYellow = MatchEvent::where('match_id', $match->id)
+                        ->where('player_id', $request->player_id)
+                        ->where('event_type', 'yellow_card')
+                        ->where('id', '!=', $event->id)
+                        ->exists();
+
+                    if ($existingYellow) {
+                        $isSecondYellow = true;
+                        MatchEvent::updateOrCreate(
+                            [
+                                'match_id' => $match->id,
+                                'player_id' => $request->player_id,
+                                'event_type' => 'red_card',
+                                'description' => 'Kartu Kuning Kedua (Indirect Red)'
+                            ],
+                            [
+                                'team_id' => $request->team_id,
+                                'minute' => $request->minute,
+                            ]
+                        );
+
+                        $player->increment('red_cards');
+                        $player->yellow_cards = max(0, $player->yellow_cards - 1);
+                        $player->save();
+                    }
+                }
+
                 if ($request->event_type === 'goal') {
                     $player->increment('goals');
                 }
 
-                if ($request->event_type === 'yellow_card') {
+                if ($request->event_type === 'assist') {
+                    $player->increment('assists');
+                }
+
+                // Hanya tambah kartu kuning ke statistik jika itu kartu kuning PERTAMA
+                if ($request->event_type === 'yellow_card' && !$isSecondYellow) {
                     $player->increment('yellow_cards');
                 }
                 if ($request->event_type === 'red_card') {
@@ -1988,6 +2023,23 @@ class GameController extends Controller
     {
         try {
             DB::transaction(function () use ($event) {
+                // Jika menghapus kartu kuning, cek apakah ada kartu merah otomatis yang harus ikut dihapus
+                if ($event->event_type === 'yellow_card') {
+                    $autoRed = MatchEvent::where('match_id', $event->match_id)
+                        ->where('player_id', $event->player_id)
+                        ->where('event_type', 'red_card')
+                        ->where('description', 'Kartu Kuning Kedua (Indirect Red)')
+                        ->first();
+
+                    if ($autoRed) {
+                        // Jika ini kartu kuning kedua yang dihapus, 
+                        // kembalikan statistik kartu kuning pertama
+                        $event->player->increment('yellow_cards');
+                        $event->player->decrement('red_cards');
+                        $autoRed->delete();
+                    }
+                }
+
                 if ($event->event_type === 'goal') {
                     $event->player->decrement('goals');
                 }
@@ -1996,6 +2048,9 @@ class GameController extends Controller
                 }
                 if ($event->event_type === 'red_card') {
                     $event->player->decrement('red_cards');
+                }
+                if ($event->event_type === 'assist') {
+                    $event->player->decrement('assists');
                 }
                 if ($event->event_type === 'save') {
                     $event->player->decrement('saves');

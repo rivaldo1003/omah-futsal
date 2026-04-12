@@ -749,21 +749,21 @@
         }
 
 
-        
+
 
         /* Hanya untuk container statistik */
-.player-selected-stats {
-    border: none;
-    border-radius: 24px;
-    padding: 0;
-    background: transparent;
-    margin-bottom: 1rem;
-    box-shadow: none;
-}
+        .player-selected-stats {
+            border: none;
+            border-radius: 24px;
+            padding: 0;
+            background: transparent;
+            margin-bottom: 1rem;
+            box-shadow: none;
+        }
 
-.player-selected-stats .title {
-    display: none;
-}
+        .player-selected-stats .title {
+            display: none;
+        }
 
         /* Player Grid in Modal */
         .player-grid {
@@ -2252,45 +2252,45 @@
     <!-- ============================================== -->
     @if($heroSetting->is_active)
         <div class="hero-section" id="mainHeroSection" style="
-                    @if($heroSetting->background_type === 'gradient')
-                        background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-                    @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-                        background-color: {{ $heroSetting->background_color }};
-                    @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                        background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-                        background-size: cover;
-                        background-position: center;
-                        background-repeat: no-repeat;
-                        cursor: pointer;
-                        transition: all 0.3s ease;
-                        @if($heroSetting->overlay_opacity > 0)
+                            @if($heroSetting->background_type === 'gradient')
+                                background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                            @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                                background-color: {{ $heroSetting->background_color }};
+                            @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                                background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                                background-size: cover;
+                                background-position: center;
+                                background-repeat: no-repeat;
+                                cursor: pointer;
+                                transition: all 0.3s ease;
+                                @if($heroSetting->overlay_opacity > 0)
+                                    position: relative;
+                                @endif
+                            @else
+                                background: linear-gradient(135deg, #0f172a, #1e293b);
+                            @endif
+                            color: {{ $heroSetting->text_color }};
                             position: relative;
-                        @endif
-                    @else
-                        background: linear-gradient(135deg, #0f172a, #1e293b);
-                    @endif
-                    color: {{ $heroSetting->text_color }};
-                    position: relative;
-                    overflow: hidden;
-                    min-height: 400px;
-                " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                    onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
-                    onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
-                    onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
-                title="Click to view full image" @endif>
+                            overflow: hidden;
+                            min-height: 400px;
+                        " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                            onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
+                            onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
+                            onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
+                        title="Click to view full image" @endif>
 
             @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
                 <!-- Overlay untuk image background -->
                 <div class="hero-overlay" style="
-                            position: absolute;
-                            top: 0;
-                            left: 0;
-                            width: 100%;
-                            height: 100%;
-                            background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                            z-index: 1;
-                            pointer-events: none;
-                        ">
+                                            position: absolute;
+                                            top: 0;
+                                            left: 0;
+                                            width: 100%;
+                                            height: 100%;
+                                            background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                                            z-index: 1;
+                                            pointer-events: none;
+                                        ">
                 </div>
             @endif
 
@@ -2298,36 +2298,36 @@
                 <div class="row align-items-center justify-content-center text-center">
                     <div class="col-lg-8">
                         <h1 class="tournament-title" style="
-                            color: {{ $heroSetting->text_color }};
-                            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-                        ">
+                                    color: {{ $heroSetting->text_color }};
+                                    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                                ">
                             {{ $heroSetting->title }}
                         </h1>
                         <p class="hero-subtitle" style="
-                            color: {{ $heroSetting->text_color }};
-                            opacity: 0.9;
-                            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-                            margin-left: auto;
-                            margin-right: auto;
-                        ">
+                                    color: {{ $heroSetting->text_color }};
+                                    opacity: 0.9;
+                                    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                                    margin-left: auto;
+                                    margin-right: auto;
+                                ">
                             {{ $heroSetting->subtitle }}
                         </p>
 
                         @if($heroSetting->cta_button_text)
                             <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
                                 style="
-                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                                        border: none;
-                                        padding: 12px 30px;
-                                        border-radius: 8px;
-                                        font-weight: 600;
-                                        text-decoration: none;
-                                        display: inline-block;
-                                        margin-top: 20px;
-                                        transition: all 0.3s ease;
-                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                                    "
+                                                        background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                                        color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                                        border: none;
+                                                        padding: 12px 30px;
+                                                        border-radius: 8px;
+                                                        font-weight: 600;
+                                                        text-decoration: none;
+                                                        display: inline-block;
+                                                        margin-top: 20px;
+                                                        transition: all 0.3s ease;
+                                                        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                                    "
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                                 <i class="bi bi-arrow-right-circle me-2"></i>
@@ -2339,16 +2339,16 @@
                         @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
                             <div class="mt-4">
                                 <div class="zoom-indicator" style="
-                                        display: inline-flex;
-                                        align-items: center;
-                                        gap: 8px;
-                                        background: rgba(0, 0, 0, 0.4);
-                                        padding: 6px 15px;
-                                        border-radius: 25px;
-                                        border: 1px solid rgba(255, 255, 255, 0.2);
-                                        backdrop-filter: blur(5px);
-                                        animation: pulse 2s infinite;
-                                    ">
+                                                        display: inline-flex;
+                                                        align-items: center;
+                                                        gap: 8px;
+                                                        background: rgba(0, 0, 0, 0.4);
+                                                        padding: 6px 15px;
+                                                        border-radius: 25px;
+                                                        border: 1px solid rgba(255, 255, 255, 0.2);
+                                                        backdrop-filter: blur(5px);
+                                                        animation: pulse 2s infinite;
+                                                    ">
                                     <i class="bi bi-zoom-in text-white"></i>
                                     <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
                                         Click background to view full image
@@ -2362,26 +2362,26 @@
 
             <!-- Animated elements -->
             <div class="hero-particles" style="
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    pointer-events: none;
-                    z-index: 1;
-                    opacity: 0.3;
-                ">
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            pointer-events: none;
+                            z-index: 1;
+                            opacity: 0.3;
+                        ">
                 @for($i = 1; $i <= 15; $i++)
                     <div class="particle" style="
-                                    position: absolute;
-                                    width: {{ rand(2, 5) }}px;
-                                    height: {{ rand(2, 5) }}px;
-                                    background-color: {{ $heroSetting->text_color }};
-                                    border-radius: 50%;
-                                    top: {{ rand(0, 100) }}%;
-                                    left: {{ rand(0, 100) }}%;
-                                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                                ">
+                                                    position: absolute;
+                                                    width: {{ rand(2, 5) }}px;
+                                                    height: {{ rand(2, 5) }}px;
+                                                    background-color: {{ $heroSetting->text_color }};
+                                                    border-radius: 50%;
+                                                    top: {{ rand(0, 100) }}%;
+                                                    left: {{ rand(0, 100) }}%;
+                                                    animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                                                ">
                     </div>
                 @endfor
             </div>
@@ -2459,10 +2459,17 @@
 
                                     <!-- Match Events -->
                                     @if(isset($match->events) && $match->events->count() > 0 && ($match->status == 'completed' || $match->status == 'ongoing'))
+                                        @php
+                                            $indirectRedPlayerIds = $match->events->where('event_type', 'red_card')
+                                                ->where('description', 'Kartu Kuning Kedua (Indirect Red)')
+                                                ->pluck('player_id')->toArray();
+                                        @endphp
                                         <div class="match-events">
                                             <div class="row small">
                                                 <div class="col-6">
                                                     @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                                        @if($event->event_type == 'yellow_card' && in_array($event->player_id, $indirectRedPlayerIds))
+                                                        @continue @endif
                                                         <div class="mb-1">
                                                             @if($event->event_type == 'goal')
                                                                 <span class="badge bg-success me-1">
@@ -2493,6 +2500,8 @@
                                                 </div>
                                                 <div class="col-6">
                                                     @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                                        @if($event->event_type == 'yellow_card' && in_array($event->player_id, $indirectRedPlayerIds))
+                                                        @continue @endif
                                                         <div class="mb-1">
                                                             @if($event->event_type == 'goal')
                                                                 <span class="badge bg-success me-1">
@@ -2662,179 +2671,179 @@
                         </div>
                         <div class="card-body">
                             @if(isset($standings) && count($standings) > 0)
-                                        <div class="row">
-                                            @foreach($standings as $group => $groupStandings)
-                                                <div class="col-12 col-md-6 mb-4">
-                                                    <h6 class="group-title">GROUP {{ $group }}</h6>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-sm">
-                                                            <thead>
-                                                                <tr>
-                                                                    <th style="width: 40px;">#</th>
-                                                                    <th>Team</th>
-                                                                    <th class="text-center">P</th>
-                                                                    <th class="text-center">W</th>
-                                                                    <th class="text-center">D</th>
-                                                                    <th class="text-center">L</th>
-                                                                    <th class="text-center">GD</th>
-                                                                    <th class="text-center">PTS</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                @foreach($groupStandings as $index => $standing)
-                                                                    @php
-                                                                        $team = $standing->team ?? null;
-                                                                        $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
-                                                                        $teamLogo = $team->logo ?? null;
-                                                                        $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
+                                <div class="row">
+                                    @foreach($standings as $group => $groupStandings)
+                                        <div class="col-12 col-md-6 mb-4">
+                                            <h6 class="group-title">GROUP {{ $group }}</h6>
+                                            <div class="table-responsive">
+                                                <table class="table table-sm">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 40px;">#</th>
+                                                            <th>Team</th>
+                                                            <th class="text-center">P</th>
+                                                            <th class="text-center">W</th>
+                                                            <th class="text-center">D</th>
+                                                            <th class="text-center">L</th>
+                                                            <th class="text-center">GD</th>
+                                                            <th class="text-center">PTS</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach($groupStandings as $index => $standing)
+                                                            @php
+                                                                $team = $standing->team ?? null;
+                                                                $teamName = $team->name ?? $standing->team_name ?? $standing->name ?? 'Unknown Team';
+                                                                $teamLogo = $team->logo ?? null;
+                                                                $hasPlayed = isset($standing->matches_played) && $standing->matches_played > 0;
 
-                                                                        // Abbreviation for logo
-                                                                        $teamAbbr = '';
-                                                                        if (!empty($teamName)) {
-                                                                            $words = explode(' ', $teamName);
-                                                                            if (count($words) >= 2) {
-                                                                                $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                                                            } else {
-                                                                                $teamAbbr = strtoupper(substr($teamName, 0, 2));
-                                                                            }
-                                                                        }
+                                                                // Abbreviation for logo
+                                                                $teamAbbr = '';
+                                                                if (!empty($teamName)) {
+                                                                    $words = explode(' ', $teamName);
+                                                                    if (count($words) >= 2) {
+                                                                        $teamAbbr = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                                                    } else {
+                                                                        $teamAbbr = strtoupper(substr($teamName, 0, 2));
+                                                                    }
+                                                                }
 
-                                                                        // Goal difference
-                                                                        $gdValue = $standing->goal_difference ?? 0;
-                                                                        $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
-                                                                    @endphp
-                                                                    <tr
-                                                                        class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
-                                                                        <td class="text-center align-middle">
-                                                                            <div class="rank-badge rank-{{ min($index + 1, 4) }}">
-                                                                                {{ $index + 1 }}
-                                                                            </div>
-                                                                        </td>
-                                                                        <td class="align-middle">
-                                                                            <div class="d-flex align-items-center">
-                                                                                <div class="team-logo-container" style="
-                                                                                    width: 32px;
-                                                                                    height: 32px;
-                                                                                    background: transparent !important;
-                                                                                    border-radius: 5px;
-                                                                                    display: flex;
-                                                                                    align-items: center;
-                                                                                    justify-content: center;
-                                                                                    overflow: hidden;
-                                                                                    margin-right: 0.6rem;
-                                                                                    flex-shrink: 0;
-                                                                                    border: none !important;
-                                                                                ">
-                                                                                    @php
-                                                                                        $logoExists = false;
+                                                                // Goal difference
+                                                                $gdValue = $standing->goal_difference ?? 0;
+                                                                $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
+                                                            @endphp
+                                                            <tr
+                                                                class="standing-row {{ $index < 2 && $hasPlayed ? 'table-success' : '' }}">
+                                                                <td class="text-center align-middle">
+                                                                    <div class="rank-badge rank-{{ min($index + 1, 4) }}">
+                                                                        {{ $index + 1 }}
+                                                                    </div>
+                                                                </td>
+                                                                <td class="align-middle">
+                                                                    <div class="d-flex align-items-center">
+                                                                        <div class="team-logo-container" style="
+                                                                                                                    width: 32px;
+                                                                                                                    height: 32px;
+                                                                                                                    background: transparent !important;
+                                                                                                                    border-radius: 5px;
+                                                                                                                    display: flex;
+                                                                                                                    align-items: center;
+                                                                                                                    justify-content: center;
+                                                                                                                    overflow: hidden;
+                                                                                                                    margin-right: 0.6rem;
+                                                                                                                    flex-shrink: 0;
+                                                                                                                    border: none !important;
+                                                                                                                ">
+                                                                            @php
+                                                                                $logoExists = false;
 
-                                                                                        if ($teamLogo) {
-                                                                                            if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                                                                $logoExists = true;
-                                                                                            } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                                                                $logoExists = true;
-                                                                                            }
-                                                                                        }
-                                                                                    @endphp
+                                                                                if ($teamLogo) {
+                                                                                    if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
+                                                                                        $logoExists = true;
+                                                                                    } elseif (Storage::disk('public')->exists($teamLogo)) {
+                                                                                        $logoExists = true;
+                                                                                    }
+                                                                                }
+                                                                            @endphp
 
-                                                                                    @if($logoExists)
-                                                                                        <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
-                                                                                            alt="{{ $teamName }}"
-                                                                                            style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
-                                                                                    @else
-                                                                                        <span
-                                                                                            style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
-                                                                                            {{ $teamAbbr }}
-                                                                                        </span>
-                                                                                    @endif
-                                                                                </div>
+                                                                            @if($logoExists)
+                                                                                <img src="{{ filter_var($teamLogo, FILTER_VALIDATE_URL) ? $teamLogo : asset('storage/' . $teamLogo) }}"
+                                                                                    alt="{{ $teamName }}"
+                                                                                    style="width: 100%; height: 100%; object-fit: cover; background: transparent;">
+                                                                            @else
+                                                                                <span
+                                                                                    style="font-weight: bold; color: #333; font-size: 0.8rem; background: transparent;">
+                                                                                    {{ $teamAbbr }}
+                                                                                </span>
+                                                                            @endif
+                                                                        </div>
 
-                                                                                <div class="text-truncate">
-                                                                                    <strong class="d-block text-truncate"
-                                                                                        style="font-size: 0.85rem;">
-                                                                                        {{ Str::limit($teamName, 15) }}
-                                                                                    </strong>
-                                                                                </div>
-                                                                            </div>
-                                                                        </td>
-                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                            {{ $standing->matches_played ?? 0 }}
-                                                                        </td>
-                                                                        <td class="text-center align-middle fw-bold text-success"
-                                                                            style="font-size: 0.9rem;">
-                                                                            {{ $standing->wins ?? 0 }}
-                                                                        </td>
-                                                                        <td class="text-center align-middle" style="font-size: 0.9rem;">
-                                                                            {{ $standing->draws ?? 0 }}
-                                                                        </td>
-                                                                        <td class="text-center align-middle text-danger"
-                                                                            style="font-size: 0.9rem;">
-                                                                            {{ $standing->losses ?? 0 }}
-                                                                        </td>
-                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                            <span style="
-                                                                                    display: inline-block;
-                                                                                    padding: 2px 6px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                                    color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                                    min-width: 40px;
-                                                                                ">
-                                                                                {{ $gdDisplay }}
-                                                                            </span>
-                                                                        </td>
-                                                                        <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                            <span style="
-                                                                                    display: inline-block;
-                                                                                    padding: 2px 8px;
-                                                                                    border-radius: 4px;
-                                                                                    background-color: rgba(59, 130, 246, 0.1);
-                                                                                    color: #1d4ed8;
-                                                                                    min-width: 40px;
-                                                                                ">
-                                                                                {{ $standing->points ?? 0 }}
-                                                                            </span>
-                                                                        </td>
-                                                                    </tr>
-                                                                @endforeach
-                                                            </tbody>
-                                                        </table>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-
-                                        <!-- INFO TIE-BREAKER -->
-                                        <div class="tie-breaker-info mt-2" style="
-                                    font-size: 0.7rem;
-                                    color: #64748b;
-                                    padding: 6px 8px;
-                                    background: #f8fafc;
-                                    border-radius: 4px;
-                                    border-left: 3px solid #3b82f6;
-                                    margin-top: 0px;
-                                ">
-                                            <div class="d-flex align-items-center">
-                                                <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
-                                                <div>
-                                                    <strong>Penentuan Juara dan Runner-up:</strong>
-                                                    <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
-                                                        <li>Poin (nilai) - jika sama</li>
-                                                        <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
-                                                        <li>Selisih gol - jika sama</li>
-                                                        <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
-                                                        <li>Nilai fairplay (kartu) - jika sama</li>
-                                                        <li>Adu tendangan penalti</li>
-                                                    </ol>
-                                                </div>
+                                                                        <div class="text-truncate">
+                                                                            <strong class="d-block text-truncate"
+                                                                                style="font-size: 0.85rem;">
+                                                                                {{ Str::limit($teamName, 15) }}
+                                                                            </strong>
+                                                                        </div>
+                                                                    </div>
+                                                                </td>
+                                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                    {{ $standing->matches_played ?? 0 }}
+                                                                </td>
+                                                                <td class="text-center align-middle fw-bold text-success"
+                                                                    style="font-size: 0.9rem;">
+                                                                    {{ $standing->wins ?? 0 }}
+                                                                </td>
+                                                                <td class="text-center align-middle" style="font-size: 0.9rem;">
+                                                                    {{ $standing->draws ?? 0 }}
+                                                                </td>
+                                                                <td class="text-center align-middle text-danger"
+                                                                    style="font-size: 0.9rem;">
+                                                                    {{ $standing->losses ?? 0 }}
+                                                                </td>
+                                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                    <span style="
+                                                                                                                    display: inline-block;
+                                                                                                                    padding: 2px 6px;
+                                                                                                                    border-radius: 4px;
+                                                                                                                    background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                                                                    color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                                                                    min-width: 40px;
+                                                                                                                ">
+                                                                        {{ $gdDisplay }}
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
+                                                                    <span style="
+                                                                                                                    display: inline-block;
+                                                                                                                    padding: 2px 8px;
+                                                                                                                    border-radius: 4px;
+                                                                                                                    background-color: rgba(59, 130, 246, 0.1);
+                                                                                                                    color: #1d4ed8;
+                                                                                                                    min-width: 40px;
+                                                                                                                ">
+                                                                        {{ $standing->points ?? 0 }}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
+                                                        @endforeach
+                                                    </tbody>
+                                                </table>
                                             </div>
                                         </div>
+                                    @endforeach
+                                </div>
 
-                                        <div class="text-center mt-3 mb-4">
-                                            <a href="{{ route('standings') }}" class="btn btn-dark px-4 py-2">
-                                                <i class="bi bi-table"></i> View Full Standings
-                                            </a>
+                                <!-- INFO TIE-BREAKER -->
+                                <div class="tie-breaker-info mt-2" style="
+                                                    font-size: 0.7rem;
+                                                    color: #64748b;
+                                                    padding: 6px 8px;
+                                                    background: #f8fafc;
+                                                    border-radius: 4px;
+                                                    border-left: 3px solid #3b82f6;
+                                                    margin-top: 0px;
+                                                ">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
+                                        <div>
+                                            <strong>Penentuan Juara dan Runner-up:</strong>
+                                            <ol class="mb-0 ps-3" style="font-size: 0.65rem;">
+                                                <li>Poin (nilai) - jika sama</li>
+                                                <li>Head-to-head (hasil pertemuan langsung) - jika sama</li>
+                                                <li>Selisih gol - jika sama</li>
+                                                <li>Produktivitas memasukkan (gol mencetak) - jika sama</li>
+                                                <li>Nilai fairplay (kartu) - jika sama</li>
+                                                <li>Adu tendangan penalti</li>
+                                            </ol>
                                         </div>
+                                    </div>
+                                </div>
+
+                                <div class="text-center mt-3 mb-4">
+                                    <a href="{{ route('standings') }}" class="btn btn-dark px-4 py-2">
+                                        <i class="bi bi-table"></i> View Full Standings
+                                    </a>
+                                </div>
                             @else
                                 <!-- No standings available for league tournament -->
                                 <div class="empty-state text-center py-5">
@@ -3114,10 +3123,10 @@
 
                             <!-- View All Button -->
                             <!-- <div class="text-center mt-4">
-                                                <a href="{{ route('teams.index') }}" class="btn btn-primary">
-                                                    <i class="bi bi-list-ul"></i> View All Teams
-                                                </a>
-                                            </div> -->
+                                                        <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                                            <i class="bi bi-list-ul"></i> View All Teams
+                                                        </a>
+                                                    </div> -->
                         @else
                             <!-- Empty State -->
                             <div class="empty-state text-center py-5">
@@ -3390,11 +3399,18 @@
 
                                     <!-- Goals & Cards -->
                                     @if(isset($match->events) && $match->events->count() > 0)
+                                        @php
+                                            $indirectRedResults = $match->events->where('event_type', 'red_card')
+                                                ->where('description', 'Kartu Kuning Kedua (Indirect Red)')
+                                                ->pluck('player_id')->toArray();
+                                        @endphp
                                         <div class="match-events mt-2">
                                             <div class="row small">
                                                 <!-- Home Team Events -->
                                                 <div class="col-6">
                                                     @foreach($match->events->where('team_id', $match->team_home_id) as $event)
+                                                        @if($event->event_type == 'yellow_card' && in_array($event->player_id, $indirectRedResults))
+                                                        @continue @endif
                                                         <div class="mb-1">
                                                             @if($event->event_type == 'goal')
                                                                 <span class="badge bg-success me-1">
@@ -3427,6 +3443,8 @@
                                                 <!-- Away Team Events -->
                                                 <div class="col-6">
                                                     @foreach($match->events->where('team_id', $match->team_away_id) as $event)
+                                                        @if($event->event_type == 'yellow_card' && in_array($event->player_id, $indirectRedResults))
+                                                        @continue @endif
                                                         <div class="mb-1">
                                                             @if($event->event_type == 'goal')
                                                                 <span class="badge bg-success me-1">
@@ -3748,163 +3766,163 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-// ==============================================
-// TEAM MANAGEMENT FUNCTIONS
-// ==============================================
+        // ==============================================
+        // TEAM MANAGEMENT FUNCTIONS
+        // ==============================================
 
-// Team Search Functionality
-function initTeamSearch() {
-    const teamSearch = document.getElementById('teamSearch');
-    const teamSort = document.getElementById('teamSort');
-    const teamsGrid = document.getElementById('teamsGrid');
-    const noTeamsFound = document.getElementById('noTeamsFound');
-    const teamCards = document.querySelectorAll('.team-card');
-    
-    if (!teamSearch || !teamCards.length) return;
-    
-    teamSearch.addEventListener('input', function() {
-        const searchTerm = this.value.toLowerCase().trim();
-        let visibleCount = 0;
-        
-        teamCards.forEach(card => {
-            const teamName = card.getAttribute('data-team-name').toLowerCase();
-            const cardContent = card.textContent.toLowerCase();
-            
-            if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
-                card.style.display = 'block';
-                visibleCount++;
-            } else {
-                card.style.display = 'none';
+        // Team Search Functionality
+        function initTeamSearch() {
+            const teamSearch = document.getElementById('teamSearch');
+            const teamSort = document.getElementById('teamSort');
+            const teamsGrid = document.getElementById('teamsGrid');
+            const noTeamsFound = document.getElementById('noTeamsFound');
+            const teamCards = document.querySelectorAll('.team-card');
+
+            if (!teamSearch || !teamCards.length) return;
+
+            teamSearch.addEventListener('input', function () {
+                const searchTerm = this.value.toLowerCase().trim();
+                let visibleCount = 0;
+
+                teamCards.forEach(card => {
+                    const teamName = card.getAttribute('data-team-name').toLowerCase();
+                    const cardContent = card.textContent.toLowerCase();
+
+                    if (teamName.includes(searchTerm) || cardContent.includes(searchTerm)) {
+                        card.style.display = 'block';
+                        visibleCount++;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Show/hide no results message
+                if (visibleCount === 0) {
+                    teamsGrid.classList.add('d-none');
+                    noTeamsFound.classList.remove('d-none');
+                } else {
+                    teamsGrid.classList.remove('d-none');
+                    noTeamsFound.classList.add('d-none');
+
+                    // Sort teams
+                    sortTeams(teamSort.value, teamCards);
+                }
+            });
+
+            // Sort functionality
+            if (teamSort) {
+                teamSort.addEventListener('change', function () {
+                    sortTeams(this.value, teamCards);
+                });
             }
-        });
-        
-        // Show/hide no results message
-        if (visibleCount === 0) {
-            teamsGrid.classList.add('d-none');
-            noTeamsFound.classList.remove('d-none');
-        } else {
-            teamsGrid.classList.remove('d-none');
-            noTeamsFound.classList.add('d-none');
-            
-            // Sort teams
-            sortTeams(teamSort.value, teamCards);
         }
-    });
-    
-    // Sort functionality
-    if (teamSort) {
-        teamSort.addEventListener('change', function() {
-            sortTeams(this.value, teamCards);
-        });
-    }
-}
 
-function sortTeams(sortBy, teamCards) {
-    const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
-    
-    cards.sort((a, b) => {
-        if (sortBy === 'name') {
-            const nameA = a.getAttribute('data-team-name');
-            const nameB = b.getAttribute('data-team-name');
-            return nameA.localeCompare(nameB);
-        } else if (sortBy === 'players') {
-            const playersA = parseInt(a.getAttribute('data-team-players') || 0);
-            const playersB = parseInt(b.getAttribute('data-team-players') || 0);
-            return playersB - playersA; // Descending
-        } else if (sortBy === 'tournaments') {
-            const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
-            const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
-            return tournamentsB - tournamentsA; // Descending
-        }
-        return 0;
-    });
-    
-    // Reorder the grid
-    if (cards.length > 0) {
-        const container = cards[0].parentNode;
-        cards.forEach(card => {
-            container.appendChild(card);
-        });
-    }
-}
+        function sortTeams(sortBy, teamCards) {
+            const cards = Array.from(teamCards).filter(card => card.style.display !== 'none');
 
-// ==============================================
-// TEAM DETAILS MODAL
-// ==============================================
-
-function initTeamDetailsModal() {
-    const teamDetailsModal = document.getElementById('teamDetailsModal');
-    const viewTeamButtons = document.querySelectorAll('.view-team-details');
-    const teamCards = document.querySelectorAll('.team-card');
-    
-    if (!teamDetailsModal || !viewTeamButtons.length) return;
-    
-    const modal = new bootstrap.Modal(teamDetailsModal);
-    
-    viewTeamButtons.forEach((button) => {
-        button.addEventListener('click', function() {
-            const teamCard = this.closest('.team-card');
-            showTeamPlayers(teamCard, modal);
-        });
-    });
-    
-    // Add hover effect to team cards
-    teamCards.forEach(card => {
-        const teamCard = card.querySelector('.team-compact-card');
-        if (teamCard) {
-            teamCard.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-3px)';
-                this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+            cards.sort((a, b) => {
+                if (sortBy === 'name') {
+                    const nameA = a.getAttribute('data-team-name');
+                    const nameB = b.getAttribute('data-team-name');
+                    return nameA.localeCompare(nameB);
+                } else if (sortBy === 'players') {
+                    const playersA = parseInt(a.getAttribute('data-team-players') || 0);
+                    const playersB = parseInt(b.getAttribute('data-team-players') || 0);
+                    return playersB - playersA; // Descending
+                } else if (sortBy === 'tournaments') {
+                    const tournamentsA = parseInt(a.getAttribute('data-team-tournaments') || 0);
+                    const tournamentsB = parseInt(b.getAttribute('data-team-tournaments') || 0);
+                    return tournamentsB - tournamentsA; // Descending
+                }
+                return 0;
             });
-            
-            teamCard.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+
+            // Reorder the grid
+            if (cards.length > 0) {
+                const container = cards[0].parentNode;
+                cards.forEach(card => {
+                    container.appendChild(card);
+                });
+            }
+        }
+
+        // ==============================================
+        // TEAM DETAILS MODAL
+        // ==============================================
+
+        function initTeamDetailsModal() {
+            const teamDetailsModal = document.getElementById('teamDetailsModal');
+            const viewTeamButtons = document.querySelectorAll('.view-team-details');
+            const teamCards = document.querySelectorAll('.team-card');
+
+            if (!teamDetailsModal || !viewTeamButtons.length) return;
+
+            const modal = new bootstrap.Modal(teamDetailsModal);
+
+            viewTeamButtons.forEach((button) => {
+                button.addEventListener('click', function () {
+                    const teamCard = this.closest('.team-card');
+                    showTeamPlayers(teamCard, modal);
+                });
+            });
+
+            // Add hover effect to team cards
+            teamCards.forEach(card => {
+                const teamCard = card.querySelector('.team-compact-card');
+                if (teamCard) {
+                    teamCard.addEventListener('mouseenter', function () {
+                        this.style.transform = 'translateY(-3px)';
+                        this.style.boxShadow = '0 8px 20px rgba(0, 0, 0, 0.1)';
+                    });
+
+                    teamCard.addEventListener('mouseleave', function () {
+                        this.style.transform = 'translateY(0)';
+                        this.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.05)';
+                    });
+                }
             });
         }
-    });
-}
 
-function showTeamPlayers(teamCard, modal) {
-    if (!teamCard) return;
-    
-    const teamName = teamCard.querySelector('h6').textContent;
-    const coachName = teamCard.getAttribute('data-team-coach') || '';
-    const teamLogo = teamCard.getAttribute('data-team-logo') || '';
-    const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
-    
-    let currentPlayers = [];
-    try {
-        const playersJson = teamCard.getAttribute('data-players-json');
-        if (playersJson && playersJson.trim() !== '') {
-            let cleanJson = playersJson;
-            cleanJson = cleanJson.replace(/&quot;/g, '"')
-                                .replace(/&#039;/g, "'")
-                                .replace(/&amp;/g, '&')
-                                .replace(/&lt;/g, '<')
-                                .replace(/&gt;/g, '>');
-            currentPlayers = JSON.parse(cleanJson);
-        }
-    } catch (e) {
-        console.error('Error parsing players data:', e);
-        currentPlayers = [];
-    }
-    
-    const contentDiv = document.getElementById('teamDetailsContent');
-    
-    let logoHtml = '';
-    if (teamLogo && teamLogo.trim() !== '') {
-        logoHtml = `<img src="/storage/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
-    } else {
-        const initials = teamName.substring(0, 2).toUpperCase();
-        logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
+        function showTeamPlayers(teamCard, modal) {
+            if (!teamCard) return;
+
+            const teamName = teamCard.querySelector('h6').textContent;
+            const coachName = teamCard.getAttribute('data-team-coach') || '';
+            const teamLogo = teamCard.getAttribute('data-team-logo') || '';
+            const totalPlayers = parseInt(teamCard.getAttribute('data-team-players') || 0);
+
+            let currentPlayers = [];
+            try {
+                const playersJson = teamCard.getAttribute('data-players-json');
+                if (playersJson && playersJson.trim() !== '') {
+                    let cleanJson = playersJson;
+                    cleanJson = cleanJson.replace(/&quot;/g, '"')
+                        .replace(/&#039;/g, "'")
+                        .replace(/&amp;/g, '&')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&gt;/g, '>');
+                    currentPlayers = JSON.parse(cleanJson);
+                }
+            } catch (e) {
+                console.error('Error parsing players data:', e);
+                currentPlayers = [];
+            }
+
+            const contentDiv = document.getElementById('teamDetailsContent');
+
+            let logoHtml = '';
+            if (teamLogo && teamLogo.trim() !== '') {
+                logoHtml = `<img src="/storage/${teamLogo}" alt="${teamName}" style="width: 100%; height: 100%; object-fit: cover;">`;
+            } else {
+                const initials = teamName.substring(0, 2).toUpperCase();
+                logoHtml = `<div class="d-flex align-items-center justify-content-center h-100 bg-light">
                         <span class="fw-bold text-primary">${initials}</span>
                     </div>`;
-    }
-    
-    const playersHtml = generatePlayersHtml(currentPlayers);
-    
-    contentDiv.innerHTML = `
+            }
+
+            const playersHtml = generatePlayersHtml(currentPlayers);
+
+            contentDiv.innerHTML = `
         <div class="team-modal-header">
             <div class="team-modal-logo">${logoHtml}</div>
             <div>
@@ -3922,52 +3940,52 @@ function showTeamPlayers(teamCard, modal) {
         </div>
     `;
 
-    const selectedPlayerStats = contentDiv.querySelector('#selectedPlayerStats');
-    
-    contentDiv.querySelectorAll('.player-card-modal').forEach((playerCard) => {
-        playerCard.addEventListener('click', function () {
-            contentDiv.querySelectorAll('.player-card-modal').forEach(card => {
-                card.classList.remove('is-selected');
-                card.style.transform = 'scale(1)';
-            });
-            this.classList.add('is-selected');
-            
-            this.style.transform = 'scale(1.02)';
-            setTimeout(() => {
-                if (this.classList.contains('is-selected')) {
-                    this.style.transform = 'scale(1)';
-                }
-            }, 200);
-            
-            const playerName = this.getAttribute('data-player-name') || 'Unknown';
-            const goals = parseInt(this.getAttribute('data-player-goals') || '0', 10);
-            const assists = parseInt(this.getAttribute('data-player-assists') || '0', 10);
-            const saves = parseInt(this.getAttribute('data-player-saves') || '0', 10);
-            const cleanSheets = parseInt(this.getAttribute('data-player-clean-sheets') || '0', 10);
-            const yellowCards = parseInt(this.getAttribute('data-player-yellow-cards') || '0', 10);
-            const redCards = parseInt(this.getAttribute('data-player-red-cards') || '0', 10);
-            const playerPhoto = this.getAttribute('data-player-photo') || '';
-            const playerPosition = this.getAttribute('data-player-position') || '-';
-            const playerJersey = this.getAttribute('data-player-jersey') || '-';
-            const playerInitial = playerName.charAt(0).toUpperCase();
-            const normalizedPosition = playerPosition.toLowerCase();
-            const isGoalkeeper = normalizedPosition.includes('goalkeeper')
-                || normalizedPosition.includes('kiper')
-                || normalizedPosition.includes('keeper')
-                || normalizedPosition.includes('gk');
-            
-            const avatarHtml = (playerPhoto && playerPhoto !== '')
-                ? `<img src="${playerPhoto}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; animation: avatarZoom 0.5s ease-out;">`
-                : `<span style="font-size: 3rem; font-weight: 800; color: white; animation: avatarZoom 0.5s ease-out;">${playerInitial}</span>`;
-            
-            const totalContrib = goals + assists;
-            const totalGoalkeeping = saves + cleanSheets;
-            const discipline = yellowCards + (redCards * 2);
-            const contribCap = 10;
-            const goalkeepingCap = 12;
-            const disciplineCap = 8;
-            const keyStatsHtml = isGoalkeeper
-                ? `
+            const selectedPlayerStats = contentDiv.querySelector('#selectedPlayerStats');
+
+            contentDiv.querySelectorAll('.player-card-modal').forEach((playerCard) => {
+                playerCard.addEventListener('click', function () {
+                    contentDiv.querySelectorAll('.player-card-modal').forEach(card => {
+                        card.classList.remove('is-selected');
+                        card.style.transform = 'scale(1)';
+                    });
+                    this.classList.add('is-selected');
+
+                    this.style.transform = 'scale(1.02)';
+                    setTimeout(() => {
+                        if (this.classList.contains('is-selected')) {
+                            this.style.transform = 'scale(1)';
+                        }
+                    }, 200);
+
+                    const playerName = this.getAttribute('data-player-name') || 'Unknown';
+                    const goals = parseInt(this.getAttribute('data-player-goals') || '0', 10);
+                    const assists = parseInt(this.getAttribute('data-player-assists') || '0', 10);
+                    const saves = parseInt(this.getAttribute('data-player-saves') || '0', 10);
+                    const cleanSheets = parseInt(this.getAttribute('data-player-clean-sheets') || '0', 10);
+                    const yellowCards = parseInt(this.getAttribute('data-player-yellow-cards') || '0', 10);
+                    const redCards = parseInt(this.getAttribute('data-player-red-cards') || '0', 10);
+                    const playerPhoto = this.getAttribute('data-player-photo') || '';
+                    const playerPosition = this.getAttribute('data-player-position') || '-';
+                    const playerJersey = this.getAttribute('data-player-jersey') || '-';
+                    const playerInitial = playerName.charAt(0).toUpperCase();
+                    const normalizedPosition = playerPosition.toLowerCase();
+                    const isGoalkeeper = normalizedPosition.includes('goalkeeper')
+                        || normalizedPosition.includes('kiper')
+                        || normalizedPosition.includes('keeper')
+                        || normalizedPosition.includes('gk');
+
+                    const avatarHtml = (playerPhoto && playerPhoto !== '')
+                        ? `<img src="${playerPhoto}" alt="${playerName}" style="width: 100%; height: 100%; object-fit: cover; animation: avatarZoom 0.5s ease-out;">`
+                        : `<span style="font-size: 3rem; font-weight: 800; color: white; animation: avatarZoom 0.5s ease-out;">${playerInitial}</span>`;
+
+                    const totalContrib = goals + assists;
+                    const totalGoalkeeping = saves + cleanSheets;
+                    const discipline = yellowCards + (redCards * 2);
+                    const contribCap = 10;
+                    const goalkeepingCap = 12;
+                    const disciplineCap = 8;
+                    const keyStatsHtml = isGoalkeeper
+                        ? `
                             <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.05s; opacity: 0;">
                                 <i class="bi bi-hand-index-thumb key-stat-icon text-primary"></i>
                                 <div class="key-stat-number" data-target="${saves}">0</div>
@@ -3984,7 +4002,7 @@ function showTeamPlayers(teamCard, modal) {
                                 <div class="key-stat-label">GK Impact</div>
                             </div>
                 `
-                : `
+                        : `
                             <div class="key-stat-box" style="animation: fadeInUp 0.4s ease-out forwards; animation-delay: 0.05s; opacity: 0;">
                                 <i class="bi bi-bullseye key-stat-icon"></i>
                                 <div class="key-stat-number" data-target="${goals}">0</div>
@@ -4001,16 +4019,16 @@ function showTeamPlayers(teamCard, modal) {
                                 <div class="key-stat-label">G/A Sum</div>
                             </div>
                 `;
-            const impactLabel = isGoalkeeper ? 'Goalkeeping Impact' : 'Goal Contribution Impact';
-            const impactValue = isGoalkeeper ? totalGoalkeeping : totalContrib;
-            const impactCap = isGoalkeeper ? goalkeepingCap : contribCap;
+                    const impactLabel = isGoalkeeper ? 'Goalkeeping Impact' : 'Goal Contribution Impact';
+                    const impactValue = isGoalkeeper ? totalGoalkeeping : totalContrib;
+                    const impactCap = isGoalkeeper ? goalkeepingCap : contribCap;
 
-            selectedPlayerStats.style.animation = 'none';
-            selectedPlayerStats.offsetHeight;
-            selectedPlayerStats.style.animation = 'statsCardReveal 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards';
-            
-            selectedPlayerStats.classList.remove('d-none');
-            selectedPlayerStats.innerHTML = `
+                    selectedPlayerStats.style.animation = 'none';
+                    selectedPlayerStats.offsetHeight;
+                    selectedPlayerStats.style.animation = 'statsCardReveal 0.5s cubic-bezier(0.34, 1.2, 0.64, 1) forwards';
+
+                    selectedPlayerStats.classList.remove('d-none');
+                    selectedPlayerStats.innerHTML = `
                 <div class="player-stats-card">
                     <div class="player-photo-area">
                         <div class="player-avatar-wrapper">${avatarHtml}</div>
@@ -4070,152 +4088,152 @@ function showTeamPlayers(teamCard, modal) {
                     </div>
                 </div>
             `;
-            
-            const animateNumber = (element, target, duration = 600) => {
-                let start = 0;
-                const increment = target / (duration / 16);
-                const timer = setInterval(() => {
-                    start += increment;
-                    if (start >= target) {
-                        element.textContent = target;
-                        clearInterval(timer);
-                    } else {
-                        element.textContent = Math.floor(start);
+
+                    const animateNumber = (element, target, duration = 600) => {
+                        let start = 0;
+                        const increment = target / (duration / 16);
+                        const timer = setInterval(() => {
+                            start += increment;
+                            if (start >= target) {
+                                element.textContent = target;
+                                clearInterval(timer);
+                            } else {
+                                element.textContent = Math.floor(start);
+                            }
+                        }, 16);
+                    };
+
+                    const keyStats = selectedPlayerStats.querySelectorAll('.key-stat-number[data-target]');
+                    keyStats.forEach(stat => {
+                        const target = parseInt(stat.getAttribute('data-target') || '0', 10);
+                        animateNumber(stat, target, 500);
+                    });
+
+                    const cardStats = selectedPlayerStats.querySelectorAll('.stat-number-animate');
+                    cardStats.forEach(stat => {
+                        const target = parseInt(stat.getAttribute('data-value') || '0', 10);
+                        animateNumber(stat, target, 400);
+                    });
+
+                    const progressBars = selectedPlayerStats.querySelectorAll('.progress-fill');
+                    progressBars.forEach(bar => {
+                        const width = bar.style.width;
+                        bar.style.width = '0%';
+                        setTimeout(() => {
+                            bar.style.width = width;
+                        }, 100);
+                    });
+
+                    initRadarChart(playerName, playerJersey);
+
+                    const modalBody = document.querySelector('#teamDetailsModal .modal-body');
+                    if (modalBody) {
+                        modalBody.scrollTo({ top: 0, behavior: 'smooth' });
                     }
-                }, 16);
-            };
-            
-            const keyStats = selectedPlayerStats.querySelectorAll('.key-stat-number[data-target]');
-            keyStats.forEach(stat => {
-                const target = parseInt(stat.getAttribute('data-target') || '0', 10);
-                animateNumber(stat, target, 500);
+                });
             });
-            
-            const cardStats = selectedPlayerStats.querySelectorAll('.stat-number-animate');
-            cardStats.forEach(stat => {
-                const target = parseInt(stat.getAttribute('data-value') || '0', 10);
-                animateNumber(stat, target, 400);
-            });
-            
-            const progressBars = selectedPlayerStats.querySelectorAll('.progress-fill');
-            progressBars.forEach(bar => {
-                const width = bar.style.width;
-                bar.style.width = '0%';
-                setTimeout(() => {
-                    bar.style.width = width;
-                }, 100);
-            });
-            
-            initRadarChart(playerName, playerJersey);
-            
-            const modalBody = document.querySelector('#teamDetailsModal .modal-body');
-            if (modalBody) {
-                modalBody.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-    });
-    
-    modal.show();
-}
 
-/**
- * Initialize Radar Chart for Player Attributes
- */
-function initRadarChart(playerName, jersey) {
-    const ctx = document.getElementById('playerRadarChart');
-    if (!ctx) return;
+            modal.show();
+        }
 
-    // Generate consistent mock attributes for demo based on player info
-    const seed = playerName.length + parseInt(jersey || 0);
-    const stats = [
-        70 + (seed % 25),       // Speed
-        65 + ((seed * 2) % 30), // Power
-        75 + ((seed * 3) % 20), // Accuracy
-        80 + ((seed * 4) % 15), // Stamina
-        72 + ((seed * 5) % 23)  // Technique
-    ];
+        /**
+         * Initialize Radar Chart for Player Attributes
+         */
+        function initRadarChart(playerName, jersey) {
+            const ctx = document.getElementById('playerRadarChart');
+            if (!ctx) return;
 
-    new Chart(ctx, {
-        type: 'radar',
-        data: {
-            labels: ['Speed', 'Power', 'Accuracy', 'Stamina', 'Technique'],
-            datasets: [{
-                data: stats,
-                fill: true,
-                backgroundColor: 'rgba(59, 130, 246, 0.2)',
-                borderColor: 'rgb(59, 130, 246)',
-                pointBackgroundColor: 'rgb(59, 130, 246)',
-                pointBorderColor: '#fff',
-                pointHoverBackgroundColor: '#fff',
-                pointHoverBorderColor: 'rgb(59, 130, 246)'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                r: {
-                    angleLines: { display: true, color: '#e2e8f0' },
-                    grid: { color: '#e2e8f0' },
-                    pointLabels: { font: { size: 11, weight: '600' }, color: '#64748b' },
-                    ticks: { display: false },
-                    suggestedMin: 0,
-                    suggestedMax: 100
+            // Generate consistent mock attributes for demo based on player info
+            const seed = playerName.length + parseInt(jersey || 0);
+            const stats = [
+                70 + (seed % 25),       // Speed
+                65 + ((seed * 2) % 30), // Power
+                75 + ((seed * 3) % 20), // Accuracy
+                80 + ((seed * 4) % 15), // Stamina
+                72 + ((seed * 5) % 23)  // Technique
+            ];
+
+            new Chart(ctx, {
+                type: 'radar',
+                data: {
+                    labels: ['Speed', 'Power', 'Accuracy', 'Stamina', 'Technique'],
+                    datasets: [{
+                        data: stats,
+                        fill: true,
+                        backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                        borderColor: 'rgb(59, 130, 246)',
+                        pointBackgroundColor: 'rgb(59, 130, 246)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgb(59, 130, 246)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        r: {
+                            angleLines: { display: true, color: '#e2e8f0' },
+                            grid: { color: '#e2e8f0' },
+                            pointLabels: { font: { size: 11, weight: '600' }, color: '#64748b' },
+                            ticks: { display: false },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
+                    },
+                    plugins: { legend: { display: false } }
                 }
-            },
-            plugins: { legend: { display: false } }
+            });
         }
-    });
-}
 
-function generatePlayersHtml(players) {
-    if (!players || players.length === 0) return '';
-    
-    let html = '';
-    const dummyAvatarStyles = ['adventurer', 'lorelei', 'micah', 'fun-emoji', 'bottts'];
-    const getDummyAvatar = (player) => {
-        const seed = encodeURIComponent(`${player.id || ''}-${player.name || 'player'}`);
-        const styleIndex = Math.abs((player.id || 0) + (player.name || '').length) % dummyAvatarStyles.length;
-        const style = dummyAvatarStyles[styleIndex];
-        return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundType=gradientLinear`;
-    };
+        function generatePlayersHtml(players) {
+            if (!players || players.length === 0) return '';
 
-    players.forEach(player => {
-        const position = (player.position || '').toLowerCase();
-        const isGoalkeeper = position.includes('goalkeeper')
-            || position.includes('kiper')
-            || position.includes('keeper')
-            || position.includes('gk');
+            let html = '';
+            const dummyAvatarStyles = ['adventurer', 'lorelei', 'micah', 'fun-emoji', 'bottts'];
+            const getDummyAvatar = (player) => {
+                const seed = encodeURIComponent(`${player.id || ''}-${player.name || 'player'}`);
+                const styleIndex = Math.abs((player.id || 0) + (player.name || '').length) % dummyAvatarStyles.length;
+                const style = dummyAvatarStyles[styleIndex];
+                return `https://api.dicebear.com/7.x/${style}/svg?seed=${seed}&backgroundType=gradientLinear`;
+            };
 
-        // Photo HTML
-        let photoHtml = '';
-        const photoSource = player.photo ? `{{ asset('storage/') }}/${player.photo}` : getDummyAvatar(player);
-        if (player.photo) {
-            photoHtml = `<img src="${photoSource}" alt="${player.name}" class="player-photo">`;
-        } else {
-            photoHtml = `<img src="${photoSource}" alt="${player.name || 'Player'}" class="player-photo">`;
-        }
-        
-        // Stats badges
-        let statsHtml = '';
-        if (player.goals > 0 || player.assists > 0 || (isGoalkeeper && ((player.saves || 0) > 0 || (player.clean_sheets || 0) > 0))) {
-            statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
-            if (player.goals > 0) {
-                statsHtml += `<span class="badge bg-success"><i class="bi bi-bullseye"></i> ${player.goals}</span>`;
-            }
-            if (player.assists > 0) {
-                statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
-            }
-            if (isGoalkeeper && (player.saves || 0) > 0) {
-                statsHtml += `<span class="badge bg-primary"><i class="bi bi-hand-index-thumb"></i> ${player.saves}</span>`;
-            }
-            if (isGoalkeeper && (player.clean_sheets || 0) > 0) {
-                statsHtml += `<span class="badge bg-dark"><i class="bi bi-shield-check"></i> ${player.clean_sheets}</span>`;
-            }
-            statsHtml += '</div>';
-        }
-        
-        html += `
+            players.forEach(player => {
+                const position = (player.position || '').toLowerCase();
+                const isGoalkeeper = position.includes('goalkeeper')
+                    || position.includes('kiper')
+                    || position.includes('keeper')
+                    || position.includes('gk');
+
+                // Photo HTML
+                let photoHtml = '';
+                const photoSource = player.photo ? `{{ asset('storage/') }}/${player.photo}` : getDummyAvatar(player);
+                if (player.photo) {
+                    photoHtml = `<img src="${photoSource}" alt="${player.name}" class="player-photo">`;
+                } else {
+                    photoHtml = `<img src="${photoSource}" alt="${player.name || 'Player'}" class="player-photo">`;
+                }
+
+                // Stats badges
+                let statsHtml = '';
+                if (player.goals > 0 || player.assists > 0 || (isGoalkeeper && ((player.saves || 0) > 0 || (player.clean_sheets || 0) > 0))) {
+                    statsHtml = '<div class="player-stats mt-2 d-flex justify-content-center gap-1">';
+                    if (player.goals > 0) {
+                        statsHtml += `<span class="badge bg-success"><i class="bi bi-bullseye"></i> ${player.goals}</span>`;
+                    }
+                    if (player.assists > 0) {
+                        statsHtml += `<span class="badge bg-info"><i class="bi bi-share"></i> ${player.assists}</span>`;
+                    }
+                    if (isGoalkeeper && (player.saves || 0) > 0) {
+                        statsHtml += `<span class="badge bg-primary"><i class="bi bi-hand-index-thumb"></i> ${player.saves}</span>`;
+                    }
+                    if (isGoalkeeper && (player.clean_sheets || 0) > 0) {
+                        statsHtml += `<span class="badge bg-dark"><i class="bi bi-shield-check"></i> ${player.clean_sheets}</span>`;
+                    }
+                    statsHtml += '</div>';
+                }
+
+                html += `
         <div class="player-card-modal"
             data-player-name="${(player.name || 'Unknown').replace(/"/g, '&quot;')}"
             data-player-goals="${player.goals || 0}"
@@ -4238,255 +4256,255 @@ function generatePlayersHtml(players) {
             </div>
         </div>
         `;
-    });
-    
-    return html;
-}
+            });
 
-// ==============================================
-// HERO FULLSCREEN MODAL - FIXED VERSION
-// ==============================================
+            return html;
+        }
 
-let heroModalInstance = null;
-let heroScale = 1;
+        // ==============================================
+        // HERO FULLSCREEN MODAL - FIXED VERSION
+        // ==============================================
 
-function initHeroSection() {
-    const heroSection = document.getElementById('mainHeroSection');
-    if (!heroSection) return;
-    
-    // Check if hero has image background
-    const hasImage = heroSection.style.backgroundImage && 
-                     heroSection.style.backgroundImage !== 'none';
-    
-    if (hasImage) {
-        heroSection.style.cursor = 'pointer';
-        
-        // Add click event
-        heroSection.addEventListener('click', function(e) {
-            // Check if click is not on CTA button
-            if (e.target.closest('.hero-cta-button')) {
+        let heroModalInstance = null;
+        let heroScale = 1;
+
+        function initHeroSection() {
+            const heroSection = document.getElementById('mainHeroSection');
+            if (!heroSection) return;
+
+            // Check if hero has image background
+            const hasImage = heroSection.style.backgroundImage &&
+                heroSection.style.backgroundImage !== 'none';
+
+            if (hasImage) {
+                heroSection.style.cursor = 'pointer';
+
+                // Add click event
+                heroSection.addEventListener('click', function (e) {
+                    // Check if click is not on CTA button
+                    if (e.target.closest('.hero-cta-button')) {
+                        return;
+                    }
+
+                    const bgImage = this.style.backgroundImage;
+                    if (bgImage && bgImage !== 'none') {
+                        // Extract URL from background-image
+                        const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
+                        if (match && match[1]) {
+                            const imageUrl = match[1];
+                            const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
+                            openHeroFullscreen(imageUrl, title);
+                        }
+                    }
+                });
+            }
+
+            // Add animation for zoom indicator
+            const zoomIndicators = document.querySelectorAll('.zoom-indicator');
+            zoomIndicators.forEach(indicator => {
+                indicator.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    const heroSection = this.closest('.hero-section');
+                    if (heroSection) {
+                        heroSection.click();
+                    }
+                });
+            });
+        }
+
+        function openHeroFullscreen(imageUrl, title) {
+            // Get modal element
+            const modalEl = document.getElementById('heroFullscreenModal');
+            if (!modalEl) {
+                console.error('Hero fullscreen modal not found!');
                 return;
             }
-            
-            const bgImage = this.style.backgroundImage;
-            if (bgImage && bgImage !== 'none') {
-                // Extract URL from background-image
-                const match = bgImage.match(/url\(["']?([^"')]+)["']?\)/);
-                if (match && match[1]) {
-                    const imageUrl = match[1];
-                    const title = this.querySelector('.tournament-title')?.textContent || 'Hero Image';
-                    openHeroFullscreen(imageUrl, title);
-                }
-            }
-        });
-    }
-    
-    // Add animation for zoom indicator
-    const zoomIndicators = document.querySelectorAll('.zoom-indicator');
-    zoomIndicators.forEach(indicator => {
-        indicator.addEventListener('click', function(e) {
-            e.stopPropagation();
-            const heroSection = this.closest('.hero-section');
-            if (heroSection) {
-                heroSection.click();
-            }
-        });
-    });
-}
 
-function openHeroFullscreen(imageUrl, title) {
-    // Get modal element
-    const modalEl = document.getElementById('heroFullscreenModal');
-    if (!modalEl) {
-        console.error('Hero fullscreen modal not found!');
-        return;
-    }
-    
-    // Create new modal instance
-    heroModalInstance = new bootstrap.Modal(modalEl, {
-        keyboard: true,
-        backdrop: true
-    });
-    
-    const imageContainer = document.getElementById('heroFullscreenImage');
-    const downloadBtn = document.getElementById('downloadHeroBtn');
-    
-    if (!imageContainer) {
-        console.error('Hero image container not found!');
-        return;
-    }
-    
-    // Show loading
-    imageContainer.innerHTML = `
+            // Create new modal instance
+            heroModalInstance = new bootstrap.Modal(modalEl, {
+                keyboard: true,
+                backdrop: true
+            });
+
+            const imageContainer = document.getElementById('heroFullscreenImage');
+            const downloadBtn = document.getElementById('downloadHeroBtn');
+
+            if (!imageContainer) {
+                console.error('Hero image container not found!');
+                return;
+            }
+
+            // Show loading
+            imageContainer.innerHTML = `
         <div class="hero-loading-spinner">
             <div class="spinner-border text-light" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
         </div>
     `;
-    
-    // Create image element
-    const img = new Image();
-    
-    img.onload = function() {
-        // After image loads, display it
-        imageContainer.innerHTML = `
+
+            // Create image element
+            const img = new Image();
+
+            img.onload = function () {
+                // After image loads, display it
+                imageContainer.innerHTML = `
             <img src="${imageUrl}" 
                  alt="${title}" 
                  class="hero-fullscreen-img"
                  style="max-width: 95vw; max-height: 95vh; object-fit: contain;">
         `;
-        
-        // Setup download button
-        if (downloadBtn) {
-            downloadBtn.onclick = function() {
-                const link = document.createElement('a');
-                link.href = imageUrl;
-                link.download = `hero-image-${Date.now()}.jpg`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+
+                // Setup download button
+                if (downloadBtn) {
+                    downloadBtn.onclick = function () {
+                        const link = document.createElement('a');
+                        link.href = imageUrl;
+                        link.download = `hero-image-${Date.now()}.jpg`;
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    };
+                }
             };
-        }
-    };
-    
-    img.onerror = function() {
-        // If failed to load image
-        imageContainer.innerHTML = `
+
+            img.onerror = function () {
+                // If failed to load image
+                imageContainer.innerHTML = `
             <div class="text-center text-white">
                 <i class="bi bi-exclamation-triangle display-4"></i>
                 <p class="mt-3">Failed to load image</p>
                 <p class="small">${imageUrl}</p>
             </div>
         `;
-    };
-    
-    // Start loading image
-    img.src = imageUrl;
-    
-    // Add cleanup on modal hide
-    modalEl.addEventListener('hidden.bs.modal', function() {
-        // Reset scale
-        heroScale = 1;
-        const img = imageContainer.querySelector('.hero-fullscreen-img');
-        if (img) {
-            img.style.transform = 'scale(1)';
-        }
-        
-        // Clear image container
-        imageContainer.innerHTML = '';
-        
-        // Clean up modal instance
-        if (heroModalInstance) {
-            heroModalInstance.dispose();
-            heroModalInstance = null;
-        }
-        
-        // Ensure body is scrollable
-        document.body.classList.remove('modal-open');
-        document.body.style.overflow = '';
-        document.body.style.paddingRight = '';
-        
-        // Remove any lingering backdrops
-        const backdrops = document.querySelectorAll('.modal-backdrop');
-        backdrops.forEach(backdrop => {
-            backdrop.remove();
-        });
-    }, { once: true });
-    
-    // Add wheel event for zoom
-    const modalBody = modalEl.querySelector('.modal-body');
-    heroScale = 1;
-    
-    function handleWheel(e) {
-        e.preventDefault();
-        
-        if (e.deltaY < 0) {
-            // Zoom in
-            heroScale = Math.min(heroScale + 0.1, 3);
-        } else {
-            // Zoom out
-            heroScale = Math.max(heroScale - 0.1, 0.5);
-        }
-        
-        const img = imageContainer.querySelector('.hero-fullscreen-img');
-        if (img) {
-            img.style.transform = `scale(${heroScale})`;
-        }
-    }
-    
-    // Add wheel event listener
-    if (modalBody) {
-        modalBody.addEventListener('wheel', handleWheel, { passive: false });
-        
-        // Remove on modal hide
-        modalEl.addEventListener('hidden.bs.modal', function() {
-            modalBody.removeEventListener('wheel', handleWheel);
-        }, { once: true });
-    }
-    
-    // Show modal
-    heroModalInstance.show();
-}
+            };
 
-// ==============================================
-// GLOBAL EVENT LISTENERS
-// ==============================================
+            // Start loading image
+            img.src = imageUrl;
 
-// ESC key to close modal
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        const modalEl = document.getElementById('heroFullscreenModal');
-        if (modalEl && modalEl.classList.contains('show')) {
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if (modal) {
-                modal.hide();
-            }
-        }
-    }
-});
+            // Add cleanup on modal hide
+            modalEl.addEventListener('hidden.bs.modal', function () {
+                // Reset scale
+                heroScale = 1;
+                const img = imageContainer.querySelector('.hero-fullscreen-img');
+                if (img) {
+                    img.style.transform = 'scale(1)';
+                }
 
-// ==============================================
-// INITIALIZE ALL FUNCTIONS ON DOM LOAD
-// ==============================================
+                // Clear image container
+                imageContainer.innerHTML = '';
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize team search
-    initTeamSearch();
-    
-    // Initialize team details modal
-    initTeamDetailsModal();
-    
-    // Initialize hero section
-    initHeroSection();
-});
+                // Clean up modal instance
+                if (heroModalInstance) {
+                    heroModalInstance.dispose();
+                    heroModalInstance = null;
+                }
 
-// Fix for modal backdrop issues
-document.addEventListener('DOMContentLoaded', function() {
-    // Ensure modal backdrop cleanup
-    const modalEl = document.getElementById('heroFullscreenModal');
-    
-    if (modalEl) {
-        // Additional cleanup on modal hide
-        modalEl.addEventListener('hidden.bs.modal', function() {
-            // Double-check backdrop removal
-            setTimeout(() => {
-                const backdrops = document.querySelectorAll('.modal-backdrop');
-                backdrops.forEach(backdrop => {
-                    if (backdrop.parentNode) {
-                        backdrop.parentNode.removeChild(backdrop);
-                    }
-                });
-                
                 // Ensure body is scrollable
                 document.body.classList.remove('modal-open');
-                document.body.style.cssText = '';
-            }, 100);
-        });
-    }
-});
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
 
-</script>
+                // Remove any lingering backdrops
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => {
+                    backdrop.remove();
+                });
+            }, { once: true });
+
+            // Add wheel event for zoom
+            const modalBody = modalEl.querySelector('.modal-body');
+            heroScale = 1;
+
+            function handleWheel(e) {
+                e.preventDefault();
+
+                if (e.deltaY < 0) {
+                    // Zoom in
+                    heroScale = Math.min(heroScale + 0.1, 3);
+                } else {
+                    // Zoom out
+                    heroScale = Math.max(heroScale - 0.1, 0.5);
+                }
+
+                const img = imageContainer.querySelector('.hero-fullscreen-img');
+                if (img) {
+                    img.style.transform = `scale(${heroScale})`;
+                }
+            }
+
+            // Add wheel event listener
+            if (modalBody) {
+                modalBody.addEventListener('wheel', handleWheel, { passive: false });
+
+                // Remove on modal hide
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    modalBody.removeEventListener('wheel', handleWheel);
+                }, { once: true });
+            }
+
+            // Show modal
+            heroModalInstance.show();
+        }
+
+        // ==============================================
+        // GLOBAL EVENT LISTENERS
+        // ==============================================
+
+        // ESC key to close modal
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                const modalEl = document.getElementById('heroFullscreenModal');
+                if (modalEl && modalEl.classList.contains('show')) {
+                    const modal = bootstrap.Modal.getInstance(modalEl);
+                    if (modal) {
+                        modal.hide();
+                    }
+                }
+            }
+        });
+
+        // ==============================================
+        // INITIALIZE ALL FUNCTIONS ON DOM LOAD
+        // ==============================================
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // Initialize team search
+            initTeamSearch();
+
+            // Initialize team details modal
+            initTeamDetailsModal();
+
+            // Initialize hero section
+            initHeroSection();
+        });
+
+        // Fix for modal backdrop issues
+        document.addEventListener('DOMContentLoaded', function () {
+            // Ensure modal backdrop cleanup
+            const modalEl = document.getElementById('heroFullscreenModal');
+
+            if (modalEl) {
+                // Additional cleanup on modal hide
+                modalEl.addEventListener('hidden.bs.modal', function () {
+                    // Double-check backdrop removal
+                    setTimeout(() => {
+                        const backdrops = document.querySelectorAll('.modal-backdrop');
+                        backdrops.forEach(backdrop => {
+                            if (backdrop.parentNode) {
+                                backdrop.parentNode.removeChild(backdrop);
+                            }
+                        });
+
+                        // Ensure body is scrollable
+                        document.body.classList.remove('modal-open');
+                        document.body.style.cssText = '';
+                    }, 100);
+                });
+            }
+        });
+
+    </script>
 
 
 
