@@ -26,7 +26,7 @@ class Player extends Model
     ];
 
     // Tambahkan ini
-    protected $appends = ['photo_url', 'initial'];
+    protected $appends = ['photo_url', 'initial', 'appearances_count'];
 
     // Relasi dengan Team
     public function team()
@@ -38,6 +38,12 @@ class Player extends Model
     public function matchEvents()
     {
         return $this->hasMany(MatchEvent::class);
+    }
+
+    // Relasi ke Pertandingan yang pernah diikuti
+    public function matches()
+    {
+        return $this->belongsToMany(Game::class, 'match_player', 'player_id', 'match_id');
     }
 
     // Scope untuk top scorer
@@ -57,8 +63,15 @@ class Player extends Model
     // Accessor untuk initial
     public function getInitialAttribute()
     {
-        if (!$this->name) return '?';
+        if (!$this->name)
+            return '?';
         return strtoupper(substr($this->name, 0, 1));
+    }
+
+    // Accessor untuk total penampilan
+    public function getAppearancesCountAttribute()
+    {
+        return $this->matches()->count();
     }
 
     // Accessor untuk photo_url

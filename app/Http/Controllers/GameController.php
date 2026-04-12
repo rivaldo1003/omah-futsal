@@ -934,6 +934,59 @@ class GameController extends Controller
         }
     }
 
+    /**
+     * Show form to manage match lineup
+     */
+    public function lineup(Game $match)
+    {
+        $match->load([
+            'homeTeam.players' => fn($q) => $q->orderBy('name'),
+            'awayTeam.players' => fn($q) => $q->orderBy('name'),
+            'tournament'
+        ]);
+
+        $currentLineupIds = DB::table('match_player')
+            ->where('match_id', $match->id)
+            ->pluck('player_id')
+            ->toArray();
+
+        return view('admin.matches.lineup', compact('match', 'currentLineupIds'));
+    }
+
+    /**
+     * Save match lineup (players who played in this match)
+     */
+    public function saveLineup(Request $request, Game $match)
+    {
+        $request->validate([
+            'player_ids' => 'required|array',
+            'player_ids.*' => 'exists:players,id'
+        ]);
+
+        try {
+            DB::transaction(function () use ($request, $match) {
+                // Hapus lineup lama (jika ingin update ulang)
+                DB::table('match_player')->where('match_id', $match->id)->delete();
+
+                // Masukkan lineup baru
+                foreach ($request->player_ids as $playerId) {
+                    $player = Player::find($playerId);
+                    DB::table('match_player')->insert([
+                        'match_id' => $match->id,
+                        'player_id' => $playerId,
+                        'team_id' => $player->team_id,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            });
+
+            return redirect()->back()->with('success', 'Lineup saved successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Error saving lineup: ' . $e->getMessage());
+        }
+    }
+
     // ==================== YOUTUBE HIGHLIGHTS ====================
 
     /**
