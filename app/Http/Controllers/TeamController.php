@@ -393,19 +393,18 @@ class TeamController extends Controller
                     ->with('error', 'Cannot delete team that has matches. Delete matches first.');
             }
 
-            // Delete logo if exists
-            if ($team->logo && Storage::disk('public')->exists($team->logo)) {
-                Storage::disk('public')->delete($team->logo);
-            }
+            DB::transaction(function () use ($team) {
+                // Hapus logo jika ada
+                if ($team->logo && Storage::disk('public')->exists($team->logo)) {
+                    Storage::disk('public')->delete($team->logo);
+                }
 
-            // Remove players from team
-            $team->players()->update(['team_id' => null]);
+                // Lepas relasi turnamen
+                $team->tournaments()->detach();
 
-            // Detach tournaments
-            $team->tournaments()->detach();
-
-            // Delete team
-            $team->delete();
+                // Hapus tim (Pemain akan otomatis terhapus lewat event booted di Model)
+                $team->delete();
+            });
 
             return redirect()->route('admin.teams.index')
                 ->with('success', 'Team deleted successfully!');

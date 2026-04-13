@@ -9,6 +9,14 @@ class Team extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::deleting(function ($team) {
+            // Hapus semua pemain terkait agar tidak terjadi error "team_id cannot be null"
+            $team->players()->delete();
+        });
+    }
+
     protected $fillable = [
         'name',
         'short_name',
