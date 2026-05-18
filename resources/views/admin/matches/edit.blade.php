@@ -82,6 +82,7 @@
         @if($isFriendly ?? false)
             <option value="friendly" {{ old('round_type', $match->round_type) == 'friendly' ? 'selected' : '' }}>Friendly Match</option>
         @endif
+        <option value="league" {{ old('round_type', $match->round_type) == 'league' ? 'selected' : '' }}>League</option>
         
         <!-- Qualifying/Preliminary Rounds -->
         <option value="preliminary" {{ old('round_type', $match->round_type) == 'preliminary' ? 'selected' : '' }}>Preliminary Round</option>

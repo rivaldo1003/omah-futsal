@@ -31,7 +31,7 @@ class TournamentController extends Controller
         $tournament = Tournament::findOrFail($tournamentId);
 
         // Debug 1: Cek tournament
-        \Log::info('Tournament ID: '.$tournament->id.', Name: '.$tournament->name);
+        \Log::info('Tournament ID: ' . $tournament->id . ', Name: ' . $tournament->name);
 
         // Ambil standings yang sudah ada (tim yang sudah bertanding)
         $standings = Standing::where('tournament_id', $tournamentId)
@@ -39,7 +39,7 @@ class TournamentController extends Controller
             ->get();
 
         // Debug 2: Cek standings
-        \Log::info('Standings count: '.$standings->count());
+        \Log::info('Standings count: ' . $standings->count());
 
         // AMBIL SEMUA TIM YANG TERDAFTAR DI TOURNAMENT
         $allRegisteredTeams = DB::table('team_tournament')
@@ -64,7 +64,7 @@ class TournamentController extends Controller
         // Tambahkan ini untuk langsung lihat di browser:
         if ($allRegisteredTeams->isEmpty()) {
             dd(
-                'NO TEAMS FOUND in team_tournament for tournament ID: '.$tournamentId,
+                'NO TEAMS FOUND in team_tournament for tournament ID: ' . $tournamentId,
                 'Tournament: ',
                 $tournament
             );
@@ -145,7 +145,7 @@ class TournamentController extends Controller
         \Log::info('Tournament create step:', [
             'step' => $step,
             'currentStep' => $currentStep,
-            'session_data' => ! empty($tournamentData),
+            'session_data' => !empty($tournamentData),
         ]);
 
         // Kirim data ke view dengan nama variabel yang konsisten
@@ -178,7 +178,7 @@ class TournamentController extends Controller
         // Log untuk debugging
         \Log::info('Store step data:', [
             'step' => $step,
-            'has_session_data' => ! empty($tournamentData),
+            'has_session_data' => !empty($tournamentData),
             'request_data' => $request->except(['_token']),
         ]);
 
@@ -250,7 +250,7 @@ class TournamentController extends Controller
                 // Handle file upload untuk logo
                 if ($request->hasFile('logo')) {
                     $logoFile = $request->file('logo');
-                    $logoName = 'logo_'.Str::random(10).'_'.time().'.'.$logoFile->getClientOriginalExtension();
+                    $logoName = 'logo_' . Str::random(10) . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
                     $logoPath = $logoFile->storeAs('tournament-logos', $logoName, 'public');
                     $validated['logo'] = $logoPath;
                 }
@@ -258,7 +258,7 @@ class TournamentController extends Controller
                 // Handle file upload untuk banner
                 if ($request->hasFile('banner')) {
                     $bannerFile = $request->file('banner');
-                    $bannerName = 'banner_'.Str::random(10).'_'.time().'.'.$bannerFile->getClientOriginalExtension();
+                    $bannerName = 'banner_' . Str::random(10) . '_' . time() . '.' . $bannerFile->getClientOriginalExtension();
                     $bannerPath = $bannerFile->storeAs('tournament-banners', $bannerName, 'public');
                     $validated['banner'] = $bannerPath;
                 }
@@ -291,9 +291,10 @@ class TournamentController extends Controller
                     }
 
                     // Warning jika bukan power of 2
-                    if (! ($selectedTeamCount >= 2 && ($selectedTeamCount & ($selectedTeamCount - 1)) == 0)) {
-                        session()->flash('warning',
-                            'Knockout tournament works best with power of 2 teams (2, 4, 8, 16, 32). '.
+                    if (!($selectedTeamCount >= 2 && ($selectedTeamCount & ($selectedTeamCount - 1)) == 0)) {
+                        session()->flash(
+                            'warning',
+                            'Knockout tournament works best with power of 2 teams (2, 4, 8, 16, 32). ' .
                             'Byes will be added for missing teams.'
                         );
                     }
@@ -337,7 +338,7 @@ class TournamentController extends Controller
                 }
 
                 return redirect()->route('admin.tournaments.create.step', ['step' => $nextStep])
-                    ->with('success', 'Teams selected. '.
+                    ->with('success', 'Teams selected. ' .
                         ($nextStep == 3 ? 'Please assign teams to groups.' : 'Please configure match rules.'));
 
             case 3:
@@ -347,7 +348,7 @@ class TournamentController extends Controller
                 if ($tournamentType === 'knockout' || $tournamentType === 'league') {
                     // Redirect ke step 4
                     return redirect()->route('admin.tournaments.create.step', ['step' => 4])
-                        ->with('success', ucfirst($tournamentType).' tournament setup. Please configure match rules.');
+                        ->with('success', ucfirst($tournamentType) . ' tournament setup. Please configure match rules.');
                 }
 
                 // **Hanya Group + Knockout yang memerlukan group assignment**
@@ -355,7 +356,7 @@ class TournamentController extends Controller
                     $groupAssignments = $request->input('group_assignments', '[]');
                     $groupAssignments = json_decode($groupAssignments, true);
 
-                    if (! is_array($groupAssignments)) {
+                    if (!is_array($groupAssignments)) {
                         return redirect()->back()
                             ->with('error', 'Invalid group assignments data.')
                             ->withInput();
@@ -366,7 +367,7 @@ class TournamentController extends Controller
                     $assignedTeamIds = array_column($groupAssignments, 'team_id');
                     $unassignedTeams = array_diff($selectedTeams, $assignedTeamIds);
 
-                    if (! empty($unassignedTeams)) {
+                    if (!empty($unassignedTeams)) {
                         return redirect()->back()
                             ->with('error', 'Please assign all teams to groups. There are still unassigned teams.')
                             ->withInput();
@@ -404,6 +405,7 @@ class TournamentController extends Controller
                     'extra_time_enabled' => 'nullable|boolean',
                     'penalty_shootout' => 'nullable|boolean',
                     'var_enabled' => 'nullable|boolean',
+                    'tie_breakers' => 'nullable|array',
                 ]);
 
                 // Merge validated data
@@ -454,9 +456,9 @@ class TournamentController extends Controller
                     }
                 }
 
-                if (! empty($missingFields)) {
+                if (!empty($missingFields)) {
                     return redirect()->route('admin.tournaments.create.step', ['step' => 1])
-                        ->with('error', 'Missing required fields: '.implode(', ', $missingFields));
+                        ->with('error', 'Missing required fields: ' . implode(', ', $missingFields));
                 }
 
                 try {
@@ -464,7 +466,7 @@ class TournamentController extends Controller
 
                     // Auto-generate slug jika kosong
                     if (empty($tournamentData['slug'])) {
-                        $tournamentData['slug'] = Str::slug($tournamentData['name']).'-'.time();
+                        $tournamentData['slug'] = Str::slug($tournamentData['name']) . '-' . time();
                     }
 
                     // Prepare settings as JSON
@@ -485,6 +487,7 @@ class TournamentController extends Controller
                         'extra_time_enabled' => (bool) ($tournamentData['extra_time_enabled'] ?? true),
                         'penalty_shootout' => (bool) ($tournamentData['penalty_shootout'] ?? true),
                         'var_enabled' => (bool) ($tournamentData['var_enabled'] ?? false),
+                        'tie_breakers' => $tournamentData['tie_breakers'] ?? null,
                     ];
 
                     // **PERBAIKAN: Tambah setting khusus berdasarkan tipe yang benar**
@@ -576,7 +579,7 @@ class TournamentController extends Controller
                     session()->forget('tournament_data');
 
                     // Redirect dengan pesan yang sesuai
-                    $redirectMessage = 'Tournament "'.$tournament->name.'" created successfully!';
+                    $redirectMessage = 'Tournament "' . $tournament->name . '" created successfully!';
 
                     if ($tournamentType === 'knockout') {
                         $redirectMessage .= ' You can now generate knockout bracket.';
@@ -591,13 +594,13 @@ class TournamentController extends Controller
                         ->with('tournament_id', $tournament->id);
                 } catch (\Exception $e) {
                     DB::rollBack();
-                    \Log::error('Tournament creation failed: '.$e->getMessage(), [
+                    \Log::error('Tournament creation failed: ' . $e->getMessage(), [
                         'exception' => $e,
                         'tournament_data' => $tournamentData,
                     ]);
 
                     return redirect()->route('admin.tournaments.create.step', ['step' => 1])
-                        ->with('error', 'Error creating tournament: '.$e->getMessage());
+                        ->with('error', 'Error creating tournament: ' . $e->getMessage());
                 }
         }
     }
@@ -690,7 +693,7 @@ class TournamentController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'slug' => 'nullable|string|max:255|unique:tournaments,slug,'.$tournament->id,
+            'slug' => 'nullable|string|max:255|unique:tournaments,slug,' . $tournament->id,
             'description' => 'nullable|string',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
@@ -707,6 +710,7 @@ class TournamentController extends Controller
             'half_time' => 'required|integer|min:5|max:30',
             'points_win' => 'required|integer|min:0|max:10',
             'points_draw' => 'required|integer|min:0|max:5',
+            'tie_breakers' => 'nullable|array',
         ]);
 
         try {
@@ -720,7 +724,7 @@ class TournamentController extends Controller
                 }
 
                 $logoFile = $request->file('logo');
-                $logoName = 'logo_'.Str::random(10).'_'.time().'.'.$logoFile->getClientOriginalExtension();
+                $logoName = 'logo_' . Str::random(10) . '_' . time() . '.' . $logoFile->getClientOriginalExtension();
                 $logoPath = $logoFile->storeAs('tournament-logos', $logoName, 'public');
                 $validated['logo'] = $logoPath;
             } else {
@@ -736,7 +740,7 @@ class TournamentController extends Controller
                 }
 
                 $bannerFile = $request->file('banner');
-                $bannerName = 'banner_'.Str::random(10).'_'.time().'.'.$bannerFile->getClientOriginalExtension();
+                $bannerName = 'banner_' . Str::random(10) . '_' . time() . '.' . $bannerFile->getClientOriginalExtension();
                 $bannerPath = $bannerFile->storeAs('tournament-banners', $bannerName, 'public');
                 $validated['banner'] = $bannerPath;
             } else {
@@ -751,12 +755,13 @@ class TournamentController extends Controller
                 'half_time' => $validated['half_time'],
                 'points_win' => $validated['points_win'],
                 'points_draw' => $validated['points_draw'],
+                'tie_breakers' => $request->tie_breakers,
             ]);
 
             // Update tournament
             $tournament->update([
                 'name' => $validated['name'],
-                'slug' => $validated['slug'] ?? Str::slug($validated['name']).'-'.time(),
+                'slug' => $validated['slug'] ?? Str::slug($validated['name']) . '-' . time(),
                 'description' => $validated['description'] ?? null,
                 'start_date' => $validated['start_date'],
                 'end_date' => $validated['end_date'],
@@ -777,7 +782,7 @@ class TournamentController extends Controller
 
             // Remove teams that are no longer selected
             $teamsToRemove = array_diff($currentTeams, $newTeams);
-            if (! empty($teamsToRemove)) {
+            if (!empty($teamsToRemove)) {
                 DB::table('team_tournament')
                     ->where('tournament_id', $tournament->id)
                     ->whereIn('team_id', $teamsToRemove)
@@ -786,7 +791,7 @@ class TournamentController extends Controller
 
             // Add new teams
             $teamsToAdd = array_diff($newTeams, $currentTeams);
-            if (! empty($teamsToAdd)) {
+            if (!empty($teamsToAdd)) {
                 foreach ($teamsToAdd as $teamId) {
                     // **PERBAIKAN: Assign group hanya untuk group_knockout**
                     $groupName = null;
@@ -809,18 +814,18 @@ class TournamentController extends Controller
             DB::commit();
 
             return redirect()->route('admin.tournaments.index')
-                ->with('success', 'Tournament "'.$tournament->name.'" updated successfully!');
+                ->with('success', 'Tournament "' . $tournament->name . '" updated successfully!');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
-            \Log::error('Tournament update failed: '.$e->getMessage(), [
+            \Log::error('Tournament update failed: ' . $e->getMessage(), [
                 'exception' => $e,
                 'tournament_id' => $tournament->id,
             ]);
 
             return redirect()->back()
-                ->with('error', 'Error updating tournament: '.$e->getMessage())
+                ->with('error', 'Error updating tournament: ' . $e->getMessage())
                 ->withInput();
         }
     }
@@ -845,7 +850,7 @@ class TournamentController extends Controller
 
         } catch (\Exception $e) {
             return redirect()->back()
-                ->with('error', 'Error deleting tournament: '.$e->getMessage());
+                ->with('error', 'Error deleting tournament: ' . $e->getMessage());
         }
     }
 
@@ -873,13 +878,13 @@ class TournamentController extends Controller
             DB::commit();
 
             return redirect()->back()
-                ->with('success', 'Schedule generated successfully! '.count($matches).' matches created.');
+                ->with('success', 'Schedule generated successfully! ' . count($matches) . ' matches created.');
 
         } catch (\Exception $e) {
             DB::rollBack();
 
             return redirect()->back()
-                ->with('error', 'Error generating schedule: '.$e->getMessage());
+                ->with('error', 'Error generating schedule: ' . $e->getMessage());
         }
     }
 
@@ -956,7 +961,7 @@ class TournamentController extends Controller
         $teamsArray = $teams->sortBy('pivot.seed')->values()->toArray();
         $totalTeams = count($teamsArray);
 
-        if (! ($totalTeams > 0 && ($totalTeams & ($totalTeams - 1)) == 0)) {
+        if (!($totalTeams > 0 && ($totalTeams & ($totalTeams - 1)) == 0)) {
             throw new \Exception('Knockout tournament requires power of 2 teams (2, 4, 8, 16, 32, 64)');
         }
 
