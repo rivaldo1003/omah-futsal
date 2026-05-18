@@ -2252,45 +2252,45 @@
     <!-- ============================================== -->
     @if($heroSetting->is_active)
         <div class="hero-section" id="mainHeroSection" style="
-                                @if($heroSetting->background_type === 'gradient')
-                                    background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-                                @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-                                    background-color: {{ $heroSetting->background_color }};
-                                @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                                    background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-                                    background-size: cover;
-                                    background-position: center;
-                                    background-repeat: no-repeat;
-                                    cursor: pointer;
-                                    transition: all 0.3s ease;
-                                    @if($heroSetting->overlay_opacity > 0)
-                                        position: relative;
-                                    @endif
-                                @else
-                                    background: linear-gradient(135deg, #0f172a, #1e293b);
-                                @endif
-                                color: {{ $heroSetting->text_color }};
-                                position: relative;
-                                overflow: hidden;
-                                min-height: 400px;
-                            " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
-                                onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
-                                onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
-                                onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
-                            title="Click to view full image" @endif>
+                                                        @if($heroSetting->background_type === 'gradient')
+                                                            background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+                                                        @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                                                            background-color: {{ $heroSetting->background_color }};
+                                                        @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                                                            background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                                                            background-size: cover;
+                                                            background-position: center;
+                                                            background-repeat: no-repeat;
+                                                            cursor: pointer;
+                                                            transition: all 0.3s ease;
+                                                            @if($heroSetting->overlay_opacity > 0)
+                                                                position: relative;
+                                                            @endif
+                                                        @else
+                                                            background: linear-gradient(135deg, #0f172a, #1e293b);
+                                                        @endif
+                                                        color: {{ $heroSetting->text_color }};
+                                                        position: relative;
+                                                        overflow: hidden;
+                                                        min-height: 400px;
+                                                    " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                                                        onmouseover="this.style.opacity='0.97'; this.style.boxShadow='inset 0 0 0 2px rgba(255,255,255,0.2)';"
+                                                        onmouseout="this.style.opacity='1'; this.style.boxShadow='none';"
+                                                        onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ $heroSetting->title }}')"
+                                                    title="Click to view full image" @endif>
 
             @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
                 <!-- Overlay untuk image background -->
                 <div class="hero-overlay" style="
-                                                    position: absolute;
-                                                    top: 0;
-                                                    left: 0;
-                                                    width: 100%;
-                                                    height: 100%;
-                                                    background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                                                    z-index: 1;
-                                                    pointer-events: none;
-                                                ">
+                                                                                                    position: absolute;
+                                                                                                    top: 0;
+                                                                                                    left: 0;
+                                                                                                    width: 100%;
+                                                                                                    height: 100%;
+                                                                                                    background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                                                                                                    z-index: 1;
+                                                                                                    pointer-events: none;
+                                                                                                ">
                 </div>
             @endif
 
@@ -2298,36 +2298,36 @@
                 <div class="row align-items-center justify-content-center text-center">
                     <div class="col-lg-8">
                         <h1 class="tournament-title" style="
-                                        color: {{ $heroSetting->text_color }};
-                                        text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
-                                    ">
+                                                                color: {{ $heroSetting->text_color }};
+                                                                text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3);
+                                                            ">
                             {{ $heroSetting->title }}
                         </h1>
                         <p class="hero-subtitle" style="
-                                        color: {{ $heroSetting->text_color }};
-                                        opacity: 0.9;
-                                        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
-                                        margin-left: auto;
-                                        margin-right: auto;
-                                    ">
+                                                                color: {{ $heroSetting->text_color }};
+                                                                opacity: 0.9;
+                                                                text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+                                                                margin-left: auto;
+                                                                margin-right: auto;
+                                                            ">
                             {{ $heroSetting->subtitle }}
                         </p>
 
                         @if($heroSetting->cta_button_text)
                             <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="btn btn-lg hero-cta-button mx-auto"
                                 style="
-                                                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
-                                                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                                                                border: none;
-                                                                padding: 12px 30px;
-                                                                border-radius: 8px;
-                                                                font-weight: 600;
-                                                                text-decoration: none;
-                                                                display: inline-block;
-                                                                margin-top: 20px;
-                                                                transition: all 0.3s ease;
-                                                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                                                            "
+                                                                                                                background-color: {{ $heroSetting->button_color ?? '#3b82f6' }};
+                                                                                                                color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                                                                                                border: none;
+                                                                                                                padding: 12px 30px;
+                                                                                                                border-radius: 8px;
+                                                                                                                font-weight: 600;
+                                                                                                                text-decoration: none;
+                                                                                                                display: inline-block;
+                                                                                                                margin-top: 20px;
+                                                                                                                transition: all 0.3s ease;
+                                                                                                                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+                                                                                                            "
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 12px rgba(0, 0, 0, 0.15)';"
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 6px rgba(0, 0, 0, 0.1)';">
                                 <i class="bi bi-arrow-right-circle me-2"></i>
@@ -2339,16 +2339,16 @@
                         @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
                             <div class="mt-4">
                                 <div class="zoom-indicator" style="
-                                                                display: inline-flex;
-                                                                align-items: center;
-                                                                gap: 8px;
-                                                                background: rgba(0, 0, 0, 0.4);
-                                                                padding: 6px 15px;
-                                                                border-radius: 25px;
-                                                                border: 1px solid rgba(255, 255, 255, 0.2);
-                                                                backdrop-filter: blur(5px);
-                                                                animation: pulse 2s infinite;
-                                                            ">
+                                                                                                                display: inline-flex;
+                                                                                                                align-items: center;
+                                                                                                                gap: 8px;
+                                                                                                                background: rgba(0, 0, 0, 0.4);
+                                                                                                                padding: 6px 15px;
+                                                                                                                border-radius: 25px;
+                                                                                                                border: 1px solid rgba(255, 255, 255, 0.2);
+                                                                                                                backdrop-filter: blur(5px);
+                                                                                                                animation: pulse 2s infinite;
+                                                                                                            ">
                                     <i class="bi bi-zoom-in text-white"></i>
                                     <span class="text-white" style="font-size: 0.85rem; font-weight: 500;">
                                         Click background to view full image
@@ -2362,26 +2362,26 @@
 
             <!-- Animated elements -->
             <div class="hero-particles" style="
-                                position: absolute;
-                                top: 0;
-                                left: 0;
-                                width: 100%;
-                                height: 100%;
-                                pointer-events: none;
-                                z-index: 1;
-                                opacity: 0.3;
-                            ">
+                                                        position: absolute;
+                                                        top: 0;
+                                                        left: 0;
+                                                        width: 100%;
+                                                        height: 100%;
+                                                        pointer-events: none;
+                                                        z-index: 1;
+                                                        opacity: 0.3;
+                                                    ">
                 @for($i = 1; $i <= 15; $i++)
                     <div class="particle" style="
-                                                            position: absolute;
-                                                            width: {{ rand(2, 5) }}px;
-                                                            height: {{ rand(2, 5) }}px;
-                                                            background-color: {{ $heroSetting->text_color }};
-                                                            border-radius: 50%;
-                                                            top: {{ rand(0, 100) }}%;
-                                                            left: {{ rand(0, 100) }}%;
-                                                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
-                                                        ">
+                                                                                                            position: absolute;
+                                                                                                            width: {{ rand(2, 5) }}px;
+                                                                                                            height: {{ rand(2, 5) }}px;
+                                                                                                            background-color: {{ $heroSetting->text_color }};
+                                                                                                            border-radius: 50%;
+                                                                                                            top: {{ rand(0, 100) }}%;
+                                                                                                            left: {{ rand(0, 100) }}%;
+                                                                                                            animation: float-particle {{ rand(5, 15) }}s linear infinite;
+                                                                                                        ">
                     </div>
                 @endfor
             </div>
@@ -2721,19 +2721,20 @@
                                                                 </td>
                                                                 <td class="align-middle">
                                                                     <div class="d-flex align-items-center">
-                                                                        <div class="team-logo-container" style="
-                                                                                                                                    width: 32px;
-                                                                                                                                    height: 32px;
-                                                                                                                                    background: transparent !important;
-                                                                                                                                    border-radius: 5px;
-                                                                                                                                    display: flex;
-                                                                                                                                    align-items: center;
-                                                                                                                                    justify-content: center;
-                                                                                                                                    overflow: hidden;
-                                                                                                                                    margin-right: 0.6rem;
-                                                                                                                                    flex-shrink: 0;
-                                                                                                                                    border: none !important;
-                                                                                                                                ">
+                                                                        <div class="team-logo-container"
+                                                                            style="
+                                                                                                                                                                                                                                    width: 32px;
+                                                                                                                                                                                                                                    height: 32px;
+                                                                                                                                                                                                                                    background: transparent !important;
+                                                                                                                                                                                                                                    border-radius: 5px;
+                                                                                                                                                                                                                                    display: flex;
+                                                                                                                                                                                                                                    align-items: center;
+                                                                                                                                                                                                                                    justify-content: center;
+                                                                                                                                                                                                                                    overflow: hidden;
+                                                                                                                                                                                                                                    margin-right: 0.6rem;
+                                                                                                                                                                                                                                    flex-shrink: 0;
+                                                                                                                                                                                                                                    border: none !important;
+                                                                                                                                                                                                                                ">
                                                                             @php
                                                                                 $logoExists = false;
 
@@ -2781,26 +2782,28 @@
                                                                     {{ $standing->losses ?? 0 }}
                                                                 </td>
                                                                 <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                    <span style="
-                                                                                                                                    display: inline-block;
-                                                                                                                                    padding: 2px 6px;
-                                                                                                                                    border-radius: 4px;
-                                                                                                                                    background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
-                                                                                                                                    color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
-                                                                                                                                    min-width: 40px;
-                                                                                                                                ">
+                                                                    <span
+                                                                        style="
+                                                                                                                                                                                                                                    display: inline-block;
+                                                                                                                                                                                                                                    padding: 2px 6px;
+                                                                                                                                                                                                                                    border-radius: 4px;
+                                                                                                                                                                                                                                    background-color: {{ $gdValue > 0 ? 'rgba(16, 185, 129, 0.1)' : ($gdValue < 0 ? 'rgba(239, 68, 68, 0.1)' : '#f1f5f9') }};
+                                                                                                                                                                                                                                    color: {{ $gdValue > 0 ? '#10b981' : ($gdValue < 0 ? '#ef4444' : '#64748b') }};
+                                                                                                                                                                                                                                    min-width: 40px;
+                                                                                                                                                                                                                                ">
                                                                         {{ $gdDisplay }}
                                                                     </span>
                                                                 </td>
                                                                 <td class="text-center align-middle fw-bold" style="font-size: 0.9rem;">
-                                                                    <span style="
-                                                                                                                                    display: inline-block;
-                                                                                                                                    padding: 2px 8px;
-                                                                                                                                    border-radius: 4px;
-                                                                                                                                    background-color: rgba(59, 130, 246, 0.1);
-                                                                                                                                    color: #1d4ed8;
-                                                                                                                                    min-width: 40px;
-                                                                                                                                ">
+                                                                    <span
+                                                                        style="
+                                                                                                                                                                                                                                    display: inline-block;
+                                                                                                                                                                                                                                    padding: 2px 8px;
+                                                                                                                                                                                                                                    border-radius: 4px;
+                                                                                                                                                                                                                                    background-color: rgba(59, 130, 246, 0.1);
+                                                                                                                                                                                                                                    color: #1d4ed8;
+                                                                                                                                                                                                                                    min-width: 40px;
+                                                                                                                                                                                                                                ">
                                                                         {{ $standing->points ?? 0 }}
                                                                     </span>
                                                                 </td>
@@ -2815,14 +2818,14 @@
 
                                 <!-- INFO TIE-BREAKER -->
                                 <div class="tie-breaker-info mt-2" style="
-                                                            font-size: 0.7rem;
-                                                            color: #64748b;
-                                                            padding: 6px 8px;
-                                                            background: #f8fafc;
-                                                            border-radius: 4px;
-                                                            border-left: 3px solid #3b82f6;
-                                                            margin-top: 0px;
-                                                        ">
+                                                                                                            font-size: 0.7rem;
+                                                                                                            color: #64748b;
+                                                                                                            padding: 6px 8px;
+                                                                                                            background: #f8fafc;
+                                                                                                            border-radius: 4px;
+                                                                                                            border-left: 3px solid #3b82f6;
+                                                                                                            margin-top: 0px;
+                                                                                                        ">
                                     <div class="d-flex align-items-center">
                                         <i class="bi bi-info-circle me-2" style="font-size: 0.8rem;"></i>
                                         <div>
@@ -3124,10 +3127,10 @@
 
                             <!-- View All Button -->
                             <!-- <div class="text-center mt-4">
-                                                            <a href="{{ route('teams.index') }}" class="btn btn-primary">
-                                                                <i class="bi bi-list-ul"></i> View All Teams
-                                                            </a>
-                                                        </div> -->
+                                                                                    <a href="{{ route('teams.index') }}" class="btn btn-primary">
+                                                                                        <i class="bi bi-list-ul"></i> View All Teams
+                                                                                    </a>
+                                                                                </div> -->
                         @else
                             <!-- Empty State -->
                             <div class="empty-state text-center py-5">

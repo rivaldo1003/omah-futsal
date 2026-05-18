@@ -33,8 +33,11 @@ class HomeController extends Controller
             ];
         }
 
-        // PERUBAHAN: Hanya ambil tournament dengan status 'ongoing'
-        $activeTournament = Tournament::where('status', 'ongoing')->first();
+        // Ambil tournament yang sedang berjalan (ongoing), jika tidak ada ambil yang akan datang (upcoming)
+        $activeTournament = Tournament::whereIn('status', ['ongoing', 'upcoming'])
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderBy('start_date', 'asc')
+            ->first();
 
         // Jika tidak ada tournament ongoing, tampilkan pesan kosong
         if (!$activeTournament) {
@@ -146,15 +149,16 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        // PERUBAHAN: Hanya ambil matches dengan status 'ongoing' dari tournament aktif
+        // PERUBAHAN: Ambil matches status 'ongoing' dan 'upcoming' untuk hari ini
         $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
             ->where(function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId)
                     ->orWhere('round_type', 'friendly');
             })
-            ->where('status', 'ongoing')
+            ->whereIn('status', ['ongoing', 'upcoming'])
             ->whereDate('match_date', Carbon::today())
-            ->orderBy('time_start')
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderBy('time_start', 'asc')
             ->get();
 
         // PERUBAHAN: Upcoming matches hanya dari tournament aktif
