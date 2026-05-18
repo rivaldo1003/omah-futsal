@@ -2,7 +2,7 @@
 
 @section('title', 'Edit Tournament')
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+<link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
 
 @section('styles')
@@ -456,6 +456,42 @@
                         @enderror
                     </div>
 
+                    <!-- Standings & Tie-breakers Rules -->
+                    <div class="col-md-12 mb-4">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                        </h6>
+                        <div id="tie-breakers-container">
+                            @php
+                                $defaultRules = [
+                                    'Poin (nilai) - jika sama',
+                                    'Head-to-head (hasil pertemuan langsung) - jika sama',
+                                    'Selisih gol - jika sama',
+                                    'Produktivitas memasukkan (gol mencetak) - jika sama',
+                                    'Nilai fairplay (kartu) - jika sama',
+                                    'Adu tendangan penalti'
+                                ];
+                                $currentRules = $settings['tie_breakers'] ?? $defaultRules;
+                            @endphp
+                            @foreach($currentRules as $index => $rule)
+                                <div class="input-group mb-2 tie-breaker-item">
+                                    <span class="input-group-text bg-light text-secondary fw-bold">{{ $index + 1 }}</span>
+                                    <input type="text" name="tie_breakers[]" class="form-control" value="{{ $rule }}" required>
+                                    <button type="button" class="btn btn-outline-danger remove-rule">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
+                        </button>
+                        <div class="form-text mt-2">
+                            Urutan menentukan prioritas pemecahan poin sama. Pengaturan ini akan ditampilkan di halaman
+                            Home.
+                        </div>
+                    </div>
+
                     <!-- Match Settings -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
@@ -569,6 +605,40 @@
                     loadingOverlay.style.display = 'none';
                 }
             });
+
+            // Tie-breakers management
+            const tieBreakersContainer = document.getElementById('tie-breakers-container');
+            const addRuleBtn = document.getElementById('add-rule');
+
+            if (addRuleBtn) {
+                addRuleBtn.addEventListener('click', function () {
+                    const itemCount = tieBreakersContainer.querySelectorAll('.tie-breaker-item').length;
+                    const newRule = document.createElement('div');
+                    newRule.className = 'input-group mb-2 tie-breaker-item';
+                    newRule.innerHTML = `
+                            <span class="input-group-text bg-light text-secondary fw-bold">${itemCount + 1}</span>
+                            <input type="text" name="tie_breakers[]" class="form-control" placeholder="Aturan penentuan peringkat..." required>
+                            <button type="button" class="btn btn-outline-danger remove-rule">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `;
+                    tieBreakersContainer.appendChild(newRule);
+                    attachRemoveEvent(newRule.querySelector('.remove-rule'));
+                });
+            }
+
+            function attachRemoveEvent(btn) {
+                btn.addEventListener('click', function () {
+                    const item = this.closest('.tie-breaker-item');
+                    item.remove();
+                    // Re-index numbering
+                    tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach((item, index) => {
+                        item.querySelector('.input-group-text').textContent = index + 1;
+                    });
+                });
+            }
+
+            tieBreakersContainer.querySelectorAll('.remove-rule').forEach(attachRemoveEvent);
 
             // Auto-dismiss alerts after 5 seconds
             setTimeout(() => {

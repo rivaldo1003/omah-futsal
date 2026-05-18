@@ -33,16 +33,20 @@ class HomeController extends Controller
             ];
         }
 
-        // PERUBAHAN: Hanya ambil tournament dengan status 'ongoing'
-        $activeTournament = Tournament::where('status', 'ongoing')->first();
+        // Ambil tournament yang sedang berjalan (ongoing), jika tidak ada ambil yang akan datang (upcoming)
+        $activeTournament = Tournament::whereIn('status', ['ongoing', 'upcoming'])
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderBy('start_date', 'asc')
+            ->first();
 
         // Jika tidak ada tournament ongoing, tampilkan pesan kosong
         if (!$activeTournament) {
             // Tetap tampilkan friendly matches walau tidak ada tournament ongoing
             $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
                 ->where('round_type', 'friendly')
-                ->where('status', 'ongoing')
+                ->whereIn('status', ['ongoing', 'upcoming'])
                 ->whereDate('match_date', Carbon::today())
+                ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
                 ->orderBy('time_start')
                 ->get();
 
@@ -146,15 +150,16 @@ class HomeController extends Controller
             ->orderBy('name')
             ->get();
 
-        // PERUBAHAN: Hanya ambil matches dengan status 'ongoing' dari tournament aktif
+        // Ambil matches status 'ongoing' dan 'upcoming' untuk hari ini
         $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
             ->where(function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId)
                     ->orWhere('round_type', 'friendly');
             })
-            ->where('status', 'ongoing')
+            ->whereIn('status', ['ongoing', 'upcoming'])
             ->whereDate('match_date', Carbon::today())
-            ->orderBy('time_start')
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderBy('time_start', 'asc')
             ->get();
 
         // PERUBAHAN: Upcoming matches hanya dari tournament aktif
@@ -225,6 +230,16 @@ class HomeController extends Controller
         if (!$isCupType) {
             $standings = $this->getAllGroupStandingsFixed($activeTournament);
         }
+
+        // Ambil aturan penentuan juara (tie-breakers) dari settings turnamen
+        $activeTournament->tie_breakers = json_decode($activeTournament->settings, true)['tie_breakers'] ?? [
+            'Poin (nilai) - jika sama',
+            'Head-to-head (hasil pertemuan langsung) - jika sama',
+            'Selisih gol - jika sama',
+            'Produktivitas memasukkan (gol mencetak) - jika sama',
+            'Nilai fairplay (kartu) - jika sama',
+            'Adu tendangan penalti'
+        ];
 
         // Statistics untuk tournament aktif
         $totalTeams = $teams->count();
