@@ -648,7 +648,9 @@ class HomeController extends Controller
             foreach ($teamsInTournament as $teamTournament) {
                 $group = $teamTournament->group_name;
 
-                if (empty($group)) {
+                if ($activeTournament->type === 'league') {
+                    $group = 'Klasemen';
+                } elseif (empty($group)) {
                     $group = 'Ungrouped';
                 }
 

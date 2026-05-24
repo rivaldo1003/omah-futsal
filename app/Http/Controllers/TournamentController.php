@@ -70,7 +70,11 @@ class TournamentController extends Controller
             );
         }
 
-        $groupedTeams = $allRegisteredTeams->groupBy('group_name');
+        $groupedTeams = $allRegisteredTeams->groupBy(function ($team) use ($tournament) {
+            if ($tournament->type === 'league')
+                return 'Klasemen';
+            return $team->group_name ?? 'Ungrouped';
+        });
 
         // Debug 4: Cek grouped data
         \Log::info('Grouped teams:', $groupedTeams->toArray());
@@ -78,11 +82,12 @@ class TournamentController extends Controller
         $allTeamsByGroup = [];
 
         foreach ($groupedTeams as $groupName => $teams) {
+            $groupData = collect();
             foreach ($teams as $team) {
                 // Cari apakah tim ini sudah memiliki standings
                 $standing = $standings->firstWhere('team_id', $team->id);
 
-                $allTeamsByGroup[$groupName][] = (object) [
+                $groupData->push((object) [
                     'team' => (object) [
                         'id' => $team->id,
                         'name' => $team->name,
@@ -99,23 +104,25 @@ class TournamentController extends Controller
                     'points' => $standing->points ?? 0,
                     'group' => $groupName,
                     'seed' => $team->seed,
-                ];
+                ]);
             }
+
+            // Urutkan berdasarkan poin, selisih gol, lalu gol memasukkan
+            $allTeamsByGroup[$groupName] = $groupData->sortByDesc(fn($item) => [
+                $item->points,
+                $item->goal_difference,
+                $item->goals_for,
+                $item->won
+            ])->values();
         }
 
         // Debug 5: Cek final data
         \Log::info('Final allTeamsByGroup:', $allTeamsByGroup);
 
-        // Tambahkan ini untuk lihat di browser:
-        dd('Final data for view:', [
-            'tournament' => $tournament,
-            'allTeamsByGroup' => $allTeamsByGroup,
-            'groupedTeams' => $groupedTeams->toArray(),
-        ]);
-
         return view('standings.index', [
             'selectedTournament' => $tournament,
-            'allTeamsInGroupByGroup' => $allTeamsByGroup,
+            'groupedStandingsWithPosition' => collect($allTeamsByGroup),
+            'tournamentType' => $tournament->type
         ]);
     }
 

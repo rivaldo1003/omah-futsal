@@ -31,8 +31,8 @@
             line-height: 1.5;
         }
 
-        .container {
-            max-width: 1200px;
+        .container, .container-fluid {
+            max-width: 100%;
             padding: 1rem;
         }
 
@@ -518,7 +518,7 @@
 </head>
 
 <body>
-    <div class="container py-3">
+    <div class="container-fluid py-3">
         <!-- Header -->
         <div class="page-header d-flex justify-content-between align-items-center">
             <div>
@@ -599,15 +599,21 @@
                 @endif -->
 
             <!-- Groups -->
-            @foreach($groupedStandingsWithPosition as $group => $groupStandings)
-                <div class="group-card-compact">
-                    <div class="group-header-compact">
-                        <h3 class="group-title-compact">
-                            <span class="group-badge">G</span>
-                            Group {{ $group }}
-                        </h3>
-                        <span class="text-muted small fw-medium">{{ count($groupStandings) }} teams</span>
-                    </div>
+            <div class="row">
+                @foreach($groupedStandingsWithPosition as $group => $groupStandings)
+                    @php
+                        // Jika liga, gunakan lebar penuh (col-12). Jika grup, gunakan col-lg-6 agar bisa 2 kolom
+                        $columnClass = (isset($selectedTournament) && $selectedTournament->type === 'league') ? 'col-12' : 'col-xl-6';
+                    @endphp
+                    <div class="{{ $columnClass }} mb-4">
+                        <div class="group-card-compact h-100">
+                            <div class="group-header-compact">
+                                <h3 class="group-title-compact">
+                                    <span class="group-badge">{{ $selectedTournament->type === 'league' ? 'L' : 'G' }}</span>
+                                    {{ $selectedTournament->type === 'league' ? 'Klasemen Utama' : 'Group ' . $group }}
+                                </h3>
+                                <span class="text-muted small fw-medium">{{ count($groupStandings) }} teams</span>
+                            </div>
 
                     <div class="table-responsive">
                         <table class="table compact-table">
@@ -769,7 +775,9 @@
                         </table>
                     </div>
                 </div>
-            @endforeach
+                    </div>
+                @endforeach
+            </div>
 
         @else
             <!-- Empty State -->

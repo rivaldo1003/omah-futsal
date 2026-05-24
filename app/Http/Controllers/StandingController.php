@@ -115,6 +115,9 @@ class StandingController extends Controller
             )
             ->get();
 
+        $tournament = Tournament::find($tournamentId);
+        $isLeague = $tournament && $tournament->type === 'league';
+
         if ($teamsInTournament->isEmpty()) {
             return collect();
         }
@@ -147,7 +150,7 @@ class StandingController extends Controller
                     'id' => null,
                     'team_id' => $teamTournament->id,
                     'tournament_id' => $tournamentId,
-                    'group_name' => $teamTournament->group_name,
+                    'group_name' => $isLeague ? 'Klasemen' : ($teamTournament->group_name ?? 'Ungrouped'),
                     'matches_played' => 0,
                     'wins' => 0,
                     'draws' => 0,
@@ -488,7 +491,7 @@ class StandingController extends Controller
                             'id' => null,
                             'tournament_id' => $selectedTournament->id,
                             'team_id' => $team->id,
-                            'group_name' => $team->group_name,
+                            'group_name' => $selectedTournament->type === 'league' ? 'Klasemen' : ($team->group_name ?? 'Ungrouped'),
                             'matches_played' => 0,
                             'wins' => 0,
                             'draws' => 0,
@@ -567,7 +570,7 @@ class StandingController extends Controller
 
             // 2. Ambil semua completed group matches untuk tournament ini
             $completedMatches = Game::where('tournament_id', $tournamentId)
-                ->where('round_type', 'group')
+                ->whereIn('round_type', ['group', 'league'])
                 ->where('status', 'completed')
                 ->get();
 
@@ -591,7 +594,7 @@ class StandingController extends Controller
                         'group_name' => DB::table('team_tournament')
                             ->where('tournament_id', $tournamentId)
                             ->where('team_id', $teamId)
-                            ->value('group_name'),
+                            ->value('group_name') ?? 'A',
                         'matches_played' => 0,
                         'wins' => 0,
                         'draws' => 0,
@@ -626,14 +629,14 @@ class StandingController extends Controller
      */
     private function processMatchForStandings(Game $match)
     {
-        if ($match->status !== 'completed' || $match->round_type !== 'group') {
+        if ($match->status !== 'completed' || !in_array($match->round_type, ['group', 'league'])) {
             return;
         }
 
         $tournamentId = $match->tournament_id;
         $homeTeamId = $match->team_home_id;
         $awayTeamId = $match->team_away_id;
-        $groupName = $match->group_name;
+        $groupName = $match->group_name ?? 'A';
 
         // Cari atau buat standings untuk home team
         $homeStanding = Standing::firstOrCreate(
