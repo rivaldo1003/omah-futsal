@@ -1615,7 +1615,7 @@ class GameController extends Controller
         }
 
         // Update standings for group matches
-        if ($match->round_type === 'group') {
+        if (in_array($match->round_type, ['group', 'league'])) {
             $this->updateStandings($match);
         }
 
@@ -1635,7 +1635,7 @@ class GameController extends Controller
             return;
         }
 
-        if ($match->round_type === 'group') {
+        if (in_array($match->round_type, ['group', 'league'])) {
             $this->revertStandings($match, $oldHomeScore, $oldAwayScore);
         }
 
@@ -1650,13 +1650,13 @@ class GameController extends Controller
      */
     private function updateStandings(Game $match)
     {
-        if ($match->round_type !== 'group' || $match->status !== 'completed') {
+        if (!in_array($match->round_type, ['group', 'league']) || $match->status !== 'completed') {
             return;
         }
 
         $homeTeamId = $match->team_home_id;
         $awayTeamId = $match->team_away_id;
-        $groupName = $match->group_name;
+        $groupName = $match->group_name ?? 'A';
         $tournamentId = $match->tournament_id;
 
         $homeStanding = Standing::firstOrCreate(
@@ -1740,13 +1740,13 @@ class GameController extends Controller
      */
     private function revertStandings(Game $match, $oldHomeScore = null, $oldAwayScore = null)
     {
-        if ($match->round_type !== 'group') {
+        if (!in_array($match->round_type, ['group', 'league'])) {
             return;
         }
 
         $homeTeamId = $match->team_home_id;
         $awayTeamId = $match->team_away_id;
-        $groupName = $match->group_name;
+        $groupName = $match->group_name ?? 'A';
         $tournamentId = $match->tournament_id;
 
         $homeScore = $oldHomeScore ?? $match->home_score;
@@ -1938,7 +1938,7 @@ class GameController extends Controller
                 Standing::where('tournament_id', $tournamentId)->delete();
 
                 $completedMatches = Game::where('tournament_id', $tournamentId)
-                    ->where('round_type', 'group')
+                    ->whereIn('round_type', ['group', 'league'])
                     ->where('status', 'completed')
                     ->get();
 
@@ -2226,7 +2226,7 @@ class GameController extends Controller
 
                 $match->update(['status' => $status]);
 
-                if ($match->round_type === 'group') {
+                if (in_array($match->round_type, ['group', 'league'])) {
                     if ($oldStatus === 'completed' && $status !== 'completed') {
                         $this->revertStandings($match);
                     } elseif ($oldStatus !== 'completed' && $status === 'completed') {

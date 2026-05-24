@@ -937,7 +937,7 @@
         <div class="d-flex gap-2">
             <div class="search-box">
                 <i class="bi bi-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Search matches..." class="form-control form-control-sm">
+                <input type="text" id="searchInput" placeholder="Search matches....." class="form-control form-control-sm">
             </div>
             <a href="{{ route('admin.matches.create') }}" class="btn-create">
                 <i class="bi bi-plus"></i>
@@ -2280,11 +2280,11 @@
                                 // Success
                                 if (statusDiv) {
                                     statusDiv.innerHTML = `
-                                                                                                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                                                                                    <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
-                                                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                                                </div>
-                                                                                            `;
+                                                                                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                                                                        <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
+                                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                                    </div>
+                                                                                                `;
                                     statusDiv.classList.remove('d-none');
                                 }
 
@@ -2336,11 +2336,11 @@
 
                 if (statusDiv) {
                     statusDiv.innerHTML = `
-                                                                                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                                                                    <i class="bi bi-exclamation-triangle"></i> ${message}
-                                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                                </div>
-                                                                            `;
+                                                                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                                                        <i class="bi bi-exclamation-triangle"></i> ${message}
+                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                    </div>
+                                                                                `;
                     statusDiv.classList.remove('d-none');
                 }
 
@@ -2406,13 +2406,13 @@
                             // Create video player
                             if (playerContainer && highlight.video_url) {
                                 playerContainer.innerHTML = `
-                                                                                        <div class="ratio ratio-16x9">
-                                                                                            <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
-                                                                                                <source src="${highlight.video_url}" type="video/mp4">
-                                                                                                Your browser does not support the video tag.
-                                                                                            </video>
-                                                                                        </div>
-                                                                                    `;
+                                                                                            <div class="ratio ratio-16x9">
+                                                                                                <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
+                                                                                                    <source src="${highlight.video_url}" type="video/mp4">
+                                                                                                    Your browser does not support the video tag.
+                                                                                                </video>
+                                                                                            </div>
+                                                                                        `;
                             }
                         } else {
                             throw new Error(data.message || 'Failed to load highlight info');
@@ -2423,10 +2423,10 @@
 
                         if (playerContainer) {
                             playerContainer.innerHTML = `
-                                                                                    <div class="alert alert-warning">
-                                                                                        <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
-                                                                                    </div>
-                                                                                `;
+                                                                                        <div class="alert alert-warning">
+                                                                                            <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
+                                                                                        </div>
+                                                                                    `;
                         }
 
                         if (infoSize) infoSize.textContent = 'Error';
@@ -2578,11 +2578,11 @@
 
             // Tampilkan loading
             currentVideoContainer.innerHTML = `
-                                                                        <div class="text-center p-4">
-                                                                            <div class="spinner-border text-primary" role="status"></div>
-                                                                            <p class="mt-2">Loading highlight...</p>
-                                                                        </div>
-                                                                    `;
+                                                                            <div class="text-center p-4">
+                                                                                <div class="spinner-border text-primary" role="status"></div>
+                                                                                <p class="mt-2">Loading highlight...</p>
+                                                                            </div>
+                                                                        `;
             currentVideoInfo.textContent = 'Loading...';
 
             // Coba load dari data yang sudah ada di tombol
@@ -2662,11 +2662,11 @@
             // Helper function untuk menampilkan embed
             function displayYoutubeEmbed(youtubeId) {
                 currentVideoContainer.innerHTML = `
-                                                                            <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1" 
-                                                                                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                                                    allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                                                                            </iframe>
-                                                                        `;
+                                                                                <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1" 
+                                                                                        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                                                        allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                                </iframe>
+                                                                            `;
             }
 
             // Helper function untuk fetch info tambahan
@@ -2693,10 +2693,10 @@
             // Helper function untuk menampilkan no highlight
             function showNoHighlight() {
                 currentVideoContainer.innerHTML = `
-                                                                            <div class="alert alert-warning p-3 text-center">
-                                                                                <i class="bi bi-exclamation-triangle"></i> No highlight available
-                                                                            </div>
-                                                                        `;
+                                                                                <div class="alert alert-warning p-3 text-center">
+                                                                                    <i class="bi bi-exclamation-triangle"></i> No highlight available
+                                                                                </div>
+                                                                            `;
                 currentVideoInfo.textContent = 'No highlight available';
             }
         }
@@ -2741,11 +2741,11 @@
 
             // Show preview
             previewContainer.innerHTML = `
-                                                                        <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
-                                                                                frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                                                allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                                                                        </iframe>
-                                                                    `;
+                                                                            <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
+                                                                                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                                                                    allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                            </iframe>
+                                                                        `;
 
             if (previewInfo) {
                 previewInfo.textContent = `Video ID: ${videoId}`;
@@ -2971,14 +2971,14 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             statusDiv.innerHTML = `
-                                                                        <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                            <i class="bi ${type === 'success' ? 'bi-check-circle' :
+                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                <i class="bi ${type === 'success' ? 'bi-check-circle' :
                     type === 'danger' ? 'bi-exclamation-triangle' :
                         'bi-info-circle'}"></i> 
-                                                                            ${message}
-                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                        </div>
-                                                                    `;
+                                                                                ${message}
+                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                            </div>
+                                                                        `;
             statusDiv.classList.remove('d-none');
 
             // Auto-hide after 5 seconds (except for success which will auto-close)
