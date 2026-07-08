@@ -434,16 +434,33 @@
                         <div class="team-selection-container">
                             @if($teams->count() > 0)
                                 @foreach($teams as $team)
-                                    <div class="team-item">
+                                    <div class="team-item" data-team-id="{{ $team->id }}">
                                         <div class="team-checkbox">
-                                            <input type="checkbox" class="form-check-input" id="team_{{ $team->id }}" name="teams[]"
+                                            <input type="checkbox" class="form-check-input team-checkbox-input" 
+                                                id="team_{{ $team->id }}" name="teams[]"
                                                 value="{{ $team->id }}" {{ in_array($team->id, $selectedTeams) ? 'checked' : '' }}>
                                         </div>
-                                        <div class="team-info">
+                                        <div class="team-info flex-grow-1">
                                             <div class="team-name">{{ $team->name }}</div>
                                             @if($team->coach_name)
                                                 <small class="text-muted">Coach: {{ $team->coach_name }}</small>
                                             @endif
+                                        </div>
+                                        <!-- Group Assignment Dropdown (only for group_knockout) -->
+                                        <div class="group-assignment-container" style="display: {{ $tournament->type == 'group_knockout' ? 'block' : 'none' }};">
+                                            <select class="form-select form-select-sm group-select" 
+                                                name="group_assignments[{{ $team->id }}]"
+                                                style="width: auto; min-width: 120px;"
+                                                {{ !in_array($team->id, $selectedTeams) ? 'disabled' : '' }}>
+                                                <option value="">Select Group</option>
+                                                @for($i = 1; $i <= ($tournament->groups_count ?? 2); $i++)
+                                                    @php $groupLetter = chr(64 + $i); @endphp
+                                                    <option value="{{ $groupLetter }}"
+                                                        {{ isset($team->pivot->group_name) && $team->pivot->group_name == $groupLetter ? 'selected' : '' }}>
+                                                        Group {{ $groupLetter }}
+                                                    </option>
+                                                @endfor
+                                            </select>
                                         </div>
                                     </div>
                                 @endforeach
@@ -452,6 +469,9 @@
                             @endif
                         </div>
                         @error('teams')
+                            <div class="text-danger mt-2">{{ $message }}</div>
+                        @enderror
+                        @error('group_assignments')
                             <div class="text-danger mt-2">{{ $message }}</div>
                         @enderror
                     </div>
@@ -577,16 +597,64 @@
             // Show/hide group settings based on tournament type
             const typeSelect = document.getElementById('type');
             const groupSettings = document.querySelector('.group-settings');
+            const groupAssignmentContainers = document.querySelectorAll('.group-assignment-container');
 
             function toggleGroupSettings() {
                 if (typeSelect.value === 'group_knockout') {
                     groupSettings.style.display = 'block';
+                    groupAssignmentContainers.forEach(container => {
+                        container.style.display = 'block';
+                    });
                 } else {
                     groupSettings.style.display = 'none';
+                    groupAssignmentContainers.forEach(container => {
+                        container.style.display = 'none';
+                    });
                 }
+                updateGroupSelectState();
             }
 
             typeSelect.addEventListener('change', toggleGroupSettings);
+
+            // Update group dropdown options when groups_count changes
+            const groupsCountInput = document.getElementById('groups_count');
+            
+            function updateGroupDropdowns() {
+                if (typeSelect.value !== 'group_knockout') return;
+                
+                const groupsCount = parseInt(groupsCountInput.value) || 2;
+                const groupSelects = document.querySelectorAll('.group-select');
+                
+                groupSelects.forEach(select => {
+                    const currentValue = select.value;
+                    const isChecked = select.closest('.team-item').querySelector('.team-checkbox-input').checked;
+                    
+                    // Clear existing options except the first one
+                    select.innerHTML = '<option value="">Select Group</option>';
+                    
+                    // Add new group options
+                    for (let i = 1; i <= Math.min(groupsCount, 26); i++) {
+                        const groupLetter = String.fromCharCode(64 + i); // A, B, C, ...
+                        const option = document.createElement('option');
+                        option.value = groupLetter;
+                        option.textContent = `Group ${groupLetter}`;
+                        if (currentValue === groupLetter) {
+                            option.selected = true;
+                        }
+                        select.appendChild(option);
+                    }
+                    
+                    // Disable if team is not checked
+                    if (!isChecked) {
+                        select.disabled = true;
+                    }
+                });
+            }
+
+            if (groupsCountInput) {
+                groupsCountInput.addEventListener('change', updateGroupDropdowns);
+                groupsCountInput.addEventListener('input', updateGroupDropdowns);
+            }
 
             // Show loading overlay on form submit
             const form = document.querySelector('form');
@@ -604,6 +672,32 @@
                     alert('Please select at least 2 teams for the tournament.');
                     loadingOverlay.style.display = 'none';
                 }
+            });
+
+            // Team selection and group assignment
+            const teamCheckboxes = document.querySelectorAll('.team-checkbox-input');
+            const groupSelects = document.querySelectorAll('.group-select');
+
+            function updateGroupSelectState() {
+                teamCheckboxes.forEach(checkbox => {
+                    const teamItem = checkbox.closest('.team-item');
+                    const groupSelect = teamItem.querySelector('.group-select');
+                    
+                    if (checkbox.checked) {
+                        groupSelect.disabled = false;
+                    } else {
+                        groupSelect.disabled = true;
+                        groupSelect.value = ''; // Reset group selection
+                    }
+                });
+            }
+
+            // Initialize group select states
+            updateGroupSelectState();
+
+            // Add event listeners to checkboxes
+            teamCheckboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateGroupSelectState);
             });
 
             // Tie-breakers management

@@ -713,6 +713,8 @@ class TournamentController extends Controller
             'teams' => 'required|array|min:2',
             'teams.*' => 'exists:teams,id',
             'groups_count' => 'nullable|required_if:type,group_knockout|integer|min:1|max:8',
+            'group_assignments' => 'nullable|array',
+            'group_assignments.*' => 'nullable|string|max:1',
             'match_duration' => 'required|integer|min:10|max:120',
             'half_time' => 'required|integer|min:5|max:30',
             'points_win' => 'required|integer|min:0|max:10',
@@ -783,9 +785,10 @@ class TournamentController extends Controller
                 'settings' => json_encode($settings),
             ]);
 
-            // Sync teams (preserve existing group assignments if possible)
+            // Sync teams and update group assignments
             $currentTeams = $tournament->teams()->pluck('teams.id')->toArray();
             $newTeams = $validated['teams'];
+            $groupAssignments = $validated['group_assignments'] ?? [];
 
             // Remove teams that are no longer selected
             $teamsToRemove = array_diff($currentTeams, $newTeams);
@@ -796,24 +799,47 @@ class TournamentController extends Controller
                     ->delete();
             }
 
-            // Add new teams
-            $teamsToAdd = array_diff($newTeams, $currentTeams);
-            if (!empty($teamsToAdd)) {
-                foreach ($teamsToAdd as $teamId) {
-                    // **PERBAIKAN: Assign group hanya untuk group_knockout**
-                    $groupName = null;
-                    if ($tournament->type === 'group_knockout') {
-                        // Simple group assignment
+            // Update all teams (both existing and new) with their group assignments
+            foreach ($newTeams as $teamId) {
+                $groupName = null;
+                $seed = 1;
+
+                // **PERBAIKAN: Assign group hanya untuk group_knockout**
+                if ($tournament->type === 'group_knockout') {
+                    // Get group assignment from form data
+                    if (isset($groupAssignments[$teamId]) && !empty($groupAssignments[$teamId])) {
+                        $groupName = $groupAssignments[$teamId];
+                    } else {
+                        // If no group assignment provided, auto-assign
                         $groups = range('A', 'Z');
                         $groupCount = min($tournament->groups_count ?? 1, count($groups));
-                        $groupIndex = array_search($teamId, $newTeams) % $groupCount;
+                        $groupIndex = ($teamId - 1) % $groupCount; // Simple distribution
                         $groupName = $groups[$groupIndex];
                     }
-                    // League dan Knockout: group_name = null
+                }
+                // League dan Knockout: group_name = null
 
+                // Check if team already exists in tournament
+                $existingPivot = DB::table('team_tournament')
+                    ->where('tournament_id', $tournament->id)
+                    ->where('team_id', $teamId)
+                    ->first();
+
+                if ($existingPivot) {
+                    // Update existing team's group assignment
+                    DB::table('team_tournament')
+                        ->where('tournament_id', $tournament->id)
+                        ->where('team_id', $teamId)
+                        ->update([
+                            'group_name' => $groupName,
+                            'seed' => $seed,
+                            'updated_at' => now(),
+                        ]);
+                } else {
+                    // Add new team
                     $tournament->teams()->attach($teamId, [
                         'group_name' => $groupName,
-                        'seed' => 1, // Default seed
+                        'seed' => $seed,
                     ]);
                 }
             }
