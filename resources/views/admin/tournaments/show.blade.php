@@ -634,37 +634,60 @@
             <!-- Teams Tab -->
             <div id="teams-tab" class="tab-pane" style="display: none;">
                 @if($tournament->teams_count > 0)
-                    <div class="teams-list">
-                        @foreach($tournament->teams as $team)
-                            <div class="team-card">
-                                <div class="team-avatar">
-                                    @if($team->logo_url)
-                                        <img src="{{ $team->logo_url }}" alt="{{ $team->name }}"
-                                            style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
-                                            onerror="this.onerror=null; this.parentElement.innerHTML='{{ strtoupper(substr($team->name, 0, 1)) }}';">
-                                    @else
-                                        {{ strtoupper(substr($team->name, 0, 1)) }}
-                                    @endif
-                                </div>
-                                <div class="team-name">{{ $team->name }}</div>
-
-                                <!-- PERBAIKAN: Tampilkan group hanya untuk tournament yang membutuhkannya -->
-                                <!-- @if($tournament->type == 'group_knockout' || ($tournament->type == 'league' && $team->pivot->group_name))
-                                <div class="team-group">
-                                    Group {{ $team->pivot->group_name ?? 'A' }}
-                                </div> -->
-                                <!-- @endif -->
-
-                                <!-- <small class="text-muted d-block mt-2">
-                                    {{ $team->players_count ?? 0 }} players
-
-                                    @if($tournament->type == 'knockout' || $tournament->type == 'league')
-                                    • Seed #{{ $team->pivot->seed ?? $loop->iteration }}
-                                    @endif
-                                </small> -->
+                    @if($tournament->type == 'group_knockout')
+                        <!-- Group + Knockout: Display teams grouped by group -->
+                        @php
+                            $groupedTeams = $tournament->teams->groupBy('pivot.group_name');
+                        @endphp
+                        @foreach($groupedTeams as $groupName => $teams)
+                            <h6 class="mb-3 mt-4">
+                                <span class="badge bg-primary me-2">Group {{ $groupName }}</span>
+                                <small class="text-muted">{{ $teams->count() }} teams</small>
+                            </h6>
+                            <div class="teams-list mb-4">
+                                @foreach($teams as $team)
+                                    <div class="team-card">
+                                        <div class="team-avatar">
+                                            @if($team->logo_url)
+                                                <img src="{{ $team->logo_url }}" alt="{{ $team->name }}"
+                                                    style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                                                    onerror="this.onerror=null; this.parentElement.innerHTML='{{ strtoupper(substr($team->name, 0, 1)) }}';">
+                                            @else
+                                                {{ strtoupper(substr($team->name, 0, 1)) }}
+                                            @endif
+                                        </div>
+                                        <div class="team-name">{{ $team->name }}</div>
+                                        <div class="team-group">
+                                            Seed #{{ $team->pivot->seed ?? '-' }}
+                                        </div>
+                                    </div>
+                                @endforeach
                             </div>
                         @endforeach
-                    </div>
+                    @else
+                        <!-- League or Knockout: Display all teams in a grid -->
+                        <div class="teams-list">
+                            @foreach($tournament->teams as $team)
+                                <div class="team-card">
+                                    <div class="team-avatar">
+                                        @if($team->logo_url)
+                                            <img src="{{ $team->logo_url }}" alt="{{ $team->name }}"
+                                                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
+                                                onerror="this.onerror=null; this.parentElement.innerHTML='{{ strtoupper(substr($team->name, 0, 1)) }}';">
+                                        @else
+                                            {{ strtoupper(substr($team->name, 0, 1)) }}
+                                        @endif
+                                    </div>
+                                    <div class="team-name">{{ $team->name }}</div>
+                                    @if($tournament->type == 'knockout' || $tournament->type == 'league')
+                                        <div class="team-group">
+                                            Seed #{{ $team->pivot->seed ?? $loop->iteration }}
+                                        </div>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 @else
                     <div class="empty-state">
                         <div class="empty-icon">
