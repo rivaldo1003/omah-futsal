@@ -686,8 +686,13 @@ class TournamentController extends Controller
     // Edit tournament
     public function edit(Tournament $tournament)
     {
-        $teams = Team::orderBy('name')->get(['id', 'name']);
+        $teams = Team::orderBy('name')->get(['id', 'name', 'coach_name']);
         $selectedTeams = $tournament->teams()->pluck('teams.id')->toArray();
+        
+        // Load teams with pivot data (group_name and seed)
+        $tournament->load(['teams' => function ($query) {
+            $query->select('teams.id', 'teams.name', 'teams.coach_name', 'team_tournament.group_name', 'team_tournament.seed');
+        }]);
 
         // Decode settings
         $settings = json_decode($tournament->settings, true) ?? [];
