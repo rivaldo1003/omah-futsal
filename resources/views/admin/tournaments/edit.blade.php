@@ -434,6 +434,14 @@
                         <div class="team-selection-container">
                             @if($teams->count() > 0)
                                 @foreach($teams as $team)
+                                    @php
+                                        // Get current group assignment from tournament's teams relationship
+                                        $currentGroup = null;
+                                        $teamInTournament = $tournament->teams->firstWhere('id', $team->id);
+                                        if ($teamInTournament && isset($teamInTournament->pivot->group_name)) {
+                                            $currentGroup = $teamInTournament->pivot->group_name;
+                                        }
+                                    @endphp
                                     <div class="team-item" data-team-id="{{ $team->id }}">
                                         <div class="team-checkbox">
                                             <input type="checkbox" class="form-check-input team-checkbox-input" 
@@ -456,11 +464,16 @@
                                                 @for($i = 1; $i <= ($tournament->groups_count ?? 2); $i++)
                                                     @php $groupLetter = chr(64 + $i); @endphp
                                                     <option value="{{ $groupLetter }}"
-                                                        {{ isset($team->pivot->group_name) && $team->pivot->group_name == $groupLetter ? 'selected' : '' }}>
+                                                        {{ $currentGroup == $groupLetter ? 'selected' : '' }}>
                                                         Group {{ $groupLetter }}
                                                     </option>
                                                 @endfor
                                             </select>
+                                            @if($currentGroup && in_array($team->id, $selectedTeams))
+                                                <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
+                                                    Currently in Group {{ $currentGroup }}
+                                                </small>
+                                            @endif
                                         </div>
                                     </div>
                                 @endforeach
@@ -480,6 +493,7 @@
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
                             <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                            <small class="text-muted fw-normal">(Drag to reorder)</small>
                         </h6>
                         <div id="tie-breakers-container">
                             @php
@@ -494,9 +508,11 @@
                                 $currentRules = $settings['tie_breakers'] ?? $defaultRules;
                             @endphp
                             @foreach($currentRules as $index => $rule)
-                                <div class="input-group mb-2 tie-breaker-item">
-                                    <span class="input-group-text bg-light text-secondary fw-bold">{{ $index + 1 }}</span>
-                                    <input type="text" name="tie_breakers[]" class="form-control" value="{{ $rule }}" required>
+                                <div class="input-group mb-2 tie-breaker-item" draggable="true" style="cursor: move; transition: all 0.2s;">
+                                    <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
+                                        <i class="bi bi-grip-vertical"></i> {{ $index + 1 }}
+                                    </span>
+                                    <input type="text" name="tie_breakers[]" class="form-control tie-breaker-input" value="{{ $rule }}" required>
                                     <button type="button" class="btn btn-outline-danger remove-rule">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -507,8 +523,9 @@
                             <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
                         </button>
                         <div class="form-text mt-2">
-                            Urutan menentukan prioritas pemecahan poin sama. Pengaturan ini akan ditampilkan di halaman
-                            Home.
+                            <i class="bi bi-info-circle me-1"></i>Urutan menentukan prioritas pemecahan poin sama. 
+                            Anda dapat mengubah urutan dengan menyeret (drag) item ke atas atau bawah. 
+                            Pengaturan ini akan ditampilkan di halaman Home.
                         </div>
                     </div>
 
@@ -709,15 +726,21 @@
                     const itemCount = tieBreakersContainer.querySelectorAll('.tie-breaker-item').length;
                     const newRule = document.createElement('div');
                     newRule.className = 'input-group mb-2 tie-breaker-item';
+                    newRule.draggable = true;
+                    newRule.style.cursor = 'move';
+                    newRule.style.transition = 'all 0.2s';
                     newRule.innerHTML = `
-                            <span class="input-group-text bg-light text-secondary fw-bold">${itemCount + 1}</span>
-                            <input type="text" name="tie_breakers[]" class="form-control" placeholder="Aturan penentuan peringkat..." required>
+                            <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
+                                <i class="bi bi-grip-vertical"></i> ${itemCount + 1}
+                            </span>
+                            <input type="text" name="tie_breakers[]" class="form-control tie-breaker-input" placeholder="Aturan penentuan peringkat..." required>
                             <button type="button" class="btn btn-outline-danger remove-rule">
                                 <i class="bi bi-trash"></i>
                             </button>
                         `;
                     tieBreakersContainer.appendChild(newRule);
                     attachRemoveEvent(newRule.querySelector('.remove-rule'));
+                    attachDragEvents(newRule);
                 });
             }
 
@@ -726,12 +749,99 @@
                     const item = this.closest('.tie-breaker-item');
                     item.remove();
                     // Re-index numbering
-                    tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach((item, index) => {
-                        item.querySelector('.input-group-text').textContent = index + 1;
-                    });
+                    reindexTieBreakers();
                 });
             }
 
+            function reindexTieBreakers() {
+                const items = tieBreakersContainer.querySelectorAll('.tie-breaker-item');
+                items.forEach((item, index) => {
+                    const numberSpan = item.querySelector('.drag-handle');
+                    if (numberSpan) {
+                        numberSpan.innerHTML = `<i class="bi bi-grip-vertical"></i> ${index + 1}`;
+                    }
+                });
+            }
+
+            // Drag and Drop functionality
+            let draggedItem = null;
+            let draggedIndex = -1;
+
+            function attachDragEvents(item) {
+                item.addEventListener('dragstart', function (e) {
+                    draggedItem = this;
+                    draggedIndex = Array.from(tieBreakersContainer.querySelectorAll('.tie-breaker-item')).indexOf(this);
+                    this.style.opacity = '0.5';
+                    this.style.transform = 'scale(1.02)';
+                    e.dataTransfer.effectAllowed = 'move';
+                });
+
+                item.addEventListener('dragend', function () {
+                    this.style.opacity = '1';
+                    this.style.transform = 'scale(1)';
+                    draggedItem = null;
+                    draggedIndex = -1;
+                    
+                    // Remove all drag-over classes
+                    tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(item => {
+                        item.style.borderTop = '';
+                        item.style.borderBottom = '';
+                    });
+                });
+
+                item.addEventListener('dragover', function (e) {
+                    e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    
+                    if (draggedItem && draggedItem !== this) {
+                        const bounding = this.getBoundingClientRect();
+                        const offset = bounding.y + (bounding.height / 2);
+                        
+                        if (e.clientY - offset > 0) {
+                            this.style.borderBottom = '2px solid var(--accent)';
+                            this.style.borderTop = '';
+                        } else {
+                            this.style.borderTop = '2px solid var(--accent)';
+                            this.style.borderBottom = '';
+                        }
+                    }
+                });
+
+                item.addEventListener('dragleave', function () {
+                    this.style.borderTop = '';
+                    this.style.borderBottom = '';
+                });
+
+                item.addEventListener('drop', function (e) {
+                    e.preventDefault();
+                    this.style.borderTop = '';
+                    this.style.borderBottom = '';
+                    
+                    if (draggedItem && draggedItem !== this) {
+                        const items = Array.from(tieBreakersContainer.querySelectorAll('.tie-breaker-item'));
+                        const targetIndex = items.indexOf(this);
+                        
+                        if (draggedIndex !== -1 && targetIndex !== -1 && draggedIndex !== targetIndex) {
+                            // Determine insertion point based on mouse position
+                            const bounding = this.getBoundingClientRect();
+                            const offset = bounding.y + (bounding.height / 2);
+                            const insertBefore = e.clientY - offset < 0;
+                            
+                            if (insertBefore) {
+                                this.parentNode.insertBefore(draggedItem, this);
+                            } else {
+                                this.parentNode.insertBefore(draggedItem, this.nextSibling);
+                            }
+                            
+                            // Re-index numbering after drag
+                            reindexTieBreakers();
+                        }
+                    }
+                });
+            }
+
+            // Attach drag events to existing tie-breaker items
+            tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(attachDragEvents);
             tieBreakersContainer.querySelectorAll('.remove-rule').forEach(attachRemoveEvent);
 
             // Auto-dismiss alerts after 5 seconds
