@@ -1944,7 +1944,7 @@ class GameController extends Controller
                     ->get();
 
                 foreach ($completedMatches as $match) {
-                    $this->updateStandings($match);
+                    \App\Services\StandingService::updateStandings($match);
                 }
             });
 
@@ -2231,7 +2231,7 @@ class GameController extends Controller
                     if ($oldStatus === 'completed' && $status !== 'completed') {
                         $this->revertStandings($match);
                     } elseif ($oldStatus !== 'completed' && $status === 'completed') {
-                        $this->updateStandings($match);
+                        \App\Services\StandingService::updateStandings($match);
                     }
                 }
             });
