@@ -45,11 +45,14 @@ class InitializeTournamentStandings extends Command
                     ->where('group_name', $teamTournament->group_name)
                     ->first();
 
-                if (! $existing) {
-                    Standing::create([
+                // Use updateOrCreate to avoid duplicate entry errors
+                Standing::updateOrCreate(
+                    [
                         'team_id' => $teamTournament->team_id,
                         'tournament_id' => $tournament->id,
                         'group_name' => $teamTournament->group_name,
+                    ],
+                    [
                         'matches_played' => 0,
                         'wins' => 0,
                         'draws' => 0,
@@ -58,9 +61,9 @@ class InitializeTournamentStandings extends Command
                         'goals_against' => 0,
                         'goal_difference' => 0,
                         'points' => 0,
-                    ]);
-                    $count++;
-                }
+                    ]
+                );
+                $count++;
             }
 
             $this->info("Created {$count} standings for {$tournament->name}");

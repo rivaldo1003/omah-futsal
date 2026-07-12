@@ -1659,7 +1659,8 @@ class GameController extends Controller
         $groupName = $match->group_name ?? 'A';
         $tournamentId = $match->tournament_id;
 
-        $homeStanding = Standing::firstOrCreate(
+        // Use updateOrCreate instead of firstOrCreate to avoid duplicate entry errors
+        $homeStanding = Standing::updateOrCreate(
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $homeTeamId,
@@ -1677,7 +1678,7 @@ class GameController extends Controller
             ]
         );
 
-        $awayStanding = Standing::firstOrCreate(
+        $awayStanding = Standing::updateOrCreate(
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $awayTeamId,

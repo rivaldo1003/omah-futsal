@@ -764,16 +764,37 @@ class TournamentController extends Controller
 
             // Prepare settings
             $settings = json_decode($tournament->settings, true) ?? [];
+            
+            // Process tie_breakers - extract keys from array format
+            $tieBreakersKeys = [];
+            if ($request->has('tie_breakers')) {
+                \Log::info('Tie-breakers request data', $request->tie_breakers);
+                \Log::info('Tie-breakers request type', ['type' => gettype($request->tie_breakers)]);
+                \Log::info('Tie-breakers request count', ['count' => count($request->tie_breakers)]);
+                
+                foreach ($request->tie_breakers as $index => $tieBreaker) {
+                    \Log::info("Tie-breaker {$index}", $tieBreaker);
+                    if (isset($tieBreaker['key']) && !empty($tieBreaker['key'])) {
+                        $tieBreakersKeys[] = $tieBreaker['key'];
+                    }
+                }
+            }
+            
+            \Log::info('Extracted tie-breaker keys', $tieBreakersKeys);
+            
             $settings = array_merge($settings, [
                 'match_duration' => $validated['match_duration'],
                 'half_time' => $validated['half_time'],
                 'points_win' => $validated['points_win'],
                 'points_draw' => $validated['points_draw'],
-                'tie_breakers' => $request->tie_breakers,
+                'tie_breakers' => !empty($tieBreakersKeys) ? $tieBreakersKeys : null,
             ]);
+            
+            \Log::info('Final settings before save', $settings);
+            \Log::info('JSON encoded settings', ['json' => json_encode($settings)]);
 
             // Update tournament
-            $tournament->update([
+            $updateData = [
                 'name' => $validated['name'],
                 'slug' => $validated['slug'] ?? Str::slug($validated['name']) . '-' . time(),
                 'description' => $validated['description'] ?? null,
@@ -788,7 +809,13 @@ class TournamentController extends Controller
                 // **PERBAIKAN: Hanya group_knockout yang punya groups_count**
                 'groups_count' => $validated['type'] === 'group_knockout' ? $validated['groups_count'] : null,
                 'settings' => json_encode($settings),
-            ]);
+            ];
+            
+            \Log::info('Update data', $updateData);
+            
+            $tournament->update($updateData);
+            
+            \Log::info('Tournament updated successfully', ['settings' => $tournament->settings]);
 
             // Sync teams and update group assignments
             $currentTeams = $tournament->teams()->pluck('teams.id')->toArray();
