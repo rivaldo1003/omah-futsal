@@ -490,29 +490,49 @@
                     </div>
 
                     <!-- Standings & Tie-breakers Rules -->
-                    <div class="col-md-12 mb-4">
+                    <div class="col-md-12 mb-4 tie-breakers-section" style="{{ $tournament->type == 'group_knockout' ? '' : 'display: none;' }}">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
                             <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                            <span class="badge bg-info ms-2">Group Stage + Knockout</span>
                             <small class="text-muted fw-normal">(Drag to reorder)</small>
                         </h6>
                         <div id="tie-breakers-container">
                             @php
-                                $defaultRules = [
-                                    'Poin (nilai) - jika sama',
-                                    'Head-to-head (hasil pertemuan langsung) - jika sama',
-                                    'Selisih gol - jika sama',
-                                    'Produktivitas memasukkan (gol mencetak) - jika sama',
-                                    'Nilai fairplay (kartu) - jika sama',
-                                    'Adu tendangan penalti'
+                                $tieBreakerOptions = [
+                                    'points' => 'Poin (nilai) - jika sama',
+                                    'head_to_head' => 'Head-to-head (hasil pertemuan langsung) - jika sama',
+                                    'goal_difference' => 'Selisih gol - jika sama',
+                                    'goals_scored' => 'Produktivitas memasukkan (gol mencetak) - jika sama',
+                                    'fair_play' => 'Nilai fairplay (kartu) - jika sama',
+                                    'penalty' => 'Adu tendangan penalti'
                                 ];
-                                $currentRules = $settings['tie_breakers'] ?? $defaultRules;
+                                
+                                // Get current rules from settings
+                                $currentRules = $settings['tie_breakers'] ?? $tieBreakerOptions;
                             @endphp
                             @foreach($currentRules as $index => $rule)
+                                @php
+                                    // Find the key for this rule label
+                                    $ruleKey = null;
+                                    if (is_string($rule)) {
+                                        $ruleKey = array_search($rule, $tieBreakerOptions);
+                                    } elseif (is_array($rule) && isset($rule['key'])) {
+                                        $ruleKey = $rule['key'];
+                                    }
+                                    // If not found, use the rule as-is (for backwards compatibility)
+                                    if ($ruleKey === null) {
+                                        $ruleKey = is_string($rule) ? $rule : 'points';
+                                    }
+                                @endphp
                                 <div class="input-group mb-2 tie-breaker-item" draggable="true" style="cursor: move; transition: all 0.2s;">
                                     <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
                                         <i class="bi bi-grip-vertical"></i> {{ $index + 1 }}
                                     </span>
-                                    <input type="text" name="tie_breakers[]" class="form-control tie-breaker-input" value="{{ $rule }}" required>
+                                    <select class="form-select tie-breaker-select" name="tie_breakers[{{ $index }}][key]" required>
+                                        @foreach($tieBreakerOptions as $key => $label)
+                                            <option value="{{ $key }}" {{ $ruleKey == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
                                     <button type="button" class="btn btn-outline-danger remove-rule">
                                         <i class="bi bi-trash"></i>
                                     </button>
@@ -522,42 +542,265 @@
                         <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule">
                             <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
                         </button>
-                        <div class="form-text mt-2">
-                            <i class="bi bi-info-circle me-1"></i>Urutan menentukan prioritas pemecahan poin sama. 
+                        <div class="alert alert-info mt-3" style="padding: 10px 15px; font-size: 0.85rem;">
+                            <i class="bi bi-info-circle me-2"></i>
+                            <strong>Penting untuk Group Stage:</strong> Urutan di bawah menentukan prioritas ketika tim memiliki poin yang sama dalam klasemen grup. 
                             Anda dapat mengubah urutan dengan menyeret (drag) item ke atas atau bawah. 
-                            Pengaturan ini akan ditampilkan di halaman Home.
+                            Pilih aturan dari dropdown untuk menentukan kriteria peringkat.
+                        </div>
+                    </div>
+
+                    <!-- Tie-breakers for other tournament types (simpler version) -->
+                    <div class="col-md-12 mb-4 tie-breakers-section-other" style="{{ $tournament->type != 'group_knockout' ? '' : 'display: none;' }}">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                        </h6>
+                        <div id="tie-breakers-container-other">
+                            @php
+                                $tieBreakerOptionsSimple = [
+                                    'points' => 'Poin (nilai) - jika sama',
+                                    'goal_difference' => 'Selisih gol - jika sama',
+                                    'goals_scored' => 'Produktivitas memasukkan (gol mencetak) - jika sama',
+                                    'fair_play' => 'Nilai fairplay (kartu) - jika sama',
+                                    'penalty' => 'Adu tendangan penalti'
+                                ];
+                                
+                                // Get current rules from settings
+                                $currentRulesOther = $settings['tie_breakers'] ?? $tieBreakerOptionsSimple;
+                            @endphp
+                            @foreach($currentRulesOther as $index => $rule)
+                                @php
+                                    // Find the key for this rule label
+                                    $ruleKeyOther = null;
+                                    if (is_string($rule)) {
+                                        $ruleKeyOther = array_search($rule, $tieBreakerOptionsSimple);
+                                    } elseif (is_array($rule) && isset($rule['key'])) {
+                                        $ruleKeyOther = $rule['key'];
+                                    }
+                                    // If not found, use the rule as-is
+                                    if ($ruleKeyOther === null) {
+                                        $ruleKeyOther = is_string($rule) ? $rule : 'points';
+                                    }
+                                @endphp
+                                <div class="input-group mb-2 tie-breaker-item-other">
+                                    <span class="input-group-text bg-light text-secondary fw-bold">{{ $index + 1 }}</span>
+                                    <select class="form-select" name="tie_breakers[{{ $index }}][key]" required>
+                                        @foreach($tieBreakerOptionsSimple as $key => $label)
+                                            <option value="{{ $key }}" {{ $ruleKeyOther == $key ? 'selected' : '' }}>{{ $label }}</option>
+                                        @endforeach
+                                    </select>
+                                    <button type="button" class="btn btn-outline-danger remove-rule-other">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                        <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule-other">
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
+                        </button>
+                        <div class="form-text mt-2">
+                            <i class="bi bi-info-circle me-1"></i>Urutan menentukan prioritas pemecahan poin sama.
                         </div>
                     </div>
 
                     <!-- Match Settings -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-stopwatch me-2"></i>Match Settings
+                            <i class="bi bi-stopwatch me-2"></i>Match Duration & Time
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="match_duration" class="form-label">Regular Time (minutes) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('match_duration') is-invalid @enderror" 
+                                    id="match_duration" name="match_duration" min="10" max="120" 
+                                    value="{{ old('match_duration', $settings['match_duration'] ?? 40) }}" required>
+                                @error('match_duration')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="half_time" class="form-label">Half Time (minutes) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('half_time') is-invalid @enderror" 
+                                    id="half_time" name="half_time" min="5" max="30" 
+                                    value="{{ old('half_time', $settings['half_time'] ?? 10) }}" required>
+                                @error('half_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-4 mb-3">
+                                <label for="extra_time" class="form-label">Extra Time (minutes)</label>
+                                <input type="number" class="form-control @error('extra_time') is-invalid @enderror" 
+                                    id="extra_time" name="extra_time" min="0" max="30" 
+                                    value="{{ old('extra_time', $settings['extra_time'] ?? 10) }}">
+                                @error('extra_time')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Points System -->
+                    <div class="col-md-12 mb-4">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-flag me-2"></i>Points System
                         </h6>
 
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <label for="match_duration" class="form-label">Match Duration (minutes)</label>
-                                <input type="number" class="form-control" id="match_duration" name="match_duration" min="10"
-                                    max="120" value="{{ $settings['match_duration'] ?? 40 }}">
+                                <label for="points_win" class="form-label">Points for Win <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('points_win') is-invalid @enderror" 
+                                    id="points_win" name="points_win" min="1" max="10" 
+                                    value="{{ old('points_win', $settings['points_win'] ?? 3) }}" required>
+                                @error('points_win')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="half_time" class="form-label">Half Time (minutes)</label>
-                                <input type="number" class="form-control" id="half_time" name="half_time" min="5" max="30"
-                                    value="{{ $settings['half_time'] ?? 10 }}">
+                                <label for="points_draw" class="form-label">Points for Draw <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('points_draw') is-invalid @enderror" 
+                                    id="points_draw" name="points_draw" min="0" max="5" 
+                                    value="{{ old('points_draw', $settings['points_draw'] ?? 1) }}" required>
+                                @error('points_draw')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="points_win" class="form-label">Points for Win</label>
-                                <input type="number" class="form-control" id="points_win" name="points_win" min="0" max="10"
-                                    value="{{ $settings['points_win'] ?? 3 }}">
+                                <label for="points_loss" class="form-label">Points for Loss <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('points_loss') is-invalid @enderror" 
+                                    id="points_loss" name="points_loss" min="0" max="5" 
+                                    value="{{ old('points_loss', $settings['points_loss'] ?? 0) }}" required>
+                                @error('points_loss')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="points_draw" class="form-label">Points for Draw</label>
-                                <input type="number" class="form-control" id="points_draw" name="points_draw" min="0"
-                                    max="5" value="{{ $settings['points_draw'] ?? 1 }}">
+                                <label for="points_no_show" class="form-label">Points for No Show</label>
+                                <input type="number" class="form-control @error('points_no_show') is-invalid @enderror" 
+                                    id="points_no_show" name="points_no_show" min="-10" max="0" 
+                                    value="{{ old('points_no_show', $settings['points_no_show'] ?? -1) }}">
+                                @error('points_no_show')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Match Rules & Options -->
+                    <div class="col-md-12 mb-4">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-card-checklist me-2"></i>Match Rules & Options
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="max_substitutes" class="form-label">Maximum Substitutes <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('max_substitutes') is-invalid @enderror" 
+                                    id="max_substitutes" name="max_substitutes" min="0" max="20" 
+                                    value="{{ old('max_substitutes', $settings['max_substitutes'] ?? 5) }}" required>
+                                @error('max_substitutes')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="yellow_card_suspension" class="form-label">Yellow Cards for Suspension</label>
+                                <input type="number" class="form-control @error('yellow_card_suspension') is-invalid @enderror" 
+                                    id="yellow_card_suspension" name="yellow_card_suspension" min="1" max="10" 
+                                    value="{{ old('yellow_card_suspension', $settings['yellow_card_suspension'] ?? 3) }}">
+                                @error('yellow_card_suspension')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="allow_draw" name="allow_draw" value="1" 
+                                        {{ old('allow_draw', $settings['allow_draw'] ?? true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="allow_draw">
+                                        <strong>Allow draws in group stage</strong>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="extra_time_enabled" name="extra_time_enabled" value="1" 
+                                        {{ old('extra_time_enabled', $settings['extra_time_enabled'] ?? true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="extra_time_enabled">
+                                        <strong>Extra time for knockout matches</strong>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="penalty_shootout" name="penalty_shootout" value="1" 
+                                        {{ old('penalty_shootout', $settings['penalty_shootout'] ?? true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="penalty_shootout">
+                                        <strong>Penalty shootout after extra time</strong>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="var_enabled" name="var_enabled" value="1" 
+                                        {{ old('var_enabled', $settings['var_enabled'] ?? false) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="var_enabled">
+                                        <strong>Enable VAR (Video Assistant Referee)</strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Schedule Settings -->
+                    <div class="col-md-12 mb-4">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-calendar-week me-2"></i>Schedule Settings
+                        </h6>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="matches_per_day" class="form-label">Maximum Matches per Day <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('matches_per_day') is-invalid @enderror" 
+                                    id="matches_per_day" name="matches_per_day" min="1" max="20" 
+                                    value="{{ old('matches_per_day', $settings['matches_per_day'] ?? 4) }}" required>
+                                @error('matches_per_day')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="match_interval" class="form-label">Match Interval (minutes) <span class="text-danger">*</span></label>
+                                <input type="number" class="form-control @error('match_interval') is-invalid @enderror" 
+                                    id="match_interval" name="match_interval" min="15" max="120" 
+                                    value="{{ old('match_interval', $settings['match_interval'] ?? 30) }}" required>
+                                @error('match_interval')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-12 mb-3">
+                                <label for="match_time_slots" class="form-label">Preferred Match Times</label>
+                                <input type="text" class="form-control @error('match_time_slots') is-invalid @enderror" 
+                                    id="match_time_slots" name="match_time_slots" 
+                                    value="{{ old('match_time_slots', $settings['match_time_slots'] ?? '14:00, 16:00, 18:00, 20:00') }}"
+                                    placeholder="Enter preferred match times separated by commas">
+                                <div class="form-text">Example: 14:00, 16:00, 18:00, 20:00</div>
+                                @error('match_time_slots')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
                             </div>
                         </div>
                     </div>
@@ -678,6 +921,20 @@
             const loadingOverlay = document.getElementById('loadingOverlay');
 
             form.addEventListener('submit', function () {
+                // Debug: Log tie-breaker data before submit
+                const tieBreakerData = [];
+                document.querySelectorAll('.tie-breaker-item').forEach((item, index) => {
+                    const select = item.querySelector('.tie-breaker-select');
+                    if (select) {
+                        tieBreakerData.push({
+                            index: index,
+                            name: select.name,
+                            value: select.value
+                        });
+                    }
+                });
+                console.log('Submitting tie-breaker data:', tieBreakerData);
+                
                 loadingOverlay.style.display = 'flex';
             });
 
@@ -717,7 +974,11 @@
                 checkbox.addEventListener('change', updateGroupSelectState);
             });
 
-            // Tie-breakers management
+            // ==============================================
+            // TIE-BREAKERS MANAGEMENT
+            // ==============================================
+            
+            // Group Knockout Tie-breakers (with drag-and-drop)
             const tieBreakersContainer = document.getElementById('tie-breakers-container');
             const addRuleBtn = document.getElementById('add-rule');
 
@@ -733,41 +994,109 @@
                             <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
                                 <i class="bi bi-grip-vertical"></i> ${itemCount + 1}
                             </span>
-                            <input type="text" name="tie_breakers[]" class="form-control tie-breaker-input" placeholder="Aturan penentuan peringkat..." required>
+                            <select class="form-select tie-breaker-select" name="tie_breakers[${itemCount}][key]" required>
+                                <option value="">Select Tie-breaker</option>
+                                <option value="points">Poin (nilai) - jika sama</option>
+                                <option value="head_to_head">Head-to-head (hasil pertemuan langsung) - jika sama</option>
+                                <option value="goal_difference">Selisih gol - jika sama</option>
+                                <option value="goals_scored">Produktivitas memasukkan (gol mencetak) - jika sama</option>
+                                <option value="fair_play">Nilai fairplay (kartu) - jika sama</option>
+                                <option value="penalty">Adu tendangan penalti</option>
+                            </select>
                             <button type="button" class="btn btn-outline-danger remove-rule">
                                 <i class="bi bi-trash"></i>
                             </button>
                         `;
                     tieBreakersContainer.appendChild(newRule);
-                    attachRemoveEvent(newRule.querySelector('.remove-rule'));
+                    attachRemoveEvent(newRule.querySelector('.remove-rule'), 'group');
                     attachDragEvents(newRule);
+                    
+                    // Re-index all tie-breaker items after adding new one
+                    reindexTieBreakerItems();
                 });
             }
-
-            function attachRemoveEvent(btn) {
-                btn.addEventListener('click', function () {
-                    const item = this.closest('.tie-breaker-item');
-                    item.remove();
-                    // Re-index numbering
-                    reindexTieBreakers();
-                });
-            }
-
-            function reindexTieBreakers() {
+            
+            // Function to re-index tie-breaker items
+            function reindexTieBreakerItems() {
                 const items = tieBreakersContainer.querySelectorAll('.tie-breaker-item');
                 items.forEach((item, index) => {
+                    // Update the number in the drag handle
                     const numberSpan = item.querySelector('.drag-handle');
                     if (numberSpan) {
                         numberSpan.innerHTML = `<i class="bi bi-grip-vertical"></i> ${index + 1}`;
                     }
+                    
+                    // Update the select name attribute
+                    const select = item.querySelector('.tie-breaker-select');
+                    if (select) {
+                        select.name = `tie_breakers[${index}][key]`;
+                    }
                 });
             }
 
-            // Drag and Drop functionality
+            // Other Tournament Types Tie-breakers (without drag-and-drop)
+            const tieBreakersContainerOther = document.getElementById('tie-breakers-container-other');
+            const addRuleBtnOther = document.getElementById('add-rule-other');
+
+            if (addRuleBtnOther) {
+                addRuleBtnOther.addEventListener('click', function () {
+                    const itemCount = tieBreakersContainerOther.querySelectorAll('.tie-breaker-item-other').length;
+                    const newRule = document.createElement('div');
+                    newRule.className = 'input-group mb-2 tie-breaker-item-other';
+                    newRule.innerHTML = `
+                            <span class="input-group-text bg-light text-secondary fw-bold">${itemCount + 1}</span>
+                            <select class="form-select" name="tie_breakers[${itemCount}][key]" required>
+                                <option value="">Select Tie-breaker</option>
+                                <option value="points">Poin (nilai) - jika sama</option>
+                                <option value="goal_difference">Selisih gol - jika sama</option>
+                                <option value="goals_scored">Produktivitas memasukkan (gol mencetak) - jika sama</option>
+                                <option value="fair_play">Nilai fairplay (kartu) - jika sama</option>
+                                <option value="penalty">Adu tendangan penalti</option>
+                            </select>
+                            <button type="button" class="btn btn-outline-danger remove-rule-other">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        `;
+                    tieBreakersContainerOther.appendChild(newRule);
+                    attachRemoveEvent(newRule.querySelector('.remove-rule-other'), 'other');
+                });
+            }
+
+            function attachRemoveEvent(btn, type) {
+                btn.addEventListener('click', function () {
+                    const item = this.closest(type === 'group' ? '.tie-breaker-item' : '.tie-breaker-item-other');
+                    item.remove();
+                    // Re-index numbering and select names
+                    reindexTieBreakers(type);
+                    if (type === 'group') {
+                        reindexTieBreakerItems();
+                    }
+                });
+            }
+
+            function reindexTieBreakers(type) {
+                const container = type === 'group' ? tieBreakersContainer : tieBreakersContainerOther;
+                const items = container.querySelectorAll(type === 'group' ? '.tie-breaker-item' : '.tie-breaker-item-other');
+                items.forEach((item, index) => {
+                    const numberSpan = item.querySelector(type === 'group' ? '.drag-handle' : '.input-group-text');
+                    if (numberSpan) {
+                        if (type === 'group') {
+                            numberSpan.innerHTML = `<i class="bi bi-grip-vertical"></i> ${index + 1}`;
+                        } else {
+                            numberSpan.textContent = index + 1;
+                        }
+                    }
+                });
+            }
+
+            // Drag and Drop functionality for group_knockout (Desktop + Mobile)
             let draggedItem = null;
             let draggedIndex = -1;
+            let touchStartY = 0;
+            let touchCurrentItem = null;
 
             function attachDragEvents(item) {
+                // Desktop drag events
                 item.addEventListener('dragstart', function (e) {
                     draggedItem = this;
                     draggedIndex = Array.from(tieBreakersContainer.querySelectorAll('.tie-breaker-item')).indexOf(this);
@@ -833,16 +1162,108 @@
                                 this.parentNode.insertBefore(draggedItem, this.nextSibling);
                             }
                             
-                            // Re-index numbering after drag
-                            reindexTieBreakers();
+                            // Re-index numbering and select names after drag
+                            reindexTieBreakers('group');
+                            reindexTieBreakerItems();
                         }
                     }
                 });
+
+                // Mobile touch events
+                item.addEventListener('touchstart', function (e) {
+                    touchCurrentItem = this;
+                    touchStartY = e.touches[0].clientY;
+                    this.style.opacity = '0.5';
+                    this.style.transform = 'scale(1.02)';
+                }, { passive: true });
+
+                item.addEventListener('touchmove', function (e) {
+                    if (!touchCurrentItem) return;
+                    
+                    e.preventDefault();
+                    const touchY = e.touches[0].clientY;
+                    const elementAtPoint = document.elementFromPoint(
+                        e.touches[0].clientX,
+                        touchY
+                    );
+                    
+                    // Find the closest tie-breaker item
+                    const targetItem = elementAtPoint ? elementAtPoint.closest('.tie-breaker-item') : null;
+                    
+                    // Remove all borders
+                    tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(item => {
+                        item.style.borderTop = '';
+                        item.style.borderBottom = '';
+                    });
+                    
+                    // Add border to target
+                    if (targetItem && targetItem !== touchCurrentItem) {
+                        const bounding = targetItem.getBoundingClientRect();
+                        const offset = bounding.y + (bounding.height / 2);
+                        
+                        if (touchY - offset > 0) {
+                            targetItem.style.borderBottom = '2px solid var(--accent)';
+                        } else {
+                            targetItem.style.borderTop = '2px solid var(--accent)';
+                        }
+                    }
+                }, { passive: false });
+
+                item.addEventListener('touchend', function (e) {
+                    if (!touchCurrentItem) return;
+                    
+                    const touchY = e.changedTouches[0].clientY;
+                    const elementAtPoint = document.elementFromPoint(
+                        e.changedTouches[0].clientX,
+                        touchY
+                    );
+                    
+                    const targetItem = elementAtPoint ? elementAtPoint.closest('.tie-breaker-item') : null;
+                    
+                    if (targetItem && targetItem !== touchCurrentItem) {
+                        const items = Array.from(tieBreakersContainer.querySelectorAll('.tie-breaker-item'));
+                        const currentIndex = items.indexOf(touchCurrentItem);
+                        const targetIndex = items.indexOf(targetItem);
+                        
+                        if (currentIndex !== -1 && targetIndex !== -1 && currentIndex !== targetIndex) {
+                            const bounding = targetItem.getBoundingClientRect();
+                            const offset = bounding.y + (bounding.height / 2);
+                            const insertBefore = touchY - offset < 0;
+                            
+                            if (insertBefore) {
+                                targetItem.parentNode.insertBefore(touchCurrentItem, targetItem);
+                            } else {
+                                targetItem.parentNode.insertBefore(touchCurrentItem, targetItem.nextSibling);
+                            }
+                            
+                            // Re-index numbering and select names after drag
+                            reindexTieBreakers('group');
+                            reindexTieBreakerItems();
+                        }
+                    }
+                    
+                    // Cleanup
+                    touchCurrentItem.style.opacity = '1';
+                    touchCurrentItem.style.transform = 'scale(1)';
+                    tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(item => {
+                        item.style.borderTop = '';
+                        item.style.borderBottom = '';
+                    });
+                    
+                    touchCurrentItem = null;
+                });
             }
 
-            // Attach drag events to existing tie-breaker items
-            tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(attachDragEvents);
-            tieBreakersContainer.querySelectorAll('.remove-rule').forEach(attachRemoveEvent);
+            // Attach drag events to existing tie-breaker items (group_knockout)
+            if (tieBreakersContainer) {
+                tieBreakersContainer.querySelectorAll('.tie-breaker-item').forEach(attachDragEvents);
+                tieBreakersContainer.querySelectorAll('.remove-rule').forEach(btn => attachRemoveEvent(btn, 'group'));
+            }
+
+            // Attach remove events to other tournament types tie-breakers
+            if (tieBreakersContainerOther) {
+                tieBreakersContainerOther.querySelectorAll('.remove-rule-other').forEach(btn => attachRemoveEvent(btn, 'other'));
+            }
 
             // Auto-dismiss alerts after 5 seconds
             setTimeout(() => {

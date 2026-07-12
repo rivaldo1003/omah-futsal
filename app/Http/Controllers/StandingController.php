@@ -174,31 +174,71 @@ class StandingController extends Controller
             $allStandings->push($standing);
         }
 
-        // 4. Sortir standings per group
+        // 4. Sortir standings per group dengan tie_breakers dari settings
         $grouped = $allStandings->groupBy('group_name');
 
         $sortedStandings = collect();
 
+        // Ambil tie_breakers dari tournament settings
+        $tieBreakers = [];
+        if ($tournament) {
+            $settings = json_decode($tournament->settings, true) ?? [];
+            $tieBreakers = $settings['tie_breakers'] ?? [];
+        }
+
+        // Default tie-breakers jika tidak ada di settings (gunakan format key)
+        if (empty($tieBreakers)) {
+            $tieBreakers = [
+                'points',
+                'goal_difference',
+                'goals_scored',
+                'wins'
+            ];
+        }
+
         foreach ($grouped as $group => $groupStandings) {
-            // Sort by: points > GD > GF > wins
-            $sortedGroup = $groupStandings->sortByDesc(function ($standing) {
-                // Jika ini object custom
-                if (isset($standing->is_default) && $standing->is_default) {
-                    return [
-                        $standing->points,
-                        $standing->goal_difference,
-                        $standing->goals_for,
-                        $standing->wins,
-                    ];
+            // Sort berdasarkan tie_breakers yang dikonfigurasi
+            $sortedGroup = $groupStandings->sortByDesc(function ($standing) use ($tieBreakers) {
+                $sortValues = [];
+
+                foreach ($tieBreakers as $rule) {
+                    // Map tie-breaker keys ke field yang sesuai
+                    switch ($rule) {
+                        case 'points':
+                            // Poin/nilai
+                            $sortValues[] = $standing->points;
+                            break;
+                        case 'head_to_head':
+                            // Head-to-head: untuk sekarang gunakan wins sebagai proxy
+                            // Idealnya ini perlu perhitungan khusus antar tim yang terikat
+                            $sortValues[] = $standing->wins;
+                            break;
+                        case 'goal_difference':
+                            // Selisih gol
+                            $sortValues[] = $standing->goal_difference;
+                            break;
+                        case 'goals_scored':
+                            // Gol yang dicetak
+                            $sortValues[] = $standing->goals_for;
+                            break;
+                        case 'fair_play':
+                            // Fair play: untuk sekarang gunakan losses sebagai proxy
+                            // Idealnya perlu perhitungan khusus berdasarkan kartu
+                            $sortValues[] = -$standing->losses; // Negatif karena lebih sedikit losses = lebih baik
+                            break;
+                        case 'penalty':
+                            // Adu penalti: untuk sekarang gunakan draws sebagai proxy
+                            // Idealnya ini perlu perhitungan khusus
+                            $sortValues[] = $standing->drawn;
+                            break;
+                        default:
+                            // Default: gunakan points
+                            $sortValues[] = $standing->points;
+                            break;
+                    }
                 }
 
-                // Jika ini model Standing
-                return [
-                    $standing->points,
-                    $standing->goal_difference,
-                    $standing->goals_for,
-                    $standing->wins,
-                ];
+                return $sortValues;
             });
 
             $sortedStandings = $sortedStandings->merge($sortedGroup);
@@ -519,13 +559,48 @@ class StandingController extends Controller
                 // Add position to each group
                 foreach ($groupedStandings as $group => $groupStandings) {
                     $position = 1;
-                    $sortedGroup = $groupStandings->sortByDesc(function ($standing) {
-                        return [
-                            $standing->points,
-                            $standing->goal_difference,
-                            $standing->goals_for,
-                            $standing->wins,
-                        ];
+
+                    // Get tie_breakers from tournament settings
+                    $tieBreakers = [];
+                    if ($selectedTournament) {
+                        $settings = json_decode($selectedTournament->settings, true) ?? [];
+                        $tieBreakers = $settings['tie_breakers'] ?? [];
+                    }
+
+                    // Default tie-breakers if not set
+                    if (empty($tieBreakers)) {
+                        $tieBreakers = ['points', 'goal_difference', 'goals_scored', 'wins'];
+                    }
+
+                    $sortedGroup = $groupStandings->sortByDesc(function ($standing) use ($tieBreakers) {
+                        $sortValues = [];
+
+                        foreach ($tieBreakers as $rule) {
+                            switch ($rule) {
+                                case 'points':
+                                    $sortValues[] = $standing->points;
+                                    break;
+                                case 'head_to_head':
+                                    $sortValues[] = $standing->wins;
+                                    break;
+                                case 'goal_difference':
+                                    $sortValues[] = $standing->goal_difference;
+                                    break;
+                                case 'goals_scored':
+                                    $sortValues[] = $standing->goals_for;
+                                    break;
+                                case 'fair_play':
+                                    $sortValues[] = -$standing->losses;
+                                    break;
+                                case 'penalty':
+                                    $sortValues[] = $standing->drawn;
+                                    break;
+                                default:
+                                    $sortValues[] = $standing->points;
+                            }
+                        }
+
+                        return $sortValues;
                     });
 
                     foreach ($sortedGroup as $standing) {
@@ -585,16 +660,18 @@ class StandingController extends Controller
                 ->pluck('team_id');
 
             foreach ($teamsInTournament as $teamId) {
-                Standing::firstOrCreate(
+                $groupName = DB::table('team_tournament')
+                    ->where('tournament_id', $tournamentId)
+                    ->where('team_id', $teamId)
+                    ->value('group_name') ?? 'A';
+
+                Standing::updateOrCreate(
                     [
                         'tournament_id' => $tournamentId,
                         'team_id' => $teamId,
+                        'group_name' => $groupName,
                     ],
                     [
-                        'group_name' => DB::table('team_tournament')
-                            ->where('tournament_id', $tournamentId)
-                            ->where('team_id', $teamId)
-                            ->value('group_name') ?? 'A',
                         'matches_played' => 0,
                         'wins' => 0,
                         'draws' => 0,
@@ -638,14 +715,14 @@ class StandingController extends Controller
         $awayTeamId = $match->team_away_id;
         $groupName = $match->group_name ?? 'A';
 
-        // Cari atau buat standings untuk home team
-        $homeStanding = Standing::firstOrCreate(
+        // Use updateOrCreate with group_name in the search criteria to avoid duplicate entry errors
+        $homeStanding = Standing::updateOrCreate(
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $homeTeamId,
+                'group_name' => $groupName,
             ],
             [
-                'group_name' => $groupName,
                 'matches_played' => 0,
                 'wins' => 0,
                 'draws' => 0,
@@ -657,14 +734,14 @@ class StandingController extends Controller
             ]
         );
 
-        // Cari atau buat standings untuk away team
-        $awayStanding = Standing::firstOrCreate(
+        // Use updateOrCreate with group_name in the search criteria to avoid duplicate entry errors
+        $awayStanding = Standing::updateOrCreate(
             [
                 'tournament_id' => $tournamentId,
                 'team_id' => $awayTeamId,
+                'group_name' => $groupName,
             ],
             [
-                'group_name' => $groupName,
                 'matches_played' => 0,
                 'wins' => 0,
                 'draws' => 0,
