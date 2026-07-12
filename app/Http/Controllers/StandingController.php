@@ -12,6 +12,20 @@ use Illuminate\Support\Facades\DB;
 class StandingController extends Controller
 {
     /**
+     * Recursively convert array to object
+     */
+    private function arrayToObject($data)
+    {
+        if (is_object($data)) {
+            return $data;
+        }
+        if (is_array($data)) {
+            return (object) array_map([$this, 'arrayToObject'], $data);
+        }
+        return $data;
+    }
+
+    /**
      * Display a listing of the resource (public view).
      */
     public function publicIndex(Request $request)
@@ -49,14 +63,69 @@ class StandingController extends Controller
                 // Untuk league dan group_knockout: tampilkan standings grup
                 $standings = $this->getCompleteStandingsWithAllTeams($selectedTournament->id);
 
-                // Group standings by group
+                // Group standings by group (groupBy preserves order in Laravel collections)
                 $groupedStandings = $standings->groupBy('group_name');
 
                 // Hitung position per group
                 foreach ($groupedStandings as $group => $groupStandings) {
                     $position = 1;
-                    foreach ($groupStandings as $standing) {
-                        // Tambahkan calculated fields
+                    // Get completed matches for head-to-head
+                    $groupMatches = Game::where('tournament_id', $tournamentId)
+                        ->where('group_name', $group)
+                        ->where('status', 'completed')
+                        ->get();
+
+                    // Convert to array for usort (normalize objects to arrays first)
+                    $groupArray = $groupStandings->values()->map(function ($item) {
+                        if ($item instanceof \Illuminate\Database\Eloquent\Model) {
+                            return $item->toArray();
+                        }
+                        return is_object($item) ? (array) $item : $item;
+                    })->toArray();
+
+                    // Re-sort within each group using custom comparison (same as getCompleteStandingsWithAllTeams)
+                    usort($groupArray, function ($a, $b) use ($groupMatches) {
+                        // 1. Points (Poin)
+                        if ($b['points'] != $a['points']) {
+                            return $b['points'] - $a['points'];
+                        }
+
+                        // 2. Goal Difference (Selisih Gol)
+                        $gdA = ($a['goals_for'] ?? 0) - ($a['goals_against'] ?? 0);
+                        $gdB = ($b['goals_for'] ?? 0) - ($b['goals_against'] ?? 0);
+                        if ($gdB != $gdA) {
+                            return $gdB - $gdA;
+                        }
+
+                        // 3. Goals For (Gol Memasukkan)
+                        if ($b['goals_for'] != $a['goals_for']) {
+                            return $b['goals_for'] - $a['goals_for'];
+                        }
+
+                        // 4. HEAD-TO-HEAD
+                        $teamA = (object) $a;
+                        $teamB = (object) $b;
+                        $headToHeadResult = $this->calculateHeadToHeadAdvanced($teamA, $teamB, $groupMatches);
+                        if ($headToHeadResult !== 0) {
+                            return $headToHeadResult;
+                        }
+
+                        // 5. Wins (Jumlah Kemenangan)
+                        if ($b['wins'] != $a['wins']) {
+                            return $b['wins'] - $a['wins'];
+                        }
+
+                        // 6. Jika semua sama, urutkan berdasarkan nama
+                        return strcmp($a['team_name'] ?? '', $b['team_name'] ?? '');
+                    });
+
+                    // Convert arrays back to objects (recursively)
+                    $sortedGroup = collect($groupArray)->map(function ($item) {
+                        return $this->arrayToObject($item);
+                    });
+
+                    foreach ($sortedGroup as $standing) {
+                        // Add calculated fields
                         $standing->played = $standing->matches_played;
                         $standing->won = $standing->wins;
                         $standing->drawn = $standing->draws;
@@ -64,11 +133,16 @@ class StandingController extends Controller
                         $standing->position = $position;
                         $position++;
                     }
-                    $groupedStandingsWithPosition->put($group, $groupStandings);
+                    $groupedStandingsWithPosition->put($group, $sortedGroup);
                 }
 
                 // Untuk flat standings dengan position
                 $flatStandings = $standings->map(function ($standing) {
+                    // Convert to object if array (recursively)
+                    if (is_array($standing)) {
+                        $standing = $this->arrayToObject($standing);
+                    }
+
                     $standing->played = $standing->matches_played;
                     $standing->won = $standing->wins;
                     $standing->drawn = $standing->draws;
@@ -197,54 +271,147 @@ class StandingController extends Controller
         }
 
         foreach ($grouped as $group => $groupStandings) {
-            // Sort berdasarkan tie_breakers yang dikonfigurasi
-            $sortedGroup = $groupStandings->sortByDesc(function ($standing) use ($tieBreakers) {
-                $sortValues = [];
+            // Get all completed matches in this group for head-to-head calculations
+            $groupMatches = Game::where('tournament_id', $tournamentId)
+                ->where('group_name', $group)
+                ->where('status', 'completed')
+                ->get();
 
-                foreach ($tieBreakers as $rule) {
-                    // Map tie-breaker keys ke field yang sesuai
-                    switch ($rule) {
-                        case 'points':
-                            // Poin/nilai
-                            $sortValues[] = $standing->points;
-                            break;
-                        case 'head_to_head':
-                            // Head-to-head: untuk sekarang gunakan wins sebagai proxy
-                            // Idealnya ini perlu perhitungan khusus antar tim yang terikat
-                            $sortValues[] = $standing->wins;
-                            break;
-                        case 'goal_difference':
-                            // Selisih gol
-                            $sortValues[] = $standing->goal_difference;
-                            break;
-                        case 'goals_scored':
-                            // Gol yang dicetak
-                            $sortValues[] = $standing->goals_for;
-                            break;
-                        case 'fair_play':
-                            // Fair play: untuk sekarang gunakan losses sebagai proxy
-                            // Idealnya perlu perhitungan khusus berdasarkan kartu
-                            $sortValues[] = -$standing->losses; // Negatif karena lebih sedikit losses = lebih baik
-                            break;
-                        case 'penalty':
-                            // Adu penalti: untuk sekarang gunakan draws sebagai proxy
-                            // Idealnya ini perlu perhitungan khusus
-                            $sortValues[] = $standing->drawn;
-                            break;
-                        default:
-                            // Default: gunakan points
-                            $sortValues[] = $standing->points;
-                            break;
-                    }
+            // Convert to array for usort (normalize objects to arrays first)
+            $groupArray = $groupStandings->values()->map(function ($item) {
+                if ($item instanceof \Illuminate\Database\Eloquent\Model) {
+                    return $item->toArray();
+                }
+                return is_object($item) ? (array) $item : $item;
+            })->toArray();
+
+            // Sort using custom comparison function (same as home page)
+            usort($groupArray, function ($a, $b) use ($groupMatches) {
+                // 1. Points (Poin)
+                if ($b['points'] != $a['points']) {
+                    return $b['points'] - $a['points'];
                 }
 
-                return $sortValues;
+                // 2. Goal Difference (Selisih Gol) - calculate from goals_for and goals_against
+                $gdA = ($a['goals_for'] ?? 0) - ($a['goals_against'] ?? 0);
+                $gdB = ($b['goals_for'] ?? 0) - ($b['goals_against'] ?? 0);
+                if ($gdB != $gdA) {
+                    return $gdB - $gdA;
+                }
+
+                // 3. Goals For (Gol Memasukkan)
+                if ($b['goals_for'] != $a['goals_for']) {
+                    return $b['goals_for'] - $a['goals_for'];
+                }
+
+                // 4. HEAD-TO-HEAD
+                $teamA = (object) $a;
+                $teamB = (object) $b;
+                $headToHeadResult = $this->calculateHeadToHeadAdvanced($teamA, $teamB, $groupMatches);
+                if ($headToHeadResult !== 0) {
+                    return $headToHeadResult;
+                }
+
+                // 5. Wins (Jumlah Kemenangan)
+                if ($b['wins'] != $a['wins']) {
+                    return $b['wins'] - $a['wins'];
+                }
+
+                // 6. Jika semua sama, urutkan berdasarkan nama
+                return strcmp($a['team_name'] ?? '', $b['team_name'] ?? '');
+            });
+
+            // Convert arrays back to objects for consistency (recursively)
+            $sortedGroup = collect($groupArray)->map(function ($item) {
+                return $this->arrayToObject($item);
             });
 
             $sortedStandings = $sortedStandings->merge($sortedGroup);
         }
 
         return $sortedStandings;
+    }
+
+    /**
+     * Apply head-to-head sorting for teams with same points
+     */
+    private function applyHeadToHeadSorting($sortedGroup, $groupMatches)
+    {
+        // Group teams by points and goal difference
+        $tiedTeams = $sortedGroup->groupBy(function ($standing) {
+            return $standing->points . '_' . $standing->goal_difference;
+        });
+
+        $finalSorted = collect();
+
+        foreach ($tiedTeams as $tiedGroup) {
+            if ($tiedGroup->count() <= 1) {
+                // No tie, just add to final
+                $finalSorted = $finalSorted->merge($tiedGroup);
+                continue;
+            }
+
+            // Sort tied teams by head-to-head points
+            $sortedTied = $tiedGroup->sortByDesc(function ($standingA) use ($tiedGroup, $groupMatches) {
+                $headToHeadPoints = 0;
+
+                foreach ($tiedGroup as $standingB) {
+                    if ($standingA->team_id === $standingB->team_id) {
+                        continue; // Skip self
+                    }
+
+                    $h2h = $this->calculateHeadToHeadAdvanced($standingA, $standingB, $groupMatches);
+                    $headToHeadPoints += $h2h;
+                }
+
+                return $headToHeadPoints;
+            });
+
+            $finalSorted = $finalSorted->merge($sortedTied);
+        }
+
+        return $finalSorted;
+    }
+
+    /**
+     * Advanced head-to-head calculation that considers all matches between teams
+     */
+    private function calculateHeadToHeadAdvanced($teamA, $teamB, $groupMatches)
+    {
+        // Filter matches between teamA and teamB
+        $headToHeadMatches = $groupMatches->filter(function ($match) use ($teamA, $teamB) {
+            return ($match->team_home_id == $teamA->team_id && $match->team_away_id == $teamB->team_id) ||
+                ($match->team_home_id == $teamB->team_id && $match->team_away_id == $teamA->team_id);
+        });
+
+        if ($headToHeadMatches->isEmpty()) {
+            return 0; // No head-to-head matches
+        }
+
+        $teamAPoints = 0;
+        $teamBPoints = 0;
+
+        foreach ($headToHeadMatches as $match) {
+            if ($match->home_score > $match->away_score) {
+                if ($match->team_home_id == $teamA->team_id) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } elseif ($match->home_score < $match->away_score) {
+                if ($match->team_away_id == $teamA->team_id) {
+                    $teamAPoints += 3;
+                } else {
+                    $teamBPoints += 3;
+                }
+            } else {
+                $teamAPoints += 1;
+                $teamBPoints += 1;
+            }
+        }
+
+        // Return positive if team B should be ahead, negative if team A should be ahead
+        return $teamBPoints - $teamAPoints;
     }
 
     /**
@@ -572,6 +739,12 @@ class StandingController extends Controller
                         $tieBreakers = ['points', 'goal_difference', 'goals_scored', 'wins'];
                     }
 
+                    // Get completed matches for this group
+                    $groupMatches = Game::where('tournament_id', $selectedTournament->id)
+                        ->where('group_name', $group)
+                        ->where('status', 'completed')
+                        ->get();
+
                     $sortedGroup = $groupStandings->sortByDesc(function ($standing) use ($tieBreakers) {
                         $sortValues = [];
 
@@ -581,7 +754,7 @@ class StandingController extends Controller
                                     $sortValues[] = $standing->points;
                                     break;
                                 case 'head_to_head':
-                                    $sortValues[] = $standing->wins;
+                                    $sortValues[] = 0; // Placeholder
                                     break;
                                 case 'goal_difference':
                                     $sortValues[] = $standing->goal_difference;
@@ -602,6 +775,9 @@ class StandingController extends Controller
 
                         return $sortValues;
                     });
+
+                    // Apply head-to-head sorting
+                    $sortedGroup = $this->applyHeadToHeadSorting($sortedGroup, $groupMatches);
 
                     foreach ($sortedGroup as $standing) {
                         $standing->position = $position;

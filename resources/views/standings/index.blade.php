@@ -675,13 +675,6 @@
                                             : 'gd-neutral');
                                         $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
 
-                                        $qualBadge = '';
-                                        if ($index < 2 && ($team->played ?? 0) > 0) {
-                                            $qualBadge = '<span class="qual-indicator qual-q" title="Qualified">Q</span>';
-                                        } elseif ($index == 2 && ($team->played ?? 0) > 0) {
-                                            $qualBadge = '<span class="qual-indicator qual-p" title="Play-off">P</span>';
-                                        }
-
                                         $recentForm = isset($team->recent_form) ? $team->recent_form : [];
                                         $formDots = '';
 
@@ -743,7 +736,6 @@
                                                         <div>
                                                             <div class="team-name-compact">
                                                                 {{ Str::limit($teamName, 20) }}
-                                                                {!! $qualBadge !!}
                                                             </div>
                                                             <div class="team-meta-compact">
                                                                 @if(($team->played ?? 0) > 0)
