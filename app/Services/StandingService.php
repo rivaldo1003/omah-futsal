@@ -15,32 +15,19 @@ class StandingService
             return;
         }
 
-        $homeTeamId = $match->team_home_id;
-        $awayTeamId = $match->team_away_id;
-        $homeScore = $match->home_score;
-        $awayScore = $match->away_score;
-        $groupName = $match->group_name;
         $tournamentId = $match->tournament_id;
+        $groupName = $match->group_name;
 
-        // Update standing untuk home team
-        $homeStanding = Standing::firstOrNew([
-            'tournament_id' => $tournamentId,
-            'team_id' => $homeTeamId,
-            'group_name' => $groupName,
-        ]);
-
-        // Update standing untuk away team
-        $awayStanding = Standing::firstOrNew([
-            'tournament_id' => $tournamentId,
-            'team_id' => $awayTeamId,
-            'group_name' => $groupName,
-        ]);
-
-        // Reset stats sebelum dihitung ulang
-        self::recalculateStandings($homeTeamId, $awayTeamId, $groupName, $tournamentId);
+        // For league matches (group_name = null), recalculate all standings in tournament
+        // For group matches, recalculate only that group
+        if (empty($groupName)) {
+            self::recalculateAllStandings($tournamentId);
+        } else {
+            self::recalculateGroupStandings($groupName, $tournamentId);
+        }
     }
 
-    private static function recalculateStandings($homeTeamId, $awayTeamId, $groupName, $tournamentId)
+    private static function recalculateGroupStandings($groupName, $tournamentId)
     {
         // Ambil semua matches yang sudah completed untuk grup ini
         $completedMatches = Game::where('tournament_id', $tournamentId)
@@ -48,69 +35,55 @@ class StandingService
             ->where('status', 'completed')
             ->get();
 
-        // Reset semua standings untuk grup ini
-        $teamsInGroup = collect([$homeTeamId, $awayTeamId]);
-        $allMatches = $completedMatches->whereIn('team_home_id', $teamsInGroup)
-            ->orWhereIn('team_away_id', $teamsInGroup);
+        // Ambil SEMUA tim yang terlibat dalam matches grup ini
+        $allTeamIdsInGroup = $completedMatches->flatMap(function ($match) {
+            return [$match->team_home_id, $match->team_away_id];
+        })->unique()->filter()->values()->toArray();
 
-        // Reset stats untuk kedua tim
-        $homeStanding = Standing::firstOrNew([
-            'tournament_id' => $tournamentId,
-            'team_id' => $homeTeamId,
-            'group_name' => $groupName,
-        ]);
+        // Reset stats untuk SEMUA tim di grup
+        foreach ($allTeamIdsInGroup as $teamId) {
+            $standing = Standing::firstOrNew([
+                'tournament_id' => $tournamentId,
+                'team_id' => $teamId,
+                'group_name' => $groupName,
+            ]);
 
-        $awayStanding = Standing::firstOrNew([
-            'tournament_id' => $tournamentId,
-            'team_id' => $awayTeamId,
-            'group_name' => $groupName,
-        ]);
+            // Reset ke default
+            $standing->matches_played = 0;
+            $standing->wins = 0;
+            $standing->draws = 0;
+            $standing->losses = 0;
+            $standing->goals_for = 0;
+            $standing->goals_against = 0;
+            $standing->goal_difference = 0;
+            $standing->points = 0;
 
-        // Reset ke default
-        $homeStanding->matches_played = 0;
-        $homeStanding->wins = 0;
-        $homeStanding->draws = 0;
-        $homeStanding->losses = 0;
-        $homeStanding->goals_for = 0;
-        $homeStanding->goals_against = 0;
-        $homeStanding->goal_difference = 0;
-        $homeStanding->points = 0;
+            $standing->save();
+        }
 
-        $awayStanding->matches_played = 0;
-        $awayStanding->wins = 0;
-        $awayStanding->draws = 0;
-        $awayStanding->losses = 0;
-        $awayStanding->goals_for = 0;
-        $awayStanding->goals_against = 0;
-        $awayStanding->goal_difference = 0;
-        $awayStanding->points = 0;
-
-        // Hitung ulang dari semua matches
+        // Hitung ulang dari SEMUA matches
         foreach ($completedMatches as $match) {
             self::processMatchResult($match);
         }
-
-        $homeStanding->save();
-        $awayStanding->save();
     }
 
     private static function processMatchResult(Game $match)
     {
-        $homeStanding = Standing::where('team_id', $match->team_home_id)
-            ->where('group_name', $match->group_name)
-            ->where('tournament_id', $match->tournament_id)
-            ->first();
+        // Use firstOrCreate to get existing standing without resetting values
+        // The reset has already been done in recalculateGroupStandings/recalculateAllStandings
+        $homeStanding = Standing::firstOrCreate([
+            'team_id' => $match->team_home_id,
+            'group_name' => $match->group_name,
+            'tournament_id' => $match->tournament_id,
+        ]);
 
-        $awayStanding = Standing::where('team_id', $match->team_away_id)
-            ->where('group_name', $match->group_name)
-            ->where('tournament_id', $match->tournament_id)
-            ->first();
+        $awayStanding = Standing::firstOrCreate([
+            'team_id' => $match->team_away_id,
+            'group_name' => $match->group_name,
+            'tournament_id' => $match->tournament_id,
+        ]);
 
-        if (! $homeStanding || ! $awayStanding) {
-            return;
-        }
-
-        // Update stats untuk kedua tim
+        // Update stats untuk kedua tim (accumulate, don't reset)
         self::updateTeamStats($homeStanding, $match->home_score, $match->away_score, true);
         self::updateTeamStats($awayStanding, $match->away_score, $match->home_score, false);
 
