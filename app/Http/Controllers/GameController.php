@@ -1614,9 +1614,9 @@ class GameController extends Controller
             return;
         }
 
-        // Update standings for group matches
+        // Update standings for group matches using StandingService
         if (in_array($match->round_type, ['group', 'league'])) {
-            $this->updateStandings($match);
+            \App\Services\StandingService::updateStandings($match);
         }
 
         // Update knockout bracket progression
