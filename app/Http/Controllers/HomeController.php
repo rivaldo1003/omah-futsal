@@ -30,6 +30,13 @@ class HomeController extends Controller
                 'background_color' => null,
                 'background_image' => null,
                 'text_color' => '#ffffff',
+                'cta_button_text' => null,
+                'cta_button_link' => null,
+                'gradient_start' => '#0f172a',
+                'gradient_end' => '#1e293b',
+                'overlay_opacity' => 0,
+                'button_color' => '#3b82f6',
+                'button_text_color' => '#ffffff',
             ];
         }
 
@@ -232,14 +239,28 @@ class HomeController extends Controller
         }
 
         // Ambil aturan penentuan juara (tie-breakers) dari settings turnamen
-        $activeTournament->tie_breakers = json_decode($activeTournament->settings, true)['tie_breakers'] ?? [
-            'Poin (nilai) - jika sama',
-            'Head-to-head (hasil pertemuan langsung) - jika sama',
-            'Selisih gol - jika sama',
-            'Produktivitas memasukkan (gol mencetak) - jika sama',
-            'Nilai fairplay (kartu) - jika sama',
-            'Adu tendangan penalti'
+        // Bisa berupa list of keys ['goal_difference', ...], assoc map ['points' => 'Poin ...', ...],
+        // atau list of labels (data lama). Normalisasi ke label Indonesia yang rapi.
+        $tieBreakerLabelMap = [
+            'points' => 'Poin (nilai) - jika sama',
+            'head_to_head' => 'Head-to-head (hasil pertemuan langsung) - jika sama',
+            'goal_difference' => 'Selisih gol - jika sama',
+            'goals_scored' => 'Produktivitas memasukkan (gol mencetak) - jika sama',
+            'fair_play' => 'Nilai fairplay (kartu) - jika sama',
+            'penalty' => 'Adu tendangan penalti',
         ];
+        $tieBreakerRaw = json_decode($activeTournament->settings, true)['tie_breakers'] ?? null;
+        if (empty($tieBreakerRaw)) {
+            $tieBreakerRaw = array_keys($tieBreakerLabelMap);
+        } elseif (is_array($tieBreakerRaw)) {
+            $tieBreakerRaw = array_is_list($tieBreakerRaw) ? $tieBreakerRaw : array_keys($tieBreakerRaw);
+        } else {
+            $tieBreakerRaw = [(string) $tieBreakerRaw];
+        }
+        $activeTournament->tie_breakers = array_map(
+            fn ($rule) => $tieBreakerLabelMap[$rule] ?? (is_string($rule) ? $rule : ''),
+            $tieBreakerRaw
+        );
 
         // Statistics untuk tournament aktif
         $totalTeams = $teams->count();

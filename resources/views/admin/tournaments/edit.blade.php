@@ -492,6 +492,39 @@
                     <!-- Standings & Tie-breakers Rules -->
                     <div class="col-md-12 mb-4 tie-breakers-section" style="{{ $tournament->type == 'group_knockout' ? '' : 'display: none;' }}">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
+                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                            <span class="badge bg-info ms-2">Group Stage + Knockout</span>
+                            <small class="text-muted fw-normal">(Drag to reorder)</small>
+                        </h6>
+
+                        <!-- Template Preset Tie-breakers -->
+                        <div class="preset-templates mb-3 p-3 rounded-3" style="background: #f0f9ff; border: 1px solid #bae6fd;">
+                            <label class="form-label fw-bold mb-2" style="color: #0c4a6e;">
+                                <i class="bi bi-lightning-charge me-1"></i>Template Cepat — pilih salah satu opsi:
+                            </label>
+                            <div class="d-flex flex-wrap gap-2">
+                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="gd_first" title="Selisih gol → Head-to-head → Produktivitas gol → Fair play → Penalti">
+                                    <i class="bi bi-1-circle me-1"></i>Selisih Gol Dulu
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="h2h_first" title="Head-to-head → Selisih gol → Produktivitas gol → Fair play → Penalti">
+                                    <i class="bi bi-2-circle me-1"></i>Head-to-Head Dulu
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="fifa" title="Standar FIFA: Selisih gol → Gol mencetak → Head-to-head">
+                                    <i class="bi bi-3-circle me-1"></i>Standar FIFA
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="goals_first" title="Produktivitas gol → Head-to-head → Selisih gol">
+                                    <i class="bi bi-4-circle me-1"></i>Produktivitas Gol Dulu
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-secondary" id="resetTieBreakers" title="Kembali ke urutan tersimpan">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Reset
+                                </button>
+                            </div>
+                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
+                                <i class="bi bi-info-circle me-1"></i>Template akan mengganti seluruh urutan di bawah. Urutan inilah yang ditampilkan di halaman Home (Penentuan Juara dan Runner-up).
+                            </small>
+                        </div>
+
                             <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
                             <span class="badge bg-info ms-2">Group Stage + Knockout</span>
                             <small class="text-muted fw-normal">(Drag to reorder)</small>
@@ -507,22 +540,22 @@
                                     'penalty' => 'Adu tendangan penalti'
                                 ];
                                 
-                                // Get current rules from settings
-                                $currentRules = $settings['tie_breakers'] ?? $tieBreakerOptions;
+                                // Get current rules from settings - normalize to a list of keys
+                                $currentRules = $settings['tie_breakers'] ?? null;
+                                if (empty($currentRules)) {
+                                    $currentRules = array_keys($tieBreakerOptions);
+                                } elseif (is_array($currentRules)) {
+                                    // Support both formats: list of keys ["points","goal_difference"]
+                                    // or assoc map ["points" => "Poin ...", ...]
+                                    $currentRules = array_is_list($currentRules) ? $currentRules : array_keys($currentRules);
+                                } else {
+                                    $currentRules = [(string) $currentRules];
+                                }
                             @endphp
                             @foreach($currentRules as $index => $rule)
                                 @php
-                                    // Find the key for this rule label
-                                    $ruleKey = null;
-                                    if (is_string($rule)) {
-                                        $ruleKey = array_search($rule, $tieBreakerOptions);
-                                    } elseif (is_array($rule) && isset($rule['key'])) {
-                                        $ruleKey = $rule['key'];
-                                    }
-                                    // If not found, use the rule as-is (for backwards compatibility)
-                                    if ($ruleKey === null) {
-                                        $ruleKey = is_string($rule) ? $rule : 'points';
-                                    }
+                                    // Data sudah dinormalisasi menjadi list of keys
+                                    $ruleKey = is_string($rule) ? $rule : (is_array($rule) && isset($rule['key']) ? $rule['key'] : 'points');
                                 @endphp
                                 <div class="input-group mb-2 tie-breaker-item" draggable="true" style="cursor: move; transition: all 0.2s;">
                                     <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
@@ -565,26 +598,24 @@
                                     'penalty' => 'Adu tendangan penalti'
                                 ];
                                 
-                                // Get current rules from settings
-                                $currentRulesOther = $settings['tie_breakers'] ?? $tieBreakerOptionsSimple;
+                                // Get current rules from settings - normalize to a list of keys
+                                $currentRulesOther = $settings['tie_breakers'] ?? null;
+                                if (empty($currentRulesOther)) {
+                                    $currentRulesOther = array_keys($tieBreakerOptionsSimple);
+                                } elseif (is_array($currentRulesOther)) {
+                                    $currentRulesOther = array_is_list($currentRulesOther) ? $currentRulesOther : array_keys($currentRulesOther);
+                                } else {
+                                    $currentRulesOther = [(string) $currentRulesOther];
+                                }
                             @endphp
                             @foreach($currentRulesOther as $index => $rule)
                                 @php
-                                    // Find the key for this rule label
-                                    $ruleKeyOther = null;
-                                    if (is_string($rule)) {
-                                        $ruleKeyOther = array_search($rule, $tieBreakerOptionsSimple);
-                                    } elseif (is_array($rule) && isset($rule['key'])) {
-                                        $ruleKeyOther = $rule['key'];
-                                    }
-                                    // If not found, use the rule as-is
-                                    if ($ruleKeyOther === null) {
-                                        $ruleKeyOther = is_string($rule) ? $rule : 'points';
-                                    }
+                                    // Data sudah dinormalisasi menjadi list of keys
+                                    $ruleKeyOther = is_string($rule) ? $rule : (is_array($rule) && isset($rule['key']) ? $rule['key'] : 'points');
                                 @endphp
                                 <div class="input-group mb-2 tie-breaker-item-other">
                                     <span class="input-group-text bg-light text-secondary fw-bold">{{ $index + 1 }}</span>
-                                    <select class="form-select" name="tie_breakers[{{ $index }}][key]" required>
+                                    <select class="form-select" name="tie_breakers_other[{{ $index }}][key]" required>
                                         @foreach($tieBreakerOptionsSimple as $key => $label)
                                             <option value="{{ $key }}" {{ $ruleKeyOther == $key ? 'selected' : '' }}>{{ $label }}</option>
                                         @endforeach
@@ -1016,6 +1047,85 @@
                 });
             }
             
+            // ==============================================
+            // TIE-BREAKER PRESET TEMPLATES
+            // ==============================================
+            const tieBreakerLabels = {
+                'points': 'Poin (nilai) - jika sama',
+                'head_to_head': 'Head-to-head (hasil pertemuan langsung) - jika sama',
+                'goal_difference': 'Selisih gol - jika sama',
+                'goals_scored': 'Produktivitas memasukkan (gol mencetak) - jika sama',
+                'fair_play': 'Nilai fairplay (kartu) - jika sama',
+                'penalty': 'Adu tendangan penalti'
+            };
+
+            const tieBreakerPresets = {
+                'gd_first':   ['goal_difference', 'head_to_head', 'goals_scored', 'fair_play', 'penalty'],
+                'h2h_first':  ['head_to_head', 'goal_difference', 'goals_scored', 'fair_play', 'penalty'],
+                'fifa':       ['points', 'goal_difference', 'goals_scored', 'head_to_head', 'fair_play', 'penalty'],
+                'goals_first': ['goals_scored', 'head_to_head', 'goal_difference', 'fair_play', 'penalty']
+            };
+
+            // Simpan urutan awal (dari server) untuk tombol Reset
+            const initialTieBreakerKeys = Array.from(
+                tieBreakersContainer.querySelectorAll('.tie-breaker-select')
+            ).map(select => select.value);
+
+            function buildTieBreakerItem(key, index) {
+                const item = document.createElement('div');
+                item.className = 'input-group mb-2 tie-breaker-item';
+                item.draggable = true;
+                item.style.cursor = 'move';
+                item.style.transition = 'all 0.2s';
+                item.innerHTML = `
+                        <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
+                            <i class="bi bi-grip-vertical"></i> ${index + 1}
+                        </span>
+                        <select class="form-select tie-breaker-select" name="tie_breakers[${index}][key]" required>
+                            <option value="">Select Tie-breaker</option>
+                            ${Object.entries(tieBreakerLabels).map(([k, label]) =>
+                                `<option value="${k}" ${k === key ? 'selected' : ''}>${label}</option>`
+                            ).join('')}
+                        </select>
+                        <button type="button" class="btn btn-outline-danger remove-rule">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    `;
+                return item;
+            }
+
+            function applyTieBreakerKeys(keys) {
+                tieBreakersContainer.innerHTML = '';
+                keys.forEach((key, index) => {
+                    const item = buildTieBreakerItem(key, index);
+                    tieBreakersContainer.appendChild(item);
+                    attachDragEvents(item);
+                    attachRemoveEvent(item.querySelector('.remove-rule'), 'group');
+                });
+            }
+
+            document.querySelectorAll('.preset-btn').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const presetKey = this.dataset.preset;
+                    const keys = tieBreakerPresets[presetKey];
+                    if (!keys) return;
+
+                    applyTieBreakerKeys(keys);
+
+                    // Highlight tombol yang dipilih
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                    this.classList.add('active', 'btn-primary');
+                });
+            });
+
+            const resetTieBreakersBtn = document.getElementById('resetTieBreakers');
+            if (resetTieBreakersBtn) {
+                resetTieBreakersBtn.addEventListener('click', function () {
+                    applyTieBreakerKeys(initialTieBreakerKeys);
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                });
+            }
+
             // Function to re-index tie-breaker items
             function reindexTieBreakerItems() {
                 const items = tieBreakersContainer.querySelectorAll('.tie-breaker-item');
@@ -1045,7 +1155,7 @@
                     newRule.className = 'input-group mb-2 tie-breaker-item-other';
                     newRule.innerHTML = `
                             <span class="input-group-text bg-light text-secondary fw-bold">${itemCount + 1}</span>
-                            <select class="form-select" name="tie_breakers[${itemCount}][key]" required>
+                            <select class="form-select" name="tie_breakers_other[${itemCount}][key]" required>
                                 <option value="">Select Tie-breaker</option>
                                 <option value="points">Poin (nilai) - jika sama</option>
                                 <option value="goal_difference">Selisih gol - jika sama</option>
