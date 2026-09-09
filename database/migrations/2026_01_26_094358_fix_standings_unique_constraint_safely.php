@@ -12,13 +12,11 @@ class FixStandingsUniqueConstraintSafely extends Migration
      */
     public function up(): void
     {
-        // Step 1: Drop foreign key constraints terlebih dahulu
+        // Step 1: Add tournament_id column if it doesn't exist
         Schema::table('standings', function (Blueprint $table) {
-            // Drop foreign key ke teams
-            $table->dropForeign(['team_id']);
-
-            // Drop foreign key ke tournaments
-            $table->dropForeign(['tournament_id']);
+            if (!Schema::hasColumn('standings', 'tournament_id')) {
+                $table->foreignId('tournament_id')->nullable()->after('team_id');
+            }
         });
 
         // Step 2: Drop index lama
@@ -31,15 +29,15 @@ class FixStandingsUniqueConstraintSafely extends Migration
             $table->unique(['tournament_id', 'team_id', 'group_name'], 'standings_tournament_team_group_unique');
         });
 
-        // Step 4: Re-add foreign key constraints
+        // Step 4: Add foreign key constraints
         Schema::table('standings', function (Blueprint $table) {
-            // Add back foreign key to teams
+            // Add foreign key to teams
             $table->foreign('team_id')
                 ->references('id')
                 ->on('teams')
                 ->onDelete('cascade');
 
-            // Add back foreign key to tournaments
+            // Add foreign key to tournaments
             $table->foreign('tournament_id')
                 ->references('id')
                 ->on('tournaments')
@@ -68,17 +66,9 @@ class FixStandingsUniqueConstraintSafely extends Migration
             $table->unique(['team_id', 'group_name'], 'standings_team_id_group_name_unique');
         });
 
-        // Step 4: Re-add foreign keys
+        // Step 4: Drop tournament_id column
         Schema::table('standings', function (Blueprint $table) {
-            $table->foreign('team_id')
-                ->references('id')
-                ->on('teams')
-                ->onDelete('cascade');
-
-            $table->foreign('tournament_id')
-                ->references('id')
-                ->on('tournaments')
-                ->onDelete('cascade');
+            $table->dropColumn('tournament_id');
         });
     }
 }

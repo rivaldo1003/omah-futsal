@@ -767,6 +767,7 @@ class TournamentController extends Controller
             
             // Process tie_breakers - extract keys from array format
             $tieBreakersKeys = [];
+            $allowedTieBreakerKeys = ['points', 'head_to_head', 'goal_difference', 'goals_scored', 'fair_play', 'penalty'];
             if ($request->has('tie_breakers')) {
                 \Log::info('Tie-breakers request data', $request->tie_breakers);
                 \Log::info('Tie-breakers request type', ['type' => gettype($request->tie_breakers)]);
@@ -774,10 +775,12 @@ class TournamentController extends Controller
                 
                 foreach ($request->tie_breakers as $index => $tieBreaker) {
                     \Log::info("Tie-breaker {$index}", $tieBreaker);
-                    if (isset($tieBreaker['key']) && !empty($tieBreaker['key'])) {
+                    if (isset($tieBreaker['key']) && !empty($tieBreaker['key']) && in_array($tieBreaker['key'], $allowedTieBreakerKeys, true)) {
                         $tieBreakersKeys[] = $tieBreaker['key'];
                     }
                 }
+                // Buang duplikat, pertahankan urutan
+                $tieBreakersKeys = array_values(array_unique($tieBreakersKeys));
             }
             
             \Log::info('Extracted tie-breaker keys', $tieBreakersKeys);

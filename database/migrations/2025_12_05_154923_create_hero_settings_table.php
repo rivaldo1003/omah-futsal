@@ -12,7 +12,7 @@ return new class extends Migration
         Schema::create('hero_settings', function (Blueprint $table) {
             $table->id();
             $table->string('title')->default('OFS Champions League 2025');
-            $table->text('subtitle')->default('The ultimate futsal championship featuring elite teams competing for glory');
+            $table->text('subtitle')->nullable();
             $table->boolean('is_active')->default(true);
             $table->string('background_type')->default('gradient'); // gradient, image, color
             $table->string('background_color')->nullable();
