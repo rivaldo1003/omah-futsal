@@ -1687,7 +1687,7 @@
                                             </label>
                                             <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
                                                 <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Select tournament format</option>
-                                                {{-- <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option> --}}
+                                                <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option>
                                                 <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Knockout (Cup)</option>
                                                 <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Group Stage + Knockout</option>
                                             </select>
@@ -2433,8 +2433,8 @@
                                     </div>
                                 </div>
 
-                                <div class="settings-section">
-    <h6><i class="bi bi-trophy"></i> Tiebreaker Rules</h6>
+                                <div class="settings-section" id="tiebreakerSettings" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'block' : 'none' }};">
+    <h6><i class="bi bi-trophy"></i> Tiebreaker Rules (Group Stage)</h6>
     
     <div class="alert alert-info mb-3">
         <i class="bi bi-info-circle"></i>
@@ -4558,6 +4558,8 @@ $(document).on('click', 'button[type="submit"]', function() {
         
         // Hide all settings sections
         $('#groupSettings, #leagueSettings, #knockoutSettings').hide();
+        // Tiebreaker rules hanya relevan untuk group_knockout
+        $('#tiebreakerSettings').toggle(selectedType === 'group_knockout');
         
         // Show relevant settings section
         if (selectedType === 'group_knockout') {
