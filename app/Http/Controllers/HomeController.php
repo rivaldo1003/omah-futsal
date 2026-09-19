@@ -949,6 +949,53 @@ class HomeController extends Controller
         }
     }
 
+    public function userDashboard()
+    {
+        $totalTeams = Team::count();
+        $totalPlayers = Player::count();
+        $totalMatches = Game::count();
+        $totalGoals = (int) Game::where('status', 'completed')
+            ->selectRaw('COALESCE(SUM(COALESCE(home_score, 0) + COALESCE(away_score, 0)), 0)')
+            ->value('aggregate');
+
+        $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->where('status', 'scheduled')
+            ->orderBy('match_date')
+            ->limit(5)
+            ->get();
+
+        $topStandings = Standing::with('team')
+            ->orderByDesc('points')
+            ->orderByDesc('goal_difference')
+            ->limit(5)
+            ->get();
+
+        try {
+            $topScorers = DB::table('match_events as me')
+                ->join('players as p', 'p.id', '=', 'me.player_id')
+                ->join('teams as t', 't.id', '=', 'p.team_id')
+                ->where('me.event_type', 'goal')
+                ->select('p.id', 'p.name', 't.name as team_name', DB::raw('COUNT(*) as goals'))
+                ->groupBy('p.id', 'p.name', 't.name')
+                ->orderByDesc('goals')
+                ->limit(5)
+                ->get();
+        } catch (\Exception $e) {
+            \Log::error('Error fetching top scorers: ' . $e->getMessage());
+            $topScorers = collect();
+        }
+
+        return view('dashboard.index', compact(
+            'totalTeams',
+            'totalPlayers',
+            'totalMatches',
+            'totalGoals',
+            'upcomingMatches',
+            'topStandings',
+            'topScorers'
+        ));
+    }
+
     public function adminDashboard()
     {
         $totalTeams = Team::count();
