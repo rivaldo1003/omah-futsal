@@ -1,51 +1,27 @@
 @extends('layouts.admin')
 
-@section('title', 'Matches Management')
+@section('title', 'Matches')
 
 @section('styles')
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --primary-light: #3b82f6;
-            --secondary: #6b7280;
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
+        /* ===== Matches page — design guidelines ===== */
 
-        /* Page Header */
+        /* Page header */
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 24px;
         }
 
         .page-header h1 {
-            color: var(--primary);
+            font-size: 24px;
             font-weight: 600;
-            margin: 0;
-            font-size: 1.5rem;
-        }
-
-        .btn-create {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            text-decoration: none;
-            font-size: 0.875rem;
-        }
-
-        .btn-create:hover {
-            background: #1d4ed8;
-            color: white;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
         }
 
         .search-box {
@@ -54,180 +30,172 @@
 
         .search-box .search-icon {
             position: absolute;
-            top: 50%;
-            left: 8px;
-            transform: translateY(-50%);
-            color: #888;
-        }
-
-        .search-box input {
-            padding-left: 28px;
-        }
-
-        /* Search & Filters */
-        .search-box {
-            position: relative;
-            width: 300px;
-        }
-
-        .search-box input {
-            padding-left: 2.5rem;
-            border-radius: 6px;
-            border: 1px solid var(--border-color);
-            width: 100%;
-            font-size: 0.875rem;
-        }
-
-        .search-box input:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-            outline: none;
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 0.75rem;
+            left: 10px;
             top: 50%;
             transform: translateY(-50%);
-            color: var(--secondary);
+            color: var(--text-secondary);
+            font-size: 13px;
             pointer-events: none;
         }
 
-        .filter-select {
+        .search-box input {
+            border: 1px solid var(--border);
             border-radius: 6px;
-            border: 1px solid var(--border-color);
-            padding: 0.5rem;
-            background: white;
-            color: var(--primary);
-            font-size: 0.875rem;
-            min-width: 120px;
+            padding: 6px 12px 6px 30px;
+            font-size: 13px;
+            width: 220px;
         }
 
-        .filter-select:focus {
-            border-color: var(--primary-light);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+        .search-box input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.12);
             outline: none;
         }
 
-        /* Stats Cards */
+        .btn-create {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-create:hover {
+            background: var(--accent-hover);
+            color: #fff;
+        }
+
+        .btn-create.btn-friendly {
+            background: var(--bg);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-create.btn-friendly:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
         }
 
         .stat-title {
-            font-size: 0.75rem;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.25rem;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
         }
 
         .stat-value {
-            font-size: 1.5rem;
+            font-size: 24px;
             font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            line-height: 1.2;
         }
 
-        .stat-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-left: auto;
+        /* Filters */
+        .filter-select {
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            background: var(--bg);
+            color: var(--text-primary);
         }
 
-        /* Main Card */
+        .filter-select:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        /* Main card / table */
         .main-card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        .card-header {
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem;
+        .main-card .card-header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
         }
 
-        .card-header h5 {
-            margin: 0;
+        .main-card .card-header h5 {
+            font-size: 14px;
             font-weight: 600;
-            font-size: 1rem;
-            color: var(--primary);
-        }
-
-        /* Table Styling */
-        .table {
+            color: var(--text-primary);
             margin: 0;
-            font-size: 0.875rem;
         }
 
-        .table thead th {
-            background: #f8fafc;
-            color: var(--secondary);
-            font-weight: 600;
-            border-bottom: 1px solid var(--border-color);
-            padding: 0.75rem 1rem;
-            text-transform: uppercase;
-            font-size: 0.75rem;
-            letter-spacing: 0.5px;
-        }
-
-        .table tbody td {
-            padding: 0.75rem 1rem;
-            vertical-align: middle;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        .table tbody tr:hover {
-            background-color: rgba(59, 130, 246, 0.02);
-        }
-
-        /* Match Info */
-        .match-date {
+        #matchesTable thead th {
+            background: var(--surface);
+            color: var(--text-secondary);
             font-weight: 500;
-            color: var(--primary);
-            margin-bottom: 2px;
-            font-size: 0.875rem;
+            font-size: 13px;
+            border-bottom: 1px solid var(--border);
+            padding: 10px 16px;
+            white-space: nowrap;
         }
 
-        .match-time {
-            font-size: 0.75rem;
-            color: var(--secondary);
+        #matchesTable tbody td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            color: var(--text-primary);
         }
 
+        #matchesTable tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        #matchesTable tbody tr:hover {
+            background: var(--surface);
+        }
+
+        /* Teams & score */
         .match-teams {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 12px;
+            flex-wrap: wrap;
         }
 
         .team-info {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
+        }
+
+        .team-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
         }
 
         .team-logo-small {
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
             overflow: hidden;
-            background: #f8fafc;
             flex-shrink: 0;
         }
 
@@ -243,679 +211,237 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
+            background: #F0F0F2;
+            color: var(--text-secondary);
+            font-size: 12px;
             font-weight: 600;
-            font-size: 0.75rem;
-        }
-
-        .team-name {
-            font-weight: 500;
-            color: var(--primary);
-            flex: 1;
-            text-align: right;
-            font-size: 0.875rem;
-        }
-
-        .team-name.away {
-            text-align: left;
         }
 
         .vs {
-            color: var(--secondary);
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0 0.5rem;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        .score {
-            font-weight: 600;
-            color: var(--primary);
-            font-size: 0.875rem;
-            text-align: center;
-            margin-top: 0.25rem;
-        }
-
-        /* Stage Badge */
-        .badge {
-            font-size: 0.75rem;
-            font-weight: 600;
-            padding: 0.35rem 0.75rem;
-            border-radius: 6px;
-            display: inline-block;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge-group {
-            background: #3b82f6;
-            color: black;
-            border: none;
-            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.2);
-        }
-
-        .badge-knockout {
-            background: #f59e0b;
-            color: white;
-            border: none;
-            box-shadow: 0 2px 4px rgba(245, 158, 11, 0.2);
-        }
-
-        /* Status Badge */
-        .status-badge {
-            font-size: 0.75rem;
-            padding: 0.25rem 0.5rem;
-            border-radius: 4px;
-            display: inline-block;
-        }
-
-        .status-upcoming {
-            background: rgba(107, 114, 128, 0.1);
-            color: #6b7280;
-        }
-
-        .status-ongoing {
-            background: rgba(245, 158, 11, 0.1);
-            color: #d97706;
-        }
-
-        .status-completed {
-            background: rgba(34, 197, 94, 0.1);
-            color: #16a34a;
-        }
-
-        .status-postponed {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
-        }
-
-        /* Action Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 0.25rem;
-        }
-
-        .btn-highlight {
-            background: #ff0000;
-            color: white;
-            border-color: #ff0000;
-        }
-
-        .btn-highlight:hover {
-            background: #cc0000;
-            color: white;
-            border-color: #cc0000;
-        }
-
-        .btn-small {
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background: white;
-            color: var(--secondary);
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .btn-small:hover {
-            border-color: var(--primary-light);
-        }
-
-        .btn-edit:hover {
-            background: var(--primary-light);
-            color: white;
-        }
-
-        .btn-lineup:hover {
-            background: #6366f1;
-            color: white;
-        }
-
-        .btn-events:hover {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-score:hover {
-            background: #f59e0b;
-            color: white;
-        }
-
-        .btn-delete:hover {
-            background: #dc2626;
-            color: white;
-        }
-
-        /* Empty State */
-        .empty-state {
-            padding: 3rem 1rem;
-            text-align: center;
-        }
-
-        .empty-state-icon {
-            font-size: 2.5rem;
-            color: #d1d5db;
-            margin-bottom: 1rem;
-        }
-
-        .empty-state-title {
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 0.5rem;
-        }
-
-        .empty-state-text {
-            color: var(--secondary);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
-        }
-
-        @media (max-width: 768px) {
-            .modal {
-                z-index: 1050;
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .modal-dialog {
-                margin: 0.5rem;
-                max-height: 90vh;
-                overflow-y: auto;
-            }
-
-            /* Perbaikan untuk input di mobile */
-            .modal-body input[type="url"],
-            .modal-body input[type="text"] {
-                font-size: 16px;
-                width: 100%;
-                height: 44px;
-            }
-
-            /* Pastikan tombol mudah diklik */
-            .modal-footer .btn {
-                min-height: 44px;
-                padding: 10px 20px;
-            }
-        }
-
-        /* Pagination */
-        .pagination-container {
-            padding: 0.75rem 1rem;
-            border-top: 1px solid var(--border-color);
-            background: #f8fafc;
-        }
-
-        .pagination-info {
-            font-size: 0.75rem;
-            color: var(--secondary);
-        }
-
-        .pagination-controls {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .pagination-btn {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background: white;
-            color: var(--secondary);
-            text-decoration: none;
-            transition: all 0.2s;
-            display: inline-flex;
-            align-items: center;
-            gap: 0.25rem;
-        }
-
-        /* Perbaikan khusus untuk modal mobile */
-        @media (max-width: 768px) {
-
-            /* Fix untuk mencegah backdrop click menghalangi */
-            .modal-backdrop.show {
-                background-color: rgba(0, 0, 0, 0.5) !important;
-                opacity: 1 !important;
-                pointer-events: auto !important;
-            }
-
-            /* Pastikan modal bisa di-scroll */
-            .modal {
-                -webkit-overflow-scrolling: touch;
-                overflow-y: auto;
-                touch-action: pan-y;
-            }
-
-            /* Perbaikan untuk konten modal */
-            .modal-dialog {
-                margin: 0.5rem auto;
-                max-height: 90vh;
-                min-height: auto;
-            }
-
-            .modal-content {
-                border-radius: 8px;
-                max-height: 90vh;
-                overflow-y: auto;
-                touch-action: pan-y;
-            }
-
-            /* Perbaikan khusus untuk modal score */
-            #scoreUpdateModal .modal-dialog {
-                max-width: 95%;
-            }
-
-            #scoreUpdateModal .modal-body {
-                padding: 1rem;
-            }
-
-            /* Pastikan input mudah di-tap */
-            .modal-body input[type="number"] {
-                min-height: 44px;
-                font-size: 18px !important;
-                padding: 10px;
-            }
-
-            /* Tombol lebih besar di mobile */
-            .modal-footer .btn {
-                min-height: 44px;
-                padding: 10px 20px;
-                font-size: 16px;
-            }
-
-            /* Perbaikan untuk score input */
-            #modalHomeScore,
-            #modalAwayScore {
-                font-size: 1.5rem !important;
-                height: 50px;
-            }
-        }
-
-        /* Pastikan backdrop tidak menghalangi interaksi */
-        .modal-backdrop {
-            z-index: 1040;
-            pointer-events: auto;
-        }
-
-        .modal {
-            z-index: 1050;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        /* Perbaikan untuk mencegah body scroll saat modal terbuka */
-        body.modal-open {
-            overflow: hidden;
-            position: fixed;
-            width: 100%;
-            height: 100%;
-        }
-
-        .pagination-btn:hover {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .pagination-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-            background: #f8fafc;
-        }
-
-        .pagination-pages {
-            display: flex;
-            gap: 0.25rem;
-        }
-
-        .page-link {
-            padding: 0.375rem 0.75rem;
-            font-size: 0.75rem;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background: white;
-            color: var(--secondary);
-            text-decoration: none;
-            transition: all 0.2s;
-            min-width: 32px;
-            text-align: center;
-        }
-
-        .page-link:hover {
-            background: #f8fafc;
-            color: var(--primary);
-            border-color: var(--primary-light);
-        }
-
-        .page-link.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-        }
-
-        .page-link.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        /* Alert */
-        .alert {
-            border-radius: 6px;
-            padding: 0.75rem 1rem;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
-            border: none;
-        }
-
-        .alert-success {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        /* Add to your existing CSS */
         .score-display-admin {
-            margin-top: 5px;
+            margin-top: 6px;
             display: flex;
-            flex-direction: column;
             align-items: center;
-            gap: 2px;
+            gap: 8px;
         }
 
         .score-display-admin .score {
-            font-weight: 700;
+            font-weight: 600;
             font-size: 14px;
-            color: #3730a3;
+            color: var(--text-primary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 6px;
         }
 
         .score-display-admin .score.live {
-            color: #dc2626;
-            animation: pulse 2s infinite;
+            color: #c01c28;
+            border-color: rgba(192, 28, 40, 0.3);
+            background: #FDF2F3;
         }
 
         .extra-info-admin {
             display: flex;
             gap: 4px;
-            flex-wrap: wrap;
-            justify-content: center;
         }
 
         .extra-info-admin .badge {
-            padding: 2px 6px;
-            font-size: 9px;
-            font-weight: 600;
-        }
-
-        .extra-info-admin .badge i {
-            font-size: 8px;
-            margin-right: 2px;
-        }
-
-        /* Visual indicator untuk match dengan extras */
-        .match-row[style*="border-left"]:hover {
-            background-color: rgba(13, 202, 240, 0.05);
-        }
-
-        /* Tooltip untuk extra info */
-        .match-row .extra-info-admin .badge {
-            position: relative;
-            cursor: help;
-        }
-
-        .match-row .extra-info-admin .badge:hover::after {
-            content: attr(title);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #333;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
             font-size: 11px;
-            white-space: nowrap;
-            z-index: 1000;
-            margin-bottom: 5px;
+            font-weight: 500;
         }
 
-        @keyframes pulse {
-            0% {
-                opacity: 1;
-            }
-
-            50% {
-                opacity: 0.7;
-            }
-
-            100% {
-                opacity: 1;
-            }
+        /* Badges */
+        .match-date {
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
         }
 
-        /* Modal */
-        .modal-content {
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+        .match-time {
+            font-size: 12px;
+            color: var(--text-secondary);
         }
 
-        .modal-header {
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem;
-        }
-
-        .modal-body {
-            padding: 1.5rem;
-        }
-
-        /* Team Logo Modal */
-        .team-logo-modal {
-            width: 50px;
-            height: 50px;
-            border-radius: 8px;
-            overflow: hidden;
-            margin: 0 auto;
-            background: #f8fafc;
-        }
-
-        .team-logo-modal img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .team-initial-modal {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            font-weight: 700;
-            font-size: 1.25rem;
-        }
-
-        .team-modal-info {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* Additional styles for highlight modals */
-        .file-upload-area {
-            border: 2px dashed #e5e7eb;
-            border-radius: 8px;
-            padding: 1.5rem;
-            text-align: center;
-            background: #f8fafc;
-            transition: border-color 0.3s;
-        }
-
-        .file-upload-area:hover {
-            border-color: var(--primary-light);
-        }
-
-        .file-upload-area input[type="file"] {
-            background: white;
-            border: 1px solid var(--border-color);
+        #matchesTable .badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 8px;
             border-radius: 6px;
         }
 
-        #videoPreview video {
-            max-height: 200px;
-            background: #000;
+        .badge-group,
+        .badge-knockout,
+        .tournament-badge {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
-        #highlightPlayerContainer video {
-            width: 100%;
-            height: auto;
-            background: #000;
+        .et-badge,
+        .pen-badge {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
-        .ratio-16x9 {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
+        .live-badge {
+            background: #FDF2F3;
+            color: #c01c28;
+            font-weight: 600;
         }
 
-        .ratio-16x9 video {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
+        #matchesTable .badge[style*="e0e7ff"] {
+            background: var(--surface) !important;
+            border: 1px solid var(--border);
+            color: var(--text-secondary) !important;
         }
 
-        /* Fix untuk semua device mobile */
-        @media (max-width: 768px) {
-            .modal {
-                padding-right: 0 !important;
-                padding-left: 0 !important;
-            }
-
-            .modal-open .modal {
-                overflow-x: hidden;
-                overflow-y: auto;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            .modal-dialog {
-                margin: 10px;
-                max-height: calc(100% - 20px);
-            }
-
-            .modal-content {
-                border-radius: 6px;
-                box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
-            }
-
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
-
-            .search-box {
-                width: 100%;
-            }
-
-            .filter-select {
-                width: 100%;
-                margin-bottom: 0.5rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-
-            .table-responsive {
-                font-size: 0.75rem;
-            }
-
-            .table thead th,
-            .table tbody td {
-                padding: 0.5rem;
-            }
-
-            .match-teams {
-                flex-direction: column;
-                gap: 0.5rem;
-            }
-
-            .team-info {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .team-name {
-                text-align: center !important;
-                flex: none;
-            }
-
-            .pagination-container {
-                flex-direction: column;
-                gap: 0.75rem;
-            }
-
-            .pagination-controls {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
-
-            .pagination-pages {
-                order: -1;
-                flex-wrap: wrap;
-                justify-content: center;
-                margin-bottom: 0.5rem;
-            }
+        .status-badge {
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 500;
         }
 
-        /* Pastikan input tidak zoom di iOS */
-        @media screen and (-webkit-min-device-pixel-ratio:0) {
-
-            input[type="text"],
-            input[type="url"],
-            input[type="number"],
-            input[type="email"],
-            input[type="tel"],
-            textarea,
-            select {
-                font-size: 16px !important;
-            }
+        .status-upcoming {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
-        @media (max-width: 576px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
+        .status-ongoing {
+            background: #FDF6EC;
+            color: #B45309;
+        }
 
-            .action-buttons {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+        .status-completed {
+            background: #F0F9F4;
+            color: #1E7A46;
+        }
 
-            .modal-dialog {
-                margin: 0.5rem;
-            }
+        .status-postponed {
+            background: var(--surface);
+            color: var(--text-secondary);
+        }
 
-            .team-logo-modal {
-                width: 40px;
-                height: 40px;
-            }
+        /* Action buttons */
+        .action-buttons {
+            display: flex;
+            gap: 4px;
+            justify-content: flex-end;
+            align-items: center;
+        }
 
-            .team-initial-modal {
-                font-size: 1rem;
+        .btn-small {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: border-color 0.15s ease, color 0.15s ease, background-color 0.15s ease;
+        }
+
+        .btn-small:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-small.btn-delete:hover {
+            border-color: #c01c28;
+            color: #c01c28;
+            background: #FDF2F3;
+        }
+
+        .btn-small.btn-lineup {
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        .btn-small.btn-lineup:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Pagination */
+        .pagination-info {
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .pagination-btn,
+        .pagination-pages .page-link {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            padding: 4px 10px;
+            font-size: 13px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            margin: 0 2px;
+        }
+
+        .pagination-btn:hover,
+        .pagination-pages .page-link:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .pagination-btn.disabled,
+        .pagination-pages .page-link.disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+
+        .pagination-pages .page-link.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+
+        /* Empty state */
+        .empty-state {
+            padding: 48px 16px;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 32px;
+            color: var(--border);
+            margin-bottom: 12px;
+        }
+
+        .empty-state-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .empty-state-text {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+                animation: none !important;
             }
         }
     </style>
@@ -943,8 +469,7 @@
                 <i class="bi bi-plus"></i>
                 New Match
             </a>
-            <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create"
-                style="background: #0f766e;">
+            <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
                 <i class="bi bi-plus"></i>
                 Friendly Match
             </a>
@@ -1142,13 +667,13 @@
                                                 @if($match->et_score || ($match->is_penalty && $match->penalty_score))
                                                     <div class="extra-info-admin">
                                                         @if($match->et_score)
-                                                            <small class="badge bg-info text-white me-1" style="font-size: 9px;">
+                                                            <small class="badge et-badge me-1" style="font-size: 11px;">
                                                                 <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
                                                             </small>
                                                         @endif
 
                                                         @if($match->is_penalty && $match->penalty_score)
-                                                            <small class="badge bg-warning text-dark" style="font-size: 9px;">
+                                                            <small class="badge pen-badge" style="font-size: 11px;">
                                                                 <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
                                                             </small>
                                                         @endif
@@ -1160,12 +685,12 @@
                                                 <span class="score live">
                                                     {{ $match->home_score ?? 0 }} - {{ $match->away_score ?? 0 }}
                                                 </span>
-                                                <span class="badge bg-danger" style="font-size: 9px;">LIVE</span>
+                                                <span class="badge live-badge" style="font-size: 11px;">Live</span>
                                             </div>
                                         @endif
                                     </td>
                                     <td>
-                                        <span class="badge" style="background: #e0e7ff; color: #3730a3;">
+                                        <span class="badge tournament-badge">
                                             {{ $match->tournament->name ?? 'N/A' }}
                                         </span>
                                     </td>
@@ -1202,7 +727,7 @@
                                                 <i class="bi bi-activity"></i>
                                             </a>
                                             <a href="{{ route('admin.matches.lineup', $match) }}" class="btn-small btn-lineup"
-                                                title="Manage Lineup" style="border-color: #6366f1; color: #6366f1;">
+                                                title="Manage Lineup">
                                                 <i class="bi bi-people-fill"></i>
                                             </a>
                                             <button type="button" class="btn-small btn-score update-score-btn" title="Update Score"
