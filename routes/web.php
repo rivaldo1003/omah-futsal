@@ -135,10 +135,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('/news/{id}/increment-views', [NewsArticleController::class, 'incrementViews'])
         ->name('news.increment-views');
 
-    // Untuk admin (jika ada)
-    Route::middleware(['auth', 'admin'])->prefix('admin')->group(function () {
-        Route::resource('news', AdminNewsController::class);
-    });
+    // CATATAN: Admin news management (admin.news.*) sudah didefinisikan di atas (prefix news, name news.)
+    // Baris duplikat `Route::resource('news', AdminNewsController::class)` dihapus karena
+    // class AdminNewsController tidak ada dan merusak registrasi seluruh route.
 
     // HERO SETTINGS
     Route::get('/hero-settings', [HeroSettingController::class, 'edit'])->name('hero-settings.index');
@@ -239,6 +238,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('teams/{team}/players', [TeamController::class, 'storePlayer'])->name('teams.players.store');
 
     // ========== PLAYERS MANAGEMENT ==========
+    Route::post('players/recalculate-stats', [MatchEventController::class, 'recalculateStats'])->name('players.recalculate-stats');
     Route::resource('players', PlayerController::class);
 
     // Player Actions

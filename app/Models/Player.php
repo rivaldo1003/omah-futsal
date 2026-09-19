@@ -16,8 +16,11 @@ class Player extends Model
         'name',
         'jersey_number',
         'position',
+        'birth_date',
+        'birth_place',
         'photo',
         'goals',
+        'penalty_goals',
         'assists',
         'yellow_cards',
         'red_cards',
@@ -27,6 +30,10 @@ class Player extends Model
 
     // Tambahkan ini
     protected $appends = ['photo_url', 'initial', 'appearances_count'];
+
+    protected $casts = [
+        'birth_date' => 'date:Y-m-d',
+    ];
 
     // Relasi dengan Team
     public function team()

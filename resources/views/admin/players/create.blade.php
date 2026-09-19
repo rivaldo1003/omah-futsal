@@ -484,6 +484,33 @@
                             </div>
                         </div>
                     </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="birth_date" class="form-label">Date of Birth</label>
+                                <input type="date" class="form-control @error('birth_date') is-invalid @enderror"
+                                    id="birth_date" name="birth_date" value="{{ old('birth_date') }}" max="{{ now()->format('Y-m-d') }}">
+                                @error('birth_date')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Player's date of birth (optional)</div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="birth_place" class="form-label">Birth Place</label>
+                                <input type="text" class="form-control @error('birth_place') is-invalid @enderror"
+                                    id="birth_place" name="birth_place" value="{{ old('birth_place') }}"
+                                    placeholder="e.g., Jombang" maxlength="100">
+                                @error('birth_place')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <div class="form-text">Player's place of birth (optional)</div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Team & Position Section -->

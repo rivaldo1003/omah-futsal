@@ -192,6 +192,24 @@
                                             <option value="Kiper" {{ old('position', $player->position) == 'Kiper' ? 'selected' : '' }}>Kiper</option>
                                         </select>
                                     </div>
+
+                                    <div class="col-md-6">
+                                        <label for="birth_date" class="form-label small">Date of Birth</label>
+                                        <input type="date" class="form-control form-control-sm" id="birth_date" name="birth_date"
+                                            value="{{ old('birth_date', $player->birth_date?->format('Y-m-d')) }}" max="{{ now()->format('Y-m-d') }}">
+                                        @error('birth_date')
+                                            <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label for="birth_place" class="form-label small">Birth Place</label>
+                                        <input type="text" class="form-control form-control-sm" id="birth_place" name="birth_place"
+                                            value="{{ old('birth_place', $player->birth_place) }}" placeholder="e.g., Jombang" maxlength="100">
+                                        @error('birth_place')
+                                            <div class="text-danger small">{{ $message }}</div>
+                                        @enderror
+                                    </div>
                                 </div>
                             </div>
                         </div>

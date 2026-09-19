@@ -495,11 +495,35 @@
             Players
         </h1>
         <div class="d-flex gap-2 align-items-center">
-            <div class="search-box position-relative">
-                <i class="bi bi-search search-icon position-absolute"></i>
-                <input type="text" id="searchInput" placeholder="Search players..." class="form-control"
-                    style="padding-left: 32px; height: 38px;" value="{{ request('search') }}">
+            <div class="d-flex align-items-center position-relative" style="gap: 6px;">
+                <div class="search-box position-relative" style="width: 260px;">
+                    <i class="bi bi-search search-icon position-absolute"></i>
+                    <input type="text" id="searchInput" placeholder="Search players... (Enter untuk cari)"
+                        class="form-control" style="padding-left: 32px; padding-right: 32px; height: 38px;"
+                        value="{{ request('search') }}"
+                        autocomplete="off">
+                    @if(request('search'))
+                        <button type="button" id="clearSearchBtn" class="position-absolute border-0 bg-transparent p-0"
+                            style="right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #6b7280;"
+                            title="Bersihkan pencarian">
+                            <i class="bi bi-x-circle"></i>
+                        </button>
+                    @endif
+                </div>
+                <button type="button" id="searchBtn" class="btn btn-outline-secondary d-flex align-items-center"
+                    style="height: 38px; gap: 4px;">
+                    <i class="bi bi-search"></i>
+                </button>
             </div>
+
+            <form action="{{ route('admin.players.recalculate-stats') }}" method="POST"
+                onsubmit="return confirm('Hitung ulang statistik SEMUA player (gol, assist, kartu) dari data pertandingan?')">
+                @csrf
+                <button type="submit" class="btn btn-outline-primary d-flex align-items-center" style="height: 38px; gap: 4px;"
+                    title="Sinkronkan statistik player dengan data pertandingan">
+                    <i class="bi bi-arrow-repeat me-1"></i> Recalculate Stats
+                </button>
+            </form>
 
             <a href="{{ route('admin.players.create') }}" class="btn btn-create d-flex align-items-center"
                 style="height: 38px;">
@@ -756,27 +780,45 @@
 
 @section('scripts')
     <script>
-        // Search functionality
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('keyup', function (e) {
-            clearTimeout(searchTimeout);
+        // Search functionality - hanya cari saat Enter atau klik tombol search,
+        // TIDAK otomatis redirect tiap ketik (fix: input tidak hilang fokus saat mengetik)
+        const searchInput = document.getElementById('searchInput');
+        const searchBtn = document.getElementById('searchBtn');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        const playersIndexUrl = '{{ route("admin.players.index") }}';
 
-            searchTimeout = setTimeout(() => {
-                const search = this.value;
-                if (search) {
-                    window.location.href = '{{ route("admin.players.index") }}?search=' + encodeURIComponent(search);
-                } else {
-                    window.location.href = '{{ route("admin.players.index") }}';
-                }
-            }, 500);
-        });
+        function submitPlayerSearch() {
+            const search = searchInput.value.trim();
+            if (search) {
+                window.location.href = playersIndexUrl + '?search=' + encodeURIComponent(search);
+            } else {
+                window.location.href = playersIndexUrl;
+            }
+        }
 
-        // Enter key to submit search
-        document.getElementById('searchInput').addEventListener('keypress', function (e) {
+        // Enter = cari
+        searchInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') {
-                this.dispatchEvent(new Event('keyup'));
+                e.preventDefault();
+                submitPlayerSearch();
+            }
+            // Escape = bersihkan & reset
+            if (e.key === 'Escape') {
+                window.location.href = playersIndexUrl;
             }
         });
+
+        // Tombol search = cari
+        if (searchBtn) {
+            searchBtn.addEventListener('click', submitPlayerSearch);
+        }
+
+        // Tombol clear (x) = reset ke semua players
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function () {
+                window.location.href = playersIndexUrl;
+            });
+        }
 
         // Handle photo loading errors
         document.addEventListener('DOMContentLoaded', function () {
