@@ -167,6 +167,11 @@
             outline: none;
         }
 
+        /* Filters row: jarak 24px ke card di bawahnya (space-5) */
+        .filters-row {
+            margin-bottom: 24px;
+        }
+
         /* Main card / table */
         .main-card {
             background: var(--bg);
@@ -546,7 +551,7 @@
     </div>
 
     <!-- Filters -->
-    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
+    <div class="filters-row d-flex gap-2 flex-wrap align-items-center">
         <select id="tournamentFilter" class="filter-select">
             <option value="">Semua turnamen</option>
             @foreach($tournaments as $tournament)
