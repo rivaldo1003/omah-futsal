@@ -24,6 +24,33 @@
             margin: 0 0 4px;
         }
 
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-reset {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 13px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .btn-reset:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .row-has-extras {
+            box-shadow: inset 3px 0 0 var(--accent);
+        }
+
         .search-box {
             position: relative;
         }
@@ -448,30 +475,21 @@
 @endsection
 
 @section('content')
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb" style="font-size: 0.875rem; padding: 0; background: none;">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item active">Matches</li>
-        </ol>
-    </nav>
-
     <div class="page-header">
-        <h1>
-            <!-- <i class="bi bi-calendar-event me-2"></i> -->
-            Matches
-        </h1>
-        <div class="d-flex gap-2">
+        <div>
+            <h1>Matches</h1>
+            <p class="page-subtitle">Kelola dan jadwalkan pertandingan turnamen</p>
+        </div>
+        <div class="d-flex gap-2 flex-wrap align-items-center">
             <div class="search-box">
                 <i class="bi bi-search search-icon"></i>
-                <input type="text" id="searchInput" placeholder="Search matches....." class="form-control form-control-sm">
+                <input type="text" id="searchInput" placeholder="Cari pertandingan..." class="form-control form-control-sm">
             </div>
-            <a href="{{ route('admin.matches.create') }}" class="btn-create">
-                <i class="bi bi-plus"></i>
-                New Match
-            </a>
             <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
-                <i class="bi bi-plus"></i>
-                Friendly Match
+                <i class="bi bi-plus"></i> Friendly match
+            </a>
+            <a href="{{ route('admin.matches.create') }}" class="btn-create">
+                <i class="bi bi-plus"></i> Buat pertandingan
             </a>
         </div>
     </div>
@@ -492,62 +510,30 @@
         </div>
     @endif
 
-    <!-- Stats Cards -->
+    <!-- Stats -->
     <div class="stats-grid">
         <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div>
-                    <div class="stat-title">Upcoming</div>
-                    <div class="stat-value">{{ $matches->where('status', 'upcoming')->count() }}</div>
-                </div>
-                <div class="stat-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
-                    <i class="bi bi-clock"></i>
-                </div>
-            </div>
+            <div class="stat-title">Upcoming</div>
+            <div class="stat-value">{{ $matches->where('status', 'upcoming')->count() }}</div>
         </div>
-
         <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div>
-                    <div class="stat-title">Ongoing</div>
-                    <div class="stat-value">{{ $matches->where('status', 'ongoing')->count() }}</div>
-                </div>
-                <div class="stat-icon" style="background: rgba(245, 158, 11, 0.1); color: #f59e0b;">
-                    <i class="bi bi-play-circle"></i>
-                </div>
-            </div>
+            <div class="stat-title">Ongoing</div>
+            <div class="stat-value">{{ $matches->where('status', 'ongoing')->count() }}</div>
         </div>
-
         <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div>
-                    <div class="stat-title">Completed</div>
-                    <div class="stat-value">{{ $matches->where('status', 'completed')->count() }}</div>
-                </div>
-                <div class="stat-icon" style="background: rgba(34, 197, 94, 0.1); color: #22c55e;">
-                    <i class="bi bi-check-circle"></i>
-                </div>
-            </div>
+            <div class="stat-title">Completed</div>
+            <div class="stat-value">{{ $matches->where('status', 'completed')->count() }}</div>
         </div>
-
         <div class="stat-card">
-            <div class="d-flex align-items-center">
-                <div>
-                    <div class="stat-title">Total</div>
-                    <div class="stat-value">{{ $matches->count() }}</div>
-                </div>
-                <div class="stat-icon" style="background: rgba(107, 114, 128, 0.1); color: #6b7280;">
-                    <i class="bi bi-calendar-week"></i>
-                </div>
-            </div>
+            <div class="stat-title">Total</div>
+            <div class="stat-value">{{ $matches->count() }}</div>
         </div>
     </div>
 
     <!-- Filters -->
-    <div class="d-flex gap-2 mb-3 flex-wrap">
-        <!-- Tournament Filter -->
+    <div class="d-flex gap-2 mb-3 flex-wrap align-items-center">
         <select id="tournamentFilter" class="filter-select">
-            <option value="">All Tournaments</option>
+            <option value="">Semua turnamen</option>
             @foreach($tournaments as $tournament)
                 <option value="{{ $tournament->id }}" {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
                     {{ $tournament->name }}
@@ -556,7 +542,7 @@
         </select>
 
         <select id="statusFilter" class="filter-select">
-            <option value="">All Status</option>
+            <option value="">Semua status</option>
             <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
             <option value="ongoing" {{ request('status') == 'ongoing' ? 'selected' : '' }}>Ongoing</option>
             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -564,7 +550,7 @@
         </select>
 
         <select id="roundFilter" class="filter-select">
-            <option value="">All Rounds</option>
+            <option value="">Semua ronde</option>
             <option value="group" {{ request('round') == 'group' ? 'selected' : '' }}>Group Stage</option>
             <option value="quarterfinal" {{ request('round') == 'quarterfinal' ? 'selected' : '' }}>Quarterfinal</option>
             <option value="semifinal" {{ request('round') == 'semifinal' ? 'selected' : '' }}>Semifinal</option>
@@ -573,14 +559,14 @@
 
         <input type="date" id="dateFrom" class="filter-select" placeholder="Date from" value="{{ request('date') }}">
 
-        <button class="btn btn-outline-secondary btn-sm d-flex align-items-center" id="resetFilters">
+        <button type="button" class="btn-reset" id="resetFilters">
             <i class="bi bi-arrow-clockwise me-1"></i> Reset
         </button>
     </div>
 
     <div class="main-card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-list me-2"></i> All Matches</h5>
+            <h5 class="mb-0">Daftar pertandingan</h5>
         </div>
 
         <div class="card-body p-0">
@@ -599,9 +585,10 @@
                         </thead>
                         <tbody>
                             @foreach($matches as $match)
-                                <tr class="match-row" data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
+                                <tr class="match-row {{ ($match->status == 'completed' && ($match->et_score || $match->is_penalty)) ? 'row-has-extras' : '' }}"
+                                    data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
                                     data-date="{{ $match->match_date->format('Y-m-d') }}"
-                                    data-tournament="{{ $match->tournament_id }}" @if($match->status == 'completed' && ($match->et_score || $match->is_penalty)) style="border-left: 3px solid #0dcaf0;" @endif>
+                                    data-tournament="{{ $match->tournament_id }}">
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
                                         <div class="match-time">
@@ -632,7 +619,7 @@
                                             </div>
 
                                             <!-- VS -->
-                                            <div class="vs">VS</div>
+                                            <div class="vs">vs</div>
 
                                             <!-- Away Team -->
                                             <div class="team-info">
@@ -773,7 +760,7 @@
                 @if($matches->hasPages())
                     <div class="pagination-container d-flex justify-content-between align-items-center flex-wrap">
                         <div class="pagination-info">
-                            Showing {{ $matches->firstItem() }} to {{ $matches->lastItem() }} of {{ $matches->total() }} matches
+                            Menampilkan {{ $matches->firstItem() }}–{{ $matches->lastItem() }} dari {{ $matches->total() }} pertandingan
                         </div>
 
                         <div class="pagination-controls">
@@ -784,7 +771,7 @@
                                 </span>
                             @else
                                 <a href="{{ $matches->previousPageUrl() }}" class="pagination-btn">
-                                    <i class="bi bi-chevron-left"></i> Previous
+                                    <i class="bi bi-chevron-left"></i> Sebelumnya
                                 </a>
                             @endif
 
@@ -825,11 +812,11 @@
                             <!-- Next Button -->
                             @if($matches->hasMorePages())
                                 <a href="{{ $matches->nextPageUrl() }}" class="pagination-btn">
-                                    Next <i class="bi bi-chevron-right"></i>
+                                    Berikutnya <i class="bi bi-chevron-right"></i>
                                 </a>
                             @else
                                 <span class="pagination-btn disabled">
-                                    Next <i class="bi bi-chevron-right"></i>
+                                    Berikutnya <i class="bi bi-chevron-right"></i>
                                 </span>
                             @endif
                         </div>
@@ -840,13 +827,12 @@
                     <div class="empty-state-icon">
                         <i class="bi bi-calendar-x"></i>
                     </div>
-                    <h4 class="empty-state-title">No Matches Found</h4>
+                    <h4 class="empty-state-title">Belum ada pertandingan</h4>
                     <p class="empty-state-text">
-                        Start by creating your first tournament match.
+                        Mulai dengan membuat pertandingan turnamen pertama Anda.
                     </p>
                     <a href="{{ route('admin.matches.create') }}" class="btn-create">
-                        <i class="bi bi-plus"></i>
-                        Create First Match
+                        <i class="bi bi-plus"></i> Buat pertandingan
                     </a>
                 </div>
             @endif
