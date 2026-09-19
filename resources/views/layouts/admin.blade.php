@@ -62,7 +62,7 @@
             color: var(--accent);
         }
 
-        /* Base card style — child views can override via @yield('styles') */
+        /* Base card style */
         .card {
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -134,8 +134,10 @@
         .table {
             font-size: 14px;
         }
+    </style>
 
-        /* Page view styles (loaded last so child views can override) */
+    {{-- Style per halaman, dimuat setelah base style agar bisa override --}}
+    <style>
         @yield('styles')
     </style>
 </head>
