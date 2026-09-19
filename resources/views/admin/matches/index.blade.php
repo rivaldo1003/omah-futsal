@@ -10,9 +10,9 @@
         .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 16px;
             margin-bottom: 24px;
         }
 
@@ -35,8 +35,8 @@
             background: var(--bg);
             color: var(--text-secondary);
             border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 13px;
+            padding: 0 12px;
+            font-size: 14px;
             font-weight: 500;
             display: inline-flex;
             align-items: center;
@@ -68,9 +68,10 @@
         .search-box input {
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 6px 12px 6px 30px;
-            font-size: 13px;
-            width: 220px;
+            padding: 8px 12px 8px 32px;
+            font-size: 14px;
+            height: 38px;
+            width: 240px;
         }
 
         .search-box input:focus {
@@ -83,14 +84,15 @@
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 7px 14px;
+            height: 38px;
+            padding: 0 16px;
             border-radius: 6px;
             font-size: 14px;
             font-weight: 500;
             text-decoration: none;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
         }
 
         .btn-create:hover {
@@ -105,6 +107,10 @@
         }
 
         .btn-create.btn-friendly:hover {
+            background: var(--bg);
+        }
+
+        .btn-create.btn-friendly:hover {
             border-color: var(--accent);
             color: var(--accent);
         }
@@ -115,6 +121,15 @@
             grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
+        }
+
+        /* Filters row: input & select tinggi seragam 38px agar sejajar */
+        .filter-select {
+            height: 38px;
+        }
+
+        .btn-reset {
+            height: 38px;
         }
 
         .stat-card {
@@ -141,8 +156,8 @@
         .filter-select {
             border: 1px solid var(--border);
             border-radius: 6px;
-            padding: 6px 10px;
-            font-size: 13px;
+            padding: 0 12px;
+            font-size: 14px;
             background: var(--bg);
             color: var(--text-primary);
         }
