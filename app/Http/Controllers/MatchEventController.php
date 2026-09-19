@@ -579,6 +579,118 @@ class MatchEventController extends Controller
         }
     }
 
+    /**
+     * Recalculate all player statistics from match_events
+     * (perbaikan data yang tidak sinkron antara kolom statistik player dan event)
+     *
+     * Model agregasi (konsisten dengan updatePlayerStats()):
+     * - goals         = jumlah event 'goal' per player
+     * - penalty_goals = jumlah event 'goal' dengan is_penalty = 1
+     * - assists       = jumlah event 'goal' dengan related_player_id = player.id
+     * - yellow_cards  = jumlah event 'yellow_card' dikurangi jumlah pertandingan
+     *                   dengan >= 2 kartu kuning (kartu kuning kedua jadi merah)
+     * - red_cards     = jumlah event 'red_card'
+     */
+    public function recalculateStats()
+    {
+        try {
+            DB::beginTransaction();
+
+            // 1. Goals & penalty_goals dari agregasi event
+            $goalStats = MatchEvent::selectRaw('player_id,
+                    COUNT(*) as goals,
+                    SUM(CASE WHEN is_penalty = 1 THEN 1 ELSE 0 END) as penalty_goals')
+                ->where('event_type', 'goal')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            // 2. Assists dari related_player_id pada event goal
+            $assistStats = MatchEvent::selectRaw('related_player_id as player_id, COUNT(*) as assists')
+                ->where('event_type', 'goal')
+                ->whereNotNull('related_player_id')
+                ->groupBy('related_player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            // 3. Yellow cards: raw event dikurangi pertandingan dengan >= 2 kuning
+            //    (sesuai logika kartu kuning kedua = kartu merah di updatePlayerStats)
+            $yellowRaw = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'yellow_card')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            $yellowNetting = MatchEvent::selectRaw('player_id, COUNT(DISTINCT match_id) as netting')
+                ->where('event_type', 'yellow_card')
+                ->groupBy('player_id', 'match_id')
+                ->havingRaw('COUNT(*) >= 2')
+                ->get()
+                ->groupBy('player_id')
+                ->map(fn ($rows) => $rows->count());
+
+            // 4. Red cards dari event
+            $redStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'red_card')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            // 5. Terapkan ke semua player yang punya event ATAU yang stat-nya
+            //    non-zero (supaya player yang event-nya habis/dipindah ikut di-reset ke 0)
+            $playerIds = $goalStats->keys()
+                ->merge($assistStats->keys())
+                ->merge($yellowRaw->keys())
+                ->merge($redStats->keys())
+                ->merge(
+                    Player::where(function ($q) {
+                        $q->where('goals', '>', 0)
+                            ->orWhere('penalty_goals', '>', 0)
+                            ->orWhere('assists', '>', 0)
+                            ->orWhere('yellow_cards', '>', 0)
+                            ->orWhere('red_cards', '>', 0);
+                    })->pluck('id')
+                )
+                ->unique();
+
+            $updated = 0;
+            foreach ($playerIds as $playerId) {
+                $yellowRawCount = $yellowRaw->has($playerId) ? (int) $yellowRaw[$playerId]->total : 0;
+                $netting = $yellowNetting->has($playerId) ? (int) $yellowNetting[$playerId] : 0;
+
+                $newStats = [
+                    'goals' => $goalStats->has($playerId) ? (int) $goalStats[$playerId]->goals : 0,
+                    'penalty_goals' => $goalStats->has($playerId) ? (int) $goalStats[$playerId]->penalty_goals : 0,
+                    'assists' => $assistStats->has($playerId) ? (int) $assistStats[$playerId]->assists : 0,
+                    'yellow_cards' => max(0, $yellowRawCount - $netting),
+                    'red_cards' => $redStats->has($playerId) ? (int) $redStats[$playerId]->total : 0,
+                ];
+
+                $player = Player::find($playerId);
+                if (! $player) {
+                    continue;
+                }
+
+                $player->fill($newStats);
+                if ($player->isDirty()) {
+                    $player->save();
+                    $updated++;
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->back()
+                ->with('success', "Statistik {$updated} player berhasil dihitung ulang dari match events!");
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+
+            return redirect()->back()
+                ->with('error', 'Gagal menghitung ulang statistik: ' . $e->getMessage());
+        }
+    }
+
     private function isGoalkeeperEventAllowed(string $eventType, int $playerId): bool
     {
         if (!in_array($eventType, ['save', 'clean_sheet'], true)) {

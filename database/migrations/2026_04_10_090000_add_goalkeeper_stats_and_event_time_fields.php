@@ -9,7 +9,9 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('match_events', function (Blueprint $table) {
-            $table->unsignedTinyInteger('extra_minute')->nullable()->after('minute');
+            if (! Schema::hasColumn('match_events', 'extra_minute')) {
+                $table->unsignedTinyInteger('extra_minute')->nullable()->after('minute');
+            }
         });
 
         // Extend available event types for goalkeeper events.
@@ -30,17 +32,27 @@ return new class extends Migration {
         ");
 
         Schema::table('players', function (Blueprint $table) {
-            $table->unsignedInteger('saves')->default(0)->after('red_cards');
-            $table->unsignedInteger('clean_sheets')->default(0)->after('saves');
-            $table->unsignedInteger('penalty_goals')->default(0)->after('clean_sheets');
-            $table->unsignedInteger('penalty_missed')->default(0)->after('penalty_goals');
+            if (! Schema::hasColumn('players', 'saves')) {
+                $table->unsignedInteger('saves')->default(0)->after('red_cards');
+            }
+            if (! Schema::hasColumn('players', 'clean_sheets')) {
+                $table->unsignedInteger('clean_sheets')->default(0)->after('saves');
+            }
+            if (! Schema::hasColumn('players', 'penalty_goals')) {
+                $table->unsignedInteger('penalty_goals')->default(0)->after('clean_sheets');
+            }
+            if (! Schema::hasColumn('players', 'penalty_missed')) {
+                $table->unsignedInteger('penalty_missed')->default(0)->after('penalty_goals');
+            }
         });
     }
 
     public function down(): void
     {
         Schema::table('match_events', function (Blueprint $table) {
-            $table->dropColumn('extra_minute');
+            if (Schema::hasColumn('match_events', 'extra_minute')) {
+                $table->dropColumn('extra_minute');
+            }
         });
 
         DB::statement("
@@ -58,7 +70,13 @@ return new class extends Migration {
         ");
 
         Schema::table('players', function (Blueprint $table) {
-            $table->dropColumn(['saves', 'clean_sheets', 'penalty_goals', 'penalty_missed']);
+            $droppable = array_filter(
+                ['saves', 'clean_sheets', 'penalty_goals', 'penalty_missed'],
+                fn ($c) => Schema::hasColumn('players', $c)
+            );
+            if (! empty($droppable)) {
+                $table->dropColumn($droppable);
+            }
         });
     }
 };

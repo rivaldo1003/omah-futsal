@@ -32,7 +32,7 @@ class PlayerController extends Controller
             });
         }
 
-        $players = $query->paginate($perPage);
+        $players = $query->paginate($perPage)->appends($request->query());
 
         return view('admin.players.index', compact('players'));
     }
@@ -57,6 +57,8 @@ class PlayerController extends Controller
             'team_id' => 'nullable|exists:teams,id',
             'jersey_number' => 'nullable|integer|min:1|max:99',
             'position' => 'nullable|string|max:50',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'birth_place' => 'nullable|string|max:100',
             'goals' => 'integer|min:0',
             'assists' => 'integer|min:0',
             'yellow_cards' => 'integer|min:0',
@@ -82,7 +84,17 @@ class PlayerController extends Controller
     {
         $player->load('team');
 
-        return view('admin.players.show', compact('player'));
+        // Riwayat event per pertandingan (goal/kartu) untuk statistik nyata
+        $matchEvents = \App\Models\MatchEvent::with(['match.homeTeam', 'match.awayTeam', 'match.tournament'])
+            ->where('player_id', $player->id)
+            ->whereIn('event_type', ['goal', 'yellow_card', 'red_card'])
+            ->join('matches', 'match_events.match_id', '=', 'matches.id')
+            ->orderByDesc('matches.match_date')
+            ->orderBy('match_events.minute')
+            ->select('match_events.*')
+            ->get();
+
+        return view('admin.players.show', compact('player', 'matchEvents'));
     }
 
     /**
@@ -108,6 +120,8 @@ class PlayerController extends Controller
             'jersey_number' => 'nullable|integer|min:1|max:99',
             'team_id' => 'nullable|exists:teams,id',
             'position' => 'nullable|string|max:50',
+            'birth_date' => 'nullable|date|before_or_equal:today',
+            'birth_place' => 'nullable|string|max:100',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5000',
             'goals' => 'nullable|integer|min:0',
             'assists' => 'nullable|integer|min:0',

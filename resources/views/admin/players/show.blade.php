@@ -21,71 +21,43 @@
             </div>
         </div>
 
-        <!-- Stats Cards -->
+        <!-- Stats Cards - hanya tampilkan statistik yang ada datanya -->
+        @php
+            $statCards = collect([
+                ['label' => 'Goals', 'value' => $player->goals ?? 0, 'icon' => 'bullseye', 'color' => 'primary'],
+                ['label' => 'Assists', 'value' => $player->assists ?? 0, 'icon' => 'share', 'color' => 'success'],
+                ['label' => 'Penalty Goals', 'value' => $player->penalty_goals ?? 0, 'icon' => 'flag', 'color' => 'info'],
+                ['label' => 'Yellow Cards', 'value' => $player->yellow_cards ?? 0, 'icon' => 'exclamation-triangle', 'color' => 'warning'],
+                ['label' => 'Red Cards', 'value' => $player->red_cards ?? 0, 'icon' => 'x-circle', 'color' => 'danger'],
+            ])->filter(fn ($c) => ($c['value'] ?? 0) > 0);
+        @endphp
         <div class="row g-3 mb-4">
-            <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-primary bg-opacity-10 p-2 me-3">
-                                <i class="bi bi-bullseye text-primary fs-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Goals</div>
-                                <div class="h4 mb-0">{{ $player->goals ?? 0 }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-success bg-opacity-10 p-2 me-3">
-                                <i class="bi bi-share text-success fs-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Assists</div>
-                                <div class="h4 mb-0">{{ $player->assists ?? 0 }}</div>
+            @if($statCards->isNotEmpty())
+                @foreach($statCards as $card)
+                    <div class="{{ $statCards->count() >= 4 ? 'col-md-3' : 'col-md-4' }} col-6">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body p-3">
+                                <div class="d-flex align-items-center">
+                                    <div class="rounded-circle bg-{{ $card['color'] }} bg-opacity-10 p-2 me-3">
+                                        <i class="bi bi-{{ $card['icon'] }} text-{{ $card['color'] }} fs-5"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-muted small">{{ $card['label'] }}</div>
+                                        <div class="h4 mb-0">{{ $card['value'] }}</div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
-
-            <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-warning bg-opacity-10 p-2 me-3">
-                                <i class="bi bi-exclamation-triangle text-warning fs-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Yellow Cards</div>
-                                <div class="h4 mb-0">{{ $player->yellow_cards ?? 0 }}</div>
-                            </div>
-                        </div>
+                @endforeach
+            @else
+                <div class="col-12">
+                    <div class="alert alert-light border mb-0 d-flex align-items-center gap-2">
+                        <i class="bi bi-info-circle text-muted"></i>
+                        <span class="text-muted small mb-0">Belum ada statistik tercatat untuk pemain ini.</span>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-3 col-6">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-body p-3">
-                        <div class="d-flex align-items-center">
-                            <div class="rounded-circle bg-danger bg-opacity-10 p-2 me-3">
-                                <i class="bi bi-x-circle text-danger fs-5"></i>
-                            </div>
-                            <div>
-                                <div class="text-muted small">Red Cards</div>
-                                <div class="h4 mb-0">{{ $player->red_cards ?? 0 }}</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            @endif
         </div>
 
         <!-- Main Content -->
@@ -194,63 +166,44 @@
                                 </div>
                             </div>
 
-                            <!-- Details Column -->
+                            <!-- Details Column - hanya tampilkan field yang ada datanya -->
                             <div class="col-md-8">
+                                @php
+                                    $hasBirthDate = !empty($player->birth_date);
+                                    $hasBirthPlace = !empty($player->birth_place);
+                                    $hasBio = !empty($player->biography);
+                                @endphp
                                 <div class="row g-3">
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Date of Birth</label>
-                                        <div class="fw-medium">
-                                            @if($player->date_of_birth)
-                                                {{ \Carbon\Carbon::parse($player->date_of_birth)->format('d M Y') }}
-                                                <small
-                                                    class="text-muted">({{ \Carbon\Carbon::parse($player->date_of_birth)->age }}
-                                                    yrs)</small>
-                                            @else
-                                                <span class="text-muted">Not specified</span>
-                                            @endif
+                                    @if($hasBirthDate)
+                                        <div class="col-md-6">
+                                            <label class="text-muted small d-block">Date of Birth</label>
+                                            <div class="fw-medium">
+                                                {{ \Carbon\Carbon::parse($player->birth_date)->format('d M Y') }}
+                                                <small class="text-muted">({{ \Carbon\Carbon::parse($player->birth_date)->age }} yrs)</small>
+                                            </div>
                                         </div>
-                                    </div>
+                                    @endif
 
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Nationality</label>
-                                        <div class="fw-medium">{{ $player->nationality ?? 'Not specified' }}</div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Height</label>
-                                        <div class="fw-medium">{{ $player->height ?? 'Not specified' }}</div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Weight</label>
-                                        <div class="fw-medium">{{ $player->weight ?? 'Not specified' }}</div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Preferred Foot</label>
-                                        <div class="fw-medium">{{ $player->preferred_foot ?? 'Not specified' }}</div>
-                                    </div>
-
-                                    <div class="col-md-6">
-                                        <label class="text-muted small d-block">Status</label>
-                                        <div class="fw-medium">
-                                            @if($player->status == 'active')
-                                                <span class="badge bg-success bg-opacity-10 text-success">Active</span>
-                                            @else
-                                                <span class="badge bg-secondary bg-opacity-10 text-secondary">Inactive</span>
-                                            @endif
-                                            @if($player->injury_status && $player->injury_status != 'fit')
-                                                <span class="badge bg-warning bg-opacity-10 text-warning ms-1">
-                                                    {{ ucfirst($player->injury_status) }}
-                                                </span>
-                                            @endif
+                                    @if($hasBirthPlace)
+                                        <div class="col-md-6">
+                                            <label class="text-muted small d-block">Birth Place</label>
+                                            <div class="fw-medium">{{ $player->birth_place }}</div>
                                         </div>
-                                    </div>
+                                    @endif
 
-                                    @if($player->biography)
+                                    @if($hasBio)
                                         <div class="col-12">
                                             <label class="text-muted small d-block">Bio</label>
                                             <div class="fw-medium">{{ Str::limit($player->biography, 150) }}</div>
+                                        </div>
+                                    @endif
+
+                                    @if(!$hasBirthDate && !$hasBirthPlace && !$hasBio)
+                                        <div class="col-12">
+                                            <div class="text-muted small d-flex align-items-center gap-2 py-2">
+                                                <i class="bi bi-info-circle"></i>
+                                                Belum ada informasi detail (tanggal lahir, tempat lahir, bio) untuk pemain ini.
+                                            </div>
                                         </div>
                                     @endif
                                 </div>
@@ -259,42 +212,61 @@
                     </div>
                 </div>
 
-                <!-- Stats Grid -->
-                <div class="card border-0 shadow-sm">
-                    <div class="card-body">
-                        <h6 class="fw-semibold mb-4"><i class="bi bi-bar-chart me-2"></i>Performance Stats</h6>
-                        <div class="row row-cols-2 row-cols-md-4 g-3">
-                            <div class="col">
-                                <div class="stat-item p-3 border rounded">
-                                    <div class="text-primary mb-1"><i class="bi bi-clock-history fs-4"></i></div>
-                                    <div class="h5 fw-bold mb-1">{{ $player->minutes_played ?? 0 }}</div>
-                                    <div class="text-muted small">Minutes</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="stat-item p-3 border rounded">
-                                    <div class="text-secondary mb-1"><i class="bi bi-arrow-repeat fs-4"></i></div>
-                                    <div class="h5 fw-bold mb-1">{{ $player->appearances ?? 0 }}</div>
-                                    <div class="text-muted small">Apps</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="stat-item p-3 border rounded">
-                                    <div class="text-warning mb-1"><i class="bi bi-star fs-4"></i></div>
-                                    <div class="h5 fw-bold mb-1">{{ $player->rating ?? 'N/A' }}</div>
-                                    <div class="text-muted small">Rating</div>
-                                </div>
-                            </div>
-                            <div class="col">
-                                <div class="stat-item p-3 border rounded">
-                                    <div class="text-purple mb-1"><i class="bi bi-trophy fs-4"></i></div>
-                                    <div class="h5 fw-bold mb-1">{{ $player->man_of_the_match ?? 0 }}</div>
-                                    <div class="text-muted small">MotM</div>
-                                </div>
+                <!-- Riwayat Event per Pertandingan - hanya tampil jika ada data -->
+                @if(isset($matchEvents) && $matchEvents->count() > 0)
+                    <div class="card border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="fw-semibold mb-4">
+                                <i class="bi bi-journal-check me-2"></i>Riwayat Pertandingan
+                                <span class="badge bg-primary bg-opacity-10 text-primary ms-1">{{ $matchEvents->count() }} event</span>
+                            </h6>
+                            <div class="table-responsive">
+                                <table class="table table-sm table-hover align-middle mb-0">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-muted small fw-semibold" style="font-size: 0.75rem;">TANGGAL</th>
+                                            <th class="text-muted small fw-semibold" style="font-size: 0.75rem;">PERTANDINGAN</th>
+                                            <th class="text-muted small fw-semibold" style="font-size: 0.75rem;">TURNAMEN</th>
+                                            <th class="text-muted small fw-semibold text-center" style="font-size: 0.75rem;">MENIT</th>
+                                            <th class="text-muted small fw-semibold" style="font-size: 0.75rem;">EVENT</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($matchEvents as $event)
+                                            @php
+                                                $match = $event->match;
+                                                $eventMeta = match ($event->event_type) {
+                                                    'goal' => ['label' => $event->is_penalty ? 'Goal (Penalti)' : 'Goal', 'class' => 'bg-success bg-opacity-10 text-success', 'icon' => 'bullseye'],
+                                                    'yellow_card' => ['label' => 'Kartu Kuning', 'class' => 'bg-warning bg-opacity-10 text-warning', 'icon' => 'card-text'],
+                                                    'red_card' => ['label' => 'Kartu Merah', 'class' => 'bg-danger bg-opacity-10 text-danger', 'icon' => 'card-text'],
+                                                    default => ['label' => ucfirst($event->event_type), 'class' => 'bg-secondary bg-opacity-10 text-secondary', 'icon' => 'circle'],
+                                                };
+                                            @endphp
+                                            <tr>
+                                                <td class="small">{{ $match?->match_date?->format('d M Y') ?? '-' }}</td>
+                                                <td class="small">
+                                                    <strong>{{ $match?->homeTeam?->name ?? '?' }}</strong>
+                                                    <span class="text-muted mx-1">{{ $match?->home_score ?? 0 }} - {{ $match?->away_score ?? 0 }}</span>
+                                                    <strong>{{ $match?->awayTeam?->name ?? '?' }}</strong>
+                                                </td>
+                                                <td class="small text-muted">{{ $match?->tournament?->name ?? '-' }}</td>
+                                                <td class="text-center small">{{ $event->minute }}'</td>
+                                                <td>
+                                                    <span class="badge {{ $eventMeta['class'] }} d-inline-flex align-items-center gap-1">
+                                                        <i class="bi bi-{{ $eventMeta['icon'] }}"></i> {{ $eventMeta['label'] }}
+                                                    </span>
+                                                    @if($event->is_own_goal)
+                                                        <span class="badge bg-dark bg-opacity-10 text-dark ms-1">Own Goal</span>
+                                                    @endif
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>
-                </div>
+                @endif
             </div>
 
             <!-- Right Column -->
@@ -339,36 +311,8 @@
                     </div>
                 </div>
 
-                <!-- Contact Info -->
-                @if($player->email || $player->phone)
-                    <div class="card border-0 shadow-sm mb-4">
-                        <div class="card-body">
-                            <h6 class="fw-semibold mb-3"><i class="bi bi-envelope me-2"></i>Contact</h6>
-                            <div class="list-group list-group-flush">
-                                @if($player->email)
-                                    <div class="list-group-item px-0 py-2 border-0">
-                                        <div class="text-muted small">Email</div>
-                                        <a href="mailto:{{ $player->email }}"
-                                            class="text-decoration-none fw-medium">{{ $player->email }}</a>
-                                    </div>
-                                @endif
-                                @if($player->phone)
-                                    <div class="list-group-item px-0 py-2 border-0">
-                                        <div class="text-muted small">Phone</div>
-                                        <a href="tel:{{ $player->phone }}"
-                                            class="text-decoration-none fw-medium">{{ $player->phone }}</a>
-                                    </div>
-                                @endif
-                                @if($player->address)
-                                    <div class="list-group-item px-0 py-2 border-0">
-                                        <div class="text-muted small">Address</div>
-                                        <div class="fw-medium">{{ $player->address }}</div>
-                                    </div>
-                                @endif
-                            </div>
-                        </div>
-                    </div>
-                @endif
+                <!-- CATATAN: Section Contact dihapus karena kolom email/phone/address
+                     tidak ada di tabel players (data tidak pernah tersimpan) -->
 
                 <!-- Timeline -->
                 <div class="card border-0 shadow-sm">
