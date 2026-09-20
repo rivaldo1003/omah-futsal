@@ -16,6 +16,8 @@
             --success-bg: #F0F9F4;
             --warning: #B45309;
             --warning-bg: #FDF6EC;
+            --danger: #c01c28;
+            --danger-bg: #FDF2F3;
             --muted-bg: #F0F0F2;
         }
 
@@ -37,33 +39,77 @@
             margin: 0;
         }
 
+        /* ===== Stat cards — simple & compact ===== */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: 16px;
             margin-bottom: 24px;
         }
 
         .stat-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
             background: var(--bg);
             border: 1px solid var(--border);
             border-radius: 12px;
-            padding: 16px;
+            padding: 12px 16px;
+        }
+
+        /* Ikon kecil dengan tint warna kategori */
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+            background: var(--stat-bg, var(--surface));
+            color: var(--stat-color, var(--accent));
+        }
+
+        .stat-info {
+            min-width: 0;
         }
 
         .stat-title {
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
-            margin-bottom: 4px;
+            line-height: 1.3;
         }
 
         .stat-value {
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 600;
             color: var(--text-primary);
             line-height: 1.2;
         }
 
+        /* Varian warna per kategori */
+        .stat-card.stat-teams {
+            --stat-color: var(--accent);
+            --stat-bg: rgba(26, 95, 180, 0.08);
+        }
+
+        .stat-card.stat-players {
+            --stat-color: #7C3AED;
+            --stat-bg: rgba(124, 58, 237, 0.08);
+        }
+
+        .stat-card.stat-matches {
+            --stat-color: var(--warning);
+            --stat-bg: var(--warning-bg);
+        }
+
+        .stat-card.stat-completed {
+            --stat-color: var(--success);
+            --stat-bg: var(--success-bg);
+        }
+
+        /* ===== Section cards ===== */
         .section-card {
             background: var(--bg);
             border: 1px solid var(--border);
@@ -248,7 +294,7 @@
         .view-all {
             display: block;
             text-align: center;
-            padding: 10px;
+            padding: 12px;
             border-top: 1px solid var(--border);
             color: var(--accent);
             font-size: 14px;
@@ -282,7 +328,7 @@
             background: var(--accent);
             color: #fff;
             border: none;
-            padding: 6px 12px;
+            padding: 8px 12px;
             border-radius: 6px;
             font-size: 13px;
             font-weight: 500;
@@ -363,26 +409,41 @@
 @section('content')
     <div class="dashboard-header">
         <h1>Dashboard</h1>
-        <p>Selamat datang kembali, {{ auth()->user()->name ?? 'Administrator' }} — {{ now()->translatedFormat('d F Y') }}</p>
+        <p>Selamat datang kembali, {{ auth()->user()->name ?? 'Administrator' }}. Hari ini {{ now()->translatedFormat('d F Y') }}.</p>
     </div>
 
     <!-- Statistik -->
     <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-title">Tim aktif</div>
-            <div class="stat-value">{{ $totalTeams }}</div>
+        <div class="stat-card stat-teams">
+            <div class="stat-icon"><i class="bi bi-shield-shaded"></i></div>
+            <div class="stat-info">
+                <div class="stat-title">Tim aktif</div>
+                <div class="stat-value">{{ $totalTeams }}</div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-title">Total pemain</div>
-            <div class="stat-value">{{ $totalPlayers }}</div>
+
+        <div class="stat-card stat-players">
+            <div class="stat-icon"><i class="bi bi-person-arms-up"></i></div>
+            <div class="stat-info">
+                <div class="stat-title">Total pemain</div>
+                <div class="stat-value">{{ $totalPlayers }}</div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-title">Total pertandingan</div>
-            <div class="stat-value">{{ $totalMatches }}</div>
+
+        <div class="stat-card stat-matches">
+            <div class="stat-icon"><i class="bi bi-stopwatch"></i></div>
+            <div class="stat-info">
+                <div class="stat-title">Total pertandingan</div>
+                <div class="stat-value">{{ $totalMatches }}</div>
+            </div>
         </div>
-        <div class="stat-card">
-            <div class="stat-title">Selesai</div>
-            <div class="stat-value">{{ $completedMatches }}</div>
+
+        <div class="stat-card stat-completed">
+            <div class="stat-icon"><i class="bi bi-award"></i></div>
+            <div class="stat-info">
+                <div class="stat-title">Selesai</div>
+                <div class="stat-value">{{ $completedMatches }}</div>
+            </div>
         </div>
     </div>
 
@@ -399,24 +460,7 @@
                             <div class="match-teams">
                                 <div class="team-info">
                                     <div class="team-logo-small">
-                                        @if($match->homeTeam && $match->homeTeam->logo)
-                                            @if(Storage::disk('public')->exists($match->homeTeam->logo))
-                                                <img src="{{ asset('storage/' . $match->homeTeam->logo) }}"
-                                                    alt="{{ $match->homeTeam->name }}">
-                                            @elseif(filter_var($match->homeTeam->logo, FILTER_VALIDATE_URL))
-                                                <img src="{{ $match->homeTeam->logo }}" alt="{{ $match->homeTeam->name }}">
-                                            @else
-                                                <div class="logo-initial">
-                                                    {{ strtoupper(substr($match->homeTeam->name, 0, 1)) }}
-                                                </div>
-                                            @endif
-                                        @elseif($match->homeTeam)
-                                            <div class="logo-initial">
-                                                {{ strtoupper(substr($match->homeTeam->name, 0, 1)) }}
-                                            </div>
-                                        @else
-                                            <div class="logo-initial">?</div>
-                                        @endif
+                                        @include('partials.team-logo', ['team' => $match->homeTeam])
                                     </div>
                                     <div class="team-name home">
                                         {{ $match->homeTeam->name ?? 'Belum ditentukan' }}
@@ -436,34 +480,14 @@
                                         {{ $match->awayTeam->name ?? 'Belum ditentukan' }}
                                     </div>
                                     <div class="team-logo-small">
-                                        @if($match->awayTeam && $match->awayTeam->logo)
-                                            @if(Storage::disk('public')->exists($match->awayTeam->logo))
-                                                <img src="{{ asset('storage/' . $match->awayTeam->logo) }}"
-                                                    alt="{{ $match->awayTeam->name }}">
-                                            @elseif(filter_var($match->awayTeam->logo, FILTER_VALIDATE_URL))
-                                                <img src="{{ $match->awayTeam->logo }}" alt="{{ $match->awayTeam->name }}">
-                                            @else
-                                                <div class="logo-initial">
-                                                    {{ strtoupper(substr($match->awayTeam->name, 0, 1)) }}
-                                                </div>
-                                            @endif
-                                        @elseif($match->awayTeam)
-                                            <div class="logo-initial">
-                                                {{ strtoupper(substr($match->awayTeam->name, 0, 1)) }}
-                                            </div>
-                                        @else
-                                            <div class="logo-initial">?</div>
-                                        @endif
+                                        @include('partials.team-logo', ['team' => $match->awayTeam])
                                     </div>
                                 </div>
                             </div>
 
                             <div class="match-meta">
                                 <div class="match-date">
-                                    {{ \Carbon\Carbon::parse($match->match_date)->translatedFormat('d M') }}
-                                    @if($match->time_start)
-                                        · {{ $match->time_start }}
-                                    @endif
+                                    {{ \Carbon\Carbon::parse($match->match_date)->translatedFormat('d M') }}@if($match->time_start), {{ $match->time_start }}@endif
                                 </div>
                                 <span class="status-badge status-{{ $match->status }}">
                                     {{ ucfirst($match->status) }}
@@ -504,27 +528,12 @@
                         <div class="activity-item">
                             <div class="activity-content">
                                 <div class="activity-logo">
-                                    @if($team->logo)
-                                        @if(Storage::disk('public')->exists($team->logo))
-                                            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
-                                        @elseif(filter_var($team->logo, FILTER_VALIDATE_URL))
-                                            <img src="{{ $team->logo }}" alt="{{ $team->name }}">
-                                        @else
-                                            <div class="logo-initial">
-                                                {{ strtoupper(substr($team->name, 0, 1)) }}
-                                            </div>
-                                        @endif
-                                    @else
-                                        <div class="logo-initial">
-                                            {{ strtoupper(substr($team->name, 0, 1)) }}
-                                        </div>
-                                    @endif
+                                    @include('partials.team-logo', ['team' => $team])
                                 </div>
                                 <div class="activity-details">
                                     <div class="activity-name">{{ $team->name }}</div>
                                     <div class="activity-info">
-                                        Tim baru · {{ $team->created_at->diffForHumans() }} ·
-                                        {{ $team->players_count ?? 0 }} pemain
+                                        Tim baru, {{ $team->created_at->diffForHumans() }}, {{ $team->players_count ?? 0 }} pemain
                                     </div>
                                 </div>
                             </div>
@@ -549,9 +558,9 @@
                                     <div class="activity-name">{{ $player->name }}</div>
                                     <div class="activity-info">
                                         @if($player->team)
-                                            Pemain baru · {{ $player->team->name }}
+                                            Pemain baru, {{ $player->team->name }}
                                         @else
-                                            Pemain baru · tanpa tim
+                                            Pemain baru, tanpa tim
                                         @endif
                                     </div>
                                 </div>

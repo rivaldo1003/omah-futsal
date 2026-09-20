@@ -134,12 +134,26 @@
         .table {
             font-size: 14px;
         }
+
+        /* Inisial fallback logo tim — dipakai partial team-logo di semua halaman */
+        .team-initial {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F0F0F2;
+            color: var(--text-secondary);
+            font-weight: 600;
+        }
     </style>
 
-    {{-- Style per halaman, dimuat setelah base style agar bisa override --}}
-    <style>
-        @yield('styles')
-    </style>
+    {{-- Style per halaman, dimuat setelah base style agar bisa override.
+         Halaman me-render tag <style>/<link> miliknya sendiri di dalam section,
+         jadi TIDAK dibungkus <style> lagi di sini — tag bersarang membuat
+         parser CSS membuang rule pertama halaman. --}}
+    @yield('styles')
+    @stack('styles')
 </head>
 
 <body>
@@ -153,6 +167,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     @yield('scripts')
+    @stack('scripts')
 </body>
 
 </html>

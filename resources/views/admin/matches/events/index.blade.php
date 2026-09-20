@@ -4,51 +4,46 @@
 
 @section('styles')
     <style>
-        :root {
-            --primary: #1e3a8a;
-            --primary-light: #3b82f6;
-            --secondary: #6b7280;
-            --bg-main: #f8fafc;
-            --bg-card: #ffffff;
-            --border-color: #e5e7eb;
-            --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        }
+        /* ===== Match events page — design guidelines ===== */
 
-        /* Page Header */
+        /* Page header */
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .page-header h1 {
-            color: var(--primary);
+            font-size: 24px;
             font-weight: 600;
-            margin: 0;
-            font-size: 1.5rem;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
         }
 
-        .match-info {
-            font-size: 0.875rem;
-            color: var(--secondary);
-            margin-top: 0.25rem;
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
         }
 
         .match-teams {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-top: 0.5rem;
+            gap: 8px;
+            margin-top: 8px;
         }
 
         .team-logo-small {
             width: 24px;
             height: 24px;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            border: 1px solid var(--border);
             overflow: hidden;
-            background: #f8fafc;
+            background: var(--surface);
         }
 
         .team-logo-small img {
@@ -57,82 +52,80 @@
             object-fit: cover;
         }
 
-        .team-initial {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            color: white;
-            font-weight: 600;
-            font-size: 0.75rem;
-        }
-
         .btn-back {
-            background: white;
-            color: var(--secondary);
-            border: 1px solid var(--border-color);
-            padding: 0.5rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
             border-radius: 6px;
-            font-size: 0.875rem;
+            height: 40px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
             text-decoration: none;
-            margin-right: 0.5rem;
         }
 
         .btn-back:hover {
-            background: #f8fafc;
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         .btn-add {
-            background: var(--primary);
-            color: white;
+            background: var(--accent);
+            color: #fff;
             border: none;
-            padding: 0.5rem 1rem;
+            height: 40px;
+            padding: 0 16px;
             border-radius: 6px;
+            font-size: 14px;
             font-weight: 500;
-            font-size: 0.875rem;
             text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-add:hover {
-            background: #1d4ed8;
-            color: white;
+            background: var(--accent-hover);
+            color: #fff;
         }
 
-        /* Stats Cards */
+        /* Stats */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .stat-card {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 1rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
         }
 
         .stat-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
             font-weight: 600;
-            font-size: 0.875rem;
-            color: var(--primary);
-            margin-bottom: 0.75rem;
-            padding-bottom: 0.5rem;
-            border-bottom: 1px solid var(--border-color);
+            font-size: 14px;
+            color: var(--text-primary);
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
         }
 
         .team-logo-stat {
             width: 28px;
             height: 28px;
-            border-radius: 4px;
+            border-radius: 6px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
         }
 
         .team-logo-stat img {
@@ -144,55 +137,54 @@
         .stat-values {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.5rem;
+            gap: 8px;
             text-align: center;
         }
 
         .stat-value {
-            font-size: 1.25rem;
+            font-size: 20px;
             font-weight: 600;
-            color: var(--primary);
-            margin-bottom: 0.25rem;
+            color: var(--text-primary);
+            margin-bottom: 2px;
         }
 
         .stat-label {
-            font-size: 0.75rem;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 11px;
+            color: var(--text-secondary);
+            
         }
 
-        /* Timeline */
+        /* Timeline card */
         .main-card {
-            background: var(--bg-card);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
             overflow: hidden;
         }
 
-        .card-header {
-            background: #f8fafc;
-            border-bottom: 1px solid var(--border-color);
-            padding: 1rem;
+        .main-card .card-header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
         }
 
-        .card-header h5 {
-            margin: 0;
+        .main-card .card-header h5 {
+            font-size: 14px;
             font-weight: 600;
-            font-size: 1rem;
-            color: var(--primary);
+            color: var(--text-primary);
+            margin: 0;
         }
 
         .timeline {
-            padding: 1rem;
+            padding: 16px;
         }
 
         .timeline-item {
             display: flex;
             align-items: flex-start;
-            margin-bottom: 1rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
 
         .timeline-item:last-child {
@@ -204,18 +196,13 @@
         .timeline-time {
             min-width: 60px;
             text-align: center;
-            margin-right: 1rem;
+            margin-right: 16px;
         }
 
         .time-main {
             font-weight: 600;
-            color: var(--primary);
-            font-size: 0.875rem;
-        }
-
-        .time-extra {
-            font-size: 0.75rem;
-            color: var(--secondary);
+            color: var(--text-primary);
+            font-size: 14px;
         }
 
         .timeline-content {
@@ -225,54 +212,50 @@
         .event-main {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.25rem;
+            gap: 8px;
+            margin-bottom: 4px;
+            flex-wrap: wrap;
         }
 
         .event-type {
-            font-size: 0.75rem;
+            font-size: 12px;
             font-weight: 500;
-            padding: 0.125rem 0.5rem;
-            border-radius: 4px;
+            padding: 2px 8px;
+            border-radius: 6px;
             display: inline-block;
         }
 
         .type-goal {
-            background: rgba(34, 197, 94, 0.1);
-            color: #16a34a;
+            background: #F0F9F4;
+            color: #1E7A46;
         }
 
         .type-yellow {
-            background: rgba(245, 158, 11, 0.1);
-            color: #d97706;
+            background: #FDF6EC;
+            color: #B45309;
         }
 
         .type-red {
-            background: rgba(239, 68, 68, 0.1);
-            color: #dc2626;
+            background: #FDF2F3;
+            color: #c01c28;
         }
 
         .type-substitution {
-            background: rgba(59, 130, 246, 0.1);
-            color: var(--primary-light);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
         .player-name {
             font-weight: 500;
-            color: var(--primary);
-            font-size: 0.875rem;
+            color: var(--text-primary);
+            font-size: 14px;
         }
 
         .player-info {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .player-logo {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .player-team-logo {
@@ -280,7 +263,7 @@
             height: 20px;
             border-radius: 4px;
             overflow: hidden;
-            border: 1px solid var(--border-color);
+            border: 1px solid var(--border);
         }
 
         .player-team-logo img {
@@ -290,15 +273,15 @@
         }
 
         .event-details {
-            font-size: 0.75rem;
-            color: var(--secondary);
-            margin-top: 0.25rem;
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 4px;
         }
 
         .event-actions {
             display: flex;
-            gap: 0.25rem;
-            margin-top: 0.5rem;
+            gap: 4px;
+            margin-top: 8px;
         }
 
         .btn-action {
@@ -307,81 +290,70 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            border-radius: 4px;
-            border: 1px solid var(--border-color);
-            background: white;
-            color: var(--secondary);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
             text-decoration: none;
-            font-size: 0.75rem;
+            font-size: 13px;
         }
 
         .btn-action:hover {
-            border-color: var(--primary-light);
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
-        .btn-edit:hover {
-            background: var(--primary-light);
-            color: white;
+        .btn-action.btn-delete:hover {
+            border-color: #c01c28;
+            color: #c01c28;
+            background: #FDF2F3;
         }
 
-        .btn-delete:hover {
-            background: #dc2626;
-            color: white;
-        }
-
-        /* Team Indicator */
+        /* Team indicator */
         .team-indicator {
             display: inline-block;
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            margin-right: 0.5rem;
+            flex-shrink: 0;
         }
 
         .team-home {
-            background: var(--primary);
+            background: var(--accent);
         }
 
         .team-away {
-            background: #dc2626;
+            background: #c01c28;
         }
 
-        /* Empty State */
+        /* Empty state */
         .empty-state {
-            padding: 3rem 1rem;
+            padding: 48px 16px;
             text-align: center;
         }
 
         .empty-state-icon {
-            font-size: 2.5rem;
-            color: #d1d5db;
-            margin-bottom: 1rem;
+            font-size: 32px;
+            color: var(--border);
+            margin-bottom: 12px;
         }
 
         .empty-state-title {
-            color: var(--primary);
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
         .empty-state-text {
-            color: var(--secondary);
-            font-size: 0.875rem;
-            margin-bottom: 1.5rem;
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 16px;
         }
 
-        /* Modal */
-        .modal-content {
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-
-        /* Mobile Responsive */
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 1rem;
             }
 
             .stats-grid {
@@ -390,7 +362,7 @@
 
             .stat-values {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 1rem;
+                gap: 16px;
             }
 
             .timeline-item {
@@ -399,214 +371,118 @@
 
             .timeline-time {
                 margin-right: 0;
-                margin-bottom: 0.5rem;
+                margin-bottom: 8px;
                 text-align: left;
             }
+        }
 
-            .event-main {
-                flex-wrap: wrap;
-            }
+        @media (prefers-reduced-motion: reduce) {
 
-            .event-actions {
-                margin-top: 0.5rem;
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+                animation: none !important;
             }
         }
     </style>
 @endsection
 
 @section('content')
-    <nav aria-label="breadcrumb" class="mb-3">
-        <ol class="breadcrumb" style="font-size: 0.875rem; padding: 0; background: none;">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.matches.index') }}">Matches</a></li>
-            <li class="breadcrumb-item active">Events</li>
-        </ol>
-    </nav>
-
     <div class="page-header">
         <div>
-            <h1>
-                <i class="bi bi-activity me-2"></i>
-                Match Events
-            </h1>
-            <div class="match-info">
-                {{ $match->homeTeam->name ?? 'Home Team' }} vs {{ $match->awayTeam->name ?? 'Away Team' }}
-                • {{ $match->match_date->format('d M Y') }}
-            </div>
+            <h1>Event Pertandingan</h1>
+            <p class="page-subtitle">
+                {{ $match->homeTeam->name ?? 'Tim Home' }} vs {{ $match->awayTeam->name ?? 'Tim Away' }}, {{ $match->match_date->format('d M Y') }}
+            </p>
             <div class="match-teams">
-                <!-- Home Team Logo -->
-                <div class="team-logo-small">
-                    @if($match->homeTeam && $match->homeTeam->logo)
-                        @if(Storage::disk('public')->exists($match->homeTeam->logo))
-                            <img src="{{ asset('storage/' . $match->homeTeam->logo) }}" 
-                                 alt="{{ $match->homeTeam->name }}">
-                        @elseif(filter_var($match->homeTeam->logo, FILTER_VALIDATE_URL))
-                            <img src="{{ $match->homeTeam->logo }}" 
-                                 alt="{{ $match->homeTeam->name }}">
-                        @else
-                            <div class="team-initial">
-                                {{ strtoupper(substr($match->homeTeam->name, 0, 1)) }}
-                            </div>
-                        @endif
-                    @else
-                        <div class="team-initial">H</div>
-                    @endif
-                </div>
-                
-                <span class="text-muted">vs</span>
-                
-                <!-- Away Team Logo -->
-                <div class="team-logo-small">
-                    @if($match->awayTeam && $match->awayTeam->logo)
-                        @if(Storage::disk('public')->exists($match->awayTeam->logo))
-                            <img src="{{ asset('storage/' . $match->awayTeam->logo) }}" 
-                                 alt="{{ $match->awayTeam->name }}">
-                        @elseif(filter_var($match->awayTeam->logo, FILTER_VALIDATE_URL))
-                            <img src="{{ $match->awayTeam->logo }}" 
-                                 alt="{{ $match->awayTeam->name }}">
-                        @else
-                            <div class="team-initial">
-                                {{ strtoupper(substr($match->awayTeam->name, 0, 1)) }}
-                            </div>
-                        @endif
-                    @else
-                        <div class="team-initial">A</div>
-                    @endif
-                </div>
+                @include('partials.team-logo', ['team' => $match->homeTeam, 'class' => 'team-logo-small'])
+                <span class="text-secondary" style="font-size: 12px;">vs</span>
+                @include('partials.team-logo', ['team' => $match->awayTeam, 'class' => 'team-logo-small'])
             </div>
         </div>
         <div class="d-flex gap-2">
             <a href="{{ route('admin.matches.index') }}" class="btn-back">
-                <i class="bi bi-arrow-left me-1"></i> Back
+                <i class="bi bi-arrow-left"></i> Kembali
             </a>
             <a href="{{ route('admin.matches.events.create', $match) }}" class="btn-add">
-                <i class="bi bi-plus"></i> Add Event
+                <i class="bi bi-plus"></i> Tambah Event
             </a>
         </div>
     </div>
 
-    <!-- Stats -->
+    <!-- Statistik per tim -->
     <div class="stats-grid">
-        <!-- Home Team Stats -->
-        <div class="stat-card">
-            <div class="stat-header">
-                @if($match->homeTeam && $match->homeTeam->logo)
-                    <div class="team-logo-stat">
-                        @if(Storage::disk('public')->exists($match->homeTeam->logo))
-                            <img src="{{ asset('storage/' . $match->homeTeam->logo) }}" 
-                                 alt="{{ $match->homeTeam->name }}">
-                        @elseif(filter_var($match->homeTeam->logo, FILTER_VALIDATE_URL))
-                            <img src="{{ $match->homeTeam->logo }}" 
-                                 alt="{{ $match->homeTeam->name }}">
-                        @else
-                            <div class="team-initial">
-                                {{ strtoupper(substr($match->homeTeam->name, 0, 1)) }}
-                            </div>
-                        @endif
+        @foreach(['home' => $match->homeTeam, 'away' => $match->awayTeam] as $side => $team)
+            <div class="stat-card">
+                <div class="stat-header">
+                    @include('partials.team-logo', ['team' => $team, 'class' => 'team-logo-stat'])
+                    {{ $team->name ?? ($side === 'home' ? 'Tim Home' : 'Tim Away') }}
+                </div>
+                <div class="stat-values">
+                    <div>
+                        <div class="stat-value">{{ $eventStats[$side]['goals'] ?? 0 }}</div>
+                        <div class="stat-label">Goals</div>
                     </div>
-                @endif
-                {{ $match->homeTeam->name ?? 'Home Team' }}
-            </div>
-            <div class="stat-values">
-                <div>
-                    <div class="stat-value">{{ $eventStats['home']['goals'] ?? 0 }}</div>
-                    <div class="stat-label">Goals</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['home']['yellow_cards'] ?? 0 }}</div>
-                    <div class="stat-label">YC</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['home']['red_cards'] ?? 0 }}</div>
-                    <div class="stat-label">RC</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['home']['substitutions'] ?? 0 }}</div>
-                    <div class="stat-label">Subs</div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Away Team Stats -->
-        <div class="stat-card">
-            <div class="stat-header">
-                @if($match->awayTeam && $match->awayTeam->logo)
-                    <div class="team-logo-stat">
-                        @if(Storage::disk('public')->exists($match->awayTeam->logo))
-                            <img src="{{ asset('storage/' . $match->awayTeam->logo) }}" 
-                                 alt="{{ $match->awayTeam->name }}">
-                        @elseif(filter_var($match->awayTeam->logo, FILTER_VALIDATE_URL))
-                            <img src="{{ $match->awayTeam->logo }}" 
-                                 alt="{{ $match->awayTeam->name }}">
-                        @else
-                            <div class="team-initial">
-                                {{ strtoupper(substr($match->awayTeam->name, 0, 1)) }}
-                            </div>
-                        @endif
+                    <div>
+                        <div class="stat-value">{{ $eventStats[$side]['yellow_cards'] ?? 0 }}</div>
+                        <div class="stat-label">YC</div>
                     </div>
-                @endif
-                {{ $match->awayTeam->name ?? 'Away Team' }}
-            </div>
-            <div class="stat-values">
-                <div>
-                    <div class="stat-value">{{ $eventStats['away']['goals'] ?? 0 }}</div>
-                    <div class="stat-label">Goals</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['away']['yellow_cards'] ?? 0 }}</div>
-                    <div class="stat-label">YC</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['away']['red_cards'] ?? 0 }}</div>
-                    <div class="stat-label">RC</div>
-                </div>
-                <div>
-                    <div class="stat-value">{{ $eventStats['away']['substitutions'] ?? 0 }}</div>
-                    <div class="stat-label">Subs</div>
+                    <div>
+                        <div class="stat-value">{{ $eventStats[$side]['red_cards'] ?? 0 }}</div>
+                        <div class="stat-label">RC</div>
+                    </div>
+                    <div>
+                        <div class="stat-value">{{ $eventStats[$side]['substitutions'] ?? 0 }}</div>
+                        <div class="stat-label">Subs</div>
+                    </div>
                 </div>
             </div>
-        </div>
+        @endforeach
     </div>
 
-    <!-- Events Timeline -->
+    <!-- Timeline event -->
     <div class="main-card">
         <div class="card-header">
-            <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i> Timeline</h5>
+            <h5><i class="bi bi-clock-history me-2"></i>Timeline</h5>
         </div>
+
         <div class="card-body p-0">
             <div class="timeline">
                 @if($match->events->count() > 0)
                     @foreach($match->events as $event)
+                        @php
+                            /* Mapping tipe event ke class badge (pengganti JS, hasil sama) */
+                            $eventTypeClass = match (true) {
+                                str_contains($event->event_type, 'goal') => 'type-goal',
+                                str_contains($event->event_type, 'yellow') => 'type-yellow',
+                                str_contains($event->event_type, 'red') => 'type-red',
+                                str_contains($event->event_type, 'substitution') => 'type-substitution',
+                                default => '',
+                            };
+                        @endphp
+
                         <div class="timeline-item">
                             <div class="timeline-time">
                                 <div class="time-main">{{ $event->minute }}'</div>
                             </div>
+
                             <div class="timeline-content">
                                 <div class="event-main">
-                                    <span
-                                        class="team-indicator {{ $event->team_id == $match->team_home_id ? 'team-home' : 'team-away' }}"></span>
+                                    <span class="team-indicator {{ $event->team_id == $match->team_home_id ? 'team-home' : 'team-away' }}"></span>
+
                                     <div class="player-info">
                                         <div class="player-name">{{ $event->player->name ?? 'Unknown' }}</div>
-                                        @if($event->player && $event->player->team && $event->player->team->logo)
-                                            <div class="player-team-logo">
-                                                @if(Storage::disk('public')->exists($event->player->team->logo))
-                                                    <img src="{{ asset('storage/' . $event->player->team->logo) }}" 
-                                                         alt="{{ $event->player->team->name }}">
-                                                @elseif(filter_var($event->player->team->logo, FILTER_VALIDATE_URL))
-                                                    <img src="{{ $event->player->team->logo }}" 
-                                                         alt="{{ $event->player->team->name }}">
-                                                @else
-                                                    <div style="width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: white; font-size: 0.6rem; font-weight: 600;">
-                                                        {{ strtoupper(substr($event->player->team->name, 0, 1)) }}
-                                                    </div>
-                                                @endif
-                                            </div>
+                                        @if($event->player && $event->player->team)
+                                            @include('partials.team-logo', ['team' => $event->player->team, 'class' => 'player-team-logo'])
                                         @endif
                                     </div>
-                                    <span class="event-type type-{{ $event->event_type }}">
+
+                                    <span class="event-type {{ $eventTypeClass }}">
                                         {{ str_replace('_', ' ', $event->event_type) }}
                                     </span>
                                 </div>
+
                                 <div class="event-details">
                                     @if($event->event_type === 'goal')
                                         @if($event->is_penalty)
@@ -619,23 +495,27 @@
                                             • Assist: {{ $event->relatedPlayer->name ?? 'Unknown' }}
                                         @endif
                                     @endif
+
                                     @if($event->event_type === 'substitution' && $event->related_player_id)
                                         • For: {{ $event->relatedPlayer->name ?? 'Unknown' }}
                                     @endif
+
                                     @if($event->description)
                                         • {{ $event->description }}
                                     @endif
                                 </div>
+
                                 <div class="event-actions">
-                                    <a href="{{ route('admin.matches.events.edit', [$match, $event]) }}" class="btn-action btn-edit"
+                                    <a href="{{ route('admin.matches.events.edit', [$match, $event]) }}" class="btn-action"
                                         title="Edit">
                                         <i class="bi bi-pencil"></i>
                                     </a>
-                                    <form action="{{ route('admin.matches.events.destroy', [$match, $event]) }}" method="POST">
+                                    <form action="{{ route('admin.matches.events.destroy', [$match, $event]) }}"
+                                        method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="btn-action btn-delete"
-                                            onclick="return confirm('Delete this event?')" title="Delete">
+                                            onclick="return confirm('Hapus event ini?')" title="Hapus">
                                             <i class="bi bi-trash"></i>
                                         </button>
                                     </form>
@@ -648,36 +528,16 @@
                         <div class="empty-state-icon">
                             <i class="bi bi-activity"></i>
                         </div>
-                        <h4 class="empty-state-title">No Events Yet</h4>
+                        <h4 class="empty-state-title">Belum ada event</h4>
                         <p class="empty-state-text">
-                            Add match events like goals, cards, and substitutions
+                            Tambahkan event pertandingan seperti gol, kartu, dan substitusi.
                         </p>
                         <a href="{{ route('admin.matches.events.create', $match) }}" class="btn-add">
-                            <i class="bi bi-plus"></i> Add First Event
+                            <i class="bi bi-plus"></i> Tambah Event Pertama
                         </a>
                     </div>
                 @endif
             </div>
         </div>
     </div>
-@endsection
-
-@section('scripts')
-    <script>
-        // Add event type class mapping
-        document.addEventListener('DOMContentLoaded', function () {
-            document.querySelectorAll('.event-type').forEach(type => {
-                const text = type.textContent.toLowerCase().trim();
-                if (text.includes('goal')) {
-                    type.classList.add('type-goal');
-                } else if (text.includes('yellow')) {
-                    type.classList.add('type-yellow');
-                } else if (text.includes('red')) {
-                    type.classList.add('type-red');
-                } else if (text.includes('substitution')) {
-                    type.classList.add('type-substitution');
-                }
-            });
-        });
-    </script>
 @endsection

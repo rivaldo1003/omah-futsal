@@ -1,27 +1,195 @@
 @extends('layouts.admin')
 
-@section('title', 'Manage Match Lineup')
+@section('title', 'Kelola Lineup')
 
 @section('styles')
     <style>
+        /* ===== Match lineup page — design guidelines ===== */
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-back {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            height: 40px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Match card */
+        .main-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .main-card .card-header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 16px;
+        }
+
+        .team-badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 6px;
+        }
+
+        .badge-home {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--accent);
+        }
+
+        .badge-away {
+            background: #FDF2F3;
+            color: #c01c28;
+        }
+
+        .vs-pill {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 4px 16px;
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        /* Info banner */
+        .info-banner {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--text-primary);
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .info-banner i {
+            color: var(--accent);
+            font-size: 16px;
+            margin-top: 2px;
+        }
+
+        /* Team player cards */
+        .team-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            height: 100%;
+        }
+
+        .team-card .card-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .team-card.home .card-header {
+            background: var(--accent);
+            color: #fff;
+        }
+
+        .team-card.away .card-header {
+            background: #c01c28;
+            color: #fff;
+        }
+
+        .team-card .card-header h6 {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .team-card .card-header .form-check-label {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 13px;
+        }
+
+        .team-card .card-header .form-check-input {
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+
+        .team-card .card-header .form-check-input:checked {
+            background-color: #fff;
+            border-color: #fff;
+        }
+
+        .team-card .card-header .form-check-input:checked[type="checkbox"] {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%231a5fb4' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+        }
+
+        /* Player item */
         .player-card-item {
-            transition: all 0.2s;
-            border-left: 4px solid transparent;
+            display: flex;
+            align-items: center;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            border-left: 3px solid transparent;
             cursor: pointer;
+            transition: background-color 0.15s ease;
+        }
+
+        .player-card-item:last-child {
+            border-bottom: none;
         }
 
         .player-card-item:hover {
-            background-color: #f8fafc;
+            background: var(--surface);
         }
 
-        .home-team-card .player-card-item.selected {
-            border-left-color: #0d6efd;
-            background-color: rgba(13, 110, 253, 0.05);
+        .team-card.home .player-card-item.selected {
+            border-left-color: var(--accent);
+            background: rgba(26, 95, 180, 0.05);
         }
 
-        .away-team-card .player-card-item.selected {
-            border-left-color: #dc3545;
-            background-color: rgba(220, 53, 69, 0.05);
+        .team-card.away .player-card-item.selected {
+            border-left-color: #c01c28;
+            background: rgba(192, 28, 40, 0.05);
         }
 
         .jersey-badge {
@@ -30,165 +198,189 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 0.85rem;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 13px;
+            flex-shrink: 0;
         }
 
+        .team-card.home .jersey-badge {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--accent);
+        }
+
+        .team-card.away .jersey-badge {
+            background: #FDF2F3;
+            color: #c01c28;
+        }
+
+        .player-name {
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .player-position {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Submit */
         .sticky-submit {
             position: sticky;
             bottom: 20px;
-            z-index: 100;
+            z-index: 10;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .btn-save-lineup {
+            background: #1E7A46;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            height: 44px;
+            padding: 0 32px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .btn-save-lineup:hover {
+            background: #186238;
+            color: #fff;
         }
     </style>
 @endsection
 
 @section('content')
-    <div class="container-fluid">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <div>
-                <h4 class="mb-0 fw-bold text-primary">Match Lineup</h4>
-                <p class="text-muted mb-0">{{ $match->tournament->name ?? 'Tournament Match' }}</p>
+    <div class="page-header">
+        <div>
+            <h1>Lineup Pertandingan</h1>
+            <p class="page-subtitle">{{ $match->tournament->name ?? 'Pertandingan Turnamen' }}</p>
+        </div>
+        <a href="{{ route('admin.matches.index') }}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Kembali
+        </a>
+    </div>
+
+    @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle me-2"></i>
+            <strong>Berhasil!</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Gagal!</strong> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    <div class="main-card">
+        <div class="card-header">
+            <div class="row align-items-center text-center">
+                <div class="col">
+                    <h5 class="mb-1">{{ $match->homeTeam->name }}</h5>
+                    <span class="team-badge badge-home">HOME</span>
+                </div>
+                <div class="col-auto">
+                    <span class="vs-pill">VS</span>
+                </div>
+                <div class="col">
+                    <h5 class="mb-1">{{ $match->awayTeam->name }}</h5>
+                    <span class="team-badge badge-away">AWAY</span>
+                </div>
             </div>
-            <a href="{{ route('admin.matches.index') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Matches
-            </a>
         </div>
 
-        @if(session('success'))
-            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-check-circle-fill fs-4 me-3"></i>
+        <form action="{{ route('admin.matches.save-lineup', $match->id) }}" method="POST">
+            @csrf
+
+            <div class="card-body" style="padding: 24px;">
+                <div class="info-banner">
+                    <i class="bi bi-info-circle"></i>
                     <div>
-                        <strong>Berhasil!</strong> {{ session('success') }}
+                        <strong>Petunjuk:</strong> Centang pemain yang hadir dan ikut serta dalam pertandingan.
+                        Pemain yang dipilih akan mendapatkan <strong>+1 Penampilan</strong> pada statistik profil mereka.
                     </div>
                 </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
 
-        @if(session('error'))
-            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm mb-4" role="alert">
-                <div class="d-flex align-items-center">
-                    <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
-                    <div>
-                        <strong>Gagal!</strong> {{ session('error') }}
-                    </div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
-
-        <div class="card shadow-sm border-0 mb-4">
-            <div class="card-header bg-white py-3 border-bottom">
-                <div class="row align-items-center text-center">
-                    <div class="col">
-                        <h5 class="mb-0 fw-bold">{{ $match->homeTeam->name }}</h5>
-                        <span class="badge bg-primary-subtle text-primary">HOME</span>
-                    </div>
-                    <div class="col-auto">
-                        <div class="bg-light px-4 py-2 rounded-pill fw-bold border">VS</div>
-                    </div>
-                    <div class="col">
-                        <h5 class="mb-0 fw-bold">{{ $match->awayTeam->name }}</h5>
-                        <span class="badge bg-danger-subtle text-danger">AWAY</span>
-                    </div>
-                </div>
-            </div>
-
-            <form action="{{ route('admin.matches.save-lineup', $match->id) }}" method="POST">
-                @csrf
-                <div class="card-body bg-light-subtle">
-                    <div class="alert alert-primary border-0 shadow-sm d-flex align-items-center mb-4">
-                        <i class="bi bi-info-circle-fill fs-4 me-3"></i>
-                        <div>
-                            <strong>Petunjuk:</strong> Centang pemain yang hadir dan ikut serta dalam pertandingan.
-                            Pemain yang dipilih akan mendapatkan <strong>+1 Penampilan</strong> pada statistik profil
-                            mereka.
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <!-- Home Team -->
-                        <div class="col-md-6 mb-4">
-                            <div class="card home-team-card border-0 shadow-sm h-100">
-                                <div
-                                    class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
-                                    <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>{{ $match->homeTeam->name }}</h6>
-                                    <div class="form-check mb-0">
-                                        <input class="form-check-input select-all" type="checkbox"
-                                            data-target="home-players" id="checkAllHome">
-                                        <label class="form-check-label small cursor-pointer" for="checkAllHome">Pilih
-                                            Semua</label>
-                                    </div>
-                                </div>
-                                <div class="list-group list-group-flush home-players">
-                                    @foreach($match->homeTeam->players as $player)
-                                        <label
-                                            class="list-group-item player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
-                                            for="p{{ $player->id }}">
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check me-3">
-                                                    <input class="form-check-input player-cb" type="checkbox"
-                                                        name="player_ids[]" value="{{ $player->id }}" id="p{{ $player->id }}" {{ in_array($player->id, $currentLineupIds) ? 'checked' : '' }}>
-                                                </div>
-                                                <div class="jersey-badge bg-primary-subtle text-primary me-3">
-                                                    #{{ $player->jersey_number }}</div>
-                                                <div class="flex-grow-1">
-                                                    <div class="fw-bold">{{ $player->name }}</div>
-                                                    <small class="text-muted">{{ $player->position }}</small>
-                                                </div>
-                                            </div>
-                                        </label>
-                                    @endforeach
+                <div class="row g-4">
+                    <!-- Tim Home -->
+                    <div class="col-md-6">
+                        <div class="team-card home">
+                            <div class="card-header">
+                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->homeTeam->name }}</h6>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input select-all" type="checkbox"
+                                        data-target="home-players" id="checkAllHome">
+                                    <label class="form-check-label" for="checkAllHome">Pilih Semua</label>
                                 </div>
                             </div>
+                            <div class="home-players">
+                                @foreach($match->homeTeam->players as $player)
+                                    <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
+                                        for="p{{ $player->id }}">
+                                        <div class="form-check me-3">
+                                            <input class="form-check-input player-cb" type="checkbox"
+                                                name="player_ids[]" value="{{ $player->id }}" id="p{{ $player->id }}"
+                                                {{ in_array($player->id, $currentLineupIds) ? 'checked' : '' }}>
+                                        </div>
+                                        <div class="jersey-badge me-3">#{{ $player->jersey_number }}</div>
+                                        <div class="flex-grow-1">
+                                            <div class="player-name">{{ $player->name }}</div>
+                                            <div class="player-position">{{ $player->position }}</div>
+                                        </div>
+                                    </label>
+                                @endforeach
+                            </div>
                         </div>
+                    </div>
 
-                        <!-- Away Team -->
-                        <div class="col-md-6 mb-4">
-                            <div class="card away-team-card border-0 shadow-sm h-100">
-                                <div
-                                    class="card-header bg-danger text-white d-flex justify-content-between align-items-center py-3">
-                                    <h6 class="mb-0"><i class="bi bi-people-fill me-2"></i>{{ $match->awayTeam->name }}</h6>
-                                    <div class="form-check mb-0">
-                                        <input class="form-check-input select-all" type="checkbox"
-                                            data-target="away-players" id="checkAllAway">
-                                        <label class="form-check-label small cursor-pointer" for="checkAllAway">Pilih
-                                            Semua</label>
-                                    </div>
+                    <!-- Tim Away -->
+                    <div class="col-md-6">
+                        <div class="team-card away">
+                            <div class="card-header">
+                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->awayTeam->name }}</h6>
+                                <div class="form-check mb-0">
+                                    <input class="form-check-input select-all" type="checkbox"
+                                        data-target="away-players" id="checkAllAway">
+                                    <label class="form-check-label" for="checkAllAway">Pilih Semua</label>
                                 </div>
-                                <div class="list-group list-group-flush away-players">
-                                    @foreach($match->awayTeam->players as $player)
-                                        <label
-                                            class="list-group-item player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
-                                            for="p{{ $player->id }}">
-                                            <div class="d-flex align-items-center">
-                                                <div class="form-check me-3">
-                                                    <input class="form-check-input player-cb" type="checkbox"
-                                                        name="player_ids[]" value="{{ $player->id }}" id="p{{ $player->id }}" {{ in_array($player->id, $currentLineupIds) ? 'checked' : '' }}>
-                                                </div>
-                                                <div class="jersey-badge bg-danger-subtle text-danger me-3">
-                                                    #{{ $player->jersey_number }}</div>
-                                                <div class="flex-grow-1">
-                                                    <div class="fw-bold">{{ $player->name }}</div>
-                                                    <small class="text-muted">{{ $player->position }}</small>
-                                                </div>
-                                            </div>
-                                        </label>
-                                    @endforeach
-                                </div>
+                            </div>
+                            <div class="away-players">
+                                @foreach($match->awayTeam->players as $player)
+                                    <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
+                                        for="p{{ $player->id }}">
+                                        <div class="form-check me-3">
+                                            <input class="form-check-input player-cb" type="checkbox"
+                                                name="player_ids[]" value="{{ $player->id }}" id="p{{ $player->id }}"
+                                                {{ in_array($player->id, $currentLineupIds) ? 'checked' : '' }}>
+                                        </div>
+                                        <div class="jersey-badge me-3">#{{ $player->jersey_number }}</div>
+                                        <div class="flex-grow-1">
+                                            <div class="player-name">{{ $player->name }}</div>
+                                            <div class="player-position">{{ $player->position }}</div>
+                                        </div>
+                                    </label>
+                                @endforeach
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="card-footer bg-white text-center py-4 border-top-0 sticky-submit">
-                    <button type="submit" class="btn btn-lg btn-success px-5 shadow rounded-pill">
+
+                <!-- Submit sticky -->
+                <div class="sticky-submit">
+                    <button type="submit" class="btn-save-lineup">
                         <i class="bi bi-check2-circle me-2"></i> Simpan Daftar Pemain (Lineup)
                     </button>
                 </div>
-            </form>
-        </div>
+            </div>
+        </form>
     </div>
 @endsection
 

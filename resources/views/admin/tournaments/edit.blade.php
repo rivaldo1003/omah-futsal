@@ -2,46 +2,69 @@
 
 @section('title', 'Edit Tournament')
 
-<link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
 
 @section('styles')
     <style>
         :root {
-            --accent: #3B82F6;
-            --primary: #1F2937;
-            --secondary: #4B5563;
-            --bg-main: #F9FAFB;
-            --bg-card: #FFFFFF;
-            --border-color: #E5E7EB;
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            --success-light: #DCFCE7;
-            --success-dark: #15803D;
-            --warning-light: #FEF3C7;
-            --warning-dark: #D97706;
-            --danger-light: #FEE2E2;
-            --danger-dark: #B91C1C;
+            --primary: var(--text-primary);
+            --secondary: var(--text-secondary);
+            --bg-main: var(--surface);
+            --bg-card: var(--bg);
+            --border-color: var(--border);
+            --shadow-sm: none;
+            --shadow-md: none;
+            --transition: all 0.15s ease;
+            --success-light: #F0F9F4;
+            --success-dark: #1E7A46;
+            --warning-light: #FDF6EC;
+            --warning-dark: #B45309;
+            --danger-light: #FDF2F3;
+            --danger-dark: #c01c28;
         }
 
-        body {
-            background-color: var(--bg-main) !important;
-        }
-
-        /* Page Header */
+        /* Page header */
         .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
         }
 
         .page-header h1 {
-            color: var(--primary);
-            font-weight: 700;
-            margin-bottom: 0;
-            font-size: 1.8rem;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-back {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            height: 40px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--accent);
         }
 
         /* Main Card */
@@ -111,8 +134,6 @@
 
         .btn-primary:hover {
             opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
         }
 
         .btn-outline-secondary {
@@ -128,6 +149,36 @@
             background-color: var(--bg-main);
             border-color: var(--secondary);
             color: var(--primary);
+        }
+
+        /* Tie-breakers */
+        .tie-preset {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .btn-preset {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            padding: 4px 12px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .btn-preset:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-preset.active {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(26, 95, 180, 0.05);
         }
 
         /* Team Selection */
@@ -236,23 +287,13 @@
 @endsection
 
 @section('content')
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb" style="font-size: 0.9rem;">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}"
-                    style="color: var(--secondary);">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.tournaments.index') }}"
-                    style="color: var(--secondary);">Tournaments</a></li>
-            <li class="breadcrumb-item active" style="color: var(--primary);">Edit Tournament</li>
-        </ol>
-    </nav>
-
     <div class="page-header">
-        <h1>
-            <i class="bi bi-pencil-square me-2"></i>
-            <span>Edit Tournament: {{ $tournament->name }}</span>
-        </h1>
-        <a href="{{ route('admin.tournaments.index') }}" class="btn btn-outline-secondary">
-            <i class="bi bi-arrow-left me-2"></i>Back to List
+        <div>
+            <h1>Edit Turnamen</h1>
+            <p class="page-subtitle">Perbarui detail turnamen {{ $tournament->name }}</p>
+        </div>
+        <a href="{{ route('admin.tournaments.index') }}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Kembali
         </a>
     </div>
 
@@ -260,7 +301,7 @@
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle"></i>
             <div>
-                <strong>Success!</strong> {{ session('success') }}
+                <strong>Sukses!</strong> {{ session('success') }}
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
@@ -270,7 +311,7 @@
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle"></i>
             <div>
-                <strong>Please fix the following errors:</strong>
+                <strong>Perbaiki kesalahan berikut:</strong>
                 <ul class="mb-0 mt-2">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
@@ -283,7 +324,7 @@
 
     <div class="main-card">
         <div class="card-header">
-            <h5><i class="bi bi-gear me-2"></i> Tournament Information</h5>
+            <h5>Informasi turnamen</h5>
         </div>
         <div class="card-body">
             <form action="{{ route('admin.tournaments.update', $tournament) }}" method="POST">
@@ -294,12 +335,12 @@
                     <!-- Basic Information -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-info-circle me-2"></i>Basic Information
+                            Informasi Dasar
                         </h6>
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="name" class="form-label">Tournament Name *</label>
+                                <label for="name" class="form-label">Nama Turnamen *</label>
                                 <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                                     name="name" value="{{ old('name', $tournament->name) }}" required>
                                 @error('name')
@@ -308,17 +349,17 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="slug" class="form-label">URL Slug</label>
+                                <label for="slug" class="form-label">Slug URL</label>
                                 <input type="text" class="form-control @error('slug') is-invalid @enderror" id="slug"
                                     name="slug" value="{{ old('slug', $tournament->slug) }}">
-                                <div class="form-text">Leave empty to auto-generate from name</div>
+                                <div class="form-text">Kosongkan untuk generate otomatis dari nama</div>
                                 @error('slug')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label for="description" class="form-label">Description</label>
+                                <label for="description" class="form-label">Deskripsi</label>
                                 <textarea class="form-control @error('description') is-invalid @enderror" id="description"
                                     name="description"
                                     rows="3">{{ old('description', $tournament->description) }}</textarea>
@@ -329,15 +370,15 @@
                         </div>
                     </div>
 
-                    <!-- Dates and Location -->
+                    <!-- Dates and Lokasi -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-calendar me-2"></i>Dates & Location
+                            Tanggal & Lokasi
                         </h6>
 
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <label for="start_date" class="form-label">Start Date *</label>
+                                <label for="start_date" class="form-label">Tanggal Mulai *</label>
                                 <input type="date" class="form-control @error('start_date') is-invalid @enderror"
                                     id="start_date" name="start_date"
                                     value="{{ old('start_date', $tournament->start_date->format('Y-m-d')) }}" required>
@@ -347,7 +388,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="end_date" class="form-label">End Date *</label>
+                                <label for="end_date" class="form-label">Tanggal Selesai *</label>
                                 <input type="date" class="form-control @error('end_date') is-invalid @enderror"
                                     id="end_date" name="end_date"
                                     value="{{ old('end_date', $tournament->end_date->format('Y-m-d')) }}" required>
@@ -357,7 +398,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="location" class="form-label">Location</label>
+                                <label for="location" class="form-label">Lokasi</label>
                                 <input type="text" class="form-control @error('location') is-invalid @enderror"
                                     id="location" name="location" value="{{ old('location', $tournament->location) }}">
                                 @error('location')
@@ -366,7 +407,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="organizer" class="form-label">Organizer</label>
+                                <label for="organizer" class="form-label">Penyelenggara</label>
                                 <input type="text" class="form-control @error('organizer') is-invalid @enderror"
                                     id="organizer" name="organizer" value="{{ old('organizer', $tournament->organizer) }}">
                                 @error('organizer')
@@ -379,12 +420,12 @@
                     <!-- Tournament Type and Status -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-diagram-3 me-2"></i>Type & Status
+                            Tipe & Status
                         </h6>
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="type" class="form-label">Tournament Type *</label>
+                                <label for="type" class="form-label">Tipe Turnamen *</label>
                                 <select class="form-select @error('type') is-invalid @enderror" id="type" name="type"
                                     required>
                                     <option value="group_knockout" {{ old('type', $tournament->type) == 'group_knockout' ? 'selected' : '' }}>Group + Knockout</option>
@@ -414,7 +455,7 @@
                             <!-- Group Settings (visible only for group_knockout) -->
                             <div class="col-md-4 mb-3 group-settings"
                                 style="{{ $tournament->type != 'group_knockout' ? 'display: none;' : '' }}">
-                                <label for="groups_count" class="form-label">Number of Groups</label>
+                                <label for="groups_count" class="form-label">Jumlah Grup</label>
                                 <input type="number" class="form-control @error('groups_count') is-invalid @enderror"
                                     id="groups_count" name="groups_count" min="1" max="8"
                                     value="{{ old('groups_count', $tournament->groups_count) }}">
@@ -428,7 +469,7 @@
                     <!-- Team Selection -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-people me-2"></i>Select Teams
+                            Pilih Tim
                         </h6>
 
                         <div class="team-selection-container">
@@ -460,7 +501,7 @@
                                                 name="group_assignments[{{ $team->id }}]"
                                                 style="width: auto; min-width: 120px;"
                                                 {{ !in_array($team->id, $selectedTeams) ? 'disabled' : '' }}>
-                                                <option value="">Select Group</option>
+                                                <option value="">Pilih Grup</option>
                                                 @for($i = 1; $i <= ($tournament->groups_count ?? 2); $i++)
                                                     @php $groupLetter = chr(64 + $i); @endphp
                                                     <option value="{{ $groupLetter }}"
@@ -471,14 +512,14 @@
                                             </select>
                                             @if($currentGroup && in_array($team->id, $selectedTeams))
                                                 <small class="text-muted d-block mt-1" style="font-size: 0.75rem;">
-                                                    Currently in Group {{ $currentGroup }}
+                                                    Saat ini di Group {{ $currentGroup }}
                                                 </small>
                                             @endif
                                         </div>
                                     </div>
                                 @endforeach
                             @else
-                                <p class="text-muted text-center py-4">No teams available. Create teams first.</p>
+                                <p class="text-muted text-center py-4">Belum ada tim tersedia. Buat tim terlebih dahulu.</p>
                             @endif
                         </div>
                         @error('teams')
@@ -491,53 +532,29 @@
 
                     <!-- Standings & Tie-breakers Rules -->
                     <div class="col-md-12 mb-4 tie-breakers-section" style="{{ $tournament->type == 'group_knockout' ? '' : 'display: none;' }}">
-                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
-                            <span class="badge bg-info ms-2">Group Stage + Knockout</span>
-                            <small class="text-muted fw-normal">(Drag to reorder)</small>
+                        <h6 class="mb-1" style="color: var(--primary); font-weight: 600;">
+                            Penentuan peringkat (tie-breakers)
                         </h6>
+                        <small class="text-secondary d-block mb-3">Urutan menentukan prioritas klasemen saat poin tim sama. Seret item untuk mengubah urutan.</small>
 
-                        <!-- Template Preset Tie-breakers -->
-                        <div class="preset-templates mb-3 p-3 rounded-3" style="background: #f0f9ff; border: 1px solid #bae6fd;">
-                            <label class="form-label fw-bold mb-2" style="color: #0c4a6e;">
-                                <i class="bi bi-lightning-charge me-1"></i>Template Cepat — pilih salah satu opsi:
-                            </label>
-                            <div class="d-flex flex-wrap gap-2">
-                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="gd_first" title="Selisih gol → Head-to-head → Produktivitas gol → Fair play → Penalti">
-                                    <i class="bi bi-1-circle me-1"></i>Selisih Gol Dulu
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="h2h_first" title="Head-to-head → Selisih gol → Produktivitas gol → Fair play → Penalti">
-                                    <i class="bi bi-2-circle me-1"></i>Head-to-Head Dulu
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="fifa" title="Standar FIFA: Selisih gol → Gol mencetak → Head-to-head">
-                                    <i class="bi bi-3-circle me-1"></i>Standar FIFA
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-primary preset-btn" data-preset="goals_first" title="Produktivitas gol → Head-to-head → Selisih gol">
-                                    <i class="bi bi-4-circle me-1"></i>Produktivitas Gol Dulu
-                                </button>
-                                <button type="button" class="btn btn-sm btn-outline-secondary" id="resetTieBreakers" title="Kembali ke urutan tersimpan">
-                                    <i class="bi bi-arrow-clockwise me-1"></i>Reset
-                                </button>
-                            </div>
-                            <small class="text-muted d-block mt-2" style="font-size: 0.75rem;">
-                                <i class="bi bi-info-circle me-1"></i>Template akan mengganti seluruh urutan di bawah. Urutan inilah yang ditampilkan di halaman Home (Penentuan Juara dan Runner-up).
-                            </small>
+                        <div class="tie-preset">
+                            <small class="text-secondary">Template cepat:</small>
+                            <button type="button" class="btn-preset preset-btn" data-preset="gd_first">Selisih gol dulu</button>
+                            <button type="button" class="btn-preset preset-btn" data-preset="h2h_first">Head-to-head dulu</button>
+                            <button type="button" class="btn-preset preset-btn" data-preset="fifa">Standar FIFA</button>
+                            <button type="button" class="btn-preset preset-btn" data-preset="goals_first">Produktivitas gol dulu</button>
+                            <button type="button" class="btn-preset" id="resetTieBreakers">Reset</button>
                         </div>
 
-                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
-                            <span class="badge bg-info ms-2">Group Stage + Knockout</span>
-                            <small class="text-muted fw-normal">(Drag to reorder)</small>
-                        </h6>
                         <div id="tie-breakers-container">
                             @php
                                 $tieBreakerOptions = [
-                                    'points' => 'Poin (nilai) - jika sama',
-                                    'head_to_head' => 'Head-to-head (hasil pertemuan langsung) - jika sama',
-                                    'goal_difference' => 'Selisih gol - jika sama',
-                                    'goals_scored' => 'Produktivitas memasukkan (gol mencetak) - jika sama',
-                                    'fair_play' => 'Nilai fairplay (kartu) - jika sama',
-                                    'penalty' => 'Adu tendangan penalti'
+                                    'points' => 'Poin',
+                                    'head_to_head' => 'Head-to-head',
+                                    'goal_difference' => 'Selisih gol',
+                                    'goals_scored' => 'Gol mencetak',
+                                    'fair_play' => 'Fair play',
+                                    'penalty' => 'Adu penalti'
                                 ];
                                 
                                 // Get current rules from settings - normalize to a list of keys
@@ -575,27 +592,23 @@
                         <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule">
                             <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
                         </button>
-                        <div class="alert alert-info mt-3" style="padding: 10px 15px; font-size: 0.85rem;">
-                            <i class="bi bi-info-circle me-2"></i>
-                            <strong>Penting untuk Group Stage:</strong> Urutan di bawah menentukan prioritas ketika tim memiliki poin yang sama dalam klasemen grup. 
-                            Anda dapat mengubah urutan dengan menyeret (drag) item ke atas atau bawah. 
-                            Pilih aturan dari dropdown untuk menentukan kriteria peringkat.
-                        </div>
+                        <small class="text-secondary d-block mt-2">Urutan ini juga dipakai untuk penentuan juara dan runner-up di halaman Home.</small>
                     </div>
 
                     <!-- Tie-breakers for other tournament types (simpler version) -->
                     <div class="col-md-12 mb-4 tie-breakers-section-other" style="{{ $tournament->type != 'group_knockout' ? '' : 'display: none;' }}">
-                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-list-ol me-2"></i>Penentuan Peringkat (Tie-breakers)
+                        <h6 class="mb-1" style="color: var(--primary); font-weight: 600;">
+                            Penentuan peringkat (tie-breakers)
                         </h6>
+                        <small class="text-secondary d-block mb-3">Urutan menentukan prioritas klasemen saat poin tim sama.</small>
                         <div id="tie-breakers-container-other">
                             @php
                                 $tieBreakerOptionsSimple = [
-                                    'points' => 'Poin (nilai) - jika sama',
-                                    'goal_difference' => 'Selisih gol - jika sama',
-                                    'goals_scored' => 'Produktivitas memasukkan (gol mencetak) - jika sama',
-                                    'fair_play' => 'Nilai fairplay (kartu) - jika sama',
-                                    'penalty' => 'Adu tendangan penalti'
+                                    'points' => 'Poin',
+                                    'goal_difference' => 'Selisih gol',
+                                    'goals_scored' => 'Gol mencetak',
+                                    'fair_play' => 'Fair play',
+                                    'penalty' => 'Adu penalti'
                                 ];
                                 
                                 // Get current rules from settings - normalize to a list of keys
@@ -629,15 +642,13 @@
                         <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule-other">
                             <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
                         </button>
-                        <div class="form-text mt-2">
-                            <i class="bi bi-info-circle me-1"></i>Urutan menentukan prioritas pemecahan poin sama.
-                        </div>
+
                     </div>
 
                     <!-- Match Settings -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-stopwatch me-2"></i>Match Duration & Time
+                            Durasi & Waktu Pertandingan
                         </h6>
 
                         <div class="row">
@@ -662,7 +673,7 @@
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label for="extra_time" class="form-label">Extra Time (minutes)</label>
+                                <label for="extra_time" class="form-label">Extra Time (menit)</label>
                                 <input type="number" class="form-control @error('extra_time') is-invalid @enderror" 
                                     id="extra_time" name="extra_time" min="0" max="30" 
                                     value="{{ old('extra_time', $settings['extra_time'] ?? 10) }}">
@@ -676,7 +687,7 @@
                     <!-- Points System -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-flag me-2"></i>Points System
+                            Sistem Poin
                         </h6>
 
                         <div class="row">
@@ -711,7 +722,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="points_no_show" class="form-label">Points for No Show</label>
+                                <label for="points_no_show" class="form-label">Poin Tidak Hadir</label>
                                 <input type="number" class="form-control @error('points_no_show') is-invalid @enderror" 
                                     id="points_no_show" name="points_no_show" min="-10" max="0" 
                                     value="{{ old('points_no_show', $settings['points_no_show'] ?? -1) }}">
@@ -725,7 +736,7 @@
                     <!-- Match Rules & Options -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-card-checklist me-2"></i>Match Rules & Options
+                            Aturan & Opsi Pertandingan
                         </h6>
 
                         <div class="row">
@@ -740,7 +751,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label for="yellow_card_suspension" class="form-label">Yellow Cards for Suspension</label>
+                                <label for="yellow_card_suspension" class="form-label">Batas Kartu Kuning</label>
                                 <input type="number" class="form-control @error('yellow_card_suspension') is-invalid @enderror" 
                                     id="yellow_card_suspension" name="yellow_card_suspension" min="1" max="10" 
                                     value="{{ old('yellow_card_suspension', $settings['yellow_card_suspension'] ?? 3) }}">
@@ -756,7 +767,7 @@
                                     <input class="form-check-input" type="checkbox" id="allow_draw" name="allow_draw" value="1" 
                                         {{ old('allow_draw', $settings['allow_draw'] ?? true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="allow_draw">
-                                        <strong>Allow draws in group stage</strong>
+                                        <strong>Izinkan hasil seri di group stage</strong>
                                     </label>
                                 </div>
                             </div>
@@ -766,7 +777,7 @@
                                     <input class="form-check-input" type="checkbox" id="extra_time_enabled" name="extra_time_enabled" value="1" 
                                         {{ old('extra_time_enabled', $settings['extra_time_enabled'] ?? true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="extra_time_enabled">
-                                        <strong>Extra time for knockout matches</strong>
+                                        <strong>Extra time untuk pertandingan knockout</strong>
                                     </label>
                                 </div>
                             </div>
@@ -776,7 +787,7 @@
                                     <input class="form-check-input" type="checkbox" id="penalty_shootout" name="penalty_shootout" value="1" 
                                         {{ old('penalty_shootout', $settings['penalty_shootout'] ?? true) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="penalty_shootout">
-                                        <strong>Penalty shootout after extra time</strong>
+                                        <strong>Adu penalti setelah extra time</strong>
                                     </label>
                                 </div>
                             </div>
@@ -786,7 +797,7 @@
                                     <input class="form-check-input" type="checkbox" id="var_enabled" name="var_enabled" value="1" 
                                         {{ old('var_enabled', $settings['var_enabled'] ?? false) ? 'checked' : '' }}>
                                     <label class="form-check-label" for="var_enabled">
-                                        <strong>Enable VAR (Video Assistant Referee)</strong>
+                                        <strong>Aktifkan VAR (Video Assistant Referee)</strong>
                                     </label>
                                 </div>
                             </div>
@@ -796,7 +807,7 @@
                     <!-- Schedule Settings -->
                     <div class="col-md-12 mb-4">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            <i class="bi bi-calendar-week me-2"></i>Schedule Settings
+                            Pengaturan Jadwal
                         </h6>
 
                         <div class="row">
@@ -823,12 +834,12 @@
 
                         <div class="row">
                             <div class="col-md-12 mb-3">
-                                <label for="match_time_slots" class="form-label">Preferred Match Times</label>
+                                <label for="match_time_slots" class="form-label">Waktu Pertandingan yang Diinginkan</label>
                                 <input type="text" class="form-control @error('match_time_slots') is-invalid @enderror" 
                                     id="match_time_slots" name="match_time_slots" 
                                     value="{{ old('match_time_slots', $settings['match_time_slots'] ?? '14:00, 16:00, 18:00, 20:00') }}"
-                                    placeholder="Enter preferred match times separated by commas">
-                                <div class="form-text">Example: 14:00, 16:00, 18:00, 20:00</div>
+                                    placeholder="Masukkan waktu pertandingan dipisah koma">
+                                <div class="form-text">Contoh: 14:00, 16:00, 18:00, 20:00</div>
                                 @error('match_time_slots')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -841,15 +852,15 @@
                 <div class="d-flex justify-content-between align-items-center mt-4">
                     <div>
                         <a href="{{ route('admin.tournaments.show', $tournament) }}" class="btn btn-outline-secondary me-2">
-                            <i class="bi bi-eye me-2"></i>View Details
+                            <i class="bi bi-eye me-2"></i>Lihat Detail
                         </a>
                         <a href="{{ route('admin.tournaments.index') }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
+                            <i class="bi bi-x-circle me-2"></i>Batal
                         </a>
                     </div>
                     <div>
                         <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-save me-2"></i>Update Tournament
+                            <i class="bi bi-save me-2"></i>Simpan Perubahan
                         </button>
                     </div>
                 </div>
@@ -863,7 +874,7 @@
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Loading...</span>
             </div>
-            <p class="mt-3" style="color: var(--primary); font-weight: 500;">Updating Tournament...</p>
+            <p class="mt-3" style="color: var(--primary); font-weight: 500;">Menyimpan Turnamen...</p>
         </div>
     </div>
 @endsection
@@ -921,7 +932,7 @@
                     const isChecked = select.closest('.team-item').querySelector('.team-checkbox-input').checked;
                     
                     // Clear existing options except the first one
-                    select.innerHTML = '<option value="">Select Group</option>';
+                    select.innerHTML = '<option value="">Pilih Grup</option>';
                     
                     // Add new group options
                     for (let i = 1; i <= Math.min(groupsCount, 26); i++) {
@@ -951,21 +962,7 @@
             const form = document.querySelector('form');
             const loadingOverlay = document.getElementById('loadingOverlay');
 
-            form.addEventListener('submit', function () {
-                // Debug: Log tie-breaker data before submit
-                const tieBreakerData = [];
-                document.querySelectorAll('.tie-breaker-item').forEach((item, index) => {
-                    const select = item.querySelector('.tie-breaker-select');
-                    if (select) {
-                        tieBreakerData.push({
-                            index: index,
-                            name: select.name,
-                            value: select.value
-                        });
-                    }
-                });
-                console.log('Submitting tie-breaker data:', tieBreakerData);
-                
+            form.addEventListener('submit', function () {                
                 loadingOverlay.style.display = 'flex';
             });
 
@@ -974,7 +971,7 @@
                 const checkedTeams = form.querySelectorAll('input[name="teams[]"]:checked').length;
                 if (checkedTeams < 2) {
                     e.preventDefault();
-                    alert('Please select at least 2 teams for the tournament.');
+                    alert('Pilih minimal 2 tim untuk turnamen ini.');
                     loadingOverlay.style.display = 'none';
                 }
             });
@@ -1026,13 +1023,13 @@
                                 <i class="bi bi-grip-vertical"></i> ${itemCount + 1}
                             </span>
                             <select class="form-select tie-breaker-select" name="tie_breakers[${itemCount}][key]" required>
-                                <option value="">Select Tie-breaker</option>
-                                <option value="points">Poin (nilai) - jika sama</option>
-                                <option value="head_to_head">Head-to-head (hasil pertemuan langsung) - jika sama</option>
-                                <option value="goal_difference">Selisih gol - jika sama</option>
-                                <option value="goals_scored">Produktivitas memasukkan (gol mencetak) - jika sama</option>
-                                <option value="fair_play">Nilai fairplay (kartu) - jika sama</option>
-                                <option value="penalty">Adu tendangan penalti</option>
+                                <option value="">Pilih aturan</option>
+                                <option value="points">Poin</option>
+                                <option value="head_to_head">Head-to-head</option>
+                                <option value="goal_difference">Selisih gol</option>
+                                <option value="goals_scored">Gol mencetak</option>
+                                <option value="fair_play">Fair play</option>
+                                <option value="penalty">Adu penalti</option>
                             </select>
                             <button type="button" class="btn btn-outline-danger remove-rule">
                                 <i class="bi bi-trash"></i>
@@ -1051,12 +1048,12 @@
             // TIE-BREAKER PRESET TEMPLATES
             // ==============================================
             const tieBreakerLabels = {
-                'points': 'Poin (nilai) - jika sama',
-                'head_to_head': 'Head-to-head (hasil pertemuan langsung) - jika sama',
-                'goal_difference': 'Selisih gol - jika sama',
-                'goals_scored': 'Produktivitas memasukkan (gol mencetak) - jika sama',
-                'fair_play': 'Nilai fairplay (kartu) - jika sama',
-                'penalty': 'Adu tendangan penalti'
+                'points': 'Poin',
+                'head_to_head': 'Head-to-head',
+                'goal_difference': 'Selisih gol',
+                'goals_scored': 'Gol mencetak',
+                'fair_play': 'Fair play',
+                'penalty': 'Adu penalti'
             };
 
             const tieBreakerPresets = {
@@ -1082,7 +1079,7 @@
                             <i class="bi bi-grip-vertical"></i> ${index + 1}
                         </span>
                         <select class="form-select tie-breaker-select" name="tie_breakers[${index}][key]" required>
-                            <option value="">Select Tie-breaker</option>
+                            <option value="">Pilih aturan</option>
                             ${Object.entries(tieBreakerLabels).map(([k, label]) =>
                                 `<option value="${k}" ${k === key ? 'selected' : ''}>${label}</option>`
                             ).join('')}
@@ -1113,8 +1110,8 @@
                     applyTieBreakerKeys(keys);
 
                     // Highlight tombol yang dipilih
-                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
-                    this.classList.add('active', 'btn-primary');
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
                 });
             });
 
@@ -1122,7 +1119,7 @@
             if (resetTieBreakersBtn) {
                 resetTieBreakersBtn.addEventListener('click', function () {
                     applyTieBreakerKeys(initialTieBreakerKeys);
-                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active', 'btn-primary'));
+                    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
                 });
             }
 
@@ -1156,12 +1153,12 @@
                     newRule.innerHTML = `
                             <span class="input-group-text bg-light text-secondary fw-bold">${itemCount + 1}</span>
                             <select class="form-select" name="tie_breakers_other[${itemCount}][key]" required>
-                                <option value="">Select Tie-breaker</option>
-                                <option value="points">Poin (nilai) - jika sama</option>
-                                <option value="goal_difference">Selisih gol - jika sama</option>
-                                <option value="goals_scored">Produktivitas memasukkan (gol mencetak) - jika sama</option>
-                                <option value="fair_play">Nilai fairplay (kartu) - jika sama</option>
-                                <option value="penalty">Adu tendangan penalti</option>
+                                <option value="">Pilih aturan</option>
+                                <option value="points">Poin</option>
+                                <option value="goal_difference">Selisih gol</option>
+                                <option value="goals_scored">Gol mencetak</option>
+                                <option value="fair_play">Fair play</option>
+                                <option value="penalty">Adu penalti</option>
                             </select>
                             <button type="button" class="btn btn-outline-danger remove-rule-other">
                                 <i class="bi bi-trash"></i>
