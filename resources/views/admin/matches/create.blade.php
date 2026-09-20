@@ -1,39 +1,133 @@
 @extends('layouts.admin')
 
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
+@section('title', 'Buat Pertandingan')
 
+@section('styles')
+    <style>
+        /* ===== Create match page — design guidelines ===== */
+
+        /* Page header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-back {
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            height: 40px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Form card */
+        .form-card {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .form-card .card-header {
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            padding: 12px 16px;
+        }
+
+        .form-card .card-header h5 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+
+        .form-card .card-body {
+            padding: 24px;
+        }
+
+        /* Form sections & fields */
+        .form-section-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin: 0 0 16px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .form-label {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .required {
+            color: #c01c28;
+        }
+
+        /* Read-only display field (league) */
+        .field-readonly {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--text-primary);
+            cursor: not-allowed;
+        }
+    </style>
+@endsection
 
 @section('content')
-<div class="container-fluid">
-    <!-- Breadcrumb -->
-    <nav aria-label="breadcrumb" class="mb-4">
-        <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Dashboard</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('admin.matches.index') }}">Matches</a></li>
-            <li class="breadcrumb-item active">Create Match</li>
-        </ol>
-    </nav>
-
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="page-header">
         <div>
-            <h1><i class="bi bi-plus-circle"></i> Create New Match</h1>
-            <p class="lead">Schedule a new match for your tournament</p>
+            <h1>Buat Pertandingan Baru</h1>
+            <p class="page-subtitle">Jadwalkan pertandingan baru untuk turnamen Anda</p>
         </div>
-        <div>
-            <a href="{{ route('admin.matches.index') }}" class="btn btn-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Matches
-            </a>
-        </div>
+        <a href="{{ route('admin.matches.index') }}" class="btn-back">
+            <i class="bi bi-arrow-left"></i> Kembali
+        </a>
     </div>
 
-    <!-- Form Card -->
-    <div class="card">
+    <div class="form-card">
+        <div class="card-header">
+            <h5>Buat pertandingan</h5>
+        </div>
+
         <div class="card-body">
             @if($errors->any())
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    <i class="bi bi-exclamation-triangle"></i>
-                    <strong>Please fix the following errors:</strong>
+                    <i class="bi bi-exclamation-triangle me-2"></i> Perbaiki kesalahan berikut:
                     <ul class="mt-2 mb-0">
                         @foreach($errors->all() as $error)
                             <li>{{ $error }}</li>
@@ -43,81 +137,74 @@
                 </div>
             @endif
 
-            <!-- Tournament Selection Form -->
+            <!-- Form pilih turnamen (GET, auto-submit) -->
             <form method="GET" action="{{ route('admin.matches.create') }}" class="mb-4">
-                <div class="card border-primary mb-4">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0"><i class="bi bi-trophy"></i> Tournament Selection</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="mb-3">
-                            <label for="tournament_id" class="form-label">Select Tournament <span class="text-danger">*</span></label>
-                            <select class="form-select @error('tournament_id') is-invalid @enderror" 
-                                    id="tournament_id" name="tournament_id" required
-                                    onchange="this.form.submit()">
-                                <option value="">-- Select a Tournament --</option>
-                                @foreach($tournaments as $tournament)
-                                    <option value="{{ $tournament->id }}" 
-                                        {{ $tournamentId == $tournament->id ? 'selected' : '' }}>
-                                        {{ $tournament->name }} 
-                                        ({{ ucfirst($tournament->type) }} | 
-                                        {{ ucfirst($tournament->status) }} | 
-                                        {{ $tournament->start_date->format('d M Y') }} - {{ $tournament->end_date->format('d M Y') }})
-                                    </option>
-                                @endforeach
-                            </select>
-                            @error('tournament_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                <div class="form-section-title">Pilih Turnamen <span class="required">*</span></div>
 
-                        @if($tournamentId)
-                            @php
-                                $selectedTournament = \App\Models\Tournament::find($tournamentId);
-                                $tournamentSettings = json_decode($selectedTournament->settings, true) ?? [];
-                                $tournamentType = $selectedTournament->type;
-                            @endphp
-                            <div class="alert alert-success">
-                                <i class="bi bi-info-circle"></i>
-                                <strong>{{ $selectedTournament->name }}</strong> selected.
-                                <br>
-                                <small>
-                                    <strong>Type:</strong> {{ ucfirst(str_replace('_', ' ', $tournamentType)) }} |
-                                    <strong>Teams:</strong> {{ $teams->count() }} |
-                                    @if($tournamentType === 'group_knockout')
-                                        <strong>Groups:</strong> {{ $selectedTournament->groups_count }} |
-                                        <strong>Qualify:</strong> {{ $selectedTournament->qualify_per_group }} per group
-                                    @elseif($tournamentType === 'league')
-                                        <strong>Rounds:</strong> {{ $tournamentSettings['league_rounds'] ?? 1 }} |
-                                        <strong>Format:</strong> Single Round-Robin (No Groups)
-                                    @elseif($tournamentType === 'knockout')
-                                        <strong>Format:</strong> {{ ucfirst(str_replace('_', ' ', $tournamentSettings['knockout_format'] ?? 'single_elimination')) }} |
-                                        <strong>Teams:</strong> {{ $tournamentSettings['knockout_teams'] ?? 8 }}
-                                    @endif
-                                </small>
-                            </div>
-                        @endif
+                <select class="form-select @error('tournament_id') is-invalid @enderror"
+                    id="tournament_id" name="tournament_id" required
+                    onchange="this.form.submit()">
+                    <option value="">Pilih turnamen</option>
+                    @foreach($tournaments as $tournament)
+                        <option value="{{ $tournament->id }}"
+                            {{ $tournamentId == $tournament->id ? 'selected' : '' }}>
+                            {{ $tournament->name }}
+                            ({{ ucfirst($tournament->type) }} |
+                            {{ ucfirst($tournament->status) }} |
+                            {{ $tournament->start_date->format('d M Y') }} - {{ $tournament->end_date->format('d M Y') }})
+                        </option>
+                    @endforeach
+                </select>
+                @error('tournament_id')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+
+                @if($tournamentId)
+                    @php
+                        $selectedTournament = \App\Models\Tournament::find($tournamentId);
+                        $tournamentSettings = json_decode($selectedTournament->settings, true) ?? [];
+                        $tournamentType = $selectedTournament->type;
+                    @endphp
+                    <div class="alert alert-success mt-3 mb-0">
+                        <i class="bi bi-info-circle me-1"></i>
+                        <strong>{{ $selectedTournament->name }}</strong> dipilih.
+                        <br>
+                        <small>
+                            <strong>Tipe:</strong> {{ ucfirst(str_replace('_', ' ', $tournamentType)) }} |
+                            <strong>Tim:</strong> {{ $teams->count() }} |
+                            @if($tournamentType === 'group_knockout')
+                                <strong>Grup:</strong> {{ $selectedTournament->groups_count }} |
+                                <strong>Kualifikasi:</strong> {{ $selectedTournament->qualify_per_group }} per grup
+                            @elseif($tournamentType === 'league')
+                                <strong>Ronde:</strong> {{ $tournamentSettings['league_rounds'] ?? 1 }} |
+                                <strong>Format:</strong> Single Round-Robin (tanpa grup)
+                            @elseif($tournamentType === 'knockout')
+                                <strong>Format:</strong> {{ ucfirst(str_replace('_', ' ', $tournamentSettings['knockout_format'] ?? 'single_elimination')) }} |
+                                <strong>Tim:</strong> {{ $tournamentSettings['knockout_teams'] ?? 8 }}
+                            @endif
+                        </small>
                     </div>
-                </div>
+                @endif
             </form>
 
             @if($tournamentId)
-                <!-- Match Creation Form (Only show if tournament is selected) -->
+                <!-- Form buat pertandingan (hanya tampil jika turnamen dipilih) -->
                 <form action="{{ route('admin.matches.store') }}" method="POST" id="matchForm">
                     @csrf
                     <input type="hidden" name="tournament_id" value="{{ $tournamentId }}">
 
                     @if($teams->count() > 0)
-                        <div class="row">
-                            <!-- Basic Information -->
+                        <div class="row g-4">
+                            <!-- Kolom kiri: info dasar -->
                             <div class="col-md-6">
-                                <h5 class="mb-3"><i class="bi bi-info-circle"></i> Basic Information</h5>
+                                <div class="form-section-title">Informasi Dasar</div>
 
+                                <!-- Tanggal -->
                                 <div class="mb-3">
-                                    <label for="match_date" class="form-label">Match Date <span class="text-danger">*</span></label>
+                                    <label for="match_date" class="form-label">Tanggal Pertandingan <span class="required">*</span></label>
                                     <input type="date" class="form-control @error('match_date') is-invalid @enderror"
-                                        id="match_date" name="match_date" 
-                                        value="{{ old('match_date') }}" 
+                                        id="match_date" name="match_date"
+                                        value="{{ old('match_date') }}"
                                         min="{{ $selectedTournament->start_date->format('Y-m-d') }}"
                                         max="{{ $selectedTournament->end_date->format('Y-m-d') }}"
                                         required>
@@ -125,13 +212,14 @@
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                     <div class="form-text">
-                                        Tournament date range: {{ $selectedTournament->start_date->format('d M Y') }} - {{ $selectedTournament->end_date->format('d M Y') }}
+                                        Rentang tanggal turnamen: {{ $selectedTournament->start_date->format('d M Y') }} - {{ $selectedTournament->end_date->format('d M Y') }}
                                     </div>
                                 </div>
 
+                                <!-- Waktu -->
                                 <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <label for="time_start" class="form-label">Start Time <span class="text-danger">*</span></label>
+                                        <label for="time_start" class="form-label">Waktu Mulai <span class="required">*</span></label>
                                         <input type="time" class="form-control @error('time_start') is-invalid @enderror"
                                             id="time_start" name="time_start" value="{{ old('time_start', '14:00') }}" required>
                                         @error('time_start')
@@ -139,7 +227,7 @@
                                         @enderror
                                     </div>
                                     <div class="col-md-6">
-                                        <label for="time_end" class="form-label">End Time <span class="text-danger">*</span></label>
+                                        <label for="time_end" class="form-label">Waktu Selesai <span class="required">*</span></label>
                                         <input type="time" class="form-control @error('time_end') is-invalid @enderror"
                                             id="time_end" name="time_end" value="{{ old('time_end', '15:40') }}" required>
                                         @error('time_end')
@@ -148,40 +236,41 @@
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
+                                <!-- Venue -->
+                                <div class="mb-0">
                                     <label for="venue" class="form-label">Venue</label>
                                     <input type="text" class="form-control @error('venue') is-invalid @enderror" id="venue"
                                         name="venue" value="{{ old('venue', $selectedTournament->location ?? 'Main Field') }}"
-                                        placeholder="e.g., Main Field, Court 1">
+                                        placeholder="contoh: Main Field, Lapangan 1">
                                     @error('venue')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
                                 </div>
                             </div>
 
-                            <!-- Teams Selection -->
+                            <!-- Kolom kanan: tim -->
                             <div class="col-md-6">
-                                <h5 class="mb-3"><i class="bi bi-people"></i> Teams Selection</h5>
+                                <div class="form-section-title">Tim</div>
 
+                                <!-- Tim home -->
                                 <div class="mb-3">
-                                    <label for="team_home_id" class="form-label">Home Team <span class="text-danger">*</span></label>
+                                    <label for="team_home_id" class="form-label">Tim Home <span class="required">*</span></label>
                                     <select class="form-select @error('team_home_id') is-invalid @enderror" id="team_home_id"
                                         name="team_home_id" required>
-                                        <option value="">-- Select Home Team --</option>
+                                        <option value="">Pilih tim home</option>
                                         @foreach($teams as $team)
                                             @php
-                                                $teamGroup = $team->tournaments()
+                                                $teamPivot = $team->tournaments()
                                                     ->where('tournament_id', $tournamentId)
-                                                    ->first()->pivot->group_name ?? null;
-                                                $teamSeed = $team->tournaments()
-                                                    ->where('tournament_id', $tournamentId)
-                                                    ->first()->pivot->seed ?? '';
+                                                    ->first()?->pivot;
+                                                $teamGroup = $teamPivot->group_name ?? null;
+                                                $teamSeed = $teamPivot->seed ?? '';
                                             @endphp
-                                            <option value="{{ $team->id }}" 
+                                            <option value="{{ $team->id }}"
                                                 data-group="{{ $teamGroup ?? '' }}"
                                                 data-seed="{{ $teamSeed }}"
                                                 {{ old('team_home_id') == $team->id ? 'selected' : '' }}>
-                                                {{ $team->name }} 
+                                                {{ $team->name }}
                                                 @if($teamGroup && $tournamentType === 'group_knockout')
                                                     (Group {{ $teamGroup }})
                                                 @endif
@@ -196,25 +285,25 @@
                                     @enderror
                                 </div>
 
+                                <!-- Tim away -->
                                 <div class="mb-3">
-                                    <label for="team_away_id" class="form-label">Away Team <span class="text-danger">*</span></label>
+                                    <label for="team_away_id" class="form-label">Tim Away <span class="required">*</span></label>
                                     <select class="form-select @error('team_away_id') is-invalid @enderror" id="team_away_id"
                                         name="team_away_id" required>
-                                        <option value="">-- Select Away Team --</option>
+                                        <option value="">Pilih tim away</option>
                                         @foreach($teams as $team)
                                             @php
-                                                $teamGroup = $team->tournaments()
+                                                $teamPivot = $team->tournaments()
                                                     ->where('tournament_id', $tournamentId)
-                                                    ->first()->pivot->group_name ?? null;
-                                                $teamSeed = $team->tournaments()
-                                                    ->where('tournament_id', $tournamentId)
-                                                    ->first()->pivot->seed ?? '';
+                                                    ->first()?->pivot;
+                                                $teamGroup = $teamPivot->group_name ?? null;
+                                                $teamSeed = $teamPivot->seed ?? '';
                                             @endphp
-                                            <option value="{{ $team->id }}" 
+                                            <option value="{{ $team->id }}"
                                                 data-group="{{ $teamGroup ?? '' }}"
                                                 data-seed="{{ $teamSeed }}"
                                                 {{ old('team_away_id') == $team->id ? 'selected' : '' }}>
-                                                {{ $team->name }} 
+                                                {{ $team->name }}
                                                 @if($teamGroup && $tournamentType === 'group_knockout')
                                                     (Group {{ $teamGroup }})
                                                 @endif
@@ -229,41 +318,39 @@
                                     @enderror
                                 </div>
 
-                                <div id="teamGroupInfo" class="alert alert-info mt-3" style="display: none;">
+                                <!-- Info grup tim -->
+                                <div id="teamGroupInfo" class="alert alert-info mt-3 mb-0" style="display: none;">
                                     <i class="bi bi-info-circle"></i>
                                     <span id="teamGroupMessage"></span>
                                 </div>
                             </div>
                         </div>
 
-                        <hr class="my-4">
-
-                        <div class="row">
-                            <!-- Match Settings -->
+                        <div class="row g-4 mt-0 pt-4 border-top">
+                            <!-- Kolom kiri: pengaturan pertandingan -->
                             <div class="col-md-6">
-                                <h5 class="mb-3"><i class="bi bi-gear"></i> Match Settings</h5>
+                                <div class="form-section-title">Pengaturan Pertandingan</div>
 
-                                <!-- Round Type Field -->
+                                <!-- Tipe ronde -->
                                 <div class="mb-3">
                                     @if($tournamentType === 'league')
-                                        <!-- Untuk league: round_type selalu 'league' dan group_name null -->
+                                        <!-- League: round_type selalu 'league', group_name null -->
                                         <input type="hidden" name="round_type" value="league">
                                         <input type="hidden" name="group_name" value="">
                                         <input type="hidden" name="stage" value="league">
-                                        
-                                        <label class="form-label">Round Type <span class="text-danger">*</span></label>
-                                        <div class="form-control bg-light" style="cursor: not-allowed;">
-                                            <i class="bi bi-trophy"></i> League Match (Single Round-Robin)
+
+                                        <label class="form-label">Tipe Ronde <span class="required">*</span></label>
+                                        <div class="field-readonly">
+                                            <i class="bi bi-trophy me-1"></i> League Match (Single Round-Robin)
                                         </div>
                                         <div class="form-text text-success">
-                                            <i class="bi bi-info-circle"></i> League format: All teams play each other once in a single standings table.
+                                            <i class="bi bi-info-circle"></i> Format league: semua tim bertanding satu kali dalam satu tabel klasemen.
                                         </div>
                                     @else
-                                        <!-- Untuk tournament lain: dropdown biasa -->
-                                        <label for="round_type" class="form-label">Round Type <span class="text-danger">*</span></label>
+                                        <label for="round_type" class="form-label">Tipe Ronde <span class="required">*</span></label>
                                         <select class="form-select @error('round_type') is-invalid @enderror" id="round_type"
-                                                name="round_type" required>
-                                            <option value="">-- Select Round Type --</option>
+                                            name="round_type" required>
+                                            <option value="">Pilih tipe ronde</option>
                                             @if($tournamentType === 'knockout')
                                                 @php
                                                     $knockoutTeams = $tournamentSettings['knockout_teams'] ?? 8;
@@ -297,7 +384,6 @@
                                                     </option>
                                                 @endif
                                             @elseif($tournamentType === 'group_knockout')
-                                                <!-- Group + Knockout -->
                                                 <option value="group" {{ old('round_type', 'group') == 'group' ? 'selected' : '' }}>
                                                     Group Stage
                                                 </option>
@@ -331,25 +417,25 @@
                                         @enderror
                                         <div class="form-text" id="roundTypeHelp">
                                             @if($tournamentType === 'knockout')
-                                                Knockout bracket matches
+                                                Pertandingan bracket knockout
                                             @elseif($tournamentType === 'group_knockout')
-                                                Group stage and knockout matches
+                                                Pertandingan group stage dan knockout
                                             @endif
                                         </div>
                                     @endif
                                 </div>
 
-                                <!-- Group Name Field - Hanya untuk group_knockout dengan round_type group -->
+                                <!-- Nama grup (hanya group_knockout) -->
                                 @if($tournamentType === 'group_knockout')
                                     <div class="mb-3" id="group_name_field">
-                                        <label for="group_name" class="form-label">Group Name</label>
+                                        <label for="group_name" class="form-label">Nama Grup</label>
                                         <select class="form-select @error('group_name') is-invalid @enderror" id="group_name"
-                                                name="group_name">
-                                            <option value="">-- Select Group --</option>
+                                            name="group_name">
+                                            <option value="">Pilih grup</option>
                                             @if($selectedTournament->groups_count > 0)
                                                 @for($i = 0; $i < min($selectedTournament->groups_count, 8); $i++)
                                                     @php
-                                                        $groupLetter = chr(65 + $i); // A, B, C, etc.
+                                                        $groupLetter = chr(65 + $i); // A, B, C, dst.
                                                     @endphp
                                                     <option value="{{ $groupLetter }}" {{ old('group_name') == $groupLetter ? 'selected' : '' }}>
                                                         Group {{ $groupLetter }}
@@ -366,27 +452,25 @@
                                         @error('group_name')
                                             <div class="invalid-feedback">{{ $message }}</div>
                                         @enderror
-                                        <div class="form-text">
-                                            Only required for Group Stage matches
-                                        </div>
+                                        <div class="form-text">Hanya wajib untuk pertandingan Group Stage</div>
                                     </div>
                                 @elseif($tournamentType === 'knockout')
-                                    <!-- Untuk knockout: hidden input group_name = null -->
+                                    <!-- Knockout: group_name null -->
                                     <input type="hidden" name="group_name" value="">
                                 @endif
 
-                                <!-- Stage Field - Auto-set untuk league -->
-                                <div class="mb-3">
+                                <!-- Stage -->
+                                <div class="mb-0">
                                     @if($tournamentType === 'league')
                                         <label class="form-label">Stage</label>
-                                        <div class="form-control bg-light" style="cursor: not-allowed;">
-                                            <i class="bi bi-trophy"></i> League Stage
+                                        <div class="field-readonly">
+                                            <i class="bi bi-trophy me-1"></i> League Stage
                                         </div>
                                     @else
                                         <label for="stage" class="form-label">Stage</label>
                                         <select class="form-select @error('stage') is-invalid @enderror" id="stage"
-                                                name="stage">
-                                            <option value="">-- Select Stage --</option>
+                                            name="stage">
+                                            <option value="">Pilih stage</option>
                                             @if($tournamentType === 'group_knockout')
                                                 <option value="group" {{ old('stage') == 'group' ? 'selected' : '' }}>Group Stage</option>
                                             @endif
@@ -402,12 +486,13 @@
                                 </div>
                             </div>
 
-                            <!-- Status & Additional Info -->
+                            <!-- Kolom kanan: status & info tambahan -->
                             <div class="col-md-6">
-                                <h5 class="mb-3"><i class="bi bi-clock-history"></i> Status & Information</h5>
+                                <div class="form-section-title">Status & Informasi</div>
 
+                                <!-- Status -->
                                 <div class="mb-3">
-                                    <label for="status" class="form-label">Match Status <span class="text-danger">*</span></label>
+                                    <label for="status" class="form-label">Status Pertandingan <span class="required">*</span></label>
                                     <select class="form-select @error('status') is-invalid @enderror" id="status" name="status"
                                         required>
                                         <option value="upcoming" {{ old('status', 'upcoming') == 'upcoming' ? 'selected' : '' }}>
@@ -431,33 +516,29 @@
                                     @enderror
                                 </div>
 
-                                <!-- Scores -->
-                                <div class="row">
+                                <!-- Skor -->
+                                <div class="row mb-3">
                                     <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="home_score" class="form-label">Home Score</label>
-                                            <input type="number" class="form-control @error('home_score') is-invalid @enderror"
-                                                id="home_score" name="home_score" value="{{ old('home_score', 0) }}" min="0">
-                                            @error('home_score')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
+                                        <label for="home_score" class="form-label">Skor Home</label>
+                                        <input type="number" class="form-control @error('home_score') is-invalid @enderror"
+                                            id="home_score" name="home_score" value="{{ old('home_score', 0) }}" min="0">
+                                        @error('home_score')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     <div class="col-md-6">
-                                        <div class="mb-3">
-                                            <label for="away_score" class="form-label">Away Score</label>
-                                            <input type="number" class="form-control @error('away_score') is-invalid @enderror"
-                                                id="away_score" name="away_score" value="{{ old('away_score', 0) }}" min="0">
-                                            @error('away_score')
-                                                <div class="invalid-feedback">{{ $message }}</div>
-                                            @enderror
-                                        </div>
+                                        <label for="away_score" class="form-label">Skor Away</label>
+                                        <input type="number" class="form-control @error('away_score') is-invalid @enderror"
+                                            id="away_score" name="away_score" value="{{ old('away_score', 0) }}" min="0">
+                                        @error('away_score')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                 </div>
 
-                                <!-- Round Number -->
+                                <!-- Nomor ronde -->
                                 <div class="mb-3">
-                                    <label for="round" class="form-label">Round Number</label>
+                                    <label for="round" class="form-label">Nomor Ronde</label>
                                     <input type="number" class="form-control @error('round') is-invalid @enderror"
                                         id="round" name="round" value="{{ old('round', 1) }}" min="1">
                                     @error('round')
@@ -465,20 +546,20 @@
                                     @enderror
                                     <div class="form-text">
                                         @if($tournamentType === 'league')
-                                            League match round number (1, 2, 3, etc.)
+                                            Nomor ronde pertandingan league (1, 2, 3, dst.)
                                         @elseif($tournamentType === 'knockout')
-                                            Knockout round (1 = first round, 2 = second round, etc.)
+                                            Ronde knockout (1 = ronde pertama, 2 = ronde kedua, dst.)
                                         @else
-                                            Group stage round number
+                                            Nomor ronde group stage
                                         @endif
                                     </div>
                                 </div>
 
-                                <!-- Notes -->
-                                <div class="mb-3">
-                                    <label for="notes" class="form-label">Additional Notes</label>
-                                    <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes" rows="2"
-                                        placeholder="Any additional information about this match...">{{ old('notes') }}</textarea>
+                                <!-- Catatan -->
+                                <div class="mb-0">
+                                    <label for="notes" class="form-label">Catatan Tambahan</label>
+                                    <textarea class="form-control @error('notes') is-invalid @enderror" id="notes" name="notes"
+                                        rows="2" placeholder="Informasi tambahan tentang pertandingan ini...">{{ old('notes') }}</textarea>
                                     @error('notes')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -486,269 +567,255 @@
                             </div>
                         </div>
 
-                        <!-- Form Actions -->
-                        <div class="d-flex justify-content-between mt-4">
-                            <a href="{{ route('admin.matches.index') }}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
+                        <!-- Aksi form -->
+                        <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                            <a href="{{ route('admin.matches.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary">
-                                <i class="bi bi-check-circle"></i> Create Match
+                                <i class="bi bi-check-circle me-1"></i> Buat Pertandingan
                             </button>
                         </div>
                     @else
-                        <!-- No Teams Warning -->
-                        <div class="alert alert-warning text-center py-5">
+                        <!-- Peringatan: belum ada tim -->
+                        <div class="alert alert-warning text-center py-5 mb-0">
                             <i class="bi bi-people display-4"></i>
-                            <h4 class="mt-3">No Teams in This Tournament</h4>
-                            <p class="text-muted">You need to add teams to the tournament before creating matches.</p>
+                            <h4 class="mt-3">Belum Ada Tim di Turnamen Ini</h4>
+                            <p class="text-muted">Tambahkan tim ke turnamen terlebih dahulu sebelum membuat pertandingan.</p>
                             <a href="{{ route('admin.tournaments.teams', $tournamentId) }}" class="btn btn-primary mt-3">
-                                <i class="bi bi-plus-circle"></i> Add Teams to Tournament
+                                <i class="bi bi-plus-circle"></i> Tambah Tim ke Turnamen
                             </a>
                         </div>
                     @endif
                 </form>
             @else
-                <!-- No Tournament Selected -->
+                <!-- Belum ada turnamen dipilih -->
                 <div class="text-center py-5">
                     <i class="bi bi-trophy display-4 text-muted"></i>
-                    <h3 class="mt-3">Select a Tournament First</h3>
-                    <p class="text-muted">Please select a tournament from the dropdown above to create a match.</p>
+                    <h3 class="mt-3">Pilih Turnamen Terlebih Dahulu</h3>
+                    <p class="text-muted">Silakan pilih turnamen dari dropdown di atas untuk membuat pertandingan.</p>
                 </div>
             @endif
         </div>
     </div>
 
-    <!-- Information Box -->
+    <!-- Tips -->
     @if($tournamentId && $teams->count() > 0)
         <div class="alert alert-info mt-4">
-            <i class="bi bi-lightbulb"></i>
+            <i class="bi bi-lightbulb me-1"></i>
             <div>
-                <strong>Quick Tips for {{ $selectedTournament->name }} ({{ ucfirst(str_replace('_', ' ', $tournamentType)) }}):</strong>
+                <strong>Tips untuk {{ $selectedTournament->name }} ({{ ucfirst(str_replace('_', ' ', $tournamentType)) }}):</strong>
                 <ul class="mb-0 mt-2">
                     @if($tournamentType === 'group_knockout')
-                        <li>For group stage matches, both teams must be in the same group</li>
-                        <li>Group stage matches use "Group" round type</li>
-                        <li>Knockout stage matches use Quarterfinal, Semifinal, Final round types</li>
-                        <li>Group will auto-select based on selected teams</li>
+                        <li>Untuk group stage, kedua tim harus berasal dari grup yang sama</li>
+                        <li>Pertandingan group stage menggunakan tipe ronde "Group"</li>
+                        <li>Pertandingan knockout menggunakan tipe ronde Quarterfinal, Semifinal, Final</li>
+                        <li>Grup akan terpilih otomatis berdasarkan tim yang dipilih</li>
                     @elseif($tournamentType === 'league')
-                        <li>League uses "League Match" round type (auto-selected)</li>
-                        <li>No group assignment needed - it's a single round-robin</li>
-                        <li>All teams play against each other once</li>
-                        <li>Only one standings table for all teams</li>
-                        <li>Round type and stage are automatically set to "League"</li>
+                        <li>League menggunakan tipe ronde "League Match" (otomatis)</li>
+                        <li>Tidak perlu pembagian grup — single round-robin</li>
+                        <li>Semua tim saling bertanding satu kali</li>
+                        <li>Hanya satu tabel klasemen untuk semua tim</li>
+                        <li>Tipe ronde dan stage otomatis diisi "League"</li>
                     @elseif($tournamentType === 'knockout')
-                        <li>Knockout matches don't require group assignment</li>
-                        <li>Select appropriate round type based on tournament format</li>
-                        <li>Round of 32, Round of 16, Quarterfinal, Semifinal, Final available</li>
+                        <li>Pertandingan knockout tidak memerlukan pembagian grup</li>
+                        <li>Pilih tipe ronde sesuai format turnamen</li>
+                        <li>Round of 32, Round of 16, Quarterfinal, Semifinal, Final tersedia</li>
                     @endif
-                    <li>Match date must be within tournament dates: {{ $selectedTournament->start_date->format('d M Y') }} - {{ $selectedTournament->end_date->format('d M Y') }}</li>
-                    <li>You can update scores later if the match is ongoing or completed</li>
+                    <li>Tanggal pertandingan harus dalam rentang turnamen: {{ $selectedTournament->start_date->format('d M Y') }} - {{ $selectedTournament->end_date->format('d M Y') }}</li>
+                    <li>Skor dapat diperbarui nanti jika pertandingan ongoing atau completed</li>
                 </ul>
             </div>
         </div>
     @endif
-</div>
 @endsection
 
 @section('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const tournamentType = "{{ $tournamentType ?? '' }}";
-        const roundTypeSelect = document.getElementById('round_type');
-        const groupNameField = document.getElementById('group_name_field');
-        const homeTeamSelect = document.getElementById('team_home_id');
-        const awayTeamSelect = document.getElementById('team_away_id');
-        const teamGroupInfo = document.getElementById('teamGroupInfo');
-        const teamGroupMessage = document.getElementById('teamGroupMessage');
-        
-        // Function untuk toggle group field
-        function toggleGroupField() {
-            if (!roundTypeSelect || !tournamentType) return;
-            
-            const roundType = roundTypeSelect.value;
-            const groupSelect = document.getElementById('group_name');
-            
-            // Tampilkan group field hanya untuk:
-            // 1. Tournament type group_knockout
-            // 2. Round type 'group'
-            if (tournamentType === 'group_knockout' && roundType === 'group') {
-                if (groupNameField) {
-                    groupNameField.style.display = 'block';
-                    if (groupSelect) {
-                        groupSelect.required = true;
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tournamentType = "{{ $tournamentType ?? '' }}";
+            const roundTypeSelect = document.getElementById('round_type');
+            const groupNameField = document.getElementById('group_name_field');
+            const homeTeamSelect = document.getElementById('team_home_id');
+            const awayTeamSelect = document.getElementById('team_away_id');
+            const teamGroupInfo = document.getElementById('teamGroupInfo');
+            const teamGroupMessage = document.getElementById('teamGroupMessage');
+
+            // ===== Toggle field nama grup =====
+            function toggleGroupField() {
+                if (!roundTypeSelect || !tournamentType) return;
+
+                const roundType = roundTypeSelect.value;
+                const groupSelect = document.getElementById('group_name');
+
+                // Field grup hanya tampil untuk group_knockout + round type 'group'
+                if (tournamentType === 'group_knockout' && roundType === 'group') {
+                    if (groupNameField) {
+                        groupNameField.style.display = 'block';
+                        if (groupSelect) {
+                            groupSelect.required = true;
+                        }
                     }
-                }
-            } else {
-                if (groupNameField) {
-                    groupNameField.style.display = 'none';
-                    if (groupSelect) {
-                        groupSelect.required = false;
+                } else {
+                    if (groupNameField) {
+                        groupNameField.style.display = 'none';
+                        if (groupSelect) {
+                            groupSelect.required = false;
+                        }
                     }
                 }
             }
-        }
 
-        // Auto-select group based on selected teams
-        function updateGroupSelection() {
-            if (!homeTeamSelect || !awayTeamSelect || !teamGroupInfo || !teamGroupMessage) return;
-            
-            if (homeTeamSelect.value && awayTeamSelect.value) {
-                const homeOption = homeTeamSelect.options[homeTeamSelect.selectedIndex];
-                const awayOption = awayTeamSelect.options[awayTeamSelect.selectedIndex];
-                
-                const homeGroup = homeOption.dataset.group || '';
-                const awayGroup = awayOption.dataset.group || '';
-                
-                // Show group info
-                teamGroupInfo.style.display = 'block';
-                
-                if (homeGroup && awayGroup) {
-                    if (homeGroup === awayGroup) {
-                        teamGroupMessage.innerHTML = `Both teams are in <strong>Group ${homeGroup}</strong>. Group will auto-select.`;
-                        
-                        // Auto-select group in dropdown
-                        const groupSelect = document.getElementById('group_name');
-                        if (groupSelect) {
-                            for (let option of groupSelect.options) {
-                                if (option.value === homeGroup) {
-                                    groupSelect.value = homeGroup;
-                                    break;
+            // ===== Auto-pilih grup berdasarkan tim terpilih =====
+            function updateGroupSelection() {
+                if (!homeTeamSelect || !awayTeamSelect || !teamGroupInfo || !teamGroupMessage) return;
+
+                if (homeTeamSelect.value && awayTeamSelect.value) {
+                    const homeOption = homeTeamSelect.options[homeTeamSelect.selectedIndex];
+                    const awayOption = awayTeamSelect.options[awayTeamSelect.selectedIndex];
+
+                    const homeGroup = homeOption.dataset.group || '';
+                    const awayGroup = awayOption.dataset.group || '';
+
+                    teamGroupInfo.style.display = 'block';
+
+                    if (homeGroup && awayGroup) {
+                        if (homeGroup === awayGroup) {
+                            teamGroupMessage.innerHTML = `Kedua tim berada di <strong>Group ${homeGroup}</strong>. Grup akan terpilih otomatis.`;
+
+                            const groupSelect = document.getElementById('group_name');
+                            if (groupSelect) {
+                                for (let option of groupSelect.options) {
+                                    if (option.value === homeGroup) {
+                                        groupSelect.value = homeGroup;
+                                        break;
+                                    }
                                 }
                             }
+                        } else {
+                            teamGroupMessage.innerHTML = `
+                                <span class="text-danger">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    Tim berada di grup berbeda!
+                                    Home: <strong>Group ${homeGroup}</strong>,
+                                    Away: <strong>Group ${awayGroup}</strong>
+                                </span>
+                                <br>
+                                <small>Untuk group stage, pilih tim dari grup yang sama.</small>
+                            `;
+                            const groupSelect = document.getElementById('group_name');
+                            if (groupSelect) {
+                                groupSelect.value = '';
+                            }
                         }
-                    } else {
+                    } else if (tournamentType === 'league') {
                         teamGroupMessage.innerHTML = `
-                            <span class="text-danger">
-                                <i class="bi bi-exclamation-triangle"></i>
-                                Teams are in different groups! 
-                                Home: <strong>Group ${homeGroup}</strong>, 
-                                Away: <strong>Group ${awayGroup}</strong>
+                            <span class="text-success">
+                                <i class="bi bi-info-circle"></i>
+                                Format league — tidak perlu pembagian grup.
                             </span>
                             <br>
-                            <small>For group stage matches, select teams from the same group.</small>
+                            <small>Semua tim bertanding dalam format single round-robin.</small>
                         `;
-                        const groupSelect = document.getElementById('group_name');
-                        if (groupSelect) {
-                            groupSelect.value = '';
-                        }
+                    } else if (tournamentType === 'knockout') {
+                        teamGroupMessage.innerHTML = `
+                            <span class="text-success">
+                                <i class="bi bi-info-circle"></i>
+                                Format knockout — tidak perlu pembagian grup.
+                            </span>
+                            <br>
+                            <small>Bracket eliminasi langsung.</small>
+                        `;
+                    } else if (tournamentType === 'group_knockout') {
+                        teamGroupMessage.innerHTML = `
+                            <span class="text-warning">
+                                <i class="bi bi-info-circle"></i>
+                                Satu atau kedua tim belum tergabung dalam grup.
+                            </span>
+                            <br>
+                            <small>Pilih grup secara manual jika diperlukan.</small>
+                        `;
+                    } else {
+                        teamGroupInfo.style.display = 'none';
                     }
-                } else if (tournamentType === 'league') {
-                    teamGroupMessage.innerHTML = `
-                        <span class="text-success">
-                            <i class="bi bi-info-circle"></i>
-                            League format - no group assignment needed.
-                        </span>
-                        <br>
-                        <small>All teams play in a single round-robin format.</small>
-                    `;
-                } else if (tournamentType === 'knockout') {
-                    teamGroupMessage.innerHTML = `
-                        <span class="text-success">
-                            <i class="bi bi-info-circle"></i>
-                            Knockout format - no group assignment needed.
-                        </span>
-                        <br>
-                        <small>Direct elimination bracket.</small>
-                    `;
-                } else if (tournamentType === 'group_knockout') {
-                    teamGroupMessage.innerHTML = `
-                        <span class="text-warning">
-                            <i class="bi bi-info-circle"></i>
-                            One or both teams are not assigned to a group.
-                        </span>
-                        <br>
-                        <small>Select group manually if needed.</small>
-                    `;
                 } else {
                     teamGroupInfo.style.display = 'none';
                 }
-            } else {
-                teamGroupInfo.style.display = 'none';
             }
-        }
 
-        // Auto-calculate end time based on start time
-        const timeStart = document.getElementById('time_start');
-        const timeEnd = document.getElementById('time_end');
+            // ===== Auto-isi waktu selesai (durasi futsal 1 jam 40 menit) =====
+            const timeStart = document.getElementById('time_start');
+            const timeEnd = document.getElementById('time_end');
 
-        if (timeStart && timeEnd) {
-            timeStart.addEventListener('change', function () {
-                if (timeStart.value && !timeEnd.value) {
-                    const startTime = new Date(`1970-01-01T${timeStart.value}:00`);
-                    startTime.setMinutes(startTime.getMinutes() + 100); // 1 hour 40 minutes for futsal
+            if (timeStart && timeEnd) {
+                timeStart.addEventListener('change', function () {
+                    if (timeStart.value && !timeEnd.value) {
+                        const startTime = new Date(`1970-01-01T${timeStart.value}:00`);
+                        startTime.setMinutes(startTime.getMinutes() + 100);
 
-                    const hours = startTime.getHours().toString().padStart(2, '0');
-                    const minutes = startTime.getMinutes().toString().padStart(2, '0');
+                        const hours = startTime.getHours().toString().padStart(2, '0');
+                        const minutes = startTime.getMinutes().toString().padStart(2, '0');
 
-                    timeEnd.value = `${hours}:${minutes}`;
-                }
-            });
-        }
+                        timeEnd.value = `${hours}:${minutes}`;
+                    }
+                });
+            }
 
-        // Event Listeners - Hanya untuk tournament yang BUKAN league
-        if (roundTypeSelect && tournamentType !== 'league') {
-            // Initial state
-            toggleGroupField();
-            
-            // Event listener
-            roundTypeSelect.addEventListener('change', toggleGroupField);
-        }
+            // ===== Event listeners (hanya untuk turnamen non-league) =====
+            if (roundTypeSelect && tournamentType !== 'league') {
+                toggleGroupField();
+                roundTypeSelect.addEventListener('change', toggleGroupField);
+            }
 
-        if (homeTeamSelect && awayTeamSelect) {
-            homeTeamSelect.addEventListener('change', updateGroupSelection);
-            awayTeamSelect.addEventListener('change', updateGroupSelection);
-            
-            // Initial check
-            updateGroupSelection();
-        }
+            if (homeTeamSelect && awayTeamSelect) {
+                homeTeamSelect.addEventListener('change', updateGroupSelection);
+                awayTeamSelect.addEventListener('change', updateGroupSelection);
+                updateGroupSelection();
+            }
 
-        // Form validation
-        const matchForm = document.getElementById('matchForm');
-        if (matchForm) {
-            matchForm.addEventListener('submit', function (e) {
-                // Untuk league: tidak perlu validasi tambahan
-                if (tournamentType === 'league') {
+            // ===== Validasi saat submit =====
+            const matchForm = document.getElementById('matchForm');
+            if (matchForm) {
+                matchForm.addEventListener('submit', function (e) {
+                    // League: tidak perlu validasi tambahan
+                    if (tournamentType === 'league') {
+                        return true;
+                    }
+
+                    const roundTypeSelect = document.getElementById('round_type');
+                    const roundType = roundTypeSelect ? roundTypeSelect.value : 'league';
+
+                    // Validasi group stage hanya untuk turnamen group_knockout
+                    if (tournamentType === 'group_knockout' && roundType === 'group') {
+                        const homeOption = homeTeamSelect.options[homeTeamSelect.selectedIndex];
+                        const awayOption = awayTeamSelect.options[awayTeamSelect.selectedIndex];
+
+                        const homeGroup = homeOption.dataset.group || '';
+                        const awayGroup = awayOption.dataset.group || '';
+
+                        if (homeGroup && awayGroup && homeGroup !== awayGroup) {
+                            e.preventDefault();
+                            alert('Untuk group stage, kedua tim harus berasal dari grup yang sama. Silakan pilih tim dari grup yang sama.');
+                            return false;
+                        }
+
+                        const groupSelect = document.getElementById('group_name');
+                        if (groupSelect && !groupSelect.value) {
+                            e.preventDefault();
+                            alert('Silakan pilih grup untuk pertandingan ini.');
+                            return false;
+                        }
+                    }
+
                     return true;
-                }
-                
-                // Untuk tournament lain
-                const roundTypeSelect = document.getElementById('round_type');
-                const roundType = roundTypeSelect ? roundTypeSelect.value : 'league';
-                
-                // Group stage validation hanya untuk group_knockout tournament
-                if (tournamentType === 'group_knockout' && roundType === 'group') {
-                    const homeOption = homeTeamSelect.options[homeTeamSelect.selectedIndex];
-                    const awayOption = awayTeamSelect.options[awayTeamSelect.selectedIndex];
-                    
-                    const homeGroup = homeOption.dataset.group || '';
-                    const awayGroup = awayOption.dataset.group || '';
-                    
-                    if (homeGroup && awayGroup && homeGroup !== awayGroup) {
-                        e.preventDefault();
-                        alert('For group stage matches, both teams must be in the same group. Please select teams from the same group.');
-                        return false;
-                    }
-                    
-                    // Validasi group_name dipilih
-                    const groupSelect = document.getElementById('group_name');
-                    if (groupSelect && !groupSelect.value) {
-                        e.preventDefault();
-                        alert('Please select a group for this match.');
-                        return false;
-                    }
-                }
-                
-                return true;
-            });
-        }
+                });
+            }
 
-        // Set tanggal default ke hari ini jika belum diisi
-        const matchDateInput = document.getElementById('match_date');
-        if (matchDateInput && !matchDateInput.value) {
-            const today = new Date();
-            const formattedDate = today.toISOString().split('T')[0];
-            matchDateInput.value = formattedDate;
-        }
-    });
-</script>
+            // ===== Tanggal default: hari ini jika belum diisi =====
+            const matchDateInput = document.getElementById('match_date');
+            if (matchDateInput && !matchDateInput.value) {
+                const today = new Date();
+                const formattedDate = today.toISOString().split('T')[0];
+                matchDateInput.value = formattedDate;
+            }
+        });
+    </script>
 @endsection

@@ -194,7 +194,7 @@
     </div>
 @endsection
 
-@push('styles')
+@section('styles')
     <style>
         .page-header {
             background: white;
@@ -315,4 +315,4 @@
             }
         }
     </style>
-@endpush
+@endsection

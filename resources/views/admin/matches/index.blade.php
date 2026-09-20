@@ -70,7 +70,7 @@
             border-radius: 6px;
             padding: 8px 12px 8px 32px;
             font-size: 14px;
-            height: 38px;
+            height: 40px;
             width: 240px;
         }
 
@@ -84,7 +84,7 @@
             background: var(--accent);
             color: #fff;
             border: none;
-            height: 38px;
+            height: 40px;
             padding: 0 16px;
             border-radius: 6px;
             font-size: 14px;
@@ -125,11 +125,11 @@
 
         /* Filters row: input & select tinggi seragam 38px agar sejajar */
         .filter-select {
-            height: 38px;
+            height: 40px;
         }
 
         .btn-reset {
-            height: 38px;
+            height: 40px;
         }
 
         .stat-card {
@@ -199,7 +199,7 @@
             font-weight: 500;
             font-size: 13px;
             border-bottom: 1px solid var(--border);
-            padding: 10px 16px;
+            padding: 12px 16px;
             white-space: nowrap;
         }
 
@@ -252,18 +252,6 @@
             object-fit: cover;
         }
 
-        .team-initial {
-            width: 100%;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: #F0F0F2;
-            color: var(--text-secondary);
-            font-size: 12px;
-            font-weight: 600;
-        }
-
         .vs {
             color: var(--text-secondary);
             font-size: 12px;
@@ -271,7 +259,7 @@
         }
 
         .score-display-admin {
-            margin-top: 6px;
+            margin-top: 8px;
             display: flex;
             align-items: center;
             gap: 8px;
@@ -421,6 +409,18 @@
         }
 
         /* Pagination */
+        .pagination-container {
+            padding: 12px 16px;
+            border-top: 1px solid var(--border);
+            gap: 12px;
+        }
+
+        .pagination-controls {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
         .pagination-info {
             font-size: 13px;
             color: var(--text-secondary);

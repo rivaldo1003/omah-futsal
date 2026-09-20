@@ -1,141 +1,196 @@
 @extends('layouts.admin')
 
-@section('title', 'Tournament Details')
-
-<link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
-
+@section('title', 'Detail Turnamen')
 
 @section('styles')
     <style>
+        /* ===== Tournament detail page — design guidelines ===== */
+
         :root {
-            --primary: #3B82F6;
-            --secondary: #6B7280;
-            --success: #10B981;
-            --warning: #F59E0B;
-            --danger: #EF4444;
-            --dark: #111827;
-            --light: #F9FAFB;
-            --card-bg: #FFFFFF;
-            --border: #E5E7EB;
-            --radius: 10px;
+            --primary: var(--accent);
+            --secondary: var(--text-secondary);
+            --success: #1E7A46;
+            --warning: #B45309;
+            --danger: #c01c28;
+            --dark: var(--text-primary);
+            --light: var(--surface);
+            --card-bg: var(--bg);
+            --radius: 12px;
         }
 
+        /* Page header */
         .page-header {
-            background: white;
-            border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .page-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+            margin: 0 0 4px;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin: 0;
+        }
+
+        .btn-back {
             border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text-primary);
+            border-radius: 6px;
+            height: 40px;
+            padding: 0 16px;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
         }
 
+        .btn-back:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* Tournament header banner */
         .tournament-header {
-            background: linear-gradient(135deg, var(--primary), #2563EB);
-            color: white;
+            background: var(--bg);
+            border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 2rem;
-            margin-bottom: 1.5rem;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .tournament-header::after {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -20%;
-            width: 40%;
-            height: 200%;
-            background: rgba(255, 255, 255, 0.1);
-            transform: rotate(30deg);
+            padding: 24px;
+            margin-bottom: 24px;
         }
 
         .tournament-title {
-            font-size: 1.8rem;
+            font-size: 24px;
             font-weight: 700;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
         }
 
         .tournament-meta {
             display: flex;
-            gap: 1rem;
+            gap: 16px;
             flex-wrap: wrap;
-            margin-bottom: 0.5rem;
+            margin-bottom: 8px;
         }
 
         .meta-item {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            font-size: 0.9rem;
-            opacity: 0.9;
+            gap: 8px;
+            font-size: 14px;
+            color: var(--text-secondary);
         }
 
         .badge-status {
-            padding: 0.25rem 0.75rem;
-            border-radius: 20px;
+            padding: 2px 12px;
+            border-radius: 999px;
             font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
+            font-size: 12px;
         }
 
         .badge-status-ongoing {
-            background: #DCFCE7;
-            color: #15803D;
+            background: #FDF6EC;
+            border: 1px solid rgba(180, 83, 9, 0.2);
+            color: #B45309;
         }
 
         .badge-status-upcoming {
-            background: #FEF3C7;
-            color: #D97706;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
         .badge-status-completed {
-            background: #F1F5F9;
-            color: #64748B;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
-        /* Stats Grid - Compact */
-        .stats-grid {
+        /* Statistik di dalam banner */
+        .banner-stats {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 1rem;
-            margin-bottom: 1.5rem;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
         }
 
-        .stat-card {
-            background: var(--card-bg);
+        .banner-stat-value {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.2;
+        }
+
+        .banner-stat-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .tab-badge {
+            font-size: 11px;
+            font-weight: 500;
+            padding: 0 8px;
+            border-radius: 999px;
+            background: var(--surface);
             border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 1rem;
-            text-align: center;
-            transition: all 0.2s;
+            color: var(--text-secondary);
         }
 
-        .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        .group-badge {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--accent);
+            color: #fff;
         }
 
-        .stat-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-            margin-bottom: 0.25rem;
+        .round-badge {
+            font-size: 12px;
+            font-weight: 500;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
 
-        .stat-label {
-            font-size: 0.8rem;
-            color: var(--secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+        /* Tabel detail ringkasan */
+        .detail-table {
+            margin-bottom: 0;
         }
 
-        /* Compact Tabs */
+        .detail-table td {
+            padding: 6px 0;
+            border: 0;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .detail-table td:first-child {
+            width: 140px;
+            color: var(--text-secondary);
+        }
+
+        /* Tabs */
         .compact-tabs {
-            background: white;
+            background: var(--card-bg);
             border-radius: var(--radius);
             border: 1px solid var(--border);
-            margin-bottom: 1.5rem;
+            margin-bottom: 24px;
             overflow: hidden;
         }
 
@@ -152,89 +207,98 @@
         }
 
         .tab-btn {
-            padding: 0.875rem 1.25rem;
+            padding: 12px 20px;
             background: none;
             border: none;
-            border-bottom: 3px solid transparent;
+            border-bottom: 2px solid transparent;
             color: var(--secondary);
-            font-weight: 600;
-            font-size: 0.875rem;
+            font-weight: 500;
+            font-size: 14px;
             white-space: nowrap;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: color 0.15s ease, border-color 0.15s ease;
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .tab-btn:hover {
             color: var(--primary);
-            background: rgba(59, 130, 246, 0.05);
         }
 
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
-            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .tab-btn .badge {
+            font-size: 11px;
+            font-weight: 500;
         }
 
         .tab-content {
-            padding: 1.5rem;
+            padding: 24px;
         }
 
-        /* Teams List - Compact */
+        /* Teams list */
         .teams-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 16px;
         }
 
         .team-card {
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 1rem;
+            padding: 16px;
             text-align: center;
-            transition: all 0.2s;
+            transition: border-color 0.15s ease;
         }
 
         .team-card:hover {
             border-color: var(--primary);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
         }
 
         .team-avatar {
             width: 48px;
             height: 48px;
-            /* background: linear-gradient(135deg, var(--primary), #2563EB); */
-            /* border-radius: 50%; */
             display: flex;
             align-items: center;
             justify-content: center;
             color: white;
-            font-weight: bold;
-            font-size: 1.25rem;
-            margin: 0 auto 0.75rem;
+            font-weight: 600;
+            font-size: 20px;
+            margin: 0 auto 12px;
+            border-radius: 8px;
+            overflow: hidden;
+            background: var(--light);
+        }
+
+        .team-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .team-name {
-            font-weight: 600;
+            font-weight: 500;
             color: var(--dark);
-            margin-bottom: 0.25rem;
-            font-size: 0.95rem;
+            margin-bottom: 4px;
+            font-size: 14px;
         }
 
         .team-group {
-            font-size: 0.75rem;
+            font-size: 12px;
             color: var(--secondary);
-            padding: 0.25rem 0.5rem;
+            padding: 2px 8px;
             background: var(--light);
-            border-radius: 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
             display: inline-block;
         }
 
-        /* Matches Table - Compact */
+        /* Matches table */
         .compact-table {
             width: 100%;
             border-collapse: separate;
@@ -244,19 +308,17 @@
         .compact-table thead th {
             background: var(--light);
             color: var(--secondary);
-            font-weight: 600;
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            padding: 0.75rem 1rem;
+            font-weight: 500;
+            font-size: 13px;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
         }
 
         .compact-table tbody td {
-            padding: 0.75rem 1rem;
+            padding: 12px 16px;
             border-bottom: 1px solid var(--border);
             color: var(--dark);
-            font-size: 0.875rem;
+            font-size: 14px;
         }
 
         .compact-table tbody tr:last-child td {
@@ -269,18 +331,13 @@
 
         .match-row {
             cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .match-row:hover {
-            background: rgba(59, 130, 246, 0.05);
         }
 
         .match-teams {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
         .team-side {
@@ -293,130 +350,126 @@
         }
 
         .team-name-sm {
-            font-weight: 600;
-            font-size: 0.875rem;
-            margin-bottom: 0.125rem;
+            font-weight: 500;
+            font-size: 14px;
+            margin-bottom: 2px;
         }
 
         .team-group-sm {
-            font-size: 0.7rem;
+            font-size: 12px;
             color: var(--secondary);
         }
 
         .match-score {
-            padding: 0 1rem;
+            padding: 0 16px;
             min-width: 80px;
             text-align: center;
         }
 
         .score {
-            font-weight: 700;
-            font-size: 1rem;
+            font-weight: 600;
+            font-size: 14px;
             color: var(--dark);
         }
 
         .match-status {
-            font-size: 0.7rem;
+            font-size: 12px;
             color: var(--secondary);
-            text-transform: uppercase;
-            margin-top: 0.125rem;
+            margin-top: 2px;
         }
 
         .match-info {
-            font-size: 0.75rem;
+            font-size: 12px;
             color: var(--secondary);
             display: flex;
             align-items: center;
-            gap: 0.5rem;
+            gap: 8px;
         }
 
-        /* Settings Grid */
+        /* Settings grid */
         .settings-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
+            gap: 16px;
         }
 
         .setting-item {
-            background: white;
+            background: var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 1rem;
+            padding: 16px;
         }
 
         .setting-label {
-            font-size: 0.8rem;
+            font-size: 12px;
             color: var(--secondary);
-            margin-bottom: 0.5rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+            
         }
 
         .setting-value {
             font-weight: 600;
             color: var(--dark);
-            font-size: 1rem;
+            font-size: 14px;
         }
 
-        /* Danger Zone */
+        /* Danger zone */
         .danger-zone {
-            background: #FEF2F2;
-            border: 1px solid #FECACA;
+            background: #FDF2F3;
+            border: 1px solid rgba(192, 28, 40, 0.2);
             border-radius: var(--radius);
-            padding: 1.5rem;
-            margin-top: 2rem;
+            padding: 24px;
+            margin-top: 24px;
         }
 
         .danger-header {
             display: flex;
             align-items: center;
-            gap: 0.5rem;
-            color: #DC2626;
-            margin-bottom: 0.75rem;
+            gap: 8px;
+            color: #c01c28;
+            margin-bottom: 12px;
             font-weight: 600;
         }
 
         .danger-text {
-            color: #991B1B;
-            font-size: 0.875rem;
-            margin-bottom: 1rem;
+            color: rgba(192, 28, 40, 0.8);
+            font-size: 14px;
+            margin-bottom: 16px;
         }
 
-        /* Empty State */
+        /* Empty state */
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 48px 16px;
         }
 
         .empty-icon {
-            font-size: 3rem;
+            font-size: 32px;
             color: var(--border);
-            margin-bottom: 1rem;
+            margin-bottom: 12px;
         }
 
         .empty-title {
-            color: var(--secondary);
+            color: var(--text-primary);
             font-weight: 600;
-            margin-bottom: 0.5rem;
+            margin-bottom: 4px;
         }
 
         .empty-text {
             color: var(--secondary);
-            font-size: 0.875rem;
+            font-size: 14px;
             max-width: 300px;
-            margin: 0 auto 1rem;
+            margin: 0 auto 16px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .page-header {
                 flex-direction: column;
-                gap: 1rem;
-                text-align: center;
+                align-items: flex-start;
             }
 
             .tournament-meta {
-                justify-content: center;
+                justify-content: flex-start;
             }
 
             .stats-grid {
@@ -427,13 +480,9 @@
                 grid-template-columns: repeat(2, 1fr);
             }
 
-            .compact-table {
-                font-size: 0.8rem;
-            }
-
             .match-teams {
                 flex-direction: column;
-                gap: 0.25rem;
+                gap: 4px;
             }
 
             .team-side {
@@ -443,11 +492,15 @@
 
             .match-score {
                 order: -1;
-                padding: 0.5rem 0;
+                padding: 8px 0;
             }
 
             .settings-grid {
                 grid-template-columns: 1fr;
+            }
+
+            .banner-stats {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
@@ -460,24 +513,32 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        @media (prefers-reduced-motion: reduce) {
+
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
     </style>
 @endsection
 
 @section('content')
-    <!-- Page Header -->
-    <div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+    <!-- Page header -->
+    <div class="page-header">
         <div>
-            <h1 class="h3 mb-2">
-                <i class="bi bi-trophy me-2"></i>Tournament Details
-            </h1>
-            <p class="text-muted mb-0">Manage and view {{ $tournament->name }} tournament</p>
+            <h1>Detail Turnamen</h1>
+            <p class="page-subtitle">Kelola dan lihat turnamen {{ $tournament->name }}</p>
         </div>
-        <div class="d-flex gap-2 mt-2">
-            <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary btn-sm">
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary">
                 <i class="bi bi-pencil-square me-1"></i> Edit
             </a>
-            <a href="{{ route('admin.tournaments.index') }}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-arrow-left me-1"></i> Back
+            <a href="{{ route('admin.tournaments.index') }}" class="btn-back">
+                <i class="bi bi-arrow-left"></i> Kembali
             </a>
         </div>
     </div>
@@ -490,7 +551,7 @@
         </div>
     @endif
 
-    <!-- Tournament Header -->
+    <!-- Banner turnamen -->
     <div class="tournament-header">
         <div class="d-flex justify-content-between align-items-start">
             <div class="position-relative" style="z-index: 1;">
@@ -506,41 +567,40 @@
                     </span>
                     <span class="meta-item">
                         <i class="bi bi-people"></i>
-                        {{ $tournament->teams_count }} teams
+                        {{ $tournament->teams_count }} tim
                     </span>
                 </div>
                 @if($tournament->description)
-                    <p class="mt-2" style="opacity: 0.9; font-size: 0.95rem;">{{ $tournament->description }}</p>
+                    <p class="mt-2 mb-0" style="font-size: 14px; color: var(--text-secondary);">{{ $tournament->description }}</p>
                 @endif
             </div>
-            <div class="text-end position-relative" style="z-index: 1;">
-                <div class="mb-2">
-                    <span class="badge-status badge-status-{{ $tournament->status }}">
-                        {{ ucfirst($tournament->status) }}
-                    </span>
+            <div class="text-end">
+                <span class="badge-status badge-status-{{ $tournament->status }}">
+                    {{ ucfirst($tournament->status) }}
+                </span>
+                <div class="mt-2">
+                    <small style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
                 </div>
-                <small class="opacity-75">{{ strtoupper($tournament->type) }}</small>
             </div>
         </div>
-    </div>
 
-    <!-- Quick Stats -->
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="stat-value">{{ $tournament->teams_count }}</div>
-            <div class="stat-label">Teams</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $tournament->matches_count }}</div>
-            <div class="stat-label">Matches</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $completedMatches ?? 0 }}</div>
-            <div class="stat-label">Completed</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-value">{{ $tournament->duration }}</div>
-            <div class="stat-label">Days</div>
+        <div class="banner-stats">
+            <div>
+                <div class="banner-stat-value">{{ $tournament->teams_count }}</div>
+                <div class="banner-stat-label">Tim</div>
+            </div>
+            <div>
+                <div class="banner-stat-value">{{ $tournament->matches_count }}</div>
+                <div class="banner-stat-label">Pertandingan</div>
+            </div>
+            <div>
+                <div class="banner-stat-value">{{ $completedMatches ?? 0 }}</div>
+                <div class="banner-stat-label">Selesai</div>
+            </div>
+            <div>
+                <div class="banner-stat-value">{{ $tournament->duration }}</div>
+                <div class="banner-stat-label">Hari</div>
+            </div>
         </div>
     </div>
 
@@ -549,81 +609,80 @@
         <div class="tabs-header">
             <button class="tab-btn active" data-tab="overview">
                 <i class="bi bi-info-circle"></i>
-                <span>Overview</span>
+                <span>Ringkasan</span>
             </button>
             <button class="tab-btn" data-tab="teams">
                 <i class="bi bi-people"></i>
-                <span>Teams</span>
-                <span class="badge bg-primary rounded-pill" style="font-size: 0.6rem;">{{ $tournament->teams_count }}</span>
+                <span>Tim</span>
+                <span class="tab-badge">{{ $tournament->teams_count }}</span>
             </button>
             <button class="tab-btn" data-tab="matches">
                 <i class="bi bi-calendar-event"></i>
-                <span>Matches</span>
-                <span class="badge bg-primary rounded-pill"
-                    style="font-size: 0.6rem;">{{ $tournament->matches_count }}</span>
+                <span>Pertandingan</span>
+                <span class="tab-badge">{{ $tournament->matches_count }}</span>
             </button>
             <button class="tab-btn" data-tab="settings">
                 <i class="bi bi-gear"></i>
-                <span>Settings</span>
+                <span>Pengaturan</span>
             </button>
         </div>
 
         <div class="tab-content">
-            <!-- Overview Tab -->
+            <!-- Tab ringkasan -->
             <div id="overview-tab" class="tab-pane active">
                 <div class="row">
                     <div class="col-md-6">
-                        <h6 class="mb-3"><i class="bi bi-info-square me-2"></i>Details</h6>
-                        <table class="table table-sm">
+                        <h6 class="mb-3"><i class="bi bi-info-square me-2"></i>Detail</h6>
+                        <table class="table detail-table">
                             <tr>
-                                <td width="120"><small class="text-muted">Organizer</small></td>
+                                <td>Penyelenggara</td>
                                 <td>{{ $tournament->organizer ?? 'N/A' }}</td>
                             </tr>
                             <tr>
-                                <td><small class="text-muted">Location</small></td>
+                                <td>Lokasi</td>
                                 <td>{{ $tournament->location ?? 'N/A' }}</td>
                             </tr>
                             <tr>
-                                <td><small class="text-muted">Start Date</small></td>
+                                <td>Tanggal Mulai</td>
                                 <td>{{ $tournament->start_date->format('d M Y') }}</td>
                             </tr>
                             <tr>
-                                <td><small class="text-muted">End Date</small></td>
+                                <td>Tanggal Selesai</td>
                                 <td>{{ $tournament->end_date->format('d M Y') }}</td>
                             </tr>
                             <tr>
-                                <td><small class="text-muted">Created</small></td>
+                                <td>Dibuat</td>
                                 <td>{{ $tournament->created_at->diffForHumans() }}</td>
                             </tr>
                             @if($tournament->type == 'group_knockout')
                                 <tr>
-                                    <td><small class="text-muted">Groups</small></td>
+                                    <td>Grup</td>
                                     <td>{{ $tournament->groups_count }}</td>
                                 </tr>
                                 <tr>
-                                    <td><small class="text-muted">Qualify/Group</small></td>
+                                    <td>Kualifikasi per Grup</td>
                                     <td>{{ $tournament->qualify_per_group }}</td>
                                 </tr>
                             @endif
                         </table>
                     </div>
                     <div class="col-md-6">
-                        <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Match Stats</h6>
+                        <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Statistik Pertandingan</h6>
                         <div class="settings-grid">
                             <div class="setting-item">
-                                <div class="setting-label">Match Duration</div>
-                                <div class="setting-value">{{ $tournament->match_duration }} min</div>
+                                <div class="setting-label">Durasi Pertandingan</div>
+                                <div class="setting-value">{{ $tournament->match_duration }} menit</div>
                             </div>
                             <div class="setting-item">
                                 <div class="setting-label">Half Time</div>
-                                <div class="setting-value">{{ $tournament->half_time }} min</div>
+                                <div class="setting-value">{{ $tournament->half_time }} menit</div>
                             </div>
                             <div class="setting-item">
-                                <div class="setting-label">Win Points</div>
+                                <div class="setting-label">Poin Menang</div>
                                 <div class="setting-value">{{ $tournament->points_win }}</div>
                             </div>
                             <div class="setting-item">
-                                <div class="setting-label">Draw Points</div>
+                                <div class="setting-label">Poin Seri</div>
                                 <div class="setting-value">{{ $tournament->points_draw }}</div>
                             </div>
                         </div>
@@ -631,18 +690,17 @@
                 </div>
             </div>
 
-            <!-- Teams Tab -->
+            <!-- Tab tim -->
             <div id="teams-tab" class="tab-pane" style="display: none;">
                 @if($tournament->teams_count > 0)
                     @if($tournament->type == 'group_knockout')
-                        <!-- Group + Knockout: Display teams grouped by group -->
                         @php
                             $groupedTeams = $tournament->teams->groupBy('pivot.group_name');
                         @endphp
                         @foreach($groupedTeams as $groupName => $teams)
                             <h6 class="mb-3 mt-4">
-                                <span class="badge bg-primary me-2">Group {{ $groupName }}</span>
-                                <small class="text-muted">{{ $teams->count() }} teams</small>
+                                <span class="group-badge me-2">Group {{ $groupName }}</span>
+                                <small class="text-secondary">{{ $teams->count() }} tim</small>
                             </h6>
                             <div class="teams-list mb-4">
                                 @foreach($teams as $team)
@@ -650,7 +708,6 @@
                                         <div class="team-avatar">
                                             @if($team->logo_url)
                                                 <img src="{{ $team->logo_url }}" alt="{{ $team->name }}"
-                                                    style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
                                                     onerror="this.onerror=null; this.parentElement.innerHTML='{{ strtoupper(substr($team->name, 0, 1)) }}';">
                                             @else
                                                 {{ strtoupper(substr($team->name, 0, 1)) }}
@@ -665,14 +722,12 @@
                             </div>
                         @endforeach
                     @else
-                        <!-- League or Knockout: Display all teams in a grid -->
                         <div class="teams-list">
                             @foreach($tournament->teams as $team)
                                 <div class="team-card">
                                     <div class="team-avatar">
                                         @if($team->logo_url)
                                             <img src="{{ $team->logo_url }}" alt="{{ $team->name }}"
-                                                style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;"
                                                 onerror="this.onerror=null; this.parentElement.innerHTML='{{ strtoupper(substr($team->name, 0, 1)) }}';">
                                         @else
                                             {{ strtoupper(substr($team->name, 0, 1)) }}
@@ -693,21 +748,21 @@
                         <div class="empty-icon">
                             <i class="bi bi-people"></i>
                         </div>
-                        <h6 class="empty-title">No Teams Registered</h6>
-                        <p class="empty-text">Add teams to this tournament to get started.</p>
+                        <h6 class="empty-title">Belum Ada Tim Terdaftar</h6>
+                        <p class="empty-text">Tambahkan tim ke turnamen ini untuk memulai.</p>
                         <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i> Add Teams
+                            <i class="bi bi-plus-circle me-1"></i> Tambah Tim
                         </a>
                     </div>
                 @endif
             </div>
 
-            <!-- Matches Tab -->
+            <!-- Tab pertandingan -->
             <div id="matches-tab" class="tab-pane" style="display: none;">
                 @if($tournament->matches_count > 0)
                     <div class="mb-3">
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-secondary active" data-filter="all">All</button>
+                            <button type="button" class="btn btn-outline-secondary active" data-filter="all">Semua</button>
                             <button type="button" class="btn btn-outline-secondary" data-filter="completed">Completed</button>
                             <button type="button" class="btn btn-outline-secondary" data-filter="upcoming">Upcoming</button>
                             <button type="button" class="btn btn-outline-secondary" data-filter="ongoing">Ongoing</button>
@@ -718,10 +773,10 @@
                         <table class="compact-table">
                             <thead>
                                 <tr>
-                                    <th>Match</th>
-                                    <th>Date & Time</th>
+                                    <th>Pertandingan</th>
+                                    <th>Tanggal & Waktu</th>
                                     <th>Venue</th>
-                                    <th>Round</th>
+                                    <th>Ronde</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -765,9 +820,9 @@
                                             <small>{{ $match->venue ?? 'Main Field' }}</small>
                                         </td>
                                         <td>
-                                            <small class="badge bg-light text-dark">
+                                            <span class="round-badge">
                                                 {{ ucfirst(str_replace('_', ' ', $match->round_type)) }}
-                                            </small>
+                                            </span>
                                         </td>
                                     </tr>
                                 @endforeach
@@ -779,53 +834,53 @@
                         <div class="empty-icon">
                             <i class="bi bi-calendar-x"></i>
                         </div>
-                        <h6 class="empty-title">No Matches Scheduled</h6>
-                        <p class="empty-text">Schedule matches to populate this tournament.</p>
+                        <h6 class="empty-title">Belum Ada Pertandingan</h6>
+                        <p class="empty-text">Jadwalkan pertandingan untuk mengisi turnamen ini.</p>
                         <a href="{{ route('admin.matches.create') }}" class="btn btn-primary btn-sm">
-                            <i class="bi bi-plus-circle me-1"></i> Schedule Match
+                            <i class="bi bi-plus-circle me-1"></i> Jadwalkan Pertandingan
                         </a>
                     </div>
                 @endif
             </div>
 
-            <!-- Settings Tab -->
+            <!-- Tab pengaturan -->
             <div id="settings-tab" class="tab-pane" style="display: none;">
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <div class="setting-label">Match Duration</div>
-                        <div class="setting-value">{{ $tournament->match_duration }} minutes</div>
+                        <div class="setting-label">Durasi Pertandingan</div>
+                        <div class="setting-value">{{ $tournament->match_duration }} menit</div>
                     </div>
                     <div class="setting-item">
                         <div class="setting-label">Half Time</div>
-                        <div class="setting-value">{{ $tournament->half_time }} minutes</div>
+                        <div class="setting-value">{{ $tournament->half_time }} menit</div>
                     </div>
                     <div class="setting-item">
                         <div class="setting-label">Extra Time</div>
-                        <div class="setting-value">{{ $settings['extra_time'] ?? 10 }} minutes</div>
+                        <div class="setting-value">{{ $settings['extra_time'] ?? 10 }} menit</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Max Substitutes</div>
+                        <div class="setting-label">Maksimal Pemain Cadangan</div>
                         <div class="setting-value">{{ $settings['max_substitutes'] ?? 5 }}</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Matches per Day</div>
+                        <div class="setting-label">Pertandingan per Hari</div>
                         <div class="setting-value">{{ $settings['matches_per_day'] ?? 4 }}</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Match Interval</div>
-                        <div class="setting-value">{{ $settings['match_interval'] ?? 30 }} min</div>
+                        <div class="setting-label">Interval Pertandingan</div>
+                        <div class="setting-value">{{ $settings['match_interval'] ?? 30 }} menit</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Yellow Card Limit</div>
+                        <div class="setting-label">Batas Kartu Kuning</div>
                         <div class="setting-value">{{ $settings['yellow_card_suspension'] ?? 3 }}</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">VAR Enabled</div>
+                        <div class="setting-label">VAR Aktif</div>
                         <div class="setting-value">
                             @if($settings['var_enabled'] ?? false)
-                                <span class="badge bg-success">Yes</span>
+                                <span class="badge bg-success">Ya</span>
                             @else
-                                <span class="badge bg-secondary">No</span>
+                                <span class="badge bg-secondary">Tidak</span>
                             @endif
                         </div>
                     </div>
@@ -834,20 +889,20 @@
         </div>
     </div>
 
-    <!-- Danger Zone -->
+    <!-- Danger zone -->
     <div class="danger-zone">
         <div class="danger-header">
             <i class="bi bi-exclamation-triangle"></i>
-            <span>Danger Zone</span>
+            <span>Zona Bahaya</span>
         </div>
-        <p class="danger-text">Deleting this tournament will remove all associated data including matches, standings, and
-            statistics. This action cannot be undone.</p>
+        <p class="danger-text">Menghapus turnamen ini akan menghapus semua data terkait termasuk pertandingan, klasemen, dan
+            statistik. Tindakan ini tidak dapat dibatalkan.</p>
         <form action="{{ route('admin.tournaments.destroy', $tournament) }}" method="POST"
-            onsubmit="return confirm('Are you sure? This will permanently delete the tournament and all its data!')">
+            onsubmit="return confirm('Yakin? Turnamen dan seluruh datanya akan dihapus permanen!')">
             @csrf
             @method('DELETE')
             <button type="submit" class="btn btn-danger btn-sm">
-                <i class="bi bi-trash me-1"></i> Delete Tournament
+                <i class="bi bi-trash me-1"></i> Hapus Turnamen
             </button>
         </form>
     </div>
@@ -856,7 +911,7 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Tab switching
+            // ===== Tab switching =====
             const tabBtns = document.querySelectorAll('.tab-btn');
             const tabPanes = document.querySelectorAll('.tab-pane');
 
@@ -864,11 +919,9 @@
                 btn.addEventListener('click', function () {
                     const tabId = this.getAttribute('data-tab');
 
-                    // Update active button
                     tabBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
 
-                    // Show active tab
                     tabPanes.forEach(pane => {
                         pane.style.display = 'none';
                         pane.classList.remove('active');
@@ -882,7 +935,7 @@
                 });
             });
 
-            // Match filtering
+            // ===== Filter pertandingan =====
             const filterBtns = document.querySelectorAll('[data-filter]');
             const matchRows = document.querySelectorAll('.match-row');
 
@@ -890,35 +943,30 @@
                 btn.addEventListener('click', function () {
                     const filter = this.getAttribute('data-filter');
 
-                    // Update active filter button
                     filterBtns.forEach(b => b.classList.remove('active'));
                     this.classList.add('active');
 
-                    // Filter matches
                     matchRows.forEach(row => {
-                        if (filter === 'all' || row.getAttribute('data-status') === filter) {
-                            row.style.display = '';
-                        } else {
-                            row.style.display = 'none';
-                        }
+                        row.style.display = (filter === 'all' || row.getAttribute('data-status') === filter) ? '' : 'none';
                     });
                 });
             });
 
-            // Match row click
+            // ===== Klik baris pertandingan =====
             matchRows.forEach(row => {
                 row.addEventListener('click', function () {
-                    // Add match detail view functionality here
-                    console.log('View match details');
+                    // Fungsi detail pertandingan bisa ditambahkan di sini
                 });
             });
 
-            // Auto-dismiss alerts
+            // ===== Auto-dismiss alerts =====
             setTimeout(() => {
-                const alerts = document.querySelectorAll('.alert');
-                alerts.forEach(alert => {
-                    const bsAlert = new bootstrap.Alert(alert);
-                    bsAlert.close();
+                document.querySelectorAll('.alert').forEach(alert => {
+                    try {
+                        new bootstrap.Alert(alert).close();
+                    } catch (e) {
+                        // Silently fail
+                    }
                 });
             }, 3000);
         });
