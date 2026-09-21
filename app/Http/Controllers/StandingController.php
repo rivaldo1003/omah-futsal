@@ -256,7 +256,7 @@ class StandingController extends Controller
         // Ambil tie_breakers dari tournament settings
         $tieBreakers = [];
         if ($tournament) {
-            $settings = json_decode($tournament->settings, true) ?? [];
+            $settings = $tournament->settings ?? [];
             $tieBreakers = $settings['tie_breakers'] ?? [];
         }
 
@@ -730,7 +730,7 @@ class StandingController extends Controller
                     // Get tie_breakers from tournament settings
                     $tieBreakers = [];
                     if ($selectedTournament) {
-                        $settings = json_decode($selectedTournament->settings, true) ?? [];
+                        $settings = $selectedTournament->settings ?? [];
                         $tieBreakers = $settings['tie_breakers'] ?? [];
                     }
 

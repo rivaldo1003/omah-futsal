@@ -28,6 +28,9 @@
         <!-- Today's Active / Live Matches (Full Width) -->
         @include('home.partials.today-matches')
 
+        <!-- Most Valuable Players Spotlight Section (Centerpiece) -->
+        @include('home.partials.market-value-stars')
+
         <!-- Two-Column Primary Workspace Grid -->
         <div class="row g-4">
             <!-- Left Primary Column (8 Cols) -->

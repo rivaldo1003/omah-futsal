@@ -26,6 +26,7 @@ class Player extends Model
         'red_cards',
         'saves',
         'clean_sheets',
+        'market_value',
     ];
 
     // Tambahkan ini
@@ -65,6 +66,32 @@ class Player extends Model
     public function getFullNameAttribute()
     {
         return "#{$this->jersey_number} {$this->name}";
+    }
+
+    // Helper statis untuk format market value (Rp singkat)
+    public static function formatMarketValue($value)
+    {
+        if (empty($value) || $value <= 0) {
+            return null;
+        }
+
+        if ($value >= 1000000000) {
+            $formatted = rtrim(rtrim(number_format($value / 1000000000, 1, ',', '.'), '0'), ',');
+            return 'Rp ' . $formatted . ' M';
+        }
+
+        if ($value >= 1000000) {
+            $formatted = rtrim(rtrim(number_format($value / 1000000, 1, ',', '.'), '0'), ',');
+            return 'Rp ' . $formatted . ' jt';
+        }
+
+        return 'Rp ' . number_format($value, 0, ',', '.');
+    }
+
+    // Accessor untuk market value terformat (Rp singkat)
+    public function getFormattedMarketValueAttribute()
+    {
+        return self::formatMarketValue($this->market_value);
     }
 
     // Accessor untuk initial

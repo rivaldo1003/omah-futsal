@@ -8,27 +8,26 @@
                                 </h5>
                             </div>
                             <div class="card-body">
-                                <div class="tournament-preview mb-4">
-                                    <h6>Ringkasan turnamen</h6>
-                                    <h4 id="reviewName">
+                                <div class="tournament-preview">
+                                    <h4 class="review-name" id="reviewName">
                                         {{ old('name', $tournamentData['name'] ?? 'Ofs Champions League 2025') }}
                                     </h4>
 
-                                    <div class="preview-grid">
-                                        <div class="preview-item">
-                                            <label>Tanggal</label>
-                                            <div class="value" id="reviewDates">
+                                    <dl class="review-list">
+                                        <div class="review-row">
+                                            <dt>Tanggal</dt>
+                                            <dd id="reviewDates">
                                                 @if(!empty($tournamentData['start_date']) && !empty($tournamentData['end_date']))
-                                                    {{ date('d M Y', strtotime($tournamentData['start_date'])) }} to
+                                                    {{ date('d M Y', strtotime($tournamentData['start_date'])) }} –
                                                     {{ date('d M Y', strtotime($tournamentData['end_date'])) }}
                                                 @else
-                                                    -- -- ---- to -- -- ----
+                                                    Belum ditentukan
                                                 @endif
-                                            </div>
+                                            </dd>
                                         </div>
-                                        <div class="preview-item">
-                                            <label>Tipe</label>
-                                            <div class="value badge bg-primary" id="reviewType">
+                                        <div class="review-row">
+                                            <dt>Tipe</dt>
+                                            <dd id="reviewType">
                                                 @php
                                                     $typeNames = [
                                                         'league' => 'League',
@@ -37,160 +36,133 @@
                                                     ];
                                                     $selectedType = old('type', $tournamentData['type'] ?? '');
                                                 @endphp
-                                                {{ $typeNames[$selectedType] ?? 'Select Type' }}
-                                            </div>
+                                                {{ $typeNames[$selectedType] ?? 'Belum dipilih' }}
+                                            </dd>
                                         </div>
-                                        <div class="preview-item">
-                                            <label>Tim</label>
-                                            <div class="value" id="reviewTeams">
+                                        <div class="review-row">
+                                            <dt>Tim</dt>
+                                            <dd id="reviewTeams">
                                                 {{ count(old('teams', $tournamentData['teams'] ?? [])) }} tim
-                                            </div>
+                                            </dd>
                                         </div>
-                                        <div class="preview-item">
-                                            <label>Pertandingan</label>
-                                            <div class="value" id="reviewMatches">0 matches</div>
+                                        <div class="review-row">
+                                            <dt>Pertandingan</dt>
+                                            <dd id="reviewMatches">0</dd>
                                         </div>
-                                        <div class="preview-item">
-                                            <label>Lokasi</label>
-                                            <div class="value" id="reviewLocation">
-                                                {{ old('location', $tournamentData['location'] ?? '--') }}
-                                            </div>
+                                        <div class="review-row">
+                                            <dt>Lokasi</dt>
+                                            <dd id="reviewLocation">
+                                                {{ old('location', $tournamentData['location'] ?? '—') }}
+                                            </dd>
                                         </div>
-                                        <div class="preview-item">
-                                            <label>Penyelenggara</label>
-                                            <div class="value" id="reviewOrganizer">
-                                                {{ old('organizer', $tournamentData['organizer'] ?? '--') }}
-                                            </div>
+                                        <div class="review-row">
+                                            <dt>Penyelenggara</dt>
+                                            <dd id="reviewOrganizer">
+                                                {{ old('organizer', $tournamentData['organizer'] ?? '—') }}
+                                            </dd>
                                         </div>
-                                    </div>
+                                    </dl>
                                 </div>
 
                                 <div class="settings-section">
-                                    <h6><i class="bi bi-people"></i> Tim Peserta</h6>
-                                    <div class="selected-tim-preview" id="reviewTeamsList">
+                                    <h6><i class="bi bi-people"></i> Tim peserta</h6>
+                                    <div class="row g-2" id="reviewTeamsList">
                                         @if(!empty($tournamentData['teams']))
                                             @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
                                                 @php
-                                                    $logoUrl = $team->logo ? Storage::url($team->logo) : null;
+                                                    $logoUrl = ($team->logo && Storage::disk('public')->exists($team->logo)) ? Storage::url($team->logo) : null;
                                                 @endphp
-                                                <div class="selected-team-item">
-                                                    @if($logoUrl)
-                                                        <img src="{{ $logoUrl }}" alt="{{ $team->name }}"
-                                                            style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
-                                                    @else
-                                                        <div class="selected-team-logo">{{ substr($team->name, 0, 1) }}</div>
-                                                    @endif
-                                                    <div>
-                                                        <div class="fw-bold">{{ $team->name }}</div>
-                                                        @if($team->coach_name)
-                                                            <small class="text-muted">Coach: {{ $team->coach_name }}</small>
-                                                        @endif
+                                                <div class="col-6 col-md-4 col-lg-3">
+                                                    <div class="team-card">
+                                                        <div class="team-logo-placeholder">
+                                                            @if($logoUrl)
+                                                                <img src="{{ $logoUrl }}" alt="{{ $team->name }}">
+                                                            @else
+                                                                {{ substr($team->name, 0, 2) }}
+                                                            @endif
+                                                        </div>
+                                                        <div class="team-card-info">
+                                                            <span class="team-card-name">{{ $team->name }}</span>
+                                                            @if($team->coach_name)
+                                                                <span class="team-card-coach">{{ $team->coach_name }}</span>
+                                                            @endif
+                                                        </div>
                                                     </div>
                                                 </div>
                                             @endforeach
                                         @else
-                                            <div class="text-muted">Belum ada tim dipilih</div>
+                                            <div class="col-12 text-muted">Belum ada tim dipilih</div>
                                         @endif
                                     </div>
                                 </div>
 
                                 <div class="settings-section">
-                                    <h6><i class="bi bi-joystick"></i> Ringkasan Aturan Pertandingan</h6>
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="preview-item">
-                                                <label>Match Duration</label>
-                                                <div class="value" id="reviewDuration">
-                                                    {{ old('match_duration', $tournamentData['match_duration'] ?? 40) }}
-                                                    mins
-                                                    ({{ old('half_time', $tournamentData['half_time'] ?? 10) }} mins
-                                                    half)
-                                                </div>
-                                            </div>
+                                    <h6><i class="bi bi-joystick"></i> Aturan pertandingan</h6>
+                                    <dl class="review-list">
+                                        <div class="review-row">
+                                            <dt>Durasi</dt>
+                                            <dd id="reviewDuration">
+                                                Waktu normal {{ old('match_duration', $tournamentData['match_duration'] ?? 40) }} menit,
+                                                istirahat {{ old('half_time', $tournamentData['half_time'] ?? 10) }} menit
+                                            </dd>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="preview-item">
-                                                <label>Points System</label>
-                                                <div class="value" id="reviewPoints">
-                                                    Menang: {{ old('points_win', $tournamentData['points_win'] ?? 3) }},
-                                                    Seri: {{ old('points_draw', $tournamentData['points_draw'] ?? 1) }},
-                                                    Kalah: {{ old('points_loss', $tournamentData['points_loss'] ?? 0) }}
-                                                </div>
-                                            </div>
+                                        <div class="review-row">
+                                            <dt>Poin</dt>
+                                            <dd id="reviewPoints">
+                                                Menang {{ old('points_win', $tournamentData['points_win'] ?? 3) }} ·
+                                                Seri {{ old('points_draw', $tournamentData['points_draw'] ?? 1) }} ·
+                                                Kalah {{ old('points_loss', $tournamentData['points_loss'] ?? 0) }}
+                                            </dd>
                                         </div>
-                                        <div class="col-md-4">
-                                            <div class="preview-item">
-                                                <label>Max Substitutes</label>
-                                                <div class="value" id="reviewSubstitutes">
-                                                    {{ old('max_substitutes', $tournamentData['max_substitutes'] ?? 5) }}
-                                                </div>
-                                            </div>
+                                        <div class="review-row">
+                                            <dt>Pemain cadangan</dt>
+                                            <dd id="reviewSubstitutes">
+                                                Maksimal {{ old('max_substitutes', $tournamentData['max_substitutes'] ?? 5) }}
+                                            </dd>
                                         </div>
-                                    </div>
+                                    </dl>
                                 </div>
 
-                                <!-- Preview Logo dan Banner -->
                                 <div class="settings-section">
-                                    <h6><i class="bi bi-images"></i> Media Turnamen</h6>
+                                    <h6><i class="bi bi-images"></i> Media turnamen</h6>
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <div class="text-center">
-                                                <p class="mb-2"><strong>Logo</strong></p>
-                                                <div id="reviewLogoContainer" class="mb-3">
-                                                    @if(!empty($tournamentData['logo']))
-                                                        <img src="{{ Storage::url($tournamentData['logo']) }}" 
-                                                             alt="Tournament Logo" 
-                                                             style="max-width: 150px; max-height: 150px; border-radius: 8px;">
-                                                    @else
-                                                        <div class="text-muted">Belum ada logo</div>
-                                                    @endif
-                                                </div>
+                                            <div class="section-label">Logo</div>
+                                            <div id="reviewLogoContainer">
+                                                @if(!empty($tournamentData['logo']))
+                                                    <img src="{{ Storage::url($tournamentData['logo']) }}"
+                                                        alt="Logo turnamen" class="review-media">
+                                                @else
+                                                    <div class="text-secondary">Belum ada logo</div>
+                                                @endif
                                             </div>
                                         </div>
                                         <div class="col-md-6">
-                                            <div class="text-center">
-                                                <p class="mb-2"><strong>Banner</strong></p>
-                                                <div id="reviewBannerContainer" class="mb-3">
-                                                    @if(!empty($tournamentData['banner']))
-                                                        <img src="{{ Storage::url($tournamentData['banner']) }}" 
-                                                             alt="Tournament Banner" 
-                                                             style="max-width: 300px; max-height: 150px; border-radius: 8px;">
-                                                    @else
-                                                        <div class="text-muted">Belum ada banner</div>
-                                                    @endif
-                                                </div>
+                                            <div class="section-label">Banner</div>
+                                            <div id="reviewBannerContainer">
+                                                @if(!empty($tournamentData['banner']))
+                                                    <img src="{{ Storage::url($tournamentData['banner']) }}"
+                                                        alt="Banner turnamen" class="review-banner">
+                                                @else
+                                                    <div class="text-secondary">Belum ada banner</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="info-box mt-4">
-                                    <i class="bi bi-lightbulb"></i>
-                                    <p>
-                                        <strong>Ready to create your tournament?</strong><br>
-                                        Review all the information above. Once created, you'll be able to:
-                                        1. Generate the match schedule automatically
-                                        2. Add team players and staff
-                                        3. Start managing matches and results
-                                    </p>
-                                </div>
+                                <p class="group-hint">
+                                    Setelah turnamen dibuat, Anda bisa generate jadwal pertandingan, menambah pemain,
+                                    dan mengelola hasil pertandingan. Nama, tanggal, tipe, dan tim peserta tidak bisa
+                                    diubah setelah dibuat — pastikan sudah benar.
+                                </p>
 
-                                <div class="warning-box mt-3">
-                                    <i class="bi bi-exclamation-triangle"></i>
-                                    <p>
-                                        <strong>Important:</strong> Make sure all information is correct before
-                                        proceeding.
-                                        Tournament name, dates, type, and selected tim cannot be easily changed after
-                                        creation.
-                                    </p>
-                                </div>
-
-                               <div class="form-check mt-4">
+                                <div class="form-check">
                                     <input class="form-check-input @error('confirmTournament') is-invalid @enderror"
-                                        type="checkbox" id="confirmTournament" name="confirmTournament" value="1" 
+                                        type="checkbox" id="confirmTournament" name="confirmTournament" value="1"
                                         {{ old('confirmTournament', isset($tournamentData['confirmTournament']) ? 'checked' : '') }}>
                                     <label class="form-check-label" for="confirmTournament">
-                                        <strong>Saya konfirmasi semua informasi sudah benar dan ingin membuat turnamen ini</strong>
+                                        Saya konfirmasi semua informasi sudah benar dan ingin membuat turnamen ini
                                         <span class="required">*</span>
                                     </label>
                                     @error('confirmTournament')

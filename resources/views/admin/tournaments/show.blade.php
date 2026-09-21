@@ -670,19 +670,19 @@
                         <h6 class="mb-3"><i class="bi bi-bar-chart me-2"></i>Statistik Pertandingan</h6>
                         <div class="settings-grid">
                             <div class="setting-item">
-                                <div class="setting-label">Durasi Pertandingan</div>
+                                <div class="setting-label">Durasi waktu normal</div>
                                 <div class="setting-value">{{ $tournament->match_duration }} menit</div>
                             </div>
                             <div class="setting-item">
-                                <div class="setting-label">Half Time</div>
+                                <div class="setting-label">Istirahat antar babak</div>
                                 <div class="setting-value">{{ $tournament->half_time }} menit</div>
                             </div>
                             <div class="setting-item">
-                                <div class="setting-label">Poin Menang</div>
+                                <div class="setting-label">Poin menang</div>
                                 <div class="setting-value">{{ $tournament->points_win }}</div>
                             </div>
                             <div class="setting-item">
-                                <div class="setting-label">Poin Seri</div>
+                                <div class="setting-label">Poin seri</div>
                                 <div class="setting-value">{{ $tournament->points_draw }}</div>
                             </div>
                         </div>
@@ -847,41 +847,29 @@
             <div id="settings-tab" class="tab-pane" style="display: none;">
                 <div class="settings-grid">
                     <div class="setting-item">
-                        <div class="setting-label">Durasi Pertandingan</div>
+                        <div class="setting-label">Durasi waktu normal</div>
                         <div class="setting-value">{{ $tournament->match_duration }} menit</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Half Time</div>
+                        <div class="setting-label">Istirahat antar babak</div>
                         <div class="setting-value">{{ $tournament->half_time }} menit</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Extra Time</div>
+                        <div class="setting-label">Extra time per babak</div>
                         <div class="setting-value">{{ $settings['extra_time'] ?? 10 }} menit</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Maksimal Pemain Cadangan</div>
+                        <div class="setting-label">Maksimal pemain cadangan</div>
                         <div class="setting-value">{{ $settings['max_substitutes'] ?? 5 }}</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">Pertandingan per Hari</div>
-                        <div class="setting-value">{{ $settings['matches_per_day'] ?? 4 }}</div>
-                    </div>
-                    <div class="setting-item">
-                        <div class="setting-label">Interval Pertandingan</div>
-                        <div class="setting-value">{{ $settings['match_interval'] ?? 30 }} menit</div>
-                    </div>
-                    <div class="setting-item">
-                        <div class="setting-label">Batas Kartu Kuning</div>
+                        <div class="setting-label">Batas kartu kuning</div>
                         <div class="setting-value">{{ $settings['yellow_card_suspension'] ?? 3 }}</div>
                     </div>
                     <div class="setting-item">
-                        <div class="setting-label">VAR Aktif</div>
+                        <div class="setting-label">Poin (menang / seri / kalah)</div>
                         <div class="setting-value">
-                            @if($settings['var_enabled'] ?? false)
-                                <span class="badge bg-success">Ya</span>
-                            @else
-                                <span class="badge bg-secondary">Tidak</span>
-                            @endif
+                            {{ $tournament->points_win }} / {{ $tournament->points_draw }} / {{ $tournament->points_loss }}
                         </div>
                     </div>
                 </div>

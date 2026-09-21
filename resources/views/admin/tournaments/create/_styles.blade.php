@@ -405,8 +405,8 @@
         }
 
         .group-container {
-            min-height: 400px;
-            border: 2px solid var(--border-color);
+            min-height: 240px;
+            border: 1px solid var(--border-color);
         }
 
         .group-container.drop-active {
@@ -424,26 +424,105 @@
         }
 
         .group-body {
-            padding: 15px;
-            min-height: 300px;
-            max-height: 500px;
+            padding: 12px;
+            min-height: 160px;
+            max-height: 400px;
             overflow-y: auto;
         }
 
+        /* Toolbar step 3: input jumlah grup + aksi dalam satu baris */
+        .group-toolbar {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 8px;
+        }
+
+        .group-toolbar-field label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .group-toolbar-field .form-control {
+            width: 90px;
+            padding: 6px 10px;
+        }
+
+        .group-toolbar-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .group-toolbar-actions .btn {
+            padding: 6px 14px;
+        }
+
+        .group-hint {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin: 0 0 16px;
+        }
+
+        .section-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .available-teams-section {
+            margin-bottom: 20px;
+        }
+
+        /* Ringkasan status: satu baris teks kecil */
+        .group-summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding-top: 12px;
+            border-top: 1px solid var(--border-color);
+            margin-top: 4px;
+        }
+
+        .group-summary span[id] {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .dot-sep {
+            width: 3px;
+            height: 3px;
+            border-radius: 50%;
+            background: var(--gray-light);
+            display: inline-block;
+        }
+
         .team-logo-placeholder {
-            width: 50px;
-            height: 50px;
+            width: 32px;
+            height: 32px;
             background: var(--surface);
             color: var(--text-secondary);
             border: 1px solid var(--border-color);
-            border-radius: 50%;
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: bold;
-            font-size: 1.2rem;
-            margin: 0 auto 10px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+
+        .team-logo-placeholder img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
         .available-teams-container {
@@ -458,11 +537,35 @@
         .team-card {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
+            border-radius: 6px;
+            padding: 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
             transition: border-color 0.15s ease;
             cursor: move;
+        }
+
+        .team-card-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
+        }
+
+        .team-card-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .team-card .badge {
+            font-size: 11px;
+            padding: 1px 6px;
+            align-self: flex-start;
         }
 
         .team-card:hover {
@@ -470,21 +573,9 @@
         }
 
         .team-card img {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
-            margin-bottom: 10px;
-        }
-
-        .drag-info {
-            background: var(--light);
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            color: var(--gray);
-            font-size: 0.9rem;
-            margin-bottom: 15px;
         }
 
         .tournament-preview {
@@ -493,6 +584,85 @@
             border-radius: 12px;
             padding: 24px;
             margin-bottom: 24px;
+        }
+
+        .review-name {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0 0 16px;
+            line-height: 1.2;
+        }
+
+        /* Definition list untuk review: label kiri, nilai kanan */
+        .review-list {
+            margin: 0;
+        }
+
+        .review-row {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .review-row:last-child {
+            border-bottom: none;
+        }
+
+        .review-row dt {
+            width: 140px;
+            flex-shrink: 0;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .review-row dd {
+            margin: 0;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .team-card-coach {
+            font-size: 12px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Section dalam sidebar preview */
+        .sidebar-section {
+            padding-top: 16px;
+            margin-top: 4px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        /* Team card non-interaktif (sidebar & review) */
+        .team-card.static {
+            cursor: default;
+        }
+
+        .team-card.static:hover {
+            border-color: var(--border-color);
+        }
+
+        .review-media {
+            max-width: 120px;
+            max-height: 120px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .review-banner {
+            max-width: 280px;
+            max-height: 120px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
         }
 
         .preview-grid {
@@ -667,6 +837,30 @@
             color: white;
             font-size: 0.9rem;
             font-weight: bold;
+        }
+
+        /* Section jadwal opsional (collapsible) */
+        .schedule-settings summary {
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--text-primary);
+            list-style: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .schedule-settings summary::before {
+            content: '\F282';
+            font-family: 'bootstrap-icons';
+            font-size: 12px;
+            color: var(--text-secondary);
+            transition: transform 0.15s ease;
+        }
+
+        .schedule-settings[open] summary::before {
+            transform: rotate(90deg);
         }
 
         .info-box {
