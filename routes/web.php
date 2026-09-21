@@ -55,8 +55,6 @@ Route::get('/highlights', [GameController::class, 'highlights'])->name('highligh
 Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYoutubeHighlightInfo'])
     ->name('matches.youtube-highlight.info');
 
-// Home routes
-Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/teams/{team}/details', [HomeController::class, 'teamDetails'])->name('teams.details');
 
 // ==================== AUTHENTICATION ROUTES ====================
@@ -75,7 +73,6 @@ Route::get('password/reset', [App\Http\Controllers\Auth\ForgotPasswordController
 Route::post('password/email', [App\Http\Controllers\Auth\ForgotPasswordController::class, 'sendResetLinkEmail'])->name('password.email');
 Route::get('password/reset/{token}', [App\Http\Controllers\Auth\ResetPasswordController::class, 'showResetForm'])->name('password.reset');
 Route::post('password/reset', [App\Http\Controllers\Auth\ResetPasswordController::class, 'reset'])->name('password.update');
-Route::resource('teams', TeamController::class);
 
 // ==================== USER DASHBOARD ROUTES ====================
 
@@ -252,15 +249,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::get('players/{player}/stats', [PlayerController::class, 'stats'])->name('players.stats');
 
     // ========== STANDINGS MANAGEMENT ==========
-    Route::resource('standings', StandingController::class)->except(['create', 'store', 'destroy']);
+    Route::get('standings', [StandingController::class, 'adminIndex'])->name('standings.index');
 
-    // Route yang benar:
-    Route::get('/standings', [StandingController::class, 'publicIndex'])->name('standings');
-
-    // Atau jika ingin menggunakan 'standings.index':
-    Route::get('/standings', [StandingController::class, 'publicIndex'])->name('standings.index');
-
-    Route::post('/admin/standings/fix/{match}', [GameController::class, 'fixStandings'])
+    Route::post('standings/fix/{match}', [GameController::class, 'fixStandings'])
         ->name('admin.standings.fix');
 
     Route::get('/tournaments/{tournament}/standings', [TournamentController::class, 'showStandings'])
@@ -268,9 +259,6 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // Standing Actions
     Route::post('standings/recalculate', [StandingController::class, 'recalculate'])->name('standings.recalculate');
-    Route::post('standings/reset', [StandingController::class, 'reset'])->name('standings.reset');
-    Route::post('standings/update', [StandingController::class, 'update'])->name('standings.update');
-    Route::get('standings/export', [StandingController::class, 'export'])->name('standings.export');
 
     // ========== MATCH EVENTS MANAGEMENT ==========
     // Route::resource('events', MatchEventController::class)->except(['create', 'store', 'show']);
@@ -413,7 +401,7 @@ Route::get('/home', function () {
     }
 
     return redirect('/');
-})->name('home');
+})->name('home.redirect');
 
 Route::fallback(function () {
     return view('errors.404');
