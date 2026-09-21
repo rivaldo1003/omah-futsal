@@ -331,6 +331,24 @@
                     </div>
                 </div>
 
+                <div class="row g-3 mb-0">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="market_value" class="form-label">Market Value (Nilai Pasar)</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input type="number" class="form-control @error('market_value') is-invalid @enderror"
+                                    id="market_value" name="market_value" value="{{ old('market_value') }}"
+                                    placeholder="contoh: 25000000" min="0" step="100000">
+                            </div>
+                            @error('market_value')
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
+                            @enderror
+                            <div class="form-text">Masukkan nominal penuh dalam Rupiah (opsional, contoh: 25000000 untuk 25 jt)</div>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Tim & posisi -->
                 <div class="form-section-title" style="margin-top: 24px;">Tim & Posisi</div>
 

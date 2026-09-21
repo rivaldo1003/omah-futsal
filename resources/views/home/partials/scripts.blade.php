@@ -176,6 +176,7 @@
                 const playerPhoto = this.getAttribute('data-player-photo') || '';
                 const playerPosition = this.getAttribute('data-player-position') || '-';
                 const playerJersey = this.getAttribute('data-player-jersey') || '-';
+                const playerMarketValue = this.getAttribute('data-player-market-value') || '';
                 const playerInitial = playerName.charAt(0).toUpperCase();
 
                 const normalizedPos = playerPosition.toLowerCase();
@@ -236,6 +237,7 @@
                                     <div class="text-secondary small">
                                         <span>#${playerJersey}</span> •
                                         <span>${playerPosition}</span>
+                                        ${playerMarketValue ? ` • <span class="text-primary fw-medium">${playerMarketValue}</span>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -388,7 +390,8 @@
                     data-player-appearances="${player.appearances || 0}"
                     data-player-photo="${photoSource.replace(/"/g, '&quot;')}"
                     data-player-position="${(player.position || '-').replace(/"/g, '&quot;')}"
-                    data-player-jersey="${player.jersey_number || '-'}">
+                    data-player-jersey="${player.jersey_number || '-'}"
+                    data-player-market-value="${(player.market_value || '').replace(/"/g, '&quot;')}">
                     <img src="${photoSource}" alt="${player.name}" class="player-modal-photo">
                     <div class="fw-semibold small text-truncate" title="${player.name || 'Unknown'}">
                         ${player.name || 'Unknown'}
@@ -396,8 +399,11 @@
                     <div class="text-secondary" style="font-size: 11px;">
                         #${player.jersey_number || '-'} • ${player.position || '-'}
                     </div>
-                    ${player.goals > 0 ? `<span class="app-badge app-badge-success mt-1" style="font-size: 10px;">${player.goals} G</span>` : ''}
-                    ${isGoalkeeper && (player.saves || 0) > 0 ? `<span class="app-badge app-badge-accent mt-1" style="font-size: 10px;">${player.saves} S</span>` : ''}
+                    <div class="d-flex align-items-center flex-wrap gap-1 mt-1">
+                        ${player.market_value ? `<span class="app-badge app-badge-default" style="font-size: 10px;">${player.market_value}</span>` : ''}
+                        ${player.goals > 0 ? `<span class="app-badge app-badge-success" style="font-size: 10px;">${player.goals} G</span>` : ''}
+                        ${isGoalkeeper && (player.saves || 0) > 0 ? `<span class="app-badge app-badge-accent" style="font-size: 10px;">${player.saves} S</span>` : ''}
+                    </div>
                 </div>
             `;
         });

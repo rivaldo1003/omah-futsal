@@ -27,6 +27,12 @@
                             @if(isset($player->jersey_number) && $player->jersey_number)
                                 <span class="app-badge app-badge-default py-0 px-1" style="font-size: 10px;">#{{ $player->jersey_number }}</span>
                             @endif
+                            @php
+                                $marketVal = $player->formatted_market_value ?? null;
+                            @endphp
+                            @if($marketVal)
+                                <span class="app-badge app-badge-default py-0 px-1 text-muted" style="font-size: 10px;">{{ $marketVal }}</span>
+                            @endif
                         </div>
                     </div>
 

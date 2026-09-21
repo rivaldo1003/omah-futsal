@@ -2,163 +2,125 @@
 
 @section('title', 'News Management - OFS Futsal Center Admin')
 
-
-
 @section('styles')
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
-
 <style>
-:root {
-    --primary-color: #1a5fb4;
-    --secondary-color: #5e5c64;
-    --success-color: #26a269;
-    --danger-color: #c01c28;
-    --warning-color: #f5c211;
-    --info-color: #1c71d8;
-    --dark-color: #0f172a;
-    --light-color: #f8fafc;
-    --accent-color: #3b82f6;
-}
-
-/* Admin Header */
+/* Header */
 .admin-header {
-    background: white;
-    border-radius: 8px;
-    padding: 1rem 1.5rem;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    background: var(--bg-card, white);
+    border: 1px solid var(--border, #e5e5e7);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
 }
 
 .admin-header-title {
-    font-size: 1.3rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary, #111113);
     margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .admin-header-actions {
     display: flex;
-    gap: 0.8rem;
+    gap: 8px;
 }
 
-/* Admin Buttons */
+/* Buttons */
 .btn-admin {
     border-radius: 6px;
-    font-weight: 600;
-    padding: 0.5rem 1rem;
-    font-size: 0.85rem;
+    font-weight: 500;
+    padding: 8px 16px;
+    font-size: 14px;
     display: inline-flex;
     align-items: center;
     gap: 6px;
+    text-decoration: none;
+    transition: all 0.15s ease;
 }
 
 .btn-admin-primary {
-    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    background: var(--accent, #c01c28);
     color: white;
     border: none;
+}
+
+.btn-admin-primary:hover {
+    background: var(--accent-hover, #a51822);
+    color: white;
 }
 
 .btn-admin-secondary {
-    background: #f1f5f9;
-    color: #475569;
-    border: 1px solid #e2e8f0;
+    background: var(--bg-card, white);
+    color: var(--text-secondary, #6b6b70);
+    border: 1px solid var(--border, #e5e5e7);
 }
 
-.btn-admin-success {
-    background: linear-gradient(135deg, #10b981, #059669);
-    color: white;
-    border: none;
+.btn-admin-secondary:hover {
+    border-color: var(--accent, #c01c28);
+    color: var(--accent, #c01c28);
 }
 
-.btn-admin-danger {
-    background: linear-gradient(135deg, #ef4444, #dc2626);
-    color: white;
-    border: none;
-}
-
-.btn-admin-warning {
-    background: linear-gradient(135deg, #f59e0b, #d97706);
-    color: white;
-    border: none;
-}
-
-/* Stats Cards */
-.stats-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-bottom: 1.5rem;
-}
-
-.stats-icon {
-    width: 48px;
-    height: 48px;
-    border-radius: 8px;
+/* Stat ringkas: satu baris, dipisah hairline */
+.stats-row {
+    background: var(--bg-card, white);
+    border: 1px solid var(--border, #e5e5e7);
+    border-radius: 12px;
+    padding: 16px 24px;
+    margin-bottom: 24px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.2rem;
-    margin-bottom: 0.8rem;
+    flex-wrap: wrap;
+    gap: 24px;
 }
 
-.stats-icon.primary {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(29, 78, 216, 0.05));
-    color: #3b82f6;
-}
-
-.stats-icon.success {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(5, 150, 105, 0.05));
-    color: #10b981;
-}
-
-.stats-icon.warning {
-    background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(217, 119, 6, 0.05));
-    color: #f59e0b;
-}
-
-.stats-icon.danger {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(220, 38, 38, 0.05));
-    color: #ef4444;
+.stats-item {
+    flex: 1;
+    min-width: 140px;
 }
 
 .stats-number {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: #1e293b;
-    margin-bottom: 0.2rem;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--text-primary, #111113);
+    line-height: 1.2;
 }
 
 .stats-label {
-    font-size: 0.85rem;
-    color: #64748b;
+    font-size: 13px;
+    color: var(--text-secondary, #6b6b70);
+    margin-top: 2px;
 }
 
 /* Table */
 .admin-table {
-    background: white;
-    border-radius: 8px;
+    background: var(--bg-card, white);
+    border: 1px solid var(--border, #e5e5e7);
+    border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-bottom: 1.5rem;
+    margin-bottom: 24px;
 }
 
 .table-header {
-    padding: 1.2rem 1.5rem;
-    border-bottom: 1px solid #e2e8f0;
+    padding: 16px 24px;
+    border-bottom: 1px solid var(--border, #e5e5e7);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
 .table-title {
-    font-size: 1.1rem;
+    font-size: 14px;
     font-weight: 600;
-    color: #1e293b;
+    color: var(--text-primary, #111113);
     margin: 0;
 }
 
@@ -172,121 +134,105 @@
 }
 
 .table thead th {
-    background: #f8fafc;
-    border-bottom: 2px solid #e2e8f0;
-    padding: 0.9rem 1rem;
-    font-weight: 600;
-    color: #475569;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    background: var(--surface, #f7f7f8);
+    border-bottom: 1px solid var(--border, #e5e5e7);
+    padding: 10px 16px;
+    font-weight: 500;
+    color: var(--text-secondary, #6b6b70);
+    font-size: 13px;
+    white-space: nowrap;
 }
 
 .table tbody td {
-    padding: 0.9rem 1rem;
+    padding: 12px 16px;
     vertical-align: middle;
-    border-bottom: 1px solid #e2e8f0;
-    font-size: 0.9rem;
+    border-bottom: 1px solid var(--border, #e5e5e7);
+    font-size: 14px;
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
 }
 
 .table tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: var(--surface, #f7f7f8);
 }
 
-/* Status Badges */
+/* Status badges */
 .status-badge {
-    padding: 0.25rem 0.6rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 500;
     display: inline-flex;
     align-items: center;
     gap: 4px;
 }
 
 .status-active {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
+    background: var(--success-light, #f0f9f4);
+    color: var(--success, #1e7a46);
 }
 
 .status-inactive {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
+    background: var(--danger-light, #fdf0f0);
+    color: var(--accent, #c01c28);
 }
 
 .status-featured {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
+    background: var(--warning-light, #fdf6ec);
+    color: var(--warning, #b45309);
 }
 
-/* Action Buttons */
+/* Action buttons */
 .action-buttons {
     display: flex;
-    gap: 0.4rem;
+    gap: 4px;
 }
 
 .btn-action {
-    width: 32px;
-    height: 32px;
-    border-radius: 4px;
-    display: flex;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    border: 1px solid var(--border, #e5e5e7);
+    background: var(--bg-card, white);
+    color: var(--text-secondary, #6b6b70);
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    font-size: 0.85rem;
-    transition: all 0.2s;
+    font-size: 13px;
+    transition: all 0.15s ease;
+    padding: 0;
 }
 
-.btn-action-edit {
-    background: rgba(59, 130, 246, 0.1);
-    color: #3b82f6;
-}
-
-.btn-action-edit:hover {
-    background: #3b82f6;
-    color: white;
-}
-
-.btn-action-delete {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
-.btn-action-delete:hover {
-    background: #ef4444;
-    color: white;
-}
-
-.btn-action-view {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-}
-
-.btn-action-view:hover {
-    background: #10b981;
-    color: white;
+.btn-action:hover {
+    border-color: var(--accent, #c01c28);
+    color: var(--accent, #c01c28);
 }
 
 /* Pagination */
 .pagination-wrapper {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid #e2e8f0;
+    padding: 12px 24px;
+    border-top: 1px solid var(--border, #e5e5e7);
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
 }
 
 .pagination-info {
-    font-size: 0.85rem;
-    color: #64748b;
+    font-size: 13px;
+    color: var(--text-secondary, #6b6b70);
 }
 
 /* Alert */
 .alert-admin {
     border-radius: 6px;
-    padding: 0.9rem 1rem;
-    font-size: 0.9rem;
-    margin-bottom: 1.5rem;
+    padding: 12px 16px;
+    font-size: 14px;
+    margin-bottom: 16px;
     border: none;
 }
 
@@ -308,84 +254,31 @@
 .loading-spinner {
     width: 40px;
     height: 40px;
-    border: 3px solid #f3f3f3;
-    border-top: 3px solid #3b82f6;
+    border: 3px solid var(--border, #e5e5e7);
+    border-top-color: var(--accent, #c01c28);
     border-radius: 50%;
     animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
-/* Responsive */
 @media (max-width: 768px) {
     .admin-header {
         flex-direction: column;
-        gap: 1rem;
         align-items: flex-start;
-    }
-
-    .admin-header-actions {
-        width: 100%;
-        flex-wrap: wrap;
-    }
-
-    .stats-card {
-        margin-bottom: 1rem;
     }
 
     .table-header {
         flex-direction: column;
-        gap: 1rem;
         align-items: flex-start;
     }
 
     .action-buttons {
         flex-wrap: wrap;
     }
-}
-
-/* Quick Stats */
-.quick-stats {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.quick-stats-title {
-    font-size: 0.9rem;
-    opacity: 0.9;
-    margin-bottom: 0.5rem;
-}
-
-.quick-stats-value {
-    font-size: 2rem;
-    font-weight: 700;
-    margin-bottom: 0.25rem;
-}
-
-.quick-stats-change {
-    font-size: 0.75rem;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
-
-.quick-stats-change.positive {
-    color: #10b981;
-}
-
-.quick-stats-change.negative {
-    color: #ef4444;
 }
 </style>
 @endsection
@@ -407,116 +300,55 @@
 <!-- Header -->
 <div class="admin-header">
     <h1 class="admin-header-title">
-        <i class="bi bi-newspaper me-2"></i>News Management
+        <i class="bi bi-newspaper"></i> News Management
     </h1>
 
     <div class="admin-header-actions">
         <a href="{{ route('news.index') }}" target="_blank" class="btn btn-admin btn-admin-secondary">
-            <i class="bi bi-eye"></i> View Public News
+            <i class="bi bi-box-arrow-up-right"></i> Lihat halaman publik
         </a>
         <a href="{{ route('admin.news.create') }}" class="btn btn-admin btn-admin-primary">
-            <i class="bi bi-plus-lg"></i> Add New Article
+            <i class="bi bi-plus-lg"></i> Tulis artikel baru
         </a>
     </div>
 </div>
 
-<!-- Quick Overview -->
-<div class="quick-stats">
-    <div class="row align-items-center">
-        <div class="col-md-3">
-            <div class="quick-stats-title">Total Articles</div>
-            <div class="quick-stats-value">{{ $totalArticles }}</div>
-            <div class="quick-stats-change positive">
-                <i class="bi bi-arrow-up-right"></i>
-                12% from last month
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-stats-title">Active Articles</div>
-            <div class="quick-stats-value">{{ $activeArticles }}</div>
-            <div class="quick-stats-change positive">
-                <i class="bi bi-arrow-up-right"></i>
-                {{ number_format(($activeArticles / $totalArticles) * 100, 1) }}% active rate
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-stats-title">Featured</div>
-            <div class="quick-stats-value">{{ $featuredArticles }}</div>
-            <div class="quick-stats-change">
-                <i class="bi bi-star-fill"></i>
-                Featured articles
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="quick-stats-title">Total Views</div>
-            <div class="quick-stats-value">{{ number_format($totalViews) }}</div>
-            <div class="quick-stats-change positive">
-                <i class="bi bi-eye-fill"></i>
-                All-time views
-            </div>
-        </div>
+<!-- Statistik ringkas -->
+<div class="stats-row">
+    <div class="stats-item">
+        <div class="stats-number">{{ $totalArticles }}</div>
+        <div class="stats-label">Total artikel</div>
     </div>
-</div>
-
-<!-- Stats Cards -->
-<div class="row">
-    <div class="col-md-3 col-sm-6">
-        <div class="stats-card">
-            <div class="stats-icon primary">
-                <i class="bi bi-newspaper"></i>
-            </div>
-            <div class="stats-number">{{ $totalArticles }}</div>
-            <div class="stats-label">Total Articles</div>
-        </div>
+    <div class="stats-item">
+        <div class="stats-number">{{ $activeArticles }}</div>
+        <div class="stats-label">Artikel aktif</div>
     </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="stats-card">
-            <div class="stats-icon success">
-                <i class="bi bi-check-circle"></i>
-            </div>
-            <div class="stats-number">{{ $activeArticles }}</div>
-            <div class="stats-label">Active Articles</div>
-        </div>
+    <div class="stats-item">
+        <div class="stats-number">{{ $featuredArticles }}</div>
+        <div class="stats-label">Artikel unggulan</div>
     </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="stats-card">
-            <div class="stats-icon warning">
-                <i class="bi bi-star"></i>
-            </div>
-            <div class="stats-number">{{ $featuredArticles }}</div>
-            <div class="stats-label">Featured Articles</div>
-        </div>
-    </div>
-    <div class="col-md-3 col-sm-6">
-        <div class="stats-card">
-            <div class="stats-icon danger">
-                <i class="bi bi-eye"></i>
-            </div>
-            <div class="stats-number">{{ number_format($totalViews) }}</div>
-            <div class="stats-label">Total Views</div>
-        </div>
+    <div class="stats-item">
+        <div class="stats-number">{{ number_format($totalViews) }}</div>
+        <div class="stats-label">Total views</div>
     </div>
 </div>
 
 <!-- Articles Table -->
 <div class="admin-table">
     <div class="table-header">
-        <h2 class="table-title">Articles List</h2>
+        <h2 class="table-title">Daftar artikel</h2>
         <div class="d-flex gap-2">
             <select class="form-select form-select-sm" style="width: auto;" id="filterStatus">
-                <option value="">All Status</option>
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
+                <option value="">Semua status</option>
+                <option value="active">Aktif</option>
+                <option value="inactive">Nonaktif</option>
             </select>
             <select class="form-select form-select-sm" style="width: auto;" id="filterCategory">
-                <option value="">All Categories</option>
+                <option value="">Semua kategori</option>
                 @foreach($categories as $category)
                 <option value="{{ $category }}">{{ $category }}</option>
                 @endforeach
             </select>
-            <!-- <button class="btn btn-sm btn-outline-primary" id="exportBtn">
-                <i class="bi bi-download"></i> Export
-            </button> -->
         </div>
     </div>
 
@@ -525,13 +357,13 @@
             <thead>
                 <tr>
                     <th width="50">#</th>
-                    <th>Title</th>
-                    <th width="120">Category</th>
+                    <th>Judul</th>
+                    <th width="120">Kategori</th>
                     <th width="100">Status</th>
-                    <th width="100">Featured</th>
+                    <th width="100">Unggulan</th>
                     <th width="100">Views</th>
-                    <th width="100">Published</th>
-                    <th width="120">Actions</th>
+                    <th width="110">Terbit</th>
+                    <th width="120">Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -540,7 +372,7 @@
                     <td>{{ ($articles->currentPage() - 1) * $articles->perPage() + $loop->iteration }}</td>
                     <td>
                         <div class="fw-semibold">{{ Str::limit($article->title, 60) }}</div>
-                        <small class="text-muted">by {{ $article->author ?? 'Admin' }}</small>
+                        <small class="text-secondary">oleh {{ $article->author ?? 'Admin' }}</small>
                     </td>
                     <td>
                         <span class="badge bg-light text-dark">{{ $article->category }}</span>
@@ -548,33 +380,29 @@
                     <td>
                         @if($article->is_active)
                         <span class="status-badge status-active">
-                            <i class="bi bi-check-circle"></i> Active
+                            <i class="bi bi-check-circle"></i> Aktif
                         </span>
                         @else
                         <span class="status-badge status-inactive">
-                            <i class="bi bi-x-circle"></i> Inactive
+                            <i class="bi bi-x-circle"></i> Nonaktif
                         </span>
                         @endif
                     </td>
                     <td>
                         @if($article->is_featured)
                         <span class="status-badge status-featured">
-                            <i class="bi bi-star"></i> Featured
+                            <i class="bi bi-star"></i> Unggulan
                         </span>
                         @else
-                        <span class="text-muted">-</span>
+                        <span class="text-secondary">-</span>
                         @endif
                     </td>
-                    <td>
-                        <div class="fw-semibold">{{ number_format($article->views_count) }}</div>
-                    </td>
-                    <td>
-                        {{ $article->published_at->format('d M Y') }}
-                    </td>
+                    <td>{{ number_format($article->views_count) }}</td>
+                    <td>{{ $article->published_at->format('d M Y') }}</td>
                     <td>
                         <div class="action-buttons">
                             <a href="{{ route('news.show', $article->id) }}" target="_blank"
-                                class="btn-action btn-action-view" title="View" data-bs-toggle="tooltip">
+                                class="btn-action btn-action-view" title="Lihat" data-bs-toggle="tooltip">
                                 <i class="bi bi-eye"></i>
                             </a>
                             <a href="{{ route('admin.news.edit', $article->id) }}" class="btn-action btn-action-edit"
@@ -586,7 +414,7 @@
                                 onsubmit="return confirmDelete(event, '{{ addslashes($article->title) }}')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn-action btn-action-delete" title="Delete"
+                                <button type="submit" class="btn-action btn-action-delete" title="Hapus"
                                     data-bs-toggle="tooltip">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -597,11 +425,9 @@
                 @empty
                 <tr>
                     <td colspan="8" class="text-center py-4">
-                        <div class="text-muted">
-                            <i class="bi bi-newspaper display-6 d-block mb-2"></i>
-                            No articles found.
-                            <a href="{{ route('admin.news.create') }}" class="d-block mt-2">Create your first
-                                article</a>
+                        <div class="text-secondary">
+                            Belum ada artikel.
+                            <a href="{{ route('admin.news.create') }}" class="d-block mt-2">Tulis artikel pertama</a>
                         </div>
                     </td>
                 </tr>
@@ -613,8 +439,7 @@
     @if($articles->hasPages())
     <div class="pagination-wrapper">
         <div class="pagination-info">
-            Showing {{ $articles->firstItem() }} to {{ $articles->lastItem() }} of {{ $articles->total() }}
-            entries
+            Menampilkan {{ $articles->firstItem() }}–{{ $articles->lastItem() }} dari {{ $articles->total() }} artikel
         </div>
         <div>
             {{ $articles->links() }}
@@ -630,7 +455,6 @@
 @endsection
 
 @section('scripts')
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize tooltips
@@ -642,7 +466,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Filter functionality
     const filterStatus = document.getElementById('filterStatus');
     const filterCategory = document.getElementById('filterCategory');
-    const exportBtn = document.getElementById('exportBtn');
 
     function applyFilters() {
         const status = filterStatus ? filterStatus.value : '';
@@ -684,25 +507,6 @@ document.addEventListener('DOMContentLoaded', function() {
         filterCategory.value = urlParams.get('category') || '';
     }
 
-    // Export functionality
-    if (exportBtn) {
-        exportBtn.addEventListener('click', function() {
-            showLoading();
-            // Get current filters for export
-            const status = filterStatus ? filterStatus.value : '';
-            const category = filterCategory ? filterCategory.value : '';
-
-            // Simulate export (you would replace this with actual export logic)
-            setTimeout(() => {
-                hideLoading();
-                const format = 'CSV';
-                alert(`Articles exported as ${format} successfully!`);
-                // In real implementation, you would trigger a download
-                // window.location.href = `/admin/news/export?status=${status}&category=${category}&format=csv`;
-            }, 1500);
-        });
-    }
-
     // Show loading overlay on form submits
     const forms = document.querySelectorAll('form');
     forms.forEach(form => {
@@ -727,7 +531,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Confirm delete with article title
 function confirmDelete(event, title) {
     if (!confirm(
-            `Are you sure you want to delete "${title}"?\n\nThis action cannot be undone and all associated data will be permanently removed.`
+            `Hapus artikel "${title}"?\n\nTindakan ini tidak bisa dibatalkan dan semua data terkait akan dihapus permanen.`
         )) {
         event.preventDefault();
         return false;

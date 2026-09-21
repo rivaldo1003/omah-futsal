@@ -653,30 +653,33 @@
 
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label for="match_duration" class="form-label">Regular Time (minutes) <span class="text-danger">*</span></label>
+                                <label for="match_duration" class="form-label">Durasi waktu normal (menit) <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('match_duration') is-invalid @enderror" 
                                     id="match_duration" name="match_duration" min="10" max="120" 
                                     value="{{ old('match_duration', $settings['match_duration'] ?? 40) }}" required>
+                                <div class="form-text">Total waktu efektif babak normal. Futsal standar: 2 × 20 = 40 menit</div>
                                 @error('match_duration')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label for="half_time" class="form-label">Half Time (minutes) <span class="text-danger">*</span></label>
+                                <label for="half_time" class="form-label">Istirahat antar babak (menit) <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('half_time') is-invalid @enderror" 
                                     id="half_time" name="half_time" min="5" max="30" 
                                     value="{{ old('half_time', $settings['half_time'] ?? 10) }}" required>
+                                <div class="form-text">Jeda antara babak 1 dan babak 2</div>
                                 @error('half_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-4 mb-3">
-                                <label for="extra_time" class="form-label">Extra Time (menit)</label>
+                                <label for="extra_time" class="form-label">Durasi per babak extra time (menit)</label>
                                 <input type="number" class="form-control @error('extra_time') is-invalid @enderror" 
                                     id="extra_time" name="extra_time" min="0" max="30" 
                                     value="{{ old('extra_time', $settings['extra_time'] ?? 10) }}">
+                                <div class="form-text">Dimainkan jika skor seri di knockout</div>
                                 @error('extra_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -692,7 +695,7 @@
 
                         <div class="row">
                             <div class="col-md-3 mb-3">
-                                <label for="points_win" class="form-label">Points for Win <span class="text-danger">*</span></label>
+                                <label for="points_win" class="form-label">Menang <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('points_win') is-invalid @enderror" 
                                     id="points_win" name="points_win" min="1" max="10" 
                                     value="{{ old('points_win', $settings['points_win'] ?? 3) }}" required>
@@ -702,7 +705,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="points_draw" class="form-label">Points for Draw <span class="text-danger">*</span></label>
+                                <label for="points_draw" class="form-label">Seri <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('points_draw') is-invalid @enderror" 
                                     id="points_draw" name="points_draw" min="0" max="5" 
                                     value="{{ old('points_draw', $settings['points_draw'] ?? 1) }}" required>
@@ -712,7 +715,7 @@
                             </div>
 
                             <div class="col-md-3 mb-3">
-                                <label for="points_loss" class="form-label">Points for Loss <span class="text-danger">*</span></label>
+                                <label for="points_loss" class="form-label">Kalah <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('points_loss') is-invalid @enderror" 
                                     id="points_loss" name="points_loss" min="0" max="5" 
                                     value="{{ old('points_loss', $settings['points_loss'] ?? 0) }}" required>
@@ -741,7 +744,7 @@
 
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label for="max_substitutes" class="form-label">Maximum Substitutes <span class="text-danger">*</span></label>
+                                <label for="max_substitutes" class="form-label">Maksimal pemain cadangan <span class="text-danger">*</span></label>
                                 <input type="number" class="form-control @error('max_substitutes') is-invalid @enderror" 
                                     id="max_substitutes" name="max_substitutes" min="0" max="20" 
                                     value="{{ old('max_substitutes', $settings['max_substitutes'] ?? 5) }}" required>
@@ -804,48 +807,6 @@
                         </div>
                     </div>
 
-                    <!-- Schedule Settings -->
-                    <div class="col-md-12 mb-4">
-                        <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
-                            Pengaturan Jadwal
-                        </h6>
-
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="matches_per_day" class="form-label">Maximum Matches per Day <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control @error('matches_per_day') is-invalid @enderror" 
-                                    id="matches_per_day" name="matches_per_day" min="1" max="20" 
-                                    value="{{ old('matches_per_day', $settings['matches_per_day'] ?? 4) }}" required>
-                                @error('matches_per_day')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label for="match_interval" class="form-label">Match Interval (minutes) <span class="text-danger">*</span></label>
-                                <input type="number" class="form-control @error('match_interval') is-invalid @enderror" 
-                                    id="match_interval" name="match_interval" min="15" max="120" 
-                                    value="{{ old('match_interval', $settings['match_interval'] ?? 30) }}" required>
-                                @error('match_interval')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 mb-3">
-                                <label for="match_time_slots" class="form-label">Waktu Pertandingan yang Diinginkan</label>
-                                <input type="text" class="form-control @error('match_time_slots') is-invalid @enderror" 
-                                    id="match_time_slots" name="match_time_slots" 
-                                    value="{{ old('match_time_slots', $settings['match_time_slots'] ?? '14:00, 16:00, 18:00, 20:00') }}"
-                                    placeholder="Masukkan waktu pertandingan dipisah koma">
-                                <div class="form-text">Contoh: 14:00, 16:00, 18:00, 20:00</div>
-                                @error('match_time_slots')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 <!-- Form Actions -->

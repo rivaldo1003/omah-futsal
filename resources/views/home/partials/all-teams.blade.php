@@ -54,6 +54,7 @@
                                 'yellow_cards' => $player->yellow_cards ?? 0,
                                 'red_cards' => $player->red_cards ?? 0,
                                 'appearances' => $player->appearances_count ?? 0,
+                                'market_value' => $player->formatted_market_value ?? '',
                             ];
                         })->toArray();
 

@@ -395,18 +395,20 @@ class TournamentController extends Controller
                     ->with('success', 'Proceeding to match rules.');
 
             case 4:
+                // Semua pengaturan match rules bersifat opsional —
+                // default sudah diisi di form dan di-set ulang saat create tournament (case 5).
                 $validated = $request->validate([
-                    'match_duration' => 'required|integer|min:10|max:120',
-                    'half_time' => 'required|integer|min:5|max:30',
+                    'match_duration' => 'nullable|integer|min:10|max:120',
+                    'half_time' => 'nullable|integer|min:5|max:30',
                     'extra_time' => 'nullable|integer|min:0|max:30',
-                    'points_win' => 'required|integer|min:0|max:10',
-                    'points_draw' => 'required|integer|min:0|max:5',
-                    'points_loss' => 'required|integer|min:0|max:5',
+                    'points_win' => 'nullable|integer|min:0|max:10',
+                    'points_draw' => 'nullable|integer|min:0|max:5',
+                    'points_loss' => 'nullable|integer|min:0|max:5',
                     'points_no_show' => 'nullable|integer|min:-10|max:0',
-                    'max_substitutes' => 'required|integer|min:0|max:20',
+                    'max_substitutes' => 'nullable|integer|min:0|max:20',
                     'yellow_card_suspension' => 'nullable|integer|min:1|max:10',
-                    'matches_per_day' => 'required|integer|min:1|max:20',
-                    'match_interval' => 'required|integer|min:15|max:120',
+                    'matches_per_day' => 'nullable|integer|min:1|max:20',
+                    'match_interval' => 'nullable|integer|min:15|max:120',
                     'match_time_slots' => 'nullable|string',
                     'allow_draw' => 'nullable|boolean',
                     'extra_time_enabled' => 'nullable|boolean',
@@ -414,6 +416,22 @@ class TournamentController extends Controller
                     'var_enabled' => 'nullable|boolean',
                     'tie_breakers' => 'nullable|array',
                 ]);
+
+                // Normalisasi tie_breakers: form mengirim [['key' => 'x'], ...],
+                // simpan sebagai list of keys ['x', ...] agar konsisten dengan settings.
+                if (!empty($validated['tie_breakers'])) {
+                    $tieBreakerKeys = [];
+                    foreach ($validated['tie_breakers'] as $rule) {
+                        if (is_array($rule)) {
+                            if (!empty($rule['key'])) {
+                                $tieBreakerKeys[] = $rule['key'];
+                            }
+                        } elseif (is_string($rule) && $rule !== '') {
+                            $tieBreakerKeys[] = $rule;
+                        }
+                    }
+                    $validated['tie_breakers'] = array_values(array_unique($tieBreakerKeys));
+                }
 
                 // Merge validated data
                 $tournamentData = array_merge($tournamentData, $validated);
@@ -530,7 +548,7 @@ class TournamentController extends Controller
                         'groups_count' => $tournamentType === 'group_knockout' ? $tournamentData['groups_count'] : null,
                         'teams_per_group' => $tournamentType === 'group_knockout' ? $tournamentData['teams_per_group'] : null,
                         'qualify_per_group' => $tournamentType === 'group_knockout' ? $tournamentData['qualify_per_group'] : null,
-                        'settings' => json_encode($settings),
+                        'settings' => $settings,
                         'created_by' => auth()->id(),
                     ]);
 
@@ -680,7 +698,13 @@ class TournamentController extends Controller
     {
         $tournament->load(['teams', 'matches.homeTeam', 'matches.awayTeam']);
 
-        return view('admin.tournaments.show', compact('tournament'));
+        // Settings sebagai array (accessor model menormalkan double-encoding)
+        $settings = $tournament->settings ?? [];
+
+        // Hitung pertandingan yang selesai
+        $completedMatches = $tournament->matches->where('status', 'completed')->count();
+
+        return view('admin.tournaments.show', compact('tournament', 'settings', 'completedMatches'));
     }
 
     // Edit tournament
@@ -695,7 +719,7 @@ class TournamentController extends Controller
         }]);
 
         // Decode settings
-        $settings = json_decode($tournament->settings, true) ?? [];
+        $settings = $tournament->settings ?? [];
 
         return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings'));
     }
@@ -722,8 +746,17 @@ class TournamentController extends Controller
             'group_assignments.*' => 'nullable|string|max:1',
             'match_duration' => 'required|integer|min:10|max:120',
             'half_time' => 'required|integer|min:5|max:30',
+            'extra_time' => 'nullable|integer|min:0|max:30',
             'points_win' => 'required|integer|min:0|max:10',
             'points_draw' => 'required|integer|min:0|max:5',
+            'points_loss' => 'nullable|integer|min:0|max:5',
+            'points_no_show' => 'nullable|integer|min:-10|max:0',
+            'max_substitutes' => 'nullable|integer|min:0|max:20',
+            'yellow_card_suspension' => 'nullable|integer|min:1|max:10',
+            'allow_draw' => 'nullable|boolean',
+            'extra_time_enabled' => 'nullable|boolean',
+            'penalty_shootout' => 'nullable|boolean',
+            'var_enabled' => 'nullable|boolean',
             'tie_breakers' => 'nullable|array',
         ]);
 
@@ -763,7 +796,7 @@ class TournamentController extends Controller
             }
 
             // Prepare settings
-            $settings = json_decode($tournament->settings, true) ?? [];
+            $settings = $tournament->settings ?? [];
             
             // Process tie_breakers - extract keys from array format
             $tieBreakersKeys = [];
@@ -788,8 +821,17 @@ class TournamentController extends Controller
             $settings = array_merge($settings, [
                 'match_duration' => $validated['match_duration'],
                 'half_time' => $validated['half_time'],
+                'extra_time' => $validated['extra_time'] ?? ($settings['extra_time'] ?? 10),
                 'points_win' => $validated['points_win'],
                 'points_draw' => $validated['points_draw'],
+                'points_loss' => $validated['points_loss'] ?? ($settings['points_loss'] ?? 0),
+                'points_no_show' => $validated['points_no_show'] ?? ($settings['points_no_show'] ?? -1),
+                'max_substitutes' => $validated['max_substitutes'] ?? ($settings['max_substitutes'] ?? 5),
+                'yellow_card_suspension' => $validated['yellow_card_suspension'] ?? ($settings['yellow_card_suspension'] ?? 3),
+                'allow_draw' => (bool) ($validated['allow_draw'] ?? false),
+                'extra_time_enabled' => (bool) ($validated['extra_time_enabled'] ?? false),
+                'penalty_shootout' => (bool) ($validated['penalty_shootout'] ?? false),
+                'var_enabled' => (bool) ($validated['var_enabled'] ?? false),
                 'tie_breakers' => !empty($tieBreakersKeys) ? $tieBreakersKeys : null,
             ]);
             
@@ -811,7 +853,7 @@ class TournamentController extends Controller
                 'status' => $validated['status'],
                 // **PERBAIKAN: Hanya group_knockout yang punya groups_count**
                 'groups_count' => $validated['type'] === 'group_knockout' ? $validated['groups_count'] : null,
-                'settings' => json_encode($settings),
+                'settings' => $settings,
             ];
             
             \Log::info('Update data', $updateData);

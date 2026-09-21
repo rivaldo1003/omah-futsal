@@ -2,150 +2,108 @@
                     <div class="card-header">
                         <h5>
                             <i class="bi bi-eye"></i>
-                            Preview Turnamen
+                            Ringkasan
                         </h5>
                     </div>
                     <div class="card-body">
-                        <div class="tournament-preview mb-4">
-                            <h6>Preview cepat</h6>
-                            <h4 id="previewName">{{ old('name', $tournamentData['name'] ?? '--') }}</h4>
+                        <h4 class="review-name" id="previewName">
+                            {{ old('name', $tournamentData['name'] ?? 'Belum ada nama') }}
+                        </h4>
 
-                            <div class="preview-grid">
-                                <div class="preview-item">
-                                    <label>Tim</label>
-                                    <div class="value" id="previewTeamCount">
-                                        {{ count(old('teams', $tournamentData['teams'] ?? [])) }}
-                                    </div>
-                                </div>
-                                <div class="preview-item">
-                                    <label>Pertandingan</label>
-                                    <div class="value" id="previewMatchCount">0</div>
-                                </div>
-                                <div class="preview-item">
-                                    <label>Durasi</label>
-                                    <div class="value" id="previewDurationDays">
-                                        @if(!empty($tournamentData['start_date']) && !empty($tournamentData['end_date']))
-                                            @php
-                                                $start = new DateTime($tournamentData['start_date']);
-                                                $end = new DateTime($tournamentData['end_date']);
-                                                $interval = $start->diff($end);
-                                                echo ($interval->days + 1) . ' days';
-                                            @endphp
-                                        @else
-                                            0 days
-                                        @endif
-                                    </div>
-                                </div>
-                                <div class="preview-item">
-                                    <label>Tipe</label>
-                                    <div class="value" id="previewTournamentType">
-                                        @php
-                                            $type = old('type', $tournamentData['type'] ?? '');
-                                            $typeNames = [
-                                                'league' => 'League',
-                                                'knockout' => 'Knockout',
-                                                'group_knockout' => 'Group + Knockout'
-                                            ];
-                                        @endphp
-                                        {{ $typeNames[$type] ?? '--' }}
-                                    </div>
-                                </div>
+                        <dl class="review-list">
+                            <div class="review-row">
+                                <dt>Tipe</dt>
+                                <dd id="previewTournamentType">
+                                    @php
+                                        $type = old('type', $tournamentData['type'] ?? '');
+                                        $typeNames = [
+                                            'league' => 'League',
+                                            'knockout' => 'Knockout',
+                                            'group_knockout' => 'Group + Knockout'
+                                        ];
+                                    @endphp
+                                    {{ $typeNames[$type] ?? 'Belum dipilih' }}
+                                </dd>
                             </div>
-                        </div>
-
-                        <div class="settings-section">
-                            <h6><i class="bi bi-people"></i> Tim Terpilih</h6>
-                            <div class="selected-tim-preview" id="selectedTeamsPreview">
-                                @if(!empty($tournamentData['teams']))
-                                    @foreach($teams->whereIn('id', $tournamentData['teams'])->take(5) as $team)
-                                        @php
-                                            $logoUrl = $team->logo ? Storage::url($team->logo) : null;
-                                        @endphp
-                                        <div class="selected-team-item">
-                                            @if($logoUrl)
-                                                <img src="{{ $logoUrl }}" alt="{{ $team->name }}"
-                                                    style="width: 30px; height: 30px; border-radius: 6px; object-fit: cover;">
-                                            @else
-                                                <div class="selected-team-logo">{{ substr($team->name, 0, 1) }}</div>
-                                            @endif
-                                            <div>
-                                                <div class="fw-bold">{{ $team->name }}</div>
-                                                @if($team->coach_name)
-                                                    <small class="text-muted">Coach: {{ $team->coach_name }}</small>
-                                                @endif
-                                            </div>
-                                        </div>
-                                    @endforeach
-                                    @if(count($tournamentData['teams']) > 5)
-                                        <div class="text-center text-muted mt-2">
-                                            + {{ count($tournamentData['teams']) - 5 }} more tim
-                                        </div>
-                                    @endif
-                                @else
-                                    <div class="text-muted">Belum ada tim dipilih</div>
-                                @endif
+                            <div class="review-row">
+                                <dt>Tim</dt>
+                                <dd>
+                                    <span id="previewTeamCount">{{ count(old('teams', $tournamentData['teams'] ?? [])) }}</span>
+                                    tim
+                                </dd>
                             </div>
-                        </div>
-
-                        <div class="quick-stats mt-4">
-                            <div class="stat-box">
-                                <div class="stat-value" id="quickTotalTeams">
-                                    {{ count(old('teams', $tournamentData['teams'] ?? [])) }}
-                                </div>
-                                <div class="stat-label">Total Tim</div>
+                            <div class="review-row">
+                                <dt>Pertandingan</dt>
+                                <dd id="previewMatchCount">0</dd>
                             </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="quickTotalMatches">0</div>
-                                <div class="stat-label">Total Pertandingan</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="quickGroups">
-                                    {{ old('groups_count', $tournamentData['groups_count'] ?? 0) }}
-                                </div>
-                                <div class="stat-label">Grup</div>
-                            </div>
-                            <div class="stat-box">
-                                <div class="stat-value" id="quickDuration">
+                            <div class="review-row">
+                                <dt>Durasi</dt>
+                                <dd id="previewDurationDays">
                                     @if(!empty($tournamentData['start_date']) && !empty($tournamentData['end_date']))
                                         @php
                                             $start = new DateTime($tournamentData['start_date']);
                                             $end = new DateTime($tournamentData['end_date']);
-                                            echo $start->diff($end)->days + 1;
+                                            $interval = $start->diff($end);
+                                            echo ($interval->days + 1) . ' hari';
                                         @endphp
                                     @else
-                                        0
+                                        0 hari
                                     @endif
-                                </div>
-                                <div class="stat-label">Hari</div>
+                                </dd>
                             </div>
-                        </div>
+                        </dl>
 
-                        <!-- Preview Logo -->
-                        <div class="settings-section mt-4">
-                            <h6><i class="bi bi-image"></i> Tournament Logo</h6>
-                            <div class="text-center">
-                                <div id="previewLogoContainer">
-                                    @if(!empty($tournamentData['logo']))
-                                        <img src="{{ Storage::url($tournamentData['logo']) }}" 
-                                             alt="Tournament Logo" 
-                                             style="max-width: 150px; max-height: 150px; border-radius: 8px;">
-                                    @else
-                                        <div class="text-muted">
-                                            <i class="bi bi-image" style="font-size: 3rem;"></i>
-                                            <p>Belum ada logo</p>
+                        <div class="sidebar-section">
+                            <div class="section-label">Tim terpilih</div>
+                            <div class="row g-2" id="selectedTeamsPreview">
+                                @if(!empty($tournamentData['teams']))
+                                    @foreach($teams->whereIn('id', $tournamentData['teams'])->take(5) as $team)
+                                        @php
+                                            $logoUrl = ($team->logo && Storage::disk('public')->exists($team->logo)) ? Storage::url($team->logo) : null;
+                                        @endphp
+                                        <div class="col-12">
+                                            <div class="team-card static">
+                                                <div class="team-logo-placeholder">
+                                                    @if($logoUrl)
+                                                        <img src="{{ $logoUrl }}" alt="{{ $team->name }}">
+                                                    @else
+                                                        {{ substr($team->name, 0, 2) }}
+                                                    @endif
+                                                </div>
+                                                <div class="team-card-info">
+                                                    <span class="team-card-name">{{ $team->name }}</span>
+                                                    @if($team->coach_name)
+                                                        <span class="team-card-coach">{{ $team->coach_name }}</span>
+                                                    @endif
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                    @if(count($tournamentData['teams']) > 5)
+                                        <div class="col-12">
+                                            <small class="text-secondary">+ {{ count($tournamentData['teams']) - 5 }} tim lainnya</small>
                                         </div>
                                     @endif
-                                </div>
+                                @else
+                                    <div class="col-12 text-secondary">Belum ada tim dipilih</div>
+                                @endif
                             </div>
                         </div>
 
-                        <div class="info-box mt-4">
-                            <i class="bi bi-lightbulb"></i>
-                            <p>
-                                <strong>Preview Turnamen</strong><br>
-                                This preview updates in real-time as you fill out the form. All calculations are based
-                                on your current selections.
-                            </p>
+                        <div class="sidebar-section">
+                            <div class="section-label">Logo</div>
+                            <div id="previewLogoContainer">
+                                @if(!empty($tournamentData['logo']))
+                                    <img src="{{ Storage::url($tournamentData['logo']) }}"
+                                        alt="Logo turnamen" class="review-media">
+                                @else
+                                    <div class="text-secondary">Belum ada logo</div>
+                                @endif
+                            </div>
                         </div>
+
+                        <p class="group-hint" style="margin: 16px 0 0;">
+                            Ringkasan diperbarui otomatis mengikuti isian form.
+                        </p>
                     </div>
                 </div>

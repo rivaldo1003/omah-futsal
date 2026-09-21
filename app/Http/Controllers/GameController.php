@@ -349,7 +349,7 @@ class GameController extends Controller
                 $groupOptions = []; // League dan knockout TIDAK punya group options
             }
 
-            $tournamentSettings = json_decode($tournament->settings, true) ?? [];
+            $tournamentSettings = $tournament->settings ?? [];
         } else {
             $teams = collect();
             $groupOptions = [];
@@ -1246,7 +1246,7 @@ class GameController extends Controller
      */
     private function generateLeagueMatches(Tournament $tournament, $teams)
     {
-        $settings = json_decode($tournament->settings, true) ?? [];
+        $settings = $tournament->settings ?? [];
         $matchesPerDay = $settings['matches_per_day'] ?? 4;
         $matchDuration = $settings['match_duration'] ?? 40;
         $timeSlots = explode(',', $settings['match_time_slots'] ?? '14:00,16:00,18:00,20:00');

@@ -74,6 +74,14 @@ class HomeController extends Controller
                 ->limit(5)
                 ->get();
 
+            $topValuedPlayers = Player::with('team')
+                ->whereNotNull('market_value')
+                ->where('market_value', '>', 0)
+                ->orderByDesc('market_value')
+                ->orderByDesc('goals')
+                ->limit(8)
+                ->get();
+
             return view('home', [
                 'heroSetting' => $heroSetting,
                 'activeTournament' => null,
@@ -81,6 +89,7 @@ class HomeController extends Controller
                 'upcomingMatches' => $upcomingMatches,
                 'recentResults' => $recentResults,
                 'topScorers' => collect(),
+                'topValuedPlayers' => $topValuedPlayers,
                 'standings' => [],
                 'teams' => collect(),
                 'teamsInActiveTournament' => collect(),
@@ -228,6 +237,17 @@ class HomeController extends Controller
         }
 
         // ==============================
+        // GET TOP VALUED PLAYERS (Bintang Market Value Tertinggi)
+        // ==============================
+        $topValuedPlayers = Player::with('team')
+            ->whereNotNull('market_value')
+            ->where('market_value', '>', 0)
+            ->orderByDesc('market_value')
+            ->orderByDesc('goals')
+            ->limit(8)
+            ->get();
+
+        // ==============================
         // GET TOP SCORERS HANYA DARI TOURNAMENT AKTIF
         // ==============================
         $topScorers = $this->getTopScorersForTournament($tournamentId);
@@ -249,7 +269,7 @@ class HomeController extends Controller
             'fair_play' => 'Nilai fairplay (kartu) - jika sama',
             'penalty' => 'Adu tendangan penalti',
         ];
-        $tieBreakerRaw = json_decode($activeTournament->settings, true)['tie_breakers'] ?? null;
+        $tieBreakerRaw = $activeTournament->settings['tie_breakers'] ?? null;
         if (empty($tieBreakerRaw)) {
             $tieBreakerRaw = array_keys($tieBreakerLabelMap);
         } elseif (is_array($tieBreakerRaw)) {
@@ -257,10 +277,18 @@ class HomeController extends Controller
         } else {
             $tieBreakerRaw = [(string) $tieBreakerRaw];
         }
-        $activeTournament->tie_breakers = array_map(
-            fn ($rule) => $tieBreakerLabelMap[$rule] ?? (is_string($rule) ? $rule : ''),
+        // Normalisasi tiap item: bisa berupa string key, atau array ['key' => 'x'] (data lama).
+        $activeTournament->tie_breakers = array_values(array_filter(array_map(
+            function ($rule) use ($tieBreakerLabelMap) {
+                if (is_array($rule)) {
+                    $rule = $rule['key'] ?? '';
+                }
+                return is_string($rule) && $rule !== ''
+                    ? ($tieBreakerLabelMap[$rule] ?? $rule)
+                    : '';
+            },
             $tieBreakerRaw
-        );
+        )));
 
         // Statistics untuk tournament aktif
         $totalTeams = $teams->count();
@@ -328,6 +356,7 @@ class HomeController extends Controller
             'daysLeft',
             'debugInfo',
             'recentHighlights',
+            'topValuedPlayers',
             // NEW: Add tournament type flags
             'tournamentType',
             'isCupType',
@@ -361,7 +390,7 @@ class HomeController extends Controller
             }
 
             // Cek settings JSON
-            $settings = json_decode($tournament->settings, true) ?? [];
+            $settings = $tournament->settings ?? [];
             \Log::info('Tournament settings:', $settings);
 
             // ... rest of the code ...
@@ -472,6 +501,7 @@ class HomeController extends Controller
                     'p.jersey_number',
                     'p.position',
                     'p.team_id',
+                    'p.market_value',
                     't.name as team_name',
                     // PERBAIKAN: Hitung goals hanya dari tournament ini
                     DB::raw('COUNT(DISTINCT CASE 
@@ -506,7 +536,7 @@ class HomeController extends Controller
                         });
                 })
                 ->where('tt.tournament_id', $tournamentId)
-                ->groupBy('p.id', 'p.name', 'p.jersey_number', 'p.position', 'p.team_id', 't.name')
+                ->groupBy('p.id', 'p.name', 'p.jersey_number', 'p.position', 'p.team_id', 'p.market_value', 't.name')
                 ->having('goals', '>', 0)
                 ->orderBy('goals', 'DESC')
                 ->orderBy('p.name', 'ASC')
@@ -535,6 +565,7 @@ class HomeController extends Controller
                         'position' => $player ? $player->position : '?',
                         'team_id' => $player ? $player->team_id : null,
                         'team_name' => $item->team_name,
+                        'market_value' => $player ? $player->market_value : null,
                         'goals' => $item->goals_count,
                         'assists' => 0,
                         'yellow_cards' => 0,
@@ -568,6 +599,8 @@ class HomeController extends Controller
                     'position' => $player->position,
                     'team_id' => $player->team_id,
                     'team_name' => $player->team_name,
+                    'market_value' => $player->market_value ?? null,
+                    'formatted_market_value' => Player::formatMarketValue($player->market_value ?? null),
                     'goals' => $player->goals,
                     'assists' => $player->assists,
                     'yellow_cards' => $player->yellow_cards,

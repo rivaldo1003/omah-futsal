@@ -59,6 +59,7 @@ class PlayerController extends Controller
             'position' => 'nullable|string|max:50',
             'birth_date' => 'nullable|date|before_or_equal:today',
             'birth_place' => 'nullable|string|max:100',
+            'market_value' => 'nullable|integer|min:0',
             'goals' => 'integer|min:0',
             'assists' => 'integer|min:0',
             'yellow_cards' => 'integer|min:0',
@@ -110,11 +111,28 @@ class PlayerController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    /**
-     * Update the specified resource in storage.
-     */
     public function update(Request $request, Player $player)
     {
+        // Handle update khusus statistik dari modal show
+        if ($request->input('update_type') === 'stats_only') {
+            $validated = $request->validate([
+                'goals' => 'nullable|integer|min:0',
+                'assists' => 'nullable|integer|min:0',
+                'yellow_cards' => 'nullable|integer|min:0',
+                'red_cards' => 'nullable|integer|min:0',
+            ]);
+
+            $player->update([
+                'goals' => $validated['goals'] ?? 0,
+                'assists' => $validated['assists'] ?? 0,
+                'yellow_cards' => $validated['yellow_cards'] ?? 0,
+                'red_cards' => $validated['red_cards'] ?? 0,
+            ]);
+
+            return redirect()->back()
+                ->with('success', 'Statistik pemain berhasil diperbarui!');
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:200',
             'jersey_number' => 'nullable|integer|min:1|max:99',
@@ -122,6 +140,7 @@ class PlayerController extends Controller
             'position' => 'nullable|string|max:50',
             'birth_date' => 'nullable|date|before_or_equal:today',
             'birth_place' => 'nullable|string|max:100',
+            'market_value' => 'nullable|integer|min:0',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5000',
             'goals' => 'nullable|integer|min:0',
             'assists' => 'nullable|integer|min:0',

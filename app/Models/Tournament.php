@@ -41,12 +41,39 @@ class Tournament extends Model
     protected $casts = [
         'start_date' => 'date',
         'end_date' => 'date',
-        'settings' => 'array',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
         'league_allow_draw' => 'boolean',
         'knockout_third_place' => 'boolean',
     ];
+
+    /**
+     * Accessor settings: selalu mengembalikan array.
+     * Menangani data lama yang tersimpan double-encoded (JSON di dalam string JSON).
+     */
+    public function getSettingsAttribute($value)
+    {
+        if (is_array($value)) {
+            return $value;
+        }
+
+        $decoded = json_decode((string) $value, true);
+
+        // Data lama double-encoded: decode pertama menghasilkan string JSON lagi
+        if (is_string($decoded)) {
+            $decoded = json_decode($decoded, true);
+        }
+
+        return is_array($decoded) ? $decoded : [];
+    }
+
+    /**
+     * Mutator settings: array di-encode sekali; string JSON disimpan apa adanya.
+     */
+    public function setSettingsAttribute($value)
+    {
+        $this->attributes['settings'] = is_array($value) ? json_encode($value) : $value;
+    }
 
     protected $appends = [
         'duration',

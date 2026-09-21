@@ -328,7 +328,7 @@
             const end = new Date(endDate);
             const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
-            $('#previewDurationDays').text(duration + ' days');
+            $('#previewDurationDays').text(duration + ' hari');
             $('#quickDuration').text(duration);
             
             // Update review dates
@@ -336,7 +336,7 @@
                 `${formatDate(startDate)} to ${formatDate(endDate)}`
             );
         } else {
-            $('#previewDurationDays').text('0 days');
+            $('#previewDurationDays').text('0 hari');
             $('#quickDuration').text('0');
         }
         
@@ -344,11 +344,11 @@
         $('#reviewName').text(name);
         $('#reviewType').text(typeNames[type] || 'Select Type');
         $('#reviewTeams').text(teamCount + ' tim');
-        $('#reviewMatches').text(matchCount + ' matches');
+        $('#reviewMatches').text(matchCount + ' pertandingan');
         $('#reviewLocation').text(location);
         $('#reviewOrganizer').text(organizer);
         $('#reviewDuration').text(
-            `${$('#match_duration').val() || 40} mins (${$('#half_time').val() || 10} mins half)`
+            `Waktu normal ${$('#match_duration').val() || 40} menit, istirahat ${$('#half_time').val() || 10} menit`
         );
         $('#reviewPoints').text(
             `Menang: ${$('#points_win').val() || 3}, Seri: ${$('#points_draw').val() || 1}, Kalah: ${$('#points_loss').val() || 0}`
@@ -468,9 +468,9 @@
             const groupHtml = `
             <div class="col-md-${Math.min(12 / groupsCount, 6)} mb-4">
                 <div class="card group-container" id="${groupId}" data-group="${groupLetter}">
-                    <div class="card-header bg-primary text-white">
+                    <div class="card-header">
                         <h6 class="mb-0">
-                            <i class="bi bi-folder"></i> Group ${groupLetter}
+                            Group ${groupLetter}
                             <span class="badge bg-light text-dark float-end" id="group-count-${groupLetter}">0</span>
                         </h6>
                     </div>
@@ -578,17 +578,16 @@
 
         unassignedTeams.forEach(team => {
             const teamCard = `
-            <div class="col-md-3 mb-3 team-card-container" id="available-team-${team.id}">
-                <div class="team-card draggable-item" 
+            <div class="col-6 col-md-4 col-lg-3 team-card-container" id="available-team-${team.id}">
+                <div class="team-card draggable-item"
                      data-team-id="${team.id}"
                      draggable="true">
                     <div class="team-logo-placeholder">
-                        ${team.logo ? `<img src="${team.logo}" alt="${team.name}" class="rounded-circle" style="width: 50px; height: 50px; object-fit: cover;">` : team.name.substring(0, 2)}
+                        ${team.logo ? `<img src="${team.logo}" alt="${team.name}">` : team.name.substring(0, 2)}
                     </div>
-                    <h6 class="mb-1">${team.name}</h6>
-                    ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
-                    <div class="mt-2">
-                        <span class="badge bg-warning">Tersedia</span>
+                    <div class="team-card-info">
+                        <span class="team-card-name">${team.name}</span>
+                        <span class="badge bg-light text-dark">Belum dibagi</span>
                     </div>
                 </div>
             </div>
@@ -629,18 +628,15 @@
         if (team.logo) {
             logoHtml = `<img src="${team.logo}" alt="${team.name}" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">`;
         } else {
-            logoHtml = `<div class="team-logo-placeholder small me-2" style="width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--secondary), var(--secondary-light)); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.9rem;">${team.name.substring(0, 2)}</div>`;
+            logoHtml = `<div class="team-logo-placeholder me-2" style="width: 28px; height: 28px;">${team.name.substring(0, 2)}</div>`;
         }
 
         teamElement.innerHTML = `
         <div class="d-flex align-items-center">
             ${logoHtml}
-            <div class="flex-grow-1">
-                <div class="fw-bold">${team.name}</div>
-                ${team.coach ? `<small class="text-muted">Coach: ${team.coach}</small>` : ''}
-            </div>
+            <div class="flex-grow-1 team-card-name">${team.name}</div>
             <div class="ms-2">
-                <span class="badge bg-primary">Seed ${seed}</span>
+                <span class="badge bg-light text-dark">Seed ${seed}</span>
             </div>
         </div>
         `;
@@ -970,7 +966,7 @@ $(document).on('click', 'button[type="submit"]', function() {
         @if(!empty($tournamentData['teams']))
             @foreach($teams->whereIn('id', $tournamentData['teams']) as $team)
                 @php
-                    $logoUrl = $team->logo ? Storage::url($team->logo) : null;
+                    $logoUrl = ($team->logo && Storage::disk('public')->exists($team->logo)) ? Storage::url($team->logo) : null;
                 @endphp
                 teamsData[{{ $team->id }}] = {
                     id: {{ $team->id }},
