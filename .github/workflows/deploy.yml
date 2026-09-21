@@ -1,0 +1,65 @@
+name: Deploy to Production (FTP)
+
+on:
+  push:
+    branches:
+      - main
+      - redesign/ui-cleanup
+  workflow_dispatch:
+
+jobs:
+  web-deploy:
+    name: FTP Deploy & Migrate
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: 🚀 Sync Files via FTP
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER || 'ftp.ofsfutsalcenter.id' }}
+          username: ${{ secrets.FTP_USERNAME || 'ofsw1241' }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          server-dir: ${{ secrets.FTP_SERVER_DIR || 'public_html/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            **/node_modules/**
+            **/tests/**
+            .env
+            .env.*
+            storage/logs/*.log
+            storage/framework/sessions/*
+            storage/framework/cache/*
+            storage/framework/views/*
+            README.md
+
+      - name: ⚡ Trigger Artisan Migrate & Cache Optimization
+        run: |
+          APP_URL="${{ secrets.APP_URL || 'https://ofsfutsalcenter.id' }}"
+          TOKEN="${{ secrets.DEPLOY_TOKEN }}"
+          
+          if [ -z "$TOKEN" ]; then
+            echo "⚠️ DEPLOY_TOKEN is not set in GitHub Secrets. Skipping artisan execution."
+            exit 0
+          fi
+
+          echo "Calling deploy webhook at $APP_URL/api/deploy/execute/*** ..."
+          RESPONSE=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "$APP_URL/api/deploy/execute/$TOKEN")
+          BODY=$(echo "$RESPONSE" | sed -e '$d')
+          STATUS=$(echo "$RESPONSE" | tail -n1 | cut -d':' -f2)
+
+          echo "Response Body:"
+          echo "$BODY"
+
+          if [ "$STATUS" -ne 200 ]; then
+            echo "❌ Deployment webhook failed with HTTP status: $STATUS"
+            exit 1
+          else
+            echo "✅ Database migrated and cache optimized successfully!"
+          fi

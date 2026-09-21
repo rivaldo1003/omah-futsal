@@ -78,3 +78,33 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('matches/{id}/score', [MatchApiController::class, 'updateScore']);
     Route::post('matches/{id}/events', [MatchApiController::class, 'addEvent']);
 });
+
+// Deployment Webhook for Automated Migration & Cache Optimization (Used by CI/CD)
+Route::post('/deploy/execute/{token}', function ($token) {
+    $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
+
+    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $token)) {
+        return response()->json(['message' => 'Unauthorized token'], 403);
+    }
+
+    try {
+        // Run database migrations
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+
+        // Clear and recache config/routes/views for production performance
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        \Illuminate\Support\Facades\Artisan::call('optimize');
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Deployment actions executed successfully.',
+            'migrate_output' => trim($migrateOutput),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
