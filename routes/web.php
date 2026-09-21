@@ -33,6 +33,10 @@ Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->
 Route::get('/tournaments/{tournament}/schedule', [TournamentController::class, 'schedule'])->name('tournaments.schedule');
 Route::get('/tournaments/{tournament}/teams', [TournamentController::class, 'teams'])->name('tournaments.teams');
 
+// Public Teams
+Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
+
 // Public Matches/Schedule
 Route::get('/schedule', [GameController::class, 'schedule'])->name('schedule');
 Route::get('/matches/{game}', [GameController::class, 'show'])->name('matches.show');
