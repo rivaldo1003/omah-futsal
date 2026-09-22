@@ -114,7 +114,7 @@ Route::post('/deploy/execute/{token}', function ($token) {
             $migrationName = basename($migrationFile, '.php');
 
             // Only handle migrations that create a table: *_create_<table>_table
-            if (!preg_match('/^\d{4}_\d{2}_\d{6}_create_(.+)_table$/', $migrationName, $m)) {
+            if (!preg_match('/^\d{4}_\d{2}_\d{2}_\d{6}_create_(.+)_table$/', $migrationName, $m)) {
                 continue;
             }
 
