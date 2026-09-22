@@ -30,16 +30,18 @@ jobs:
             **/.git*
             **/.git*/**
             .github/**
-            **/node_modules/**
-            **/tests/**
+            node_modules/
+            node_modules/**
+            tests/
+            tests/**
             .env
             .env.*
+            storage/
             storage/**
-            **/storage/**
-            storage
-            public/storage
+            public/storage/
             public/storage/**
             README.md
+            .ftp-deploy-sync-state.json
 
       - name: ⚡ Trigger Artisan Migrate & Cache Optimization
         run: |
