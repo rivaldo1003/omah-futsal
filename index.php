@@ -1,23 +1,9 @@
 <?php
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
-
 use Illuminate\Foundation\Application;
 use Illuminate\Http\Request;
 
 define('LARAVEL_START', microtime(true));
-
-if (isset($_GET['show_log']) && $_GET['show_log'] === 'secret123') {
-    foreach (['final-deploy.php', 'migrate-files.php', 'artisan-clear.php'] as $f) {
-        $p = __DIR__.'/'.$f;
-        if (file_exists($p)) {
-            echo "<h3>File: $f</h3><pre>" . htmlspecialchars(file_get_contents($p)) . "</pre>";
-        }
-    }
-    exit(0);
-}
 
 // Invalidate cache and remove orphaned migration if deploy webhook is accessed
 $requestUri = $_SERVER['REQUEST_URI'] ?? '';
