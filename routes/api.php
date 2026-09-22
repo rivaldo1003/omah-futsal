@@ -137,7 +137,35 @@ Route::post('/deploy/execute/{token}', function ($token) {
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
 
-        // 4. Clear and recache config/routes/views for production performance
+        // 4. Ensure the public/storage symlink exists so team/player photos are accessible
+        //    (FTP deploy excludes public/storage, so the symlink must be recreated on the server).
+        if (!file_exists(public_path('storage'))) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('storage:link');
+            } catch (\Throwable $e) {
+                // Fallback for shared hosting that disallows symlinks:
+                // copy the contents of storage/app/public into public/storage.
+                $src = storage_path('app/public');
+                $dst = public_path('storage');
+                if (is_dir($src)) {
+                    @mkdir($dst, 0755, true);
+                    $iterator = new \RecursiveIteratorIterator(
+                        new \RecursiveDirectoryIterator($src, \FilesystemIterator::SKIP_DOTS),
+                        \RecursiveIteratorIterator::SELF_FIRST
+                    );
+                    foreach ($iterator as $item) {
+                        $target = $dst . DIRECTORY_SEPARATOR . $iterator->getSubPathName();
+                        if ($item->isDir()) {
+                            @mkdir($target, 0755, true);
+                        } else {
+                            @copy($item->getPathname(), $target);
+                        }
+                    }
+                }
+            }
+        }
+
+        // 5. Clear and recache config/routes/views for production performance
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize');
 
