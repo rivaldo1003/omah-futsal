@@ -30,9 +30,14 @@ if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
 }
 
 // Register the Composer autoloader...
-$pubHtml = '/home/ofsw1241/public_html';
-echo "Public HTML contents:<br>" . implode('<br>', scandir($pubHtml)) . "<br><br>";
-exit(0);
+// Autoloader: use local vendor if exists, fallback to /home/ofsw1241/laravel/vendor
+if (file_exists(__DIR__.'/vendor/autoload.php')) {
+    require __DIR__.'/vendor/autoload.php';
+} elseif (file_exists('/home/ofsw1241/laravel/vendor/autoload.php')) {
+    require '/home/ofsw1241/laravel/vendor/autoload.php';
+} else {
+    die('Autoloader not found');
+}
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */

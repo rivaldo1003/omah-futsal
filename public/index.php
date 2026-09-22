@@ -15,7 +15,11 @@ if (file_exists($maintenance = __DIR__.'/../storage/framework/maintenance.php'))
 }
 
 // Register the Composer autoloader...
-require __DIR__.'/../vendor/autoload.php';
+if (file_exists(__DIR__.'/../vendor/autoload.php')) {
+    require __DIR__.'/../vendor/autoload.php';
+} elseif (file_exists('/home/ofsw1241/laravel/vendor/autoload.php')) {
+    require '/home/ofsw1241/laravel/vendor/autoload.php';
+}
 
 // Automatically invalidate route & config cache and remove orphaned migrations before booting Laravel on deploy webhook
 $requestUri = $_SERVER['REQUEST_URI'] ?? '';
