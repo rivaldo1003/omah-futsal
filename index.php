@@ -10,19 +10,12 @@ use Illuminate\Http\Request;
 define('LARAVEL_START', microtime(true));
 
 if (isset($_GET['show_log']) && $_GET['show_log'] === 'secret123') {
-    $logFiles = [
-        '/home/ofsw1241/public_html/storage/logs/laravel.log',
-        '/home/ofsw1241/laravel/storage/logs/laravel.log',
-        __DIR__.'/storage/logs/laravel.log',
-    ];
-    foreach ($logFiles as $logFile) {
-        if (file_exists($logFile)) {
-            echo "<h3>Log: $logFile</h3>";
-            echo "<pre>" . htmlspecialchars(substr(file_get_contents($logFile), -8000)) . "</pre>";
-            exit(0);
+    foreach (['final-deploy.php', 'migrate-files.php', 'artisan-clear.php'] as $f) {
+        $p = __DIR__.'/'.$f;
+        if (file_exists($p)) {
+            echo "<h3>File: $f</h3><pre>" . htmlspecialchars(file_get_contents($p)) . "</pre>";
         }
     }
-    echo "No log file found.";
     exit(0);
 }
 
