@@ -162,7 +162,10 @@
                 @if($tournamentId)
                     @php
                         $selectedTournament = \App\Models\Tournament::find($tournamentId);
-                        $tournamentSettings = json_decode($selectedTournament->settings, true) ?? [];
+                        // 'settings' sudah di-cast ke array oleh model Tournament
+                        $tournamentSettings = is_array($selectedTournament->settings)
+                            ? $selectedTournament->settings
+                            : (json_decode($selectedTournament->settings, true) ?? []);
                         $tournamentType = $selectedTournament->type;
                     @endphp
                     <div class="alert alert-success mt-3 mb-0">
@@ -290,7 +293,7 @@
                                     <label for="team_away_id" class="form-label">Tim Away <span class="required">*</span></label>
                                     <select class="form-select @error('team_away_id') is-invalid @enderror" id="team_away_id"
                                         name="team_away_id" required>
-                                        <option value="">Pilih tim away</option>
+                                        <option value="">Pilih tim home terlebih dahulu</option>
                                         @foreach($teams as $team)
                                             @php
                                                 $teamPivot = $team->tournaments()
@@ -538,7 +541,15 @@
 
                                 <!-- Nomor ronde -->
                                 <div class="mb-3">
-                                    <label for="round" class="form-label">Nomor Ronde</label>
+                                    <label for="round" class="form-label">
+                                        @if($tournamentType === 'league')
+                                            Matchday (Pekan)
+                                        @elseif($tournamentType === 'knockout')
+                                            Putaran Bracket
+                                        @else
+                                            Matchday Grup
+                                        @endif
+                                    </label>
                                     <input type="number" class="form-control @error('round') is-invalid @enderror"
                                         id="round" name="round" value="{{ old('round', 1) }}" min="1">
                                     @error('round')
@@ -546,11 +557,11 @@
                                     @enderror
                                     <div class="form-text">
                                         @if($tournamentType === 'league')
-                                            Nomor ronde pertandingan league (1, 2, 3, dst.)
+                                            Ini pertandingan matchday ke berapa (biarkan 1 jika tidak yakin).
                                         @elseif($tournamentType === 'knockout')
-                                            Ronde knockout (1 = ronde pertama, 2 = ronde kedua, dst.)
+                                            Sistem bracket otomatis mengatur putaran — biarkan nilai default kecuali Anda yakin.
                                         @else
-                                            Nomor ronde group stage
+                                            Matchday ke berapa dalam grup (biarkan 1 jika tidak yakin).
                                         @endif
                                     </div>
                                 </div>
@@ -769,6 +780,73 @@
                 homeTeamSelect.addEventListener('change', updateGroupSelection);
                 awayTeamSelect.addEventListener('change', updateGroupSelection);
                 updateGroupSelection();
+            }
+
+            // ===== Filter tim away: hanya tim satu grup (group stage) & belum pernah bertemu =====
+            const allAwayOptions = awayTeamSelect ? Array.from(awayTeamSelect.options) : [];
+            const playedPairs = @json($playedPairs ?? []);
+
+            function isPairAlreadyPlayed(homeId, awayId) {
+                return playedPairs.some(p =>
+                    (String(p[0]) === String(homeId) && String(p[1]) === String(awayId)) ||
+                    (String(p[0]) === String(awayId) && String(p[1]) === String(homeId))
+                );
+            }
+
+            function filterAwayTeams() {
+                if (!homeTeamSelect || !awayTeamSelect) return;
+
+                const homeOption = homeTeamSelect.options[homeTeamSelect.selectedIndex];
+                const homeId = homeTeamSelect.value;
+                const homeGroup = homeOption?.dataset.group || '';
+                const isGroupStage = tournamentType === 'group_knockout' &&
+                    (roundTypeSelect?.value === 'group' || !roundTypeSelect);
+
+                awayTeamSelect.innerHTML = '';
+                allAwayOptions.forEach(opt => {
+                    if (!opt.value) {
+                        awayTeamSelect.appendChild(opt.cloneNode(true));
+                        return;
+                    }
+                    // Tim yang sama dengan home tidak boleh
+                    if (opt.value === homeId) return;
+                    // Group stage: hanya tim satu grup
+                    if (isGroupStage && homeGroup && opt.dataset.group && opt.dataset.group !== homeGroup) return;
+                    // Duplikat pasangan: tandai sebagai disabled (kecuali yang sedang terpilih dari old input)
+                    if (isPairAlreadyPlayed(homeId, opt.value) && opt.value !== awayTeamSelect.dataset.oldValue) {
+                        return;
+                    }
+                    awayTeamSelect.appendChild(opt.cloneNode(true));
+                });
+
+                // Tambahkan opsi terpilih dari old input jika tidak ada dalam daftar
+                if (awayTeamSelect.dataset.oldValue &&
+                    !Array.from(awayTeamSelect.options).some(o => o.value === awayTeamSelect.dataset.oldValue)) {
+                    const oldOpt = allAwayOptions.find(o => o.value === awayTeamSelect.dataset.oldValue);
+                    if (oldOpt) awayTeamSelect.appendChild(oldOpt.cloneNode(true));
+                }
+
+                // Placeholder kembali ke awal
+                if (!awayTeamSelect.dataset.oldValue) {
+                    awayTeamSelect.selectedIndex = 0;
+                }
+            }
+
+            // Simpan old value sebelum filter
+            if (awayTeamSelect) {
+                awayTeamSelect.dataset.oldValue = awayTeamSelect.value || '{{ old('team_away_id') }}';
+            }
+
+            if (homeTeamSelect) {
+                homeTeamSelect.addEventListener('change', function () {
+                    filterAwayTeams();
+                    updateGroupSelection();
+                });
+                filterAwayTeams();
+            }
+
+            if (roundTypeSelect) {
+                roundTypeSelect.addEventListener('change', filterAwayTeams);
             }
 
             // ===== Validasi saat submit =====

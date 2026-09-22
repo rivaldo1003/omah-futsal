@@ -182,9 +182,10 @@
                 const normalizedPos = playerPosition.toLowerCase();
                 const isGoalkeeper = normalizedPos.includes('goalkeeper') || normalizedPos.includes('kiper') || normalizedPos.includes('gk');
 
+                const squadPlaceholder = '{{ asset('assets/img/player-placeholder-new.png') }}';
                 const avatarHtml = (playerPhoto && playerPhoto !== '')
-                    ? `<img src="${playerPhoto}" alt="${playerName}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border-color);">`
-                    : `<div style="width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.25rem;">${playerInitial}</div>`;
+                    ? `<img src="${playerPhoto}" onerror="this.onerror=null; this.src='${squadPlaceholder}';" alt="${playerName}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 1px solid var(--v3-border, var(--border-color));">`
+                    : `<img src="${squadPlaceholder}" alt="${playerName}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 1px solid var(--v3-border, var(--border-color));">`;
 
                 const totalContrib = goals + assists;
                 const totalGoalkeeping = saves + cleanSheets;
@@ -334,10 +335,10 @@
                 datasets: [{
                     data: stats,
                     fill: true,
-                    backgroundColor: 'rgba(29, 78, 216, 0.12)',
-                    borderColor: '#1d4ed8',
-                    borderWidth: 1.5,
-                    pointBackgroundColor: '#1d4ed8',
+                    backgroundColor: 'rgba(0, 255, 135, 0.18)',
+                    borderColor: '#00ff87',
+                    borderWidth: 2,
+                    pointBackgroundColor: '#00ff87',
                     pointBorderColor: '#ffffff',
                     pointBorderWidth: 1,
                     pointRadius: 3
@@ -348,11 +349,11 @@
                 maintainAspectRatio: false,
                 scales: {
                     r: {
-                        angleLines: { color: '#e2e8f0' },
-                        grid: { color: '#e2e8f0' },
+                        angleLines: { color: '#18263e' },
+                        grid: { color: '#18263e' },
                         pointLabels: {
-                            font: { size: 10, weight: '500' },
-                            color: '#64748b'
+                            font: { size: 10, weight: '800' },
+                            color: '#4e6178'
                         },
                         ticks: { display: false },
                         suggestedMin: 0,
@@ -374,9 +375,10 @@
             const position = (player.position || '').toLowerCase();
             const isGoalkeeper = position.includes('goalkeeper') || position.includes('kiper') || position.includes('gk');
 
+            const placeholder = '{{ asset('assets/img/player-placeholder-new.png') }}';
             const photoSource = player.photo
                 ? `/storage/${player.photo}`
-                : `https://api.dicebear.com/7.x/identicon/svg?seed=${encodeURIComponent(player.name || 'player')}`;
+                : placeholder;
 
             html += `
                 <div class="player-modal-card"
@@ -392,7 +394,7 @@
                     data-player-position="${(player.position || '-').replace(/"/g, '&quot;')}"
                     data-player-jersey="${player.jersey_number || '-'}"
                     data-player-market-value="${(player.market_value || '').replace(/"/g, '&quot;')}">
-                    <img src="${photoSource}" alt="${player.name}" class="player-modal-photo">
+                    <img src="${photoSource}" onerror="this.onerror=null; this.src='${placeholder}';" alt="${player.name}" class="player-modal-photo">
                     <div class="fw-semibold small text-truncate" title="${player.name || 'Unknown'}">
                         ${player.name || 'Unknown'}
                     </div>

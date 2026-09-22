@@ -115,6 +115,30 @@
             color: var(--accent);
         }
 
+        .btn-create.btn-generate {
+            background: #1E7A46;
+        }
+
+        .btn-create.btn-generate:hover {
+            background: #166036;
+            color: #fff;
+        }
+
+        /* Bulk action bar */
+        .bulk-bar {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+        }
+
+        .bulk-count {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
         /* Stats */
         .stats-grid {
             display: grid;
@@ -511,6 +535,100 @@
             <a href="{{ route('admin.matches.create') }}" class="btn-create">
                 <i class="bi bi-plus"></i> Buat pertandingan
             </a>
+            <button type="button" class="btn-create btn-generate" data-bs-toggle="modal" data-bs-target="#generateModal">
+                <i class="bi bi-magic"></i> Generate Otomatis
+            </button>
+        </div>
+    </div>
+
+    <!-- Form tersembunyi untuk bulk delete -->
+    <form id="bulkDeleteForm" action="{{ route('admin.matches.bulk-destroy') }}" method="POST" style="display:none;">
+        @csrf
+        <div id="bulkDeleteInputs"></div>
+    </form>
+    <!-- Form tersembunyi untuk hapus semua match turnamen -->
+    <form id="deleteAllForm" action="" method="POST" style="display:none;">
+        @csrf
+        @method('DELETE')
+    </form>
+
+    <!-- ===== Modal: Generate Semua Match Otomatis ===== -->
+    <div class="modal fade" id="generateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-magic me-2"></i>Generate Semua Match Otomatis</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="generateForm" action="" method="POST">
+                    @csrf
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pilih Turnamen <span class="text-danger">*</span></label>
+                            <select class="form-select" id="generateTournamentSelect" required>
+                                <option value="">Pilih turnamen</option>
+                                @foreach($tournaments->whereIn('status', ['upcoming', 'ongoing']) as $tournament)
+                                    @php
+                                        $teamCount = $tournament->teams()->count();
+                                        $estMatches = 0;
+                                        if ($tournament->type === 'league') {
+                                            $estMatches = $teamCount * ($teamCount - 1) / 2;
+                                        } elseif ($tournament->type === 'knockout') {
+                                            $estMatches = max(0, ($tournament->knockout_teams ?? 8) - 1);
+                                        } elseif ($tournament->type === 'group_knockout') {
+                                            $g = $tournament->groups_count ?? 2;
+                                            $tpg = $tournament->teams_per_group ?? 4;
+                                            $estMatches = $g * ($tpg * ($tpg - 1) / 2) + max(0, $g * ($tournament->qualify_per_group ?? 2) - 1);
+                                        }
+                                    @endphp
+                                    <option value="{{ $tournament->id }}"
+                                        data-type="{{ $tournament->type }}"
+                                        data-teams="{{ $teamCount }}"
+                                        data-est="{{ $estMatches }}"
+                                        data-existing="{{ \App\Models\Game::where('tournament_id', $tournament->id)->count() }}"
+                                        {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
+                                        {{ $tournament->name }} ({{ ucfirst($tournament->type) }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+
+                        <div id="generateInfo" class="alert alert-info mb-3" style="display: none;">
+                            <div><strong id="genInfoType"></strong></div>
+                            <div class="small">Tim terdaftar: <strong id="genInfoTeams"></strong> &middot; Estimasi match: <strong id="genInfoEst"></strong></div>
+                        </div>
+
+                        <div id="generateWarning" class="alert alert-warning mb-3" style="display: none;">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Turnamen ini sudah memiliki <strong id="genInfoExisting"></strong> match.
+                            Sistem tidak bisa generate jika sudah ada match.
+                            <div class="form-check mt-2">
+                                <input class="form-check-input" type="checkbox" id="confirmDeleteMatches">
+                                <label class="form-check-label small" for="confirmDeleteMatches">
+                                    Hapus semua match lama, lalu generate ulang
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-secondary mb-0 small">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Sistem otomatis membuat seluruh jadwal: <strong>league</strong> = round-robin semua tim;
+                            <strong>knockout</strong> = bracket penuh; <strong>group knockout</strong> = group stage + bracket.
+                            Tanggal, waktu & venue diambil dari pengaturan turnamen.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary" id="generateSubmitBtn" disabled>
+                            <i class="bi bi-magic me-1"></i> Generate Sekarang
+                        </button>
+                    </div>
+                </form>
+                <form id="deleteMatchesForm" action="" method="POST" style="display:none;">
+                    @csrf
+                    @method('DELETE')
+                </form>
+            </div>
         </div>
     </div>
 
@@ -584,6 +702,21 @@
         </button>
     </div>
 
+    <!-- ===== Bulk Action Bar ===== -->
+    <div class="bulk-bar" id="bulkBar">
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="bulk-count" id="bulkCount">0 dipilih</span>
+            <button type="button" class="btn-small btn-delete bulk-action-btn" id="bulkDeleteBtn" disabled
+                style="border-color:#c01c28;color:#c01c28;">
+                <i class="bi bi-trash me-1"></i> Hapus Terpilih
+            </button>
+            <span class="text-muted">|</span>
+            <button type="button" class="btn-small bulk-action-btn" id="deleteAllTournamentBtn">
+                <i class="bi bi-trash-fill me-1"></i> Hapus Semua Match di Turnamen Ini
+            </button>
+        </div>
+    </div>
+
     <div class="main-card">
         <div class="card-header">
             <h5 class="mb-0">Daftar pertandingan</h5>
@@ -595,6 +728,9 @@
                     <table class="table table-hover mb-0" id="matchesTable">
                         <thead>
                             <tr>
+                                <th style="width:36px;">
+                                    <input type="checkbox" id="selectAllMatches" title="Pilih semua">
+                                </th>
                                 <th>Date & Time</th>
                                 <th>Match</th>
                                 <th>Tournament</th>
@@ -609,6 +745,10 @@
                                     data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
                                     data-date="{{ $match->match_date->format('Y-m-d') }}"
                                     data-tournament="{{ $match->tournament_id }}">
+                                    <td>
+                                        <input type="checkbox" class="match-checkbox" value="{{ $match->id }}"
+                                            data-tournament="{{ $match->tournament_id }}">
+                                    </td>
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
                                         <div class="match-time">
@@ -2491,6 +2631,173 @@
                     });
             });
         }
+
+        // ===== Bulk Delete Matches =====
+        document.addEventListener('DOMContentLoaded', function () {
+            const selectAll = document.getElementById('selectAllMatches');
+            const bulkCount = document.getElementById('bulkCount');
+            const bulkDeleteBtn = document.getElementById('bulkDeleteBtn');
+            const deleteAllBtn = document.getElementById('deleteAllTournamentBtn');
+            const bulkForm = document.getElementById('bulkDeleteForm');
+            const bulkInputs = document.getElementById('bulkDeleteInputs');
+            const deleteAllForm = document.getElementById('deleteAllForm');
+            const deleteAllUrlTemplate = '{{ route('admin.admin.tournaments.delete-matches', ['tournament' => ':id']) }}';
+
+            function updateBulkState() {
+                const checked = Array.from(document.querySelectorAll('.match-checkbox:checked'));
+                if (bulkCount) bulkCount.textContent = checked.length + ' dipilih';
+                if (bulkDeleteBtn) bulkDeleteBtn.disabled = checked.length === 0;
+            }
+
+            if (selectAll) {
+                selectAll.addEventListener('change', function () {
+                    document.querySelectorAll('.match-checkbox').forEach(cb => {
+                        cb.checked = this.checked;
+                    });
+                    updateBulkState();
+                });
+            }
+
+            document.querySelectorAll('.match-checkbox').forEach(cb => {
+                cb.addEventListener('change', updateBulkState);
+            });
+
+            if (bulkDeleteBtn) {
+                bulkDeleteBtn.addEventListener('click', function () {
+                    const checked = Array.from(document.querySelectorAll('.match-checkbox:checked'));
+
+                    // ===== VALIDASI =====
+                    if (checked.length === 0) {
+                        alert('Pilih minimal satu match terlebih dahulu.');
+                        return;
+                    }
+
+                    if (!confirm(checked.length + ' match yang dipilih akan DIHAPUS permanen' +
+                        ' (termasuk event, statistik pemain, dan klasemen terkait). Lanjutkan?')) {
+                        return;
+                    }
+
+                    // Isi input match_ids lalu submit
+                    bulkInputs.innerHTML = '';
+                    checked.forEach(cb => {
+                        const input = document.createElement('input');
+                        input.type = 'hidden';
+                        input.name = 'match_ids[]';
+                        input.value = cb.value;
+                        bulkInputs.appendChild(input);
+                    });
+                    bulkForm.submit();
+                });
+            }
+
+            if (deleteAllBtn) {
+                deleteAllBtn.addEventListener('click', function () {
+                    const tournamentId = tournamentFilter?.value;
+
+                    // ===== VALIDASI: harus pilih turnamen dulu =====
+                    if (!tournamentId) {
+                        alert('Pilih turnamen pada filter terlebih dahulu, lalu klik tombol ini.');
+                        return;
+                    }
+
+                    const tournamentName = tournamentFilter.options[tournamentFilter.selectedIndex]?.textContent || 'turnamen ini';
+
+                    if (!confirm('SEMUA match di "' + tournamentName.trim() + '" akan DIHAPUS permanen' +
+                        ' (termasuk event, statistik pemain, dan seluruh klasemen turnamen). Lanjutkan?')) {
+                        return;
+                    }
+
+                    // Konfirmasi ganda (ketik HAPUS)
+                    const typed = prompt('Untuk konfirmasi, ketik: HAPUS');
+                    if (typed !== 'HAPUS') {
+                        alert('Konfirmasi tidak valid. Penghapusan dibatalkan.');
+                        return;
+                    }
+
+                    deleteAllForm.action = deleteAllUrlTemplate.replace(':id', tournamentId);
+                    deleteAllForm.submit();
+                });
+            }
+        });
+
+        // ===== Generate Otomatis Modal =====
+        document.addEventListener('DOMContentLoaded', function () {
+            const genSelect = document.getElementById('generateTournamentSelect');
+            const genInfo = document.getElementById('generateInfo');
+            const genWarning = document.getElementById('generateWarning');
+            const genInfoType = document.getElementById('genInfoType');
+            const genInfoTeams = document.getElementById('genInfoTeams');
+            const genInfoEst = document.getElementById('genInfoEst');
+            const genInfoExisting = document.getElementById('genInfoExisting');
+            const confirmDelete = document.getElementById('confirmDeleteMatches');
+            const genSubmitBtn = document.getElementById('generateSubmitBtn');
+            const genForm = document.getElementById('generateForm');
+            const deleteForm = document.getElementById('deleteMatchesForm');
+
+            const generateUrlTemplate = '{{ route('admin.admin.tournaments.generate-matches', ['tournament' => ':id']) }}';
+            const deleteUrlTemplate = '{{ route('admin.admin.tournaments.delete-matches', ['tournament' => ':id']) }}';
+
+            function updateGenerateModal() {
+                const opt = genSelect.options[genSelect.selectedIndex];
+                if (!opt || !opt.value) {
+                    genInfo.style.display = 'none';
+                    genWarning.style.display = 'none';
+                    genSubmitBtn.disabled = true;
+                    return;
+                }
+
+                const existing = parseInt(opt.dataset.existing || '0', 10);
+
+                genInfoType.textContent = 'Tipe: ' + opt.dataset.type.replace(/_/g, ' ');
+                genInfoTeams.textContent = opt.dataset.teams;
+                genInfoEst.textContent = opt.dataset.est;
+                genInfo.style.display = 'block';
+
+                if (existing > 0) {
+                    genInfoExisting.textContent = existing;
+                    genWarning.style.display = 'block';
+                    genSubmitBtn.disabled = !confirmDelete.checked;
+                } else {
+                    genWarning.style.display = 'none';
+                    genSubmitBtn.disabled = false;
+                }
+
+                genForm.action = generateUrlTemplate.replace(':id', opt.value);
+                deleteForm.action = deleteUrlTemplate.replace(':id', opt.value);
+            }
+
+            if (genSelect) {
+                genSelect.addEventListener('change', updateGenerateModal);
+                updateGenerateModal();
+            }
+
+            if (confirmDelete) {
+                confirmDelete.addEventListener('change', function () {
+                    genSubmitBtn.disabled = !this.checked;
+                });
+            }
+
+            if (genForm) {
+                genForm.addEventListener('submit', function (e) {
+                    const opt = genSelect.options[genSelect.selectedIndex];
+                    const existing = parseInt(opt?.dataset.existing || '0', 10);
+
+                    if (existing > 0 && confirmDelete.checked) {
+                        e.preventDefault();
+                        if (!confirm('Semua match lama akan DIHAPUS permanen (termasuk statistik terkait). Lanjutkan generate ulang?')) {
+                            return;
+                        }
+                        // Submit delete form; setelah redirect, admin bisa klik generate lagi
+                        deleteForm.submit();
+                        return;
+                    }
+
+                    if (!confirm('Generate semua match untuk turnamen ini?')) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        });
 
         // Helper function to show status messages
         function showYoutubeStatus(message, type = 'info') {

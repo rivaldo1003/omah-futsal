@@ -19,6 +19,8 @@ class Player extends Model
         'birth_date',
         'birth_place',
         'photo',
+        'animated_photo',
+        'photo_cutout',
         'goals',
         'penalty_goals',
         'assists',
@@ -30,7 +32,7 @@ class Player extends Model
     ];
 
     // Tambahkan ini
-    protected $appends = ['photo_url', 'initial', 'appearances_count'];
+    protected $appends = ['photo_url', 'animated_photo_url', 'photo_cutout_url', 'initial', 'appearances_count'];
 
     protected $casts = [
         'birth_date' => 'date:Y-m-d',
@@ -75,14 +77,9 @@ class Player extends Model
             return null;
         }
 
-        if ($value >= 1000000000) {
-            $formatted = rtrim(rtrim(number_format($value / 1000000000, 1, ',', '.'), '0'), ',');
-            return 'Rp ' . $formatted . ' M';
-        }
-
         if ($value >= 1000000) {
             $formatted = rtrim(rtrim(number_format($value / 1000000, 1, ',', '.'), '0'), ',');
-            return 'Rp ' . $formatted . ' jt';
+            return 'Rp ' . $formatted . ' Jt';
         }
 
         return 'Rp ' . number_format($value, 0, ',', '.');
@@ -132,6 +129,60 @@ class Player extends Model
             'players/' . $this->photo,
             'public/players/photos/' . $this->photo,
             'public/' . $this->photo,
+        ];
+
+        foreach ($possiblePaths as $path) {
+            $cleanPath = ltrim($path, '/\\');
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return asset('storage/' . $cleanPath);
+            }
+        }
+
+        return null;
+    }
+
+    // Accessor untuk animated photo URL (video animasi pemain, opsional)
+    public function getAnimatedPhotoUrlAttribute()
+    {
+        if (!$this->animated_photo) {
+            return null;
+        }
+
+        if (filter_var($this->animated_photo, FILTER_VALIDATE_URL)) {
+            return $this->animated_photo;
+        }
+
+        $possiblePaths = [
+            $this->animated_photo,
+            'players/animated/' . $this->animated_photo,
+            'players/' . $this->animated_photo,
+        ];
+
+        foreach ($possiblePaths as $path) {
+            $cleanPath = ltrim($path, '/\\');
+            if (Storage::disk('public')->exists($cleanPath)) {
+                return asset('storage/' . $cleanPath);
+            }
+        }
+
+        return null;
+    }
+
+    // Accessor untuk foto cutout (background transparan, opsional)
+    public function getPhotoCutoutUrlAttribute()
+    {
+        if (!$this->photo_cutout) {
+            return null;
+        }
+
+        if (filter_var($this->photo_cutout, FILTER_VALIDATE_URL)) {
+            return $this->photo_cutout;
+        }
+
+        $possiblePaths = [
+            $this->photo_cutout,
+            'players/cutouts/' . $this->photo_cutout,
+            'players/' . $this->photo_cutout,
         ];
 
         foreach ($possiblePaths as $path) {

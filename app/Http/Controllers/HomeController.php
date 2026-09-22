@@ -982,6 +982,57 @@ class HomeController extends Controller
         }
     }
 
+    /**
+     * Market Value — full player valuation directory (searchable)
+     */
+    public function marketValue()
+    {
+        $search   = request('search');
+        $position = request('position');
+        $sort     = request('sort', 'value_desc');
+
+        $query = Player::with('team')
+            ->whereNotNull('market_value')
+            ->where('market_value', '>', 0);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('team', function ($tq) use ($search) {
+                        $tq->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        if ($position && $position !== 'all') {
+            $query->where('position', $position);
+        }
+
+        switch ($sort) {
+            case 'value_asc':
+                $query->orderBy('market_value', 'asc');
+                break;
+            case 'goals_desc':
+                $query->orderByDesc('goals')->orderByDesc('market_value');
+                break;
+            case 'assists_desc':
+                $query->orderByDesc('assists')->orderByDesc('market_value');
+                break;
+            case 'name_asc':
+                $query->orderBy('name', 'asc');
+                break;
+            default:
+                $query->orderByDesc('market_value')->orderByDesc('goals');
+        }
+
+        $players = $query->get();
+
+        $totalValuation = $players->sum('market_value');
+        $maxValue = $players->max('market_value') ?: 1;
+
+        return view('market-value.index', compact('players', 'totalValuation', 'maxValue', 'search', 'position', 'sort'));
+    }
+
     public function userDashboard()
     {
         $totalTeams = Team::count();

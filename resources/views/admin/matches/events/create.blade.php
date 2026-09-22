@@ -174,20 +174,23 @@
                         @enderror
                     </div>
 
-                    <!-- Tim -->
+                    <!-- Tim (otomatis mengikuti pemain yang dipilih) -->
                     <div class="col-md-6 mb-3">
-                        <label for="team_id" class="form-label">Tim <span class="required">*</span></label>
-                        <select class="form-select @error('team_id') is-invalid @enderror" id="team_id" name="team_id"
-                            required>
-                            <option value="">Pilih tim</option>
+                        <label for="team_id_display" class="form-label">Tim <span class="required">*</span></label>
+                        <select class="form-select @error('team_id') is-invalid @enderror" id="team_id_display"
+                            disabled>
+                            <option value="">Pilih pemain untuk menentukan tim</option>
                             @foreach($teams as $team)
-                                <option value="{{ $team->id }}" {{ old('team_id') == $team->id ? 'selected' : '' }}>
+                                <option value="{{ $team->id }}">
                                     {{ $team->name }}
                                 </option>
                             @endforeach
                         </select>
+                        <!-- Nilai tim dikirim via hidden input (select display disabled) -->
+                        <input type="hidden" name="team_id" id="team_id_hidden" value="{{ old('team_id') }}">
+                        <small class="text-muted">Tim otomatis mengikuti pemain yang dipilih</small>
                         @error('team_id')
-                            <div class="invalid-feedback">{{ $message }}</div>
+                            <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
@@ -199,7 +202,8 @@
                             <option value="">Pilih pemain</option>
                             @foreach($players as $player)
                                 <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}
-                                    data-position="{{ strtolower($player->position ?? '') }}">
+                                    data-position="{{ strtolower($player->position ?? '') }}"
+                                    data-team-id="{{ $player->team_id }}">
                                     {{ $player->name }} ({{ $player->team->name ?? 'Tanpa Tim' }})
                                 </option>
                             @endforeach
@@ -216,7 +220,8 @@
                             id="related_player_id" name="related_player_id">
                             <option value="">Pilih pemain terkait</option>
                             @foreach($players as $player)
-                                <option value="{{ $player->id }}" {{ old('related_player_id') == $player->id ? 'selected' : '' }}>
+                                <option value="{{ $player->id }}" {{ old('related_player_id') == $player->id ? 'selected' : '' }}
+                                    data-team-id="{{ $player->team_id }}">
                                     {{ $player->name }} ({{ $player->team->name ?? 'Tanpa Tim' }})
                                 </option>
                             @endforeach
@@ -286,6 +291,44 @@
             const isPenaltyCheck = document.getElementById('is_penalty');
             const relatedPlayerSelect = document.getElementById('related_player_id');
             const playerSelect = document.getElementById('player_id');
+            const teamDisplay = document.getElementById('team_id_display');
+            const teamHidden = document.getElementById('team_id_hidden');
+            const allRelatedOptions = relatedPlayerSelect ? Array.from(relatedPlayerSelect.options) : [];
+
+            // ===== Tim otomatis mengikuti pemain yang dipilih =====
+            function syncTeamFromPlayer() {
+                const selectedOption = playerSelect.options[playerSelect.selectedIndex];
+                const teamId = selectedOption?.dataset.teamId || '';
+
+                teamHidden.value = teamId;
+                teamDisplay.value = teamId;
+
+                // Filter pemain terkait: hanya pemain satu tim dengan pemain utama
+                if (relatedPlayerSelect) {
+                    relatedPlayerSelect.innerHTML = '';
+                    allRelatedOptions.forEach(opt => {
+                        if (!opt.value) {
+                            relatedPlayerSelect.appendChild(opt.cloneNode(true));
+                            return;
+                        }
+                        // Pemain terkait harus satu tim dengan pemain utama
+                        if (teamId && opt.dataset.teamId && opt.dataset.teamId !== teamId) return;
+                        relatedPlayerSelect.appendChild(opt.cloneNode(true));
+                    });
+                    // Pertahankan pilihan old jika masih valid
+                    if (relatedPlayerSelect.querySelector('option[value="' + relatedPlayerSelect.dataset.oldValue + '"]')) {
+                        relatedPlayerSelect.value = relatedPlayerSelect.dataset.oldValue;
+                    }
+                }
+            }
+
+            // Simpan old value pemain terkait
+            if (relatedPlayerSelect) {
+                relatedPlayerSelect.dataset.oldValue = relatedPlayerSelect.value || '{{ old('related_player_id') }}';
+            }
+
+            playerSelect.addEventListener('change', syncTeamFromPlayer);
+            syncTeamFromPlayer();
 
             function toggleFields() {
                 const selectedEvent = eventTypeSelect.value;

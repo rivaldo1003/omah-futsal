@@ -61,6 +61,9 @@ Route::get('/matches/{match}/youtube-highlight', [GameController::class, 'getYou
 
 Route::get('/teams/{team}/details', [HomeController::class, 'teamDetails'])->name('teams.details');
 
+// Market Value — full player valuation directory
+Route::get('/market-value', [HomeController::class, 'marketValue'])->name('market-value.index');
+
 // ==================== AUTHENTICATION ROUTES ====================
 
 // Authentication Routes
@@ -174,6 +177,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
 
     // ========== MATCHES MANAGEMENT ==========
     Route::resource('matches', GameController::class);
+
+    // Bulk delete matches (multiple select) -> admin.matches.bulk-destroy
+    Route::post('matches/bulk-destroy', [GameController::class, 'bulkDestroy'])
+        ->name('matches.bulk-destroy');
 
     // Friendly match (ujicoba) - tidak terikat tournament
     Route::get('friendly-matches/create', [GameController::class, 'createFriendly'])->name('friendly-matches.create');
