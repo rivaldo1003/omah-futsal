@@ -34,6 +34,16 @@ if (strpos($requestUri, '/deploy/execute/') !== false) {
     @unlink(__DIR__.'/database/migrations/2025_12_12_031948_create_news_articles_table.php');
 }
 
+// Ensure environment and storage directories exist
+if (!file_exists(__DIR__.'/.env') && file_exists('/home/ofsw1241/laravel/.env')) {
+    @copy('/home/ofsw1241/laravel/.env', __DIR__.'/.env');
+}
+@mkdir(__DIR__.'/storage/framework/views', 0755, true);
+@mkdir(__DIR__.'/storage/framework/cache/data', 0755, true);
+@mkdir(__DIR__.'/storage/framework/sessions', 0755, true);
+@mkdir(__DIR__.'/storage/logs', 0755, true);
+@mkdir(__DIR__.'/bootstrap/cache', 0755, true);
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
     require $maintenance;
