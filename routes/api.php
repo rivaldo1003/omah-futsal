@@ -136,9 +136,30 @@ Route::post('/deploy/execute/{token}', function ($token) {
             }
         }
 
-        // 3. Run database migrations
-        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
-        $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
+        // 3. Run pending migrations one-by-one so a single failing migration
+        //    doesn't block the rest of the deployment.
+        $migrationsTable = \Illuminate\Support\Facades\DB::table('migrations')->pluck('migration')->flip();
+        $migrationFiles = collect(glob(database_path('migrations/*.php')))
+            ->map(fn ($f) => basename($f, '.php'))
+            ->filter(fn ($name) => !$migrationsTable->has($name))
+            ->sort()
+            ->values();
+
+        $migrateOutput = '';
+        $migrationErrors = [];
+
+        foreach ($migrationFiles as $pending) {
+            try {
+                \Illuminate\Support\Facades\Artisan::call('migrate', [
+                    '--path'   => 'database/migrations/' . $pending . '.php',
+                    '--force'  => true,
+                ]);
+                $migrateOutput .= Artisan::output();
+            } catch (\Throwable $e) {
+                $migrationErrors[] = ['migration' => $pending, 'error' => $e->getMessage()];
+                $migrateOutput .= "FAILED: {$pending}: " . $e->getMessage() . PHP_EOL;
+            }
+        }
 
         // 4. Ensure the public/storage symlink exists so team/player photos are accessible
         //    (FTP deploy excludes public/storage, so the symlink must be recreated on the server).
@@ -176,6 +197,7 @@ Route::post('/deploy/execute/{token}', function ($token) {
             'status' => 'success',
             'message' => 'Deployment actions executed successfully.',
             'migrate_output' => trim($migrateOutput),
+            'migration_errors' => $migrationErrors,
         ]);
     } catch (\Throwable $e) {
         return response()->json([

@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up()
     {
+        if (Schema::hasColumn('matches', 'is_penalty')) {
+            return;
+        }
+
         Schema::table('matches', function (Blueprint $table) {
             // Tambah field is_penalty (boolean)
             $table->boolean('is_penalty')
