@@ -1205,3 +1205,5 @@ class HomeController extends Controller
 
     // ... method lainnya tetap sama ...
 }
+
+// Deploy marker: force FTP re-sync of this controller (marketValue method).
