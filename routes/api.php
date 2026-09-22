@@ -88,6 +88,28 @@ Route::post('/deploy/execute/{token}', function ($token) {
     }
 
     try {
+        // Pre-migration fix: if a table already exists on DB but artisan doesn't know
+        // (e.g. migration file was renamed), register it in the migrations table to prevent
+        // "table already exists" errors on the next artisan migrate run.
+        $tableToMigrationMap = [
+            'news_articles' => '2026_09_08_000001_create_news_articles_table',
+        ];
+
+        $maxBatch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?? 0;
+
+        foreach ($tableToMigrationMap as $table => $migrationName) {
+            $alreadyRan = \Illuminate\Support\Facades\DB::table('migrations')
+                ->where('migration', $migrationName)
+                ->exists();
+
+            if (!$alreadyRan && \Illuminate\Support\Facades\Schema::hasTable($table)) {
+                \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                    'migration' => $migrationName,
+                    'batch'     => $maxBatch + 1,
+                ]);
+            }
+        }
+
         // Run database migrations
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
