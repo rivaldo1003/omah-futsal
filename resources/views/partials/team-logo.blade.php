@@ -7,12 +7,13 @@
 @endphp
 <div class="{{ $logoClass }}">
     @if($team && $team->logo)
-        @if(Storage::disk('public')->exists($team->logo))
-            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
-        @elseif(filter_var($team->logo, FILTER_VALIDATE_URL))
+        {{-- Render the logo whenever it is set (URL or storage path). Avoids
+             Storage::exists() false-negatives on servers where files live
+             under public/storage but not storage/app/public. --}}
+        @if(filter_var($team->logo, FILTER_VALIDATE_URL))
             <img src="{{ $team->logo }}" alt="{{ $team->name }}">
         @else
-            <div class="team-initial">{{ strtoupper(substr($team->name, 0, 1)) }}</div>
+            <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
         @endif
     @else
         <div class="team-initial">{{ strtoupper(substr($team->name ?? 'T', 0, 1)) }}</div>

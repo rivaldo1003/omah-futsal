@@ -52,14 +52,10 @@
                                                 $gdValue = $standing->goal_difference ?? 0;
                                                 $gdDisplay = $gdValue > 0 ? '+' . $gdValue : $gdValue;
 
-                                                $logoExists = false;
-                                                if ($teamLogo) {
-                                                    if (filter_var($teamLogo, FILTER_VALIDATE_URL)) {
-                                                        $logoExists = true;
-                                                    } elseif (Storage::disk('public')->exists($teamLogo)) {
-                                                        $logoExists = true;
-                                                    }
-                                                }
+                                                // Render the logo whenever it is set (URL or storage path).
+                                                // Avoids Storage::exists() false-negatives on servers where
+                                                // files live under public/storage but not storage/app/public.
+                                                $logoExists = !empty($teamLogo);
                                             @endphp
                                             <tr class="{{ $index < 2 && $hasPlayed ? 'row-qualified' : '' }}">
                                                 <td>
