@@ -193,12 +193,24 @@ Route::post('/deploy/execute/{token}', function ($token) {
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize');
 
-        // Include the tail of the Laravel log so CI can surface production errors.
+        // Include the last ERROR entries from the Laravel log so CI can surface
+        // production errors (message + first stack frames, not the whole trace).
         $logFile = storage_path('logs/laravel.log');
         $recentLog = '';
         if (file_exists($logFile)) {
-            $lines = file($logFile, FILE_IGNORE_NEW_LINES);
-            $recentLog = implode("\n", array_slice($lines, -40));
+            $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+            $errorLines = [];
+            foreach ($lines as $i => $line) {
+                if (strpos($line, '.ERROR:') !== false) {
+                    $message = $line;
+                    // First 3 stack frames after the message line
+                    for ($j = $i + 1; $j <= min($i + 3, count($lines) - 1); $j++) {
+                        $message .= "\n" . $lines[$j];
+                    }
+                    $errorLines[] = $message;
+                }
+            }
+            $recentLog = implode("\n---\n", array_slice($errorLines, -3));
         }
 
         return response()->json([
