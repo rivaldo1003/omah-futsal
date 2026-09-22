@@ -30,12 +30,8 @@ if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
 }
 
 // Register the Composer autoloader...
-$laravelPath = '/home/ofsw1241/laravel';
-echo "Laravel dir exists: " . (is_dir($laravelPath) ? 'YES' : 'NO') . "<br>";
-if (is_dir($laravelPath)) {
-    echo "Laravel contents:<br>" . implode('<br>', scandir($laravelPath)) . "<br><br>";
-    echo "Laravel vendor autoload exists: " . (file_exists($laravelPath.'/vendor/autoload.php') ? 'YES' : 'NO') . "<br>";
-}
+$pubHtml = '/home/ofsw1241/public_html';
+echo "Public HTML contents:<br>" . implode('<br>', scandir($pubHtml)) . "<br><br>";
 exit(0);
 
 // Bootstrap Laravel and handle the request...
