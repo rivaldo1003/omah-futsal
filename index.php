@@ -30,7 +30,37 @@ if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
 }
 
 // Register the Composer autoloader...
-require __DIR__.'/vendor/autoload.php';
+$autoloadPaths = [
+    __DIR__.'/vendor/autoload.php',
+    __DIR__.'/../vendor/autoload.php',
+    __DIR__.'/../../vendor/autoload.php',
+    dirname(__DIR__, 1).'/vendor/autoload.php',
+    dirname(__DIR__, 2).'/vendor/autoload.php',
+    '/home/ofsw1241/vendor/autoload.php',
+];
+
+$autoloadFound = null;
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        $autoloadFound = $path;
+        break;
+    }
+}
+
+if (!$autoloadFound) {
+    echo "Autoload search paths checked:<br>";
+    foreach ($autoloadPaths as $p) {
+        echo $p . " (exists: " . (file_exists($p) ? 'YES' : 'NO') . ")<br>";
+    }
+    // Also check what is in /home/ofsw1241/
+    echo "<br>Parent dir contents:<br>";
+    if (is_dir('/home/ofsw1241/')) {
+        echo implode('<br>', scandir('/home/ofsw1241/'));
+    }
+    exit(1);
+}
+
+require $autoloadFound;
 
 // Bootstrap Laravel and handle the request...
 /** @var Application $app */
