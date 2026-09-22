@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('players', function (Blueprint $table) {
-            $table->string('animated_photo')->nullable()->after('photo');
+            if (!Schema::hasColumn('players', 'animated_photo')) {
+                $table->string('animated_photo')->nullable()->after('photo');
+            }
         });
     }
 

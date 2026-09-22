@@ -9,7 +9,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('hero_settings', function (Blueprint $table) {
-            $table->boolean('show_market_value_stars')->default(true)->after('is_active');
+            if (!Schema::hasColumn('hero_settings', 'show_market_value_stars')) {
+                $table->boolean('show_market_value_stars')->default(true)->after('is_active');
+            }
         });
     }
 

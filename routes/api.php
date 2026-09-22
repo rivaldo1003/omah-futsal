@@ -88,33 +88,56 @@ Route::post('/deploy/execute/{token}', function ($token) {
     }
 
     try {
-        // Pre-migration fix: if a table already exists on DB but artisan doesn't know
-        // (e.g. migration file was renamed), register it in the migrations table to prevent
-        // "table already exists" errors on the next artisan migrate run.
+        // Reset OPcache if available
+        if (function_exists('opcache_reset')) {
+            @opcache_reset();
+        }
+
+        // 1. Remove orphaned migration files on the server that might have been deleted/renamed in git
+        // (FTP Deploy Action does not delete remote files when renamed/removed locally).
+        $orphanedMigrationFiles = [
+            database_path('migrations/2025_12_12_031948_create_news_articles_table.php'),
+        ];
+        foreach ($orphanedMigrationFiles as $filePath) {
+            if (file_exists($filePath)) {
+                @unlink($filePath);
+            }
+        }
+
+        // 2. Pre-migration fix: If a table already exists in the database, ensure all migration
+        // variations for that table are recorded in the `migrations` table so artisan migrate
+        // won't attempt to re-create the existing table.
         $tableToMigrationMap = [
-            'news_articles' => '2026_09_08_000001_create_news_articles_table',
+            'news_articles' => [
+                '2025_12_12_031948_create_news_articles_table',
+                '2026_09_08_000001_create_news_articles_table',
+            ],
         ];
 
         $maxBatch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?? 0;
 
-        foreach ($tableToMigrationMap as $table => $migrationName) {
-            $alreadyRan = \Illuminate\Support\Facades\DB::table('migrations')
-                ->where('migration', $migrationName)
-                ->exists();
+        foreach ($tableToMigrationMap as $table => $migrationNames) {
+            if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                foreach ((array) $migrationNames as $migrationName) {
+                    $alreadyRan = \Illuminate\Support\Facades\DB::table('migrations')
+                        ->where('migration', $migrationName)
+                        ->exists();
 
-            if (!$alreadyRan && \Illuminate\Support\Facades\Schema::hasTable($table)) {
-                \Illuminate\Support\Facades\DB::table('migrations')->insert([
-                    'migration' => $migrationName,
-                    'batch'     => $maxBatch + 1,
-                ]);
+                    if (!$alreadyRan) {
+                        \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                            'migration' => $migrationName,
+                            'batch'     => $maxBatch + 1,
+                        ]);
+                    }
+                }
             }
         }
 
-        // Run database migrations
+        // 3. Run database migrations
         \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
         $migrateOutput = \Illuminate\Support\Facades\Artisan::output();
 
-        // Clear and recache config/routes/views for production performance
+        // 4. Clear and recache config/routes/views for production performance
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize');
 
@@ -127,6 +150,8 @@ Route::post('/deploy/execute/{token}', function ($token) {
         return response()->json([
             'status' => 'error',
             'message' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
         ], 500);
     }
 });
