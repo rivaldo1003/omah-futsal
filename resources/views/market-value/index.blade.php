@@ -153,6 +153,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
+            text-decoration: none;
         }
 
         .mv-btn-filter:hover { background: #00db74; }
@@ -170,6 +171,7 @@
             border-radius: 12px;
             padding: 12px 18px;
             transition: all 200ms ease;
+            min-width: 0;
         }
 
         .mv-row:hover { border-color: rgba(0, 255, 135, 0.4); background: var(--mv-card); }
@@ -217,7 +219,7 @@
         .mv-stat-val { display: block; font-size: 1rem; font-weight: 900; }
         .mv-stat-lbl { font-size: 8px; font-weight: 800; color: var(--mv-muted); letter-spacing: 1px; }
 
-        .mv-value-cell { text-align: right; }
+        .mv-value-cell { text-align: right; min-width: 0; }
         .mv-value-amount { font-size: 1.05rem; font-weight: 900; font-style: italic; color: var(--mv-accent); }
 
         .mv-value-bar {
@@ -242,18 +244,62 @@
 
         .mv-empty i { font-size: 40px; display: block; margin-bottom: 12px; color: var(--mv-border); }
 
+        /* ===== Mobile / small screens ===== */
         @media (max-width: 900px) {
+            .mv-page { padding: 20px 12px 40px; }
+
+            .mv-title { font-size: 1.5rem; }
+            .mv-desc { font-size: 0.8rem; }
+
+            .mv-stat-card { min-width: 0; flex: 1 1 45%; text-align: left; }
+            .mv-sc-val { font-size: 1rem; }
+
+            /* Filter toolbar stacks vertically, full width */
+            .mv-filter-card { flex-direction: column; align-items: stretch; }
+            .mv-search-wrap { min-width: 0; width: 100%; }
+            .mv-filter-card select { width: 100%; }
+            .mv-btn-filter { justify-content: center; }
+
+            /* Row: 2-line compact card, stats stay visible as inline chips */
             .mv-row {
-                grid-template-columns: 40px 48px 1fr 110px;
+                grid-template-columns: 28px 44px 1fr auto;
                 grid-template-areas:
                     "rank avatar info value"
                     "rank avatar stats value";
+                column-gap: 10px;
+                row-gap: 6px;
+                padding: 10px 12px;
             }
-            .mv-rank { grid-area: rank; }
-            .mv-avatar { grid-area: avatar; width: 48px; height: 48px; }
+
+            .mv-rank { grid-area: rank; font-size: 0.9rem; }
+            .mv-avatar { grid-area: avatar; width: 44px; height: 44px; }
             .mv-player-info { grid-area: info; }
+            .mv-player-name { font-size: 0.85rem; }
+            .mv-player-meta { font-size: 0.68rem; }
+
+            /* Stats: horizontal chips under the player name (no longer hidden) */
+            .mv-stat {
+                grid-area: stats;
+                display: flex;
+                flex-direction: row;
+                align-items: baseline;
+                gap: 14px;
+                text-align: left;
+            }
+
+            .mv-stat-val { font-size: 0.8rem; display: inline; }
+            .mv-stat-lbl { font-size: 7px; letter-spacing: 0.5px; }
+
             .mv-value-cell { grid-area: value; }
-            .mv-stat { display: none; }
+            .mv-value-amount { font-size: 0.85rem; }
+            .mv-value-bar { width: 70px; margin-top: 4px; margin-left: auto; }
+        }
+
+        @media (max-width: 400px) {
+            .mv-row { grid-template-columns: 22px 38px 1fr auto; }
+            .mv-avatar { width: 38px; height: 38px; }
+            .mv-stat { gap: 10px; }
+            .mv-value-bar { width: 56px; }
         }
     </style>
 </head>
@@ -344,18 +390,9 @@
                         </div>
 
                         <div class="mv-stat">
-                            <span class="mv-stat-val">{{ (int) ($player->goals ?? 0) }}</span>
-                            <span class="mv-stat-lbl">GOALS</span>
-                        </div>
-
-                        <div class="mv-stat">
-                            <span class="mv-stat-val">{{ (int) ($player->assists ?? 0) }}</span>
-                            <span class="mv-stat-lbl">ASSISTS</span>
-                        </div>
-
-                        <div class="mv-stat">
-                            <span class="mv-stat-val">{{ (int) $player->appearances_count }}</span>
-                            <span class="mv-stat-lbl">MATCHES</span>
+                            <span><span class="mv-stat-val">{{ (int) ($player->goals ?? 0) }}</span> <span class="mv-stat-lbl">GOALS</span></span>
+                            <span><span class="mv-stat-val">{{ (int) ($player->assists ?? 0) }}</span> <span class="mv-stat-lbl">ASSISTS</span></span>
+                            <span><span class="mv-stat-val">{{ (int) $player->appearances_count }}</span> <span class="mv-stat-lbl">MATCHES</span></span>
                         </div>
 
                         <div class="mv-value-cell">
