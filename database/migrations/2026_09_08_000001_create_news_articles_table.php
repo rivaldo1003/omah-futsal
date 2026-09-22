@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
+        if (Schema::hasTable('news_articles')) {
+            return;
+        }
+
         Schema::create('news_articles', function (Blueprint $table) {
             $table->id();
             $table->string('title');
