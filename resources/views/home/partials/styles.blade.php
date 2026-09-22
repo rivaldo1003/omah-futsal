@@ -254,17 +254,35 @@
         color: #ffffff;
     }
 
-    /* Mobile toggle button */
+
+    /* Mobile hamburger (sidebar drawer trigger) */
     .navbar-toggler {
         border: 1px solid var(--border-color);
         padding: var(--space-1) var(--space-2);
         border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--text-secondary);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .navbar-toggler:focus {
         box-shadow: none;
         outline: 2px solid var(--accent);
     }
+
+    .navbar-toggler-icon {
+        display: inline-block;
+        width: 1.25em;
+        height: 1.25em;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.6)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 100%;
+    }
+
 
     /* ==========================================================================
        HERO SECTION

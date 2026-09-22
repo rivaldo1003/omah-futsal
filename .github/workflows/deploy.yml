@@ -35,7 +35,6 @@ jobs:
             tests/
             tests/**
             .env
-            .env.*
             storage/
             storage/**
             public/storage/

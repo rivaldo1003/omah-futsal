@@ -565,9 +565,122 @@
 .fmvs-h2h-row { display: grid; grid-template-columns: 1fr 120px 1fr; padding: 10px; background: var(--u-card); border-radius: 6px; text-align: center; font-size: 0.85rem; font-weight: 800; }
 .fmvs-h2h-row .win { color: var(--u-accent); }
 
+/* ── Mobile ≤ 850px ──────────────────────────────────────────── */
 @media (max-width: 850px) {
-    .fmvs-u-stage { grid-template-columns: 1fr; }
-    .fmvs-u-header { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .futsal-mvs-ultra { padding: 14px 12px; }
+
+    /* Command bar: stack two rows on narrow screens */
+    .fmvs-cmd-bar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        padding-bottom: 12px;
+        margin-bottom: 14px;
+    }
+    .fmvs-cmd-right { flex-wrap: wrap; gap: 8px; }
+    /* Hide 3D + SFX buttons on mobile – save space */
+    #fmvsViewModeBtn, #fmvsSfxBtn { display: none; }
+
+    /* Header: stack */
+    .fmvs-u-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+    .fmvs-u-title { font-size: 1.3rem; }
+    .fmvs-u-stats { flex-wrap: wrap; gap: 8px; width: 100%; }
+    .fmvs-stat-card { flex: 1 1 120px; text-align: left; }
+
+    /* Stage: single column, shrunk */
+    .fmvs-u-stage {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 14px 12px;
+        gap: 16px;
+    }
+
+    /* 3D card: smaller & centered */
+    .fmvs-3d-viewport { min-height: 220px; }
+    .fmvs-3d-card { width: 180px; height: 240px; }
+    .fmvs-3d-card img { height: 200px; }
+    .fmvs-card-number { font-size: 1.3rem; }
+
+    /* Analytics panel: full width */
+    .fmvs-u-panel { width: 100%; }
+    .fmvs-panel-header { flex-wrap: wrap; gap: 8px; }
+    .fmvs-p-name { font-size: 1.3rem; }
+    .fmvs-vb-amount { font-size: 1.2rem; }
+
+    /* ── Tabs: scrollable, no wrap ── */
+    .fmvs-tabs { overflow-x: auto; scrollbar-width: none; gap: 4px; }
+    .fmvs-tabs::-webkit-scrollbar { display: none; }
+    .fmvs-tab { font-size: 10px; padding: 6px 10px; white-space: nowrap; }
+
+    /* ── Tab content area ── */
+    .fmvs-tab-content {
+        min-height: 0;          /* let content dictate height */
+        align-items: flex-start;
+        padding-top: 8px;
+    }
+    .fmvs-tab-pane { width: 100%; }
+
+    /* ── PERFORMANCE RADAR: responsive canvas ── */
+    .fmvs-canvas-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 8px 0;
+    }
+    /* Override the hard-coded 220×220 attribute via CSS */
+    #fmvsProRadar {
+        max-width: 100%;
+        width: 200px !important;
+        height: 200px !important;
+    }
+
+    /* ── EVENT BREAKDOWN: fix label + bar layout on narrow screens ── */
+    .fmvs-breakdown { padding: 4px 0; gap: 8px; }
+    .fmvs-bd-row {
+        grid-template-columns: 90px 1fr 32px;
+        gap: 8px;
+    }
+    .fmvs-bd-lbl { font-size: 9px; }
+    .fmvs-bd-val { font-size: 11px; }
+
+    /* ── PERFORMANCE METRICS grid ── */
+    .fmvs-metrics-grid { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .fmvs-mb-val { font-size: 1.1rem; }
+    .fmvs-metric-box { padding: 8px 6px; }
+
+    /* Bottom rail: wrap search + pills */
+    .fmvs-rail-header { flex-wrap: wrap; gap: 8px; }
+    .fmvs-rail-header input { width: 100%; }
+    .fmvs-pos-pills { flex-wrap: wrap; }
+
+    /* Carousel cards */
+    .fmvs-u-card { flex: 0 0 150px; }
+}
+
+/* ── Mobile ≤ 480px ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+    .fmvs-u-title { font-size: 1.1rem; }
+    .fmvs-3d-card { width: 150px; height: 200px; }
+    .fmvs-3d-card img { height: 165px; }
+
+    /* Radar: even smaller on tiny phones */
+    #fmvsProRadar { width: 170px !important; height: 170px !important; }
+
+    /* Breakdown: collapse label further */
+    .fmvs-bd-row { grid-template-columns: 72px 1fr 28px; }
+    .fmvs-bd-lbl { font-size: 8px; letter-spacing: 0.5px; }
+
+    /* Metrics: 2×2 on very small screens */
+    .fmvs-metrics-grid { grid-template-columns: repeat(2, 1fr); }
+
+    .fmvs-u-card { flex: 0 0 130px; }
+    .fmvs-uc-avatar { width: 30px; height: 30px; }
+    .fmvs-status-badge span { display: none; }
+    .fmvs-control-group label { display: none; }
 }
 </style>
 
@@ -668,22 +781,33 @@
         card3D.style.transform = `rotateX(0deg) rotateY(0deg)`;
     });
 
-    // Draw Performance Radar (real normalized stats)
+    // Draw Performance Radar (real normalized stats, responsive)
     function drawRadar(skills) {
         const labels = ['GOL', 'AST', 'APP', 'G/M', 'GK', 'VAL'];
-        const keys = ['gol', 'ast', 'app', 'gm', 'gk', 'val'];
-        const num = labels.length;
-        const c = 110, r = 75;
+        const keys   = ['gol', 'ast', 'app', 'gm', 'gk', 'val'];
+        const num    = labels.length;
 
-        radarCtx.clearRect(0, 0, 220, 220);
+        // Sync canvas buffer size to its CSS-rendered size for crisp output
+        const cssW = radarCanvas.clientWidth  || radarCanvas.width;
+        const cssH = radarCanvas.clientHeight || radarCanvas.height;
+        if (radarCanvas.width !== cssW || radarCanvas.height !== cssH) {
+            radarCanvas.width  = cssW;
+            radarCanvas.height = cssH;
+        }
 
-        // Web Grid
+        const c = cssW / 2;        // dynamic center X & Y
+        const r = Math.min(c, cssH / 2) * 0.68;  // radius = 68% of half-size
+
+        radarCtx.clearRect(0, 0, cssW, cssH);
+
+        // Web grid rings
         radarCtx.strokeStyle = '#1f293d';
-        for(let l = 1; l <= 3; l++) {
+        radarCtx.lineWidth = 1;
+        for (let l = 1; l <= 3; l++) {
             radarCtx.beginPath();
             const lr = (r / 3) * l;
-            for(let i=0; i<num; i++) {
-                const a = (Math.PI*2/num)*i - Math.PI/2;
+            for (let i = 0; i < num; i++) {
+                const a = (Math.PI * 2 / num) * i - Math.PI / 2;
                 const x = c + lr * Math.cos(a);
                 const y = c + lr * Math.sin(a);
                 i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
@@ -692,31 +816,42 @@
             radarCtx.stroke();
         }
 
-        // Polygon Fill
+        // Spoke lines
+        radarCtx.strokeStyle = '#1f293d';
+        for (let i = 0; i < num; i++) {
+            const a = (Math.PI * 2 / num) * i - Math.PI / 2;
+            radarCtx.beginPath();
+            radarCtx.moveTo(c, c);
+            radarCtx.lineTo(c + r * Math.cos(a), c + r * Math.sin(a));
+            radarCtx.stroke();
+        }
+
+        // Polygon fill
         radarCtx.beginPath();
-        for(let i=0; i<num; i++) {
+        for (let i = 0; i < num; i++) {
             const val = skills[keys[i]] || 0;
-            const sr = (r * (val / 100));
-            const a = (Math.PI*2/num)*i - Math.PI/2;
+            const sr  = r * (val / 100);
+            const a   = (Math.PI * 2 / num) * i - Math.PI / 2;
             const x = c + sr * Math.cos(a);
             const y = c + sr * Math.sin(a);
             i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
         }
         radarCtx.closePath();
-        radarCtx.fillStyle = 'rgba(0, 255, 135, 0.25)';
+        radarCtx.fillStyle   = 'rgba(0, 255, 135, 0.25)';
         radarCtx.fill();
         radarCtx.strokeStyle = '#00ff87';
-        radarCtx.lineWidth = 2;
+        radarCtx.lineWidth   = 2;
         radarCtx.stroke();
 
         // Labels
-        radarCtx.fillStyle = '#64748b';
-        radarCtx.font = '9px sans-serif';
-        radarCtx.textAlign = 'center';
-        for(let i=0; i<num; i++) {
-            const a = (Math.PI*2/num)*i - Math.PI/2;
-            const x = c + (r + 16) * Math.cos(a);
-            const y = c + (r + 12) * Math.sin(a) + 3;
+        const fontSize = Math.max(8, Math.round(cssW / 22));
+        radarCtx.fillStyle  = '#64748b';
+        radarCtx.font       = `${fontSize}px sans-serif`;
+        radarCtx.textAlign  = 'center';
+        for (let i = 0; i < num; i++) {
+            const a = (Math.PI * 2 / num) * i - Math.PI / 2;
+            const x = c + (r + fontSize + 4) * Math.cos(a);
+            const y = c + (r + fontSize + 4) * Math.sin(a) + fontSize * 0.35;
             radarCtx.fillText(labels[i], x, y);
         }
     }

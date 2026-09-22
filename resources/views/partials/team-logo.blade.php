@@ -16,6 +16,5 @@
             <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}">
         @endif
     @else
-        <div class="team-initial">{{ strtoupper(substr($team->name ?? 'T', 0, 1)) }}</div>
     @endif
 </div>
