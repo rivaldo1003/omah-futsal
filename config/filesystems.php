@@ -40,7 +40,11 @@ return [
 
         'public' => [
             'driver' => 'local',
-            'root' => storage_path('app/public'),
+            // Point the disk root at public/storage so that Storage::exists()
+            // checks the same location the /storage URLs are served from.
+            // (Resolves through the symlink when storage:link is in place,
+            // and works directly on shared hosting where symlinks are banned.)
+            'root' => public_path('storage'),
             'url' => env('APP_URL').'/storage',
             'visibility' => 'public',
             'throw' => false,
