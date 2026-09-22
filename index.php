@@ -30,6 +30,20 @@ if (!file_exists(__DIR__.'/.env') && file_exists('/home/ofsw1241/laravel/.env'))
 @mkdir(__DIR__.'/storage/logs', 0755, true);
 @mkdir(__DIR__.'/bootstrap/cache', 0755, true);
 
+// Recreate public/storage symlink if it doesn't exist or isn't a link
+// On cPanel: public_html/public/storage -> /home/ofsw1241/laravel/storage/app/public
+$storageLinkTarget = __DIR__.'/public/storage';
+$laravelStoragePublic = '/home/ofsw1241/laravel/storage/app/public';
+$localStoragePublic   = __DIR__.'/storage/app/public';
+
+if (!is_link($storageLinkTarget) && !is_dir($storageLinkTarget)) {
+    if (is_dir($laravelStoragePublic)) {
+        @symlink($laravelStoragePublic, $storageLinkTarget);
+    } elseif (is_dir($localStoragePublic)) {
+        @symlink($localStoragePublic, $storageLinkTarget);
+    }
+}
+
 // Determine if the application is in maintenance mode...
 if (file_exists($maintenance = __DIR__.'/storage/framework/maintenance.php')) {
     require $maintenance;
