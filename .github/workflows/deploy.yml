@@ -43,6 +43,34 @@ jobs:
             README.md
             .ftp-deploy-sync-state.json
 
+      - name: 🚀 Sync App Code via FTP (laravel dir)
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER || 'ftp.ofsfutsalcenter.id' }}
+          username: ${{ secrets.FTP_USERNAME || 'ofsw1241' }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          port: 21
+          protocol: ftp
+          server-dir: ${{ secrets.FTP_APP_SERVER_DIR || 'laravel/' }}
+          exclude: |
+            **/.git*
+            **/.git*/**
+            .github/**
+            node_modules/
+            node_modules/**
+            tests/
+            tests/**
+            .env
+            .env.*
+            storage/
+            storage/**
+            public/
+            public/**
+            vendor/
+            vendor/**
+            README.md
+            .ftp-deploy-sync-state.json
+
       - name: ⚡ Trigger Artisan Migrate & Cache Optimization
         run: |
           APP_URL="${{ secrets.APP_URL || 'https://ofsfutsalcenter.id' }}"
