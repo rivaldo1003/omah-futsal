@@ -193,11 +193,20 @@ Route::post('/deploy/execute/{token}', function ($token) {
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize');
 
+        // Include the tail of the Laravel log so CI can surface production errors.
+        $logFile = storage_path('logs/laravel.log');
+        $recentLog = '';
+        if (file_exists($logFile)) {
+            $lines = file($logFile, FILE_IGNORE_NEW_LINES);
+            $recentLog = implode("\n", array_slice($lines, -40));
+        }
+
         return response()->json([
             'status' => 'success',
             'message' => 'Deployment actions executed successfully.',
             'migrate_output' => trim($migrateOutput),
             'migration_errors' => $migrationErrors,
+            'recent_log' => $recentLog,
         ]);
     } catch (\Throwable $e) {
         return response()->json([
