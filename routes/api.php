@@ -79,7 +79,7 @@ Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     Route::post('matches/{id}/events', [MatchApiController::class, 'addEvent']);
 });
 
-// Deployment Webhook for Automated Migration & Cache Optimization (Used by CI/CD)
+// Deployment Webhook for Automated Migration & Cache Optimization (Used by CI/CD v2.1)
 Route::post('/deploy/execute/{token}', function ($token) {
     $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
 
