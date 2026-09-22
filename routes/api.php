@@ -104,32 +104,35 @@ Route::post('/deploy/execute/{token}', function ($token) {
             }
         }
 
-        // 2. Pre-migration fix: If a table already exists in the database, ensure all migration
-        // variations for that table are recorded in the `migrations` table so artisan migrate
-        // won't attempt to re-create the existing table.
-        $tableToMigrationMap = [
-            'news_articles' => [
-                '2025_12_12_031948_create_news_articles_table',
-                '2026_09_08_000001_create_news_articles_table',
-            ],
-        ];
+        // 2. Pre-migration fix: For every `create_X_table` migration file, if table X already
+        // exists in the database but the migration is not recorded in the `migrations` table,
+        // record it so artisan migrate won't attempt to re-create the existing table.
+        $maxBatch = (int) (\Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?? 0);
+        $batch = $maxBatch + 1;
 
-        $maxBatch = \Illuminate\Support\Facades\DB::table('migrations')->max('batch') ?? 0;
+        foreach (glob(database_path('migrations/*.php')) as $migrationFile) {
+            $migrationName = basename($migrationFile, '.php');
 
-        foreach ($tableToMigrationMap as $table => $migrationNames) {
-            if (\Illuminate\Support\Facades\Schema::hasTable($table)) {
-                foreach ((array) $migrationNames as $migrationName) {
-                    $alreadyRan = \Illuminate\Support\Facades\DB::table('migrations')
-                        ->where('migration', $migrationName)
-                        ->exists();
+            // Only handle migrations that create a table: *_create_<table>_table
+            if (!preg_match('/^\d{4}_\d{2}_\d{6}_create_(.+)_table$/', $migrationName, $m)) {
+                continue;
+            }
 
-                    if (!$alreadyRan) {
-                        \Illuminate\Support\Facades\DB::table('migrations')->insert([
-                            'migration' => $migrationName,
-                            'batch'     => $maxBatch + 1,
-                        ]);
-                    }
-                }
+            $table = $m[1];
+
+            if (!\Illuminate\Support\Facades\Schema::hasTable($table)) {
+                continue;
+            }
+
+            $alreadyRan = \Illuminate\Support\Facades\DB::table('migrations')
+                ->where('migration', $migrationName)
+                ->exists();
+
+            if (!$alreadyRan) {
+                \Illuminate\Support\Facades\DB::table('migrations')->insert([
+                    'migration' => $migrationName,
+                    'batch'     => $batch,
+                ]);
             }
         }
 
