@@ -1,47 +1,57 @@
 <style>
 /* =========================================================
    HIGHLIGHTS INDEX — Page-scoped styles
+   ULTRA ANALYTICS ENGINE v3.0 — dark neon telemetry theme
    ========================================================= */
 
 /* ---- Page Header ---- */
 .highlights-page-header {
-    background: #fff;
-    border-bottom: 1px solid #e2e8f0;
+    background: transparent;
+    border-bottom: 1px solid var(--v3-border);
     padding: 20px 0;
 }
 
 .highlights-page-title {
-    font-size: 1.4rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-size: 1.6rem;
+    font-weight: 900;
+    font-style: italic;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    color: var(--v3-text-main);
+    text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
     margin-bottom: 4px;
     display: flex;
     align-items: center;
     gap: 8px;
 }
 
+.highlights-page-title i {
+    color: var(--v3-neon-green);
+}
+
 .highlights-page-subtitle {
     font-size: 0.85rem;
-    color: #64748b;
+    color: var(--v3-text-sub);
     margin: 0;
 }
 
 /* ---- Highlight Card ---- */
 .highlight-card {
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
+    border: 1px solid var(--v3-border);
+    border-radius: var(--v3-radius-sm, 8px);
     overflow: hidden;
-    background: #fff;
+    background: var(--v3-card);
     height: 100%;
     cursor: pointer;
-    transition: box-shadow 0.2s, transform 0.2s;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
     display: flex;
     flex-direction: column;
 }
 
 .highlight-card:hover {
     transform: translateY(-3px);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.09);
+    border-color: var(--v3-border-glow);
+    box-shadow: 0 0 24px rgba(0, 255, 135, 0.12);
 }
 
 /* ---- Thumbnail ---- */
@@ -49,7 +59,7 @@
     position: relative;
     overflow: hidden;
     height: 190px;
-    background: #111;
+    background: var(--v3-surface);
     flex-shrink: 0;
 }
 
@@ -68,11 +78,11 @@
 .highlight-thumbnail-placeholder {
     width: 100%;
     height: 100%;
-    background: #1a1a2e;
+    background: var(--v3-surface);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #ef4444;
+    color: var(--v3-neon-pink);
     font-size: 3.5rem;
 }
 
@@ -80,7 +90,7 @@
 .play-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.32);
+    background: rgba(2, 4, 8, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -95,15 +105,16 @@
 .play-btn-circle {
     width: 56px;
     height: 56px;
-    background: rgba(26, 95, 180, 0.92);
+    background: rgba(0, 255, 135, 0.92);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
+    color: #000;
     font-size: 1.4rem;
     transform: scale(0.85);
     transition: transform 0.2s;
+    box-shadow: 0 0 20px rgba(0, 255, 135, 0.5);
 }
 
 .highlight-card:hover .play-btn-circle {
@@ -115,16 +126,17 @@
     position: absolute;
     top: 8px;
     left: 8px;
-    background: #ef4444;
+    background: var(--v3-neon-pink);
     color: #fff;
     font-size: 0.68rem;
-    font-weight: 700;
+    font-weight: 800;
     padding: 2px 7px;
     border-radius: 3px;
     display: flex;
     align-items: center;
     gap: 4px;
     z-index: 5;
+    text-transform: uppercase;
 }
 
 /* Duration badge */
@@ -132,10 +144,11 @@
     position: absolute;
     bottom: 8px;
     right: 8px;
-    background: rgba(0, 0, 0, 0.72);
-    color: #fff;
+    background: rgba(2, 4, 8, 0.8);
+    border: 1px solid var(--v3-border);
+    color: var(--v3-text-main);
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     padding: 2px 7px;
     border-radius: 3px;
 }
@@ -150,22 +163,23 @@
 
 .highlight-match-title {
     font-size: 0.9rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-weight: 800;
+    color: var(--v3-text-main);
     margin-bottom: 4px;
     line-height: 1.3;
 }
 
 .highlight-match-score {
-    color: #16a34a;
-    font-weight: 800;
+    color: var(--v3-neon-green);
+    font-weight: 900;
+    font-style: italic;
     margin-right: 6px;
     font-size: 0.95rem;
 }
 
 .highlight-match-meta {
     font-size: 0.75rem;
-    color: #64748b;
+    color: var(--v3-text-muted);
     margin-bottom: 10px;
     display: flex;
     flex-direction: column;
@@ -183,13 +197,13 @@
     justify-content: space-between;
     align-items: center;
     padding-top: 10px;
-    border-top: 1px solid #f1f5f9;
+    border-top: 1px solid var(--v3-border);
     margin-top: auto;
 }
 
 .highlight-uploaded-time {
     font-size: 0.72rem;
-    color: #94a3b8;
+    color: var(--v3-text-muted);
     display: flex;
     align-items: center;
     gap: 3px;
@@ -199,39 +213,40 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
-    background: #ef4444;
+    background: var(--v3-neon-pink);
     color: #fff;
     font-size: 0.72rem;
-    font-weight: 700;
+    font-weight: 800;
     padding: 3px 9px;
     border-radius: 3px;
+    text-transform: uppercase;
 }
 
 /* ---- Empty State ---- */
 .highlights-empty {
     text-align: center;
     padding: 60px 24px;
-    color: #64748b;
+    color: var(--v3-text-sub);
 }
 
 .highlights-empty i {
     font-size: 3rem;
-    color: #ef4444;
-    opacity: 0.5;
+    color: var(--v3-neon-pink);
+    opacity: 0.6;
     display: block;
     margin-bottom: 16px;
 }
 
 .highlights-empty h4 {
     font-size: 1.05rem;
-    font-weight: 700;
-    color: #334155;
+    font-weight: 800;
+    color: var(--v3-text-main);
     margin-bottom: 6px;
 }
 
 .highlights-empty p {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--v3-text-muted);
     margin-bottom: 20px;
 }
 
@@ -249,35 +264,49 @@
     border-radius: 4px;
     padding: 5px 10px;
     font-size: 0.82rem;
-    border-color: #e2e8f0;
-    color: #475569;
+    border-color: var(--v3-border);
+    color: var(--v3-text-sub);
+    background-color: var(--v3-card);
+}
+
+.highlights-pagination .page-link:hover {
+    border-color: var(--v3-border-glow);
+    color: var(--v3-neon-green);
+    background-color: var(--v3-surface);
 }
 
 .highlights-pagination .page-item.active .page-link {
-    background-color: #1a5fb4;
-    border-color: #1a5fb4;
-    color: #fff;
+    background-color: var(--v3-neon-green);
+    border-color: var(--v3-neon-green);
+    color: #000;
+    font-weight: 800;
 }
 
 .highlights-pagination .page-item.disabled .page-link {
-    color: #cbd5e1;
+    color: var(--v3-text-muted);
+    background-color: var(--v3-surface);
 }
 
 /* ---- Video Modal ---- */
 .modal-content {
-    border-radius: 8px;
+    border-radius: var(--v3-radius-sm, 8px);
     overflow: hidden;
+    background-color: var(--v3-surface);
+    border: 1px solid var(--v3-border);
+    color: var(--v3-text-main);
 }
 
 .modal-header {
     padding: 12px 16px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--v3-border);
 }
 
 .modal-title {
     font-size: 0.95rem;
-    font-weight: 700;
-    color: #1e293b;
+    font-weight: 800;
+    font-style: italic;
+    text-transform: uppercase;
+    color: var(--v3-text-main);
 }
 
 .modal-body.modal-video-body {
@@ -290,23 +319,23 @@
 
 .modal-detail-label {
     font-size: 0.7rem;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
-    color: #94a3b8;
-    letter-spacing: 0.5px;
+    color: var(--v3-text-muted);
+    letter-spacing: 1.5px;
     display: block;
     margin-bottom: 2px;
 }
 
 .modal-detail-value {
     font-size: 0.85rem;
-    color: #334155;
+    color: var(--v3-text-main);
 }
 
 /* ---- Responsive ---- */
 @media (max-width: 576px) {
     .highlights-page-title {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
     }
 
     .highlight-thumbnail {

@@ -70,7 +70,7 @@
             <span>Hero section is currently disabled.</span>
             @auth
                 @if(auth()->user()->role === 'admin')
-                    <a href="{{ route('admin.hero-settings.edit') }}" class="ms-2 text-decoration-underline">Configure in admin</a>
+                    <a href="{{ route('admin.hero-settings.index') }}" class="ms-2 text-decoration-underline">Configure in admin</a>
                 @endif
             @endauth
         </div>

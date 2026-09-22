@@ -29,7 +29,9 @@
         @include('home.partials.today-matches')
 
         <!-- Most Valuable Players Spotlight Section (Centerpiece) -->
-        @include('home.partials.market-value-stars')
+        @if(!isset($heroSetting) || !isset($heroSetting->show_market_value_stars) || $heroSetting->show_market_value_stars)
+            @include('home.partials.market-value-stars')
+        @endif
 
         <!-- Two-Column Primary Workspace Grid -->
         <div class="row g-4">

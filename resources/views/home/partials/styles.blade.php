@@ -4,31 +4,49 @@
        Adheres to design-guidelines-agentic-ai.md & layout-standards-agentic-ai.md
        ========================================================================== */
     :root {
-        /* Core Colors */
-        --bg-page: #f8fafc;
-        --surface: #ffffff;
-        --surface-subtle: #f1f5f9;
-        --surface-hover: #f8fafc;
-        --border-color: #e2e8f0;
-        --border-focus: #94a3b8;
+        /* ==========================================================================
+           ULTRA ANALYTICS ENGINE v3.0 — CORE TOKENS
+           Adheres to ultra_analytics_engine_v3_0_design_system.md
+           ========================================================================== */
+        --v3-bg: #020408;
+        --v3-surface: #070c14;
+        --v3-card: #0d1524;
+        --v3-border: #18263e;
+        --v3-border-glow: rgba(0, 255, 135, 0.4);
+        --v3-neon-green: #00ff87;
+        --v3-neon-blue: #00e5ff;
+        --v3-neon-pink: #ff0055;
+        --v3-neon-yellow: #ffb700;
+        --v3-text-main: #ffffff;
+        --v3-text-sub: #8da1b9;
+        --v3-text-muted: #4e6178;
+        --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+
+        /* Legacy token bridge (mapped to v3.0 palette) */
+        --bg-page: var(--v3-bg);
+        --surface: var(--v3-surface);
+        --surface-subtle: var(--v3-card);
+        --surface-hover: #101a2c;
+        --border-color: var(--v3-border);
+        --border-focus: var(--v3-neon-green);
 
         /* Typography */
-        --text-primary: #0f172a;
-        --text-secondary: #64748b;
-        --text-muted: #94a3b8;
+        --text-primary: var(--v3-text-main);
+        --text-secondary: var(--v3-text-sub);
+        --text-muted: var(--v3-text-muted);
 
-        /* Single Functional Accent (Navy/Sport Blue) */
-        --accent: #1d4ed8;
-        --accent-hover: #1e40af;
-        --accent-subtle: rgba(29, 78, 216, 0.08);
+        /* Primary Accent (Neon Green) */
+        --accent: var(--v3-neon-green);
+        --accent-hover: #00cc6a;
+        --accent-subtle: rgba(0, 255, 135, 0.08);
 
         /* Semantic Status Colors */
-        --success: #16a34a;
-        --success-subtle: rgba(22, 163, 74, 0.1);
-        --warning: #d97706;
-        --warning-subtle: rgba(217, 119, 6, 0.1);
-        --danger: #dc2626;
-        --danger-subtle: rgba(220, 38, 38, 0.1);
+        --success: var(--v3-neon-green);
+        --success-subtle: rgba(0, 255, 135, 0.1);
+        --warning: var(--v3-neon-yellow);
+        --warning-subtle: rgba(255, 183, 0, 0.1);
+        --danger: var(--v3-neon-pink);
+        --danger-subtle: rgba(255, 0, 85, 0.1);
 
         /* 4px Spacing Scale */
         --space-1: 4px;
@@ -61,8 +79,12 @@
 
     body {
         background-color: var(--bg-page);
+        background-image:
+            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 135, 0.06), transparent),
+            radial-gradient(ellipse 60% 40% at 90% 110%, rgba(0, 229, 255, 0.04), transparent);
+        background-attachment: fixed;
         color: var(--text-primary);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        font-family: var(--v3-font-sans, system-ui), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
         font-size: 14px;
         line-height: 1.5;
         margin: 0;
@@ -108,7 +130,7 @@
        NAVBAR
        ========================================================================== */
     .app-navbar {
-        background-color: rgba(255, 255, 255, 0.96);
+        background-color: rgba(2, 4, 8, 0.92);
         backdrop-filter: blur(8px);
         border-bottom: 1px solid var(--border-color);
         position: sticky;
@@ -264,11 +286,20 @@
     }
 
     .hero-title {
-        font-size: 2rem;
-        font-weight: 700;
-        line-height: 1.2;
-        letter-spacing: -0.02em;
+        font-size: 2.5rem;
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+        line-height: 1.15;
+        letter-spacing: -0.03em;
+        text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
         margin-bottom: var(--space-3);
+    }
+
+    @media (max-width: 900px) {
+        .hero-title {
+            font-size: 1.8rem;
+        }
     }
 
     .hero-subtitle {
@@ -327,6 +358,22 @@
         border-radius: var(--radius-md);
         margin-bottom: var(--space-5);
         overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    }
+
+    .app-card-header {
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .app-card-title {
+        font-weight: 800;
+        font-style: italic;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .app-card-title i {
+        color: var(--v3-neon-green);
     }
 
     .app-card-header {
@@ -343,13 +390,16 @@
         align-items: center;
         gap: var(--space-2);
         font-size: 14px;
-        font-weight: 600;
+        font-weight: 800;
+        font-style: italic;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         color: var(--text-primary);
         margin: 0;
     }
 
     .app-card-title i {
-        color: var(--text-secondary);
+        color: var(--v3-neon-green);
         font-size: 15px;
     }
 
@@ -1313,7 +1363,7 @@
        FOOTER
        ========================================================================== */
     .app-footer {
-        background-color: #ffffff;
+        background-color: var(--v3-surface);
         border-top: 1px solid var(--border-color);
         padding-top: var(--space-8);
         padding-bottom: var(--space-6);
@@ -1362,5 +1412,195 @@
         .footer-bottom {
             flex-direction: row;
         }
+    }
+
+    /* ==========================================================================
+       ULTRA ANALYTICS ENGINE v3.0 — COMPONENT LAYER
+       Telemetry HUD, Neon Titles, Glow Accents
+       ========================================================================== */
+    .v3-hud {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--v3-border);
+        margin-bottom: 24px;
+        font-size: 11px;
+        font-weight: 800;
+        color: var(--v3-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    .v3-hud-left,
+    .v3-hud-right {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .v3-hud-sep {
+        color: var(--v3-text-muted);
+        opacity: 0.5;
+    }
+
+    .v3-hud-status {
+        color: var(--v3-neon-green);
+    }
+
+    .v3-beacon {
+        width: 8px;
+        height: 8px;
+        background: var(--v3-neon-green);
+        border-radius: 50%;
+        box-shadow: 0 0 12px var(--v3-neon-green);
+        animation: v3BeaconPulse 1.2s infinite alternate;
+        flex-shrink: 0;
+    }
+
+    @keyframes v3BeaconPulse {
+        from { opacity: 0.3; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1.2); }
+    }
+
+    .v3-title {
+        font-weight: 900;
+        font-style: italic;
+        text-transform: uppercase;
+        letter-spacing: -0.03em;
+        text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
+        color: var(--v3-text-main);
+    }
+
+    .v3-hud-tag {
+        font-size: 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: var(--v3-text-muted);
+    }
+
+    .v3-sc-val {
+        font-weight: 900;
+        font-style: italic;
+        color: var(--v3-neon-green);
+    }
+
+    /* Neon glow hover for interactive cards */
+    .team-item-card:hover,
+    .highlight-card:hover {
+        border-color: var(--v3-border-glow);
+        box-shadow: 0 0 24px rgba(0, 255, 135, 0.12);
+    }
+
+    /* Live score chip — neon pink telemetry */
+    .score-chip.live {
+        border-color: rgba(255, 0, 85, 0.4);
+        box-shadow: 0 0 12px rgba(255, 0, 85, 0.25);
+    }
+
+    /* Scrollbar — telemetry style */
+    ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: var(--v3-bg);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: var(--v3-border);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--v3-neon-green);
+    }
+
+    /* Selection */
+    ::selection {
+        background: rgba(0, 255, 135, 0.25);
+        color: var(--v3-text-main);
+    }
+
+    /* ==========================================================================
+       TEAM SQUAD MODAL — ULTRA ANALYTICS ENGINE v3.0 THEME
+       ========================================================================== */
+    #teamDetailsModal .modal-content {
+        background-color: var(--v3-surface);
+        border: 1px solid var(--v3-border);
+        color: var(--v3-text-main);
+    }
+
+    #teamDetailsModal .modal-header,
+    #teamDetailsModal .modal-footer {
+        border-color: var(--v3-border);
+    }
+
+    #teamDetailsModal .btn-close {
+        filter: invert(1) grayscale(100%) brightness(200%);
+    }
+
+    #teamDetailsModal .player-squad-grid {
+        background-image: radial-gradient(var(--v3-border) 1px, transparent 1px);
+        background-size: 20px 20px;
+        border-radius: var(--v3-radius-md, 12px);
+        padding: 12px;
+    }
+
+    #teamDetailsModal .player-modal-card {
+        background-color: var(--v3-card);
+        border: 1px solid var(--v3-border);
+        border-radius: var(--v3-radius-sm, 8px);
+        color: var(--v3-text-main);
+        transition: border-color 200ms ease, box-shadow 200ms ease;
+    }
+
+    #teamDetailsModal .player-modal-card:hover {
+        border-color: var(--v3-border-glow);
+        box-shadow: 0 0 12px rgba(0, 255, 135, 0.15);
+    }
+
+    #teamDetailsModal .player-modal-card.is-selected {
+        border-color: var(--v3-neon-green);
+        box-shadow: 0 0 15px rgba(0, 255, 135, 0.25);
+    }
+
+    #teamDetailsModal .player-modal-photo {
+        border: 1px solid var(--v3-border);
+        background-color: var(--v3-surface);
+    }
+
+    #teamDetailsModal .player-analytics-panel {
+        background-color: var(--v3-card);
+        border: 1px solid var(--v3-border);
+        border-left: 3px solid var(--v3-neon-green);
+        border-radius: var(--v3-radius-md, 12px);
+        color: var(--v3-text-main);
+    }
+
+    #teamDetailsModal .key-stat-cell {
+        background-color: var(--v3-surface);
+        border: 1px solid var(--v3-border);
+        border-radius: var(--v3-radius-sm, 8px);
+    }
+
+    #teamDetailsModal .key-stat-num {
+        color: var(--v3-neon-green);
+        font-weight: 900;
+        font-style: italic;
+    }
+
+    #teamDetailsModal .key-stat-lbl {
+        color: var(--v3-text-muted);
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+    }
+
+    #teamDetailsModal .progress-bar-wrap {
+        background-color: var(--v3-surface);
+        border: 1px solid var(--v3-border);
     }
 </style>

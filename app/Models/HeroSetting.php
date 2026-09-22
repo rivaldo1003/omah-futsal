@@ -10,6 +10,7 @@ class HeroSetting extends Model
         'title',
         'subtitle',
         'is_active',
+        'show_market_value_stars',
         'background_type',
         'background_color',
         'background_image',
@@ -25,6 +26,7 @@ class HeroSetting extends Model
 
     protected $casts = [
         'is_active' => 'boolean',
+        'show_market_value_stars' => 'boolean',
         'overlay_opacity' => 'integer',
     ];
 

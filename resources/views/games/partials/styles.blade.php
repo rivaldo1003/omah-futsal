@@ -85,6 +85,31 @@
         margin-bottom: var(--space-2);
     }
 
+    /* Tournament selector select — dark themed (prevents default white Bootstrap select) */
+    .schedule-selector-card .form-select {
+        background-color: var(--v3-card, var(--surface));
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-sm);
+        font-size: 13px;
+        font-weight: 500;
+        padding: var(--space-2) var(--space-3);
+        cursor: pointer;
+        transition: border-color 150ms ease, box-shadow 150ms ease;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%238da1b9' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    }
+
+    .schedule-selector-card .form-select:focus {
+        border-color: var(--v3-neon-green, var(--accent));
+        box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.15);
+        outline: none;
+    }
+
+    .schedule-selector-card .form-select option {
+        background-color: var(--v3-surface, #070c14);
+        color: var(--text-primary);
+    }
+
     .schedule-badge-chip {
         display: inline-flex;
         align-items: center;
@@ -164,6 +189,37 @@
         border-color: var(--accent);
         box-shadow: 0 0 0 2px var(--accent-subtle);
         outline: none;
+    }
+
+    /* Search input group — dark themed so it stays visible on dark surfaces */
+    .schedule-filter-card .input-group-text {
+        background-color: var(--v3-card, var(--surface));
+        border: 1px solid var(--border-color);
+        color: var(--text-secondary);
+    }
+
+    .schedule-filter-card .input-group .form-control {
+        background-color: var(--v3-card, var(--surface));
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+    }
+
+    .schedule-filter-card .input-group .form-control::placeholder {
+        color: var(--text-muted, #4e6178);
+        opacity: 1;
+    }
+
+    .schedule-filter-card .input-group .form-control:focus {
+        border-color: var(--v3-neon-green, var(--accent));
+        box-shadow: 0 0 0 2px rgba(0, 255, 135, 0.15);
+        outline: none;
+    }
+
+    /* Date input calendar icon visible on dark background */
+    .schedule-filter-card .form-control[type="date"] {
+        color-scheme: dark;
+        background-color: var(--v3-card, var(--surface));
+        color: var(--text-primary);
     }
 
     /* Stat Summary Cards */

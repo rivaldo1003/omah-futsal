@@ -360,6 +360,14 @@ class GameController extends Controller
         $roundTypes = ['group', 'quarterfinal', 'semifinal', 'final', 'third_place', 'league', 'round_of_16', 'round_of_32'];
         $statusOptions = ['upcoming', 'ongoing', 'completed', 'postponed'];
 
+        // Pasangan tim yang sudah pernah bertemu (untuk filter JS di view)
+        $playedPairs = $tournamentId
+            ? Game::where('tournament_id', $tournamentId)
+                ->get(['team_home_id', 'team_away_id'])
+                ->map(fn ($m) => [$m->team_home_id, $m->team_away_id])
+                ->toArray()
+            : [];
+
         return view('admin.matches.create', compact(
             'tournaments',
             'teams',
@@ -368,7 +376,8 @@ class GameController extends Controller
             'statusOptions',
             'tournamentId',
             'tournamentType',
-            'tournamentSettings'
+            'tournamentSettings',
+            'playedPairs'
         ));
     }
 
@@ -464,6 +473,28 @@ class GameController extends Controller
                     ->with('error', $typeValidation['message'])
                     ->withInput();
             }
+        }
+
+        // ===== Validasi: pasangan tim yang sama tidak boleh bertemu dua kali =====
+        // Hanya berlaku untuk group stage & league (single round-robin).
+        // Rematch di knockout (QF/SF/Final) tetap diizinkan.
+        $duplicatePair = Game::where('tournament_id', $tournament->id)
+            ->whereIn('round_type', ['group', 'league'])
+            ->where(function ($q) use ($request) {
+                $q->where(function ($qq) use ($request) {
+                    $qq->where('team_home_id', $request->team_home_id)
+                        ->where('team_away_id', $request->team_away_id);
+                })->orWhere(function ($qq) use ($request) {
+                    $qq->where('team_home_id', $request->team_away_id)
+                        ->where('team_away_id', $request->team_home_id);
+                });
+            })
+            ->exists();
+
+        if ($duplicatePair) {
+            return redirect()->back()
+                ->with('error', 'Kedua tim ini sudah pernah dipertemukan dalam turnamen ini. Tidak dapat membuat pertandingan dengan pasangan tim yang sama.')
+                ->withInput();
         }
 
         // ===== Validasi tim di tournament =====
@@ -910,6 +941,47 @@ class GameController extends Controller
     }
 
     /**
+     * Bulk delete matches (multiple select)
+     */
+    public function bulkDestroy(Request $request)
+    {
+        $request->validate([
+            'match_ids' => 'required|array|min:1',
+            'match_ids.*' => 'integer|exists:matches,id',
+        ]);
+
+        $matchIds = $request->input('match_ids');
+        $deleted = 0;
+
+        try {
+            DB::transaction(function () use ($matchIds, &$deleted) {
+                $matches = Game::whereIn('id', $matchIds)->get();
+
+                foreach ($matches as $match) {
+                    // Revert standings & statistik jika match sudah completed
+                    if ($match->status === 'completed') {
+                        $this->revertMatchResults($match, $match->home_score, $match->away_score, $match->tournament);
+                    }
+                    $match->delete();
+                    $deleted++;
+                }
+            });
+
+            return redirect()->back()
+                ->with('success', "{$deleted} match berhasil dihapus. Statistik & klasemen terkait telah dikembalikan.");
+
+        } catch (\Exception $e) {
+            Log::error('Bulk delete matches failed', [
+                'match_ids' => $matchIds,
+                'error' => $e->getMessage(),
+            ]);
+
+            return redirect()->back()
+                ->with('error', 'Gagal menghapus match: ' . $e->getMessage());
+        }
+    }
+
+    /**
      * Delete all matches for a tournament
      */
     public function deleteTournamentMatches(Tournament $tournament)
@@ -1247,8 +1319,9 @@ class GameController extends Controller
     private function generateLeagueMatches(Tournament $tournament, $teams)
     {
         $settings = $tournament->settings ?? [];
-        $matchesPerDay = $settings['matches_per_day'] ?? 4;
-        $matchDuration = $settings['match_duration'] ?? 40;
+        // Cast ke int: nilai dari settings bisa berupa string
+        $matchesPerDay = max(1, (int) ($settings['matches_per_day'] ?? 4));
+        $matchDuration = max(1, (int) ($settings['match_duration'] ?? 40));
         $timeSlots = explode(',', $settings['match_time_slots'] ?? '14:00,16:00,18:00,20:00');
         $timeSlots = array_map('trim', $timeSlots);
         $rounds = $settings['league_rounds'] ?? 1;
@@ -1486,6 +1559,28 @@ class GameController extends Controller
         // Generate group stage matches
         $groupStageMatches = [];
         $currentDate = Carbon::parse($tournament->start_date);
+        $endDate = Carbon::parse($tournament->end_date);
+
+        // ===== Distribusi merata dalam rentang tanggal turnamen =====
+        // Hitung total match group stage
+        $totalGroupMatches = 0;
+        foreach ($groupAssignments as $teamIds) {
+            $n = count($teamIds);
+            $totalGroupMatches += $n * ($n - 1) / 2;
+        }
+
+        // Estimasi hari yang dibutuhkan untuk knockout stage
+        $knockoutTeams = $groupsCount * ($tournament->qualify_per_group ?? 2);
+        $knockoutRounds = $knockoutTeams >= 2 ? (int) ceil(log(max(2, $knockoutTeams), 2)) : 0;
+        if ($tournament->knockout_third_place) {
+            $knockoutRounds += 1;
+        }
+        $knockoutDays = $knockoutRounds > 0 ? 2 + ($knockoutRounds * 2) : 0;
+
+        // Hari tersedia untuk group stage = total hari - hari knockout
+        $totalDays = max(1, (int) $currentDate->diffInDays($endDate) + 1);
+        $groupDays = max(1, $totalDays - $knockoutDays);
+        $matchesPerDay = max(1, (int) ceil($totalGroupMatches / $groupDays));
 
         foreach ($groupAssignments as $groupLetter => $teamIds) {
             // Generate all pairings within group
@@ -1506,7 +1601,7 @@ class GameController extends Controller
             $matchInGroup = 0;
 
             foreach ($pairings as $pairing) {
-                $timeSlot = $matchInGroup % 4; // 4 match slots per day
+                $timeSlot = $matchInGroup % $matchesPerDay;
                 $groupStageMatches[] = [
                     'tournament_id' => $tournament->id,
                     'match_date' => $currentDate->format('Y-m-d'),
@@ -1521,13 +1616,18 @@ class GameController extends Controller
                 ];
 
                 $matchInGroup++;
-                if ($matchInGroup % 4 == 0) {
+                if ($matchInGroup % $matchesPerDay == 0) {
                     $currentDate->addDay();
+                }
+
+                // Guard: jangan melewati end date turnamen
+                if ($currentDate > $endDate) {
+                    throw new \Exception('Rentang tanggal turnamen terlalu pendek untuk semua match group stage. Perpanjang tanggal akhir turnamen.');
                 }
             }
 
             // Add day if not all matches scheduled for the day
-            if ($matchInGroup % 4 != 0) {
+            if ($matchInGroup % $matchesPerDay != 0) {
                 $currentDate->addDay();
             }
         }
@@ -1538,13 +1638,13 @@ class GameController extends Controller
         }
 
         // Generate knockout stage matches
-        $this->scheduleKnockoutStage($tournament, $currentDate, $groupsCount);
+        $this->scheduleKnockoutStage($tournament, $currentDate, $endDate, $groupsCount);
     }
 
     /**
      * Schedule knockout stage for group_knockout tournament
      */
-    private function scheduleKnockoutStage(Tournament $tournament, Carbon $startDate, $groupsCount)
+    private function scheduleKnockoutStage(Tournament $tournament, Carbon $startDate, Carbon $endDate, $groupsCount)
     {
         $qualifyPerGroup = $tournament->qualify_per_group ?? 2;
         $knockoutTeams = $groupsCount * $qualifyPerGroup;
@@ -1576,10 +1676,20 @@ class GameController extends Controller
         }
 
         // Create placeholder matches for knockout stage
-        $matchDate = $startDate->copy()->addDays(2); // 2 days break after group stage
+        // Distribusikan ronde knockout merata dalam sisa hari turnamen
+        $roundCount = count($roundTypes);
+        $daysAvailable = max(1, (int) $startDate->diffInDays($endDate));
+        $step = max(1, intdiv($daysAvailable, max(1, $roundCount)));
+        $matchDate = $startDate->copy();
+
+        // Jumlah match ronde pertama = setengah jumlah tim (mis. 8 tim -> 4 QF),
+        // lalu masing-masing ronde berikutnya setengahnya lagi.
+        $matchesInRound = max(1, intdiv((int) $knockoutTeams, 2));
 
         foreach ($roundTypes as $roundType) {
-            $matchesInRound = $this->getMatchesInRound($roundType, $knockoutTeams);
+            if ($roundType === 'third_place') {
+                $matchesInRound = 1;
+            }
 
             for ($i = 0; $i < $matchesInRound; $i++) {
                 Game::create([
@@ -1596,7 +1706,10 @@ class GameController extends Controller
                 ]);
             }
 
-            $matchDate->addDays(2); // 2 days between rounds
+            $matchDate->addDays($step); // jeda antar ronde menyesuaikan sisa hari
+
+            // Ronde berikutnya: setengah jumlah match ronde sebelumnya
+            $matchesInRound = max(1, intdiv($matchesInRound, 2));
         }
     }
 
@@ -2283,7 +2396,11 @@ class GameController extends Controller
      */
     private function getTimeEnd($timeStart, Tournament $tournament)
     {
-        $duration = $tournament->match_duration ?? 40;
+        // Cast ke int: match_duration dari settings bisa berupa string
+        $duration = (int) ($tournament->match_duration ?? 40);
+        if ($duration <= 0) {
+            $duration = 40;
+        }
         return Carbon::parse($timeStart)->addMinutes($duration)->format('H:i');
     }
 

@@ -34,9 +34,10 @@ class HeroSettingController extends Controller
     public function update(Request $request)
     {
         $request->validate([
-            'title' => 'required|string|max:255',
-            'subtitle' => 'required|string|max:500',
+            'title' => 'nullable|string|max:255',
+            'subtitle' => 'nullable|string|max:500',
             'is_active' => 'boolean',
+            'show_market_value_stars' => 'boolean',
             'background_type' => 'required|in:gradient,image,color',
             'background_color' => 'nullable|string',
             'background_image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
@@ -55,7 +56,6 @@ class HeroSettingController extends Controller
         $data = $request->only([
             'title',
             'subtitle',
-            'is_active',
             'background_type',
             'background_color',
             'text_color',
@@ -67,6 +67,11 @@ class HeroSettingController extends Controller
             'button_color',
             'button_text_color',
         ]);
+
+        // Checkboxes: unchecked boxes send nothing, so handle explicitly
+        // (otherwise they can never be turned off).
+        $data['is_active'] = $request->boolean('is_active');
+        $data['show_market_value_stars'] = $request->boolean('show_market_value_stars');
 
         // Handle background image upload
         if ($request->hasFile('background_image')) {
@@ -89,7 +94,7 @@ class HeroSettingController extends Controller
         $heroSetting->fill($data);
         $heroSetting->save();
 
-        return redirect()->route('admin.hero-settings.update')
-            ->with('success', 'Hero section updated successfully!');
+        return redirect()->route('admin.hero-settings.index')
+            ->with('success', 'Pengaturan berhasil disimpan.');
     }
 }
