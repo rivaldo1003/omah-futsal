@@ -233,7 +233,7 @@
                 @if($photoPath)
                     <div class="form-check">
                         <input class="form-check-input" type="checkbox" id="removePhoto"
-                            name="remove_photo">
+                            name="remove_photo" value="1">
                         <label class="form-check-label" for="removePhoto" style="font-size: 14px;">
                             Hapus foto saat ini
                         </label>

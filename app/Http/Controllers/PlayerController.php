@@ -149,20 +149,34 @@ class PlayerController extends Controller
         ]);
 
         try {
-            // Handle photo upload/removal
-            if ($request->has('remove_photo') && $request->remove_photo == '1') {
-                // Remove current photo if exists
+            // Handle photo upload/removal.
+            // Note: an unchecked checkbox sends nothing; a checked one (without a
+            // value attribute) sends "on". boolean() handles "on"/"1"/"true"/"yes".
+            $removePhoto = $request->boolean('remove_photo');
+
+            if ($removePhoto) {
+                // Remove current photo file if it exists
                 if ($player->photo && Storage::disk('public')->exists($player->photo)) {
                     Storage::disk('public')->delete($player->photo);
                 }
+                // Drop any generated cutout, otherwise the old transparent photo
+                // would keep showing on the showcase even after removal.
+                $this->deletePlayerCutout($player);
+
                 $validated['photo'] = null;
+                $validated['photo_cutout'] = null;
             } elseif ($request->hasFile('photo')) {
                 // Upload new photo
                 if ($player->photo && Storage::disk('public')->exists($player->photo)) {
                     Storage::disk('public')->delete($player->photo);
                 }
+                // Invalidate the previous cutout; the observer regenerates it for
+                // the new photo when an engine (remove.bg / rembg) is available.
+                $this->deletePlayerCutout($player);
+
                 $path = $request->file('photo')->store('players', 'public');
                 $validated['photo'] = $path;
+                $validated['photo_cutout'] = null;
             } else {
                 // Keep existing photo
                 unset($validated['photo']);
@@ -177,6 +191,29 @@ class PlayerController extends Controller
             return redirect()->back()
                 ->with('error', 'Error updating player: '.$e->getMessage())
                 ->withInput();
+        }
+    }
+
+    /**
+     * Delete a player's generated cutout file(s) so a stale transparent
+     * photo never keeps showing after the source photo changes or is removed.
+     */
+    private function deletePlayerCutout(Player $player): void
+    {
+        $paths = [
+            'players/cutouts/player-' . $player->id . '.png',
+        ];
+
+        if ($player->photo_cutout) {
+            $paths[] = $player->photo_cutout;
+            $paths[] = 'players/cutouts/' . $player->photo_cutout;
+        }
+
+        foreach (array_unique($paths) as $path) {
+            $clean = ltrim($path, '/\\');
+            if ($clean && Storage::disk('public')->exists($clean)) {
+                Storage::disk('public')->delete($clean);
+            }
         }
     }
 
