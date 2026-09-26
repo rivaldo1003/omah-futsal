@@ -18,13 +18,14 @@ use Illuminate\Support\Facades\Storage;
  *   php artisan players:generate-cutouts            # all players missing a cutout
  *   php artisan players:generate-cutouts --id=5     # single player
  *   php artisan players:generate-cutouts --force    # regenerate existing cutouts
+ *   php artisan players:generate-cutouts --limit=20  # process at most N players
  *
  * Output: storage/app/public/players/cutouts/player-{id}.png
  * The website automatically prefers the cutout on the showcase stage.
  */
 class GeneratePlayerCutouts extends Command
 {
-    protected $signature   = 'players:generate-cutouts {--id=} {--force}';
+    protected $signature   = 'players:generate-cutouts {--id=} {--force} {--limit=}';
     protected $description = 'Generate transparent-background player cutouts (remove.bg API or local rembg)';
 
     public function handle(): int
@@ -39,6 +40,10 @@ class GeneratePlayerCutouts extends Command
             $query->where(function ($q) {
                 $q->whereNull('photo_cutout')->orWhere('photo_cutout', '');
             });
+        }
+
+        if ($limit = (int) $this->option('limit')) {
+            $query->limit($limit);
         }
 
         $players = $query->get();
@@ -88,7 +93,7 @@ class GeneratePlayerCutouts extends Command
 
     private function detectEngine(): ?string
     {
-        if (env('REMOVE_BG_API_KEY')) {
+        if ($this->removeBgKey()) {
             return 'removebg';
         }
         exec('command -v rembg 2>/dev/null', $lines, $code);
@@ -125,10 +130,18 @@ class GeneratePlayerCutouts extends Command
         return null;
     }
 
+    /**
+     * remove.bg API key from config (survives config:cache), falling back to env().
+     */
+    private function removeBgKey(): ?string
+    {
+        return config('services.remove_bg.key') ?: env('REMOVE_BG_API_KEY');
+    }
+
     private function cutWithRemoveBg(string $sourcePath): ?string
     {
         $response = Http::asMultipart()
-            ->withToken(env('REMOVE_BG_API_KEY'))
+            ->withToken($this->removeBgKey())
             ->attach('image_file', fopen($sourcePath, 'r'), 'photo.jpg')
             ->post('https://api.remove.bg/v1.0/removebg', [
                 'size'   => 'regular',

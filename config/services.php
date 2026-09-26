@@ -35,4 +35,15 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | remove.bg (Background Removal for Player Photo Cutouts)
+    |--------------------------------------------------------------------------
+    | Used by PlayerObserver and the players:generate-cutouts command.
+    | Stored in config (not env() directly) so it survives `artisan config:cache`.
+    */
+    'remove_bg' => [
+        'key' => env('REMOVE_BG_API_KEY'),
+    ],
+
 ];

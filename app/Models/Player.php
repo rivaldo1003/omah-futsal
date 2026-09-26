@@ -171,24 +171,32 @@ class Player extends Model
     // Accessor untuk foto cutout (background transparan, opsional)
     public function getPhotoCutoutUrlAttribute()
     {
-        if (!$this->photo_cutout) {
-            return null;
+        // If a cutout is explicitly stored, resolve it.
+        if ($this->photo_cutout) {
+            if (filter_var($this->photo_cutout, FILTER_VALIDATE_URL)) {
+                return $this->photo_cutout;
+            }
+
+            $possiblePaths = [
+                $this->photo_cutout,
+                'players/cutouts/' . $this->photo_cutout,
+                'players/' . $this->photo_cutout,
+            ];
+
+            foreach ($possiblePaths as $path) {
+                $cleanPath = ltrim($path, '/\\');
+                if (Storage::disk('public')->exists($cleanPath)) {
+                    return asset('storage/' . $cleanPath);
+                }
+            }
         }
 
-        if (filter_var($this->photo_cutout, FILTER_VALIDATE_URL)) {
-            return $this->photo_cutout;
-        }
-
-        $possiblePaths = [
-            $this->photo_cutout,
-            'players/cutouts/' . $this->photo_cutout,
-            'players/' . $this->photo_cutout,
-        ];
-
-        foreach ($possiblePaths as $path) {
-            $cleanPath = ltrim($path, '/\\');
-            if (Storage::disk('public')->exists($cleanPath)) {
-                return asset('storage/' . $cleanPath);
+        // Fallback: convention-based path players/cutouts/player-{id}.png.
+        // Lets cutouts uploaded via FTP (without updating the DB column) still work.
+        if ($this->id) {
+            $conventional = 'players/cutouts/player-' . $this->id . '.png';
+            if (Storage::disk('public')->exists($conventional)) {
+                return asset('storage/' . $conventional);
             }
         }
 

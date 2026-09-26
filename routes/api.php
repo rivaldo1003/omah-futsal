@@ -229,3 +229,51 @@ Route::post('/deploy/execute/{token}', function ($token) {
         ], 500);
     }
 });
+
+// One-off backfill endpoint: generates player photo cutouts via the
+// players:generate-cutouts command. Token-gated like the deploy webhook.
+// Usage: POST /api/deploy/generate-cutouts/{token}?limit=20
+Route::post('/deploy/generate-cutouts/{token}', function (\Illuminate\Http\Request $request, $token) {
+    $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
+
+    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $token)) {
+        return response()->json(['message' => 'Unauthorized token'], 403);
+    }
+
+    // Optional guard so it can be disabled without removing the route.
+    if (!config('services.remove_bg.key') && !env('REMOVE_BG_API_KEY')) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => 'No engine available: set REMOVE_BG_API_KEY in .env (or install rembg on the server).',
+        ], 422);
+    }
+
+    $limit  = (int) $request->query('limit', 0);
+    $force  = $request->boolean('force');
+    $id     = $request->query('id');
+
+    $params = ['--force' => $force];
+    if ($limit > 0) {
+        $params['--limit'] = $limit;
+    }
+    if ($id) {
+        $params['--id'] = $id;
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('players:generate-cutouts', $params);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return response()->json([
+            'status' => 'success',
+            'limit'  => $limit ?: 'all',
+            'force'  => $force,
+            'output' => trim($output),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});

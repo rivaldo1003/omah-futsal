@@ -32,7 +32,7 @@ class PlayerObserver
                 return;
             }
 
-            $png = env('REMOVE_BG_API_KEY')
+            $png = $this->removeBgKey()
                 ? $this->cutWithRemoveBg($source)
                 : $this->cutWithRembg($source);
 
@@ -76,10 +76,18 @@ class PlayerObserver
         return null;
     }
 
+    /**
+     * remove.bg API key from config (survives config:cache), falling back to env().
+     */
+    private function removeBgKey(): ?string
+    {
+        return config('services.remove_bg.key') ?: env('REMOVE_BG_API_KEY');
+    }
+
     private function cutWithRemoveBg(string $path): ?string
     {
         $response = Http::asMultipart()
-            ->withToken(env('REMOVE_BG_API_KEY'))
+            ->withToken($this->removeBgKey())
             ->attach('image_file', fopen($path, 'r'), 'photo.jpg')
             ->post('https://api.remove.bg/v1.0/removebg', [
                 'size'   => 'regular',
