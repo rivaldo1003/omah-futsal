@@ -277,3 +277,79 @@ Route::post('/deploy/generate-cutouts/{token}', function (\Illuminate\Http\Reque
         ], 500);
     }
 });
+
+// Diagnostics for the player-photo cutout feature (token-gated).
+// Usage: GET /api/deploy/cutout-diagnostics/{token}
+// Also supports: ?clearcache=1 to clear+rebuild the config cache.
+Route::get('/deploy/cutout-diagnostics/{token}', function (\Illuminate\Http\Request $request, $token) {
+    $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
+
+    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $token)) {
+        return response()->json(['message' => 'Unauthorized token'], 403);
+    }
+
+    // Optional: clear + rebuild caches so a freshly-edited .env is picked up.
+    if ($request->boolean('clearcache')) {
+        \Illuminate\Support\Facades\Artisan::call('optimize:clear');
+        \Illuminate\Support\Facades\Artisan::call('optimize');
+    }
+
+    $mask = function ($key) {
+        if (empty($key)) {
+            return null;
+        }
+        return substr($key, 0, 4) . str_repeat('*', max(0, strlen($key) - 8)) . substr($key, -4);
+    };
+
+    $configKey = config('services.remove_bg.key');
+    $envKey    = env('REMOVE_BG_API_KEY');
+
+    $cutouts = new \App\Services\PlayerCutoutService();
+
+    $withPhoto = \App\Models\Player::whereNotNull('photo')->where('photo', '!=', '')->count();
+    $missing   = \App\Models\Player::whereNotNull('photo')->where('photo', '!=', '')
+        ->where(function ($q) {
+            $q->whereNull('photo_cutout')->orWhere('photo_cutout', '');
+        })->count();
+    $haveCutout = \App\Models\Player::whereNotNull('photo_cutout')->where('photo_cutout', '!=', '')->count();
+
+    // Tail of the log filtered to cutout-related lines.
+    $logFile = storage_path('logs/laravel.log');
+    $cutoutLog = [];
+    if (file_exists($logFile)) {
+        $lines = file($logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) ?: [];
+        foreach (array_reverse($lines) as $line) {
+            if (stripos($line, 'cutout') !== false) {
+                $cutoutLog[] = $line;
+                if (count($cutoutLog) >= 15) {
+                    break;
+                }
+            }
+        }
+    }
+
+    return response()->json([
+        'status' => 'ok',
+        'config' => [
+            'config_is_cached'     => file_exists(base_path('bootstrap/cache/config.php')),
+            'config_remove_bg_key' => $mask($configKey),
+            'env_remove_bg_key'    => $mask($envKey),
+            'config_matches_env'   => (bool) $configKey && $configKey === $envKey,
+        ],
+        'engine' => [
+            'detected'     => $cutouts->detectEngine(),
+            'rembg_binary' => $cutouts->rembgBinary(),
+        ],
+        'storage' => [
+            'storage_link_exists'  => file_exists(public_path('storage')),
+            'cutouts_dir_exists'   => \Illuminate\Support\Facades\Storage::disk('public')->exists('players/cutouts'),
+            'cutouts_dir_writable' => is_writable(storage_path('app/public')),
+        ],
+        'players' => [
+            'with_photo'     => $withPhoto,
+            'have_cutout'    => $haveCutout,
+            'missing_cutout' => $missing,
+        ],
+        'cutout_log_tail' => $cutoutLog,
+    ]);
+});
