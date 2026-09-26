@@ -554,7 +554,7 @@
 .fmvs-u-modal { position: fixed; inset: 0; z-index: 99999; display: flex; align-items: center; justify-content: center; }
 .fmvs-u-modal[hidden] { display: none; }
 .fmvs-um-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); }
-.fmvs-um-window { position: relative; z-index: 2; background: var(--u-surface); border: 1px solid var(--u-border); border-radius: 16px; width: 90%; max-width: 650px; padding: 24px; }
+.fmvs-um-window { position: relative; z-index: 2; background: var(--u-surface); border: 1px solid var(--u-border); border-radius: 16px; width: 90%; max-width: 650px; padding: 24px; max-height: 88vh; overflow-y: auto; }
 .fmvs-um-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--u-border); padding-bottom: 12px; }
 .fmvs-um-header h3 { margin: 0; font-size: 1.2rem; font-style: italic; font-weight: 900; }
 .fmvs-um-header button { background: none; border: none; color: #fff; font-size: 1.5rem; cursor: pointer; }
@@ -564,6 +564,29 @@
 .fmvs-h2h-comparison { display: flex; flex-direction: column; gap: 8px; }
 .fmvs-h2h-row { display: grid; grid-template-columns: 1fr 120px 1fr; padding: 10px; background: var(--u-card); border-radius: 6px; text-align: center; font-size: 0.85rem; font-weight: 800; }
 .fmvs-h2h-row .win { color: var(--u-accent); }
+
+/* H2H comparison header (player + team) */
+.fmvs-h2h-headrow {
+    display: grid;
+    grid-template-columns: 1fr 120px 1fr;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--u-border);
+}
+.fmvs-h2h-side { display: flex; flex-direction: column; min-width: 0; }
+.fmvs-h2h-side strong {
+    font-size: 0.85rem; font-weight: 900; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fmvs-h2h-side span {
+    font-size: 10px; font-weight: 800; color: var(--u-accent);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.fmvs-h2h-side--right { text-align: right; }
+.fmvs-h2h-midlabel { text-align: center; font-weight: 900; font-style: italic; color: var(--u-muted); font-size: 11px; }
+.fmvs-h2h-metlbl { color: var(--u-muted); font-size: 10px; }
 
 /* ── Mobile ≤ 850px ──────────────────────────────────────────── */
 @media (max-width: 850px) {
@@ -600,10 +623,16 @@
         gap: 16px;
     }
 
-    /* 3D card: smaller & centered */
-    .fmvs-3d-viewport { min-height: 220px; }
-    .fmvs-3d-card { width: 180px; height: 240px; }
-    .fmvs-3d-card img { height: 200px; }
+    /* 3D card: smaller, fully full & centered */
+    .fmvs-3d-viewport { min-height: 260px; }
+    .fmvs-3d-card { width: 200px; height: 260px; margin: 0 auto; }
+    .fmvs-3d-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center bottom;
+        transform: none;
+    }
     .fmvs-card-number { font-size: 1.3rem; }
 
     /* Analytics panel: full width */
@@ -612,10 +641,17 @@
     .fmvs-p-name { font-size: 1.3rem; }
     .fmvs-vb-amount { font-size: 1.2rem; }
 
-    /* ── Tabs: scrollable, no wrap ── */
-    .fmvs-tabs { overflow-x: auto; scrollbar-width: none; gap: 4px; }
-    .fmvs-tabs::-webkit-scrollbar { display: none; }
-    .fmvs-tab { font-size: 10px; padding: 6px 10px; white-space: nowrap; }
+    /* ── Tabs: wrap so every tab stays visible & clickable ── */
+    .fmvs-tabs { flex-wrap: wrap; overflow: visible; gap: 4px; }
+    .fmvs-tab {
+        flex: 1 1 auto;
+        min-width: 30%;
+        text-align: center;
+        white-space: normal;
+        line-height: 1.15;
+        font-size: 9px;
+        padding: 6px 4px;
+    }
 
     /* ── Tab content area ── */
     .fmvs-tab-content {
@@ -659,13 +695,31 @@
 
     /* Carousel cards */
     .fmvs-u-card { flex: 0 0 150px; }
+
+    /* ── H2H modal: responsive ── */
+    .fmvs-um-window { width: 94%; padding: 16px; border-radius: 12px; max-height: 90vh; }
+    .fmvs-um-header h3 { font-size: 1rem; }
+    .fmvs-h2h-selects { grid-template-columns: 1fr 90px 1fr; gap: 6px; margin-bottom: 14px; }
+    .fmvs-h2h-selects select { font-size: 11px; padding: 6px; }
+    .fmvs-h2h-headrow { grid-template-columns: 1fr 90px 1fr; gap: 6px; padding: 8px 6px; }
+    .fmvs-h2h-side strong { font-size: 0.75rem; }
+    .fmvs-h2h-side span { font-size: 9px; }
+    .fmvs-h2h-row { grid-template-columns: 1fr 90px 1fr; padding: 8px 6px; font-size: 0.75rem; gap: 4px; }
+    .fmvs-h2h-metlbl { font-size: 9px; }
 }
 
 /* ── Mobile ≤ 480px ──────────────────────────────────────────── */
 @media (max-width: 480px) {
     .fmvs-u-title { font-size: 1.1rem; }
-    .fmvs-3d-card { width: 150px; height: 200px; }
-    .fmvs-3d-card img { height: 165px; }
+    .fmvs-3d-viewport { min-height: 220px; }
+    .fmvs-3d-card { width: 170px; height: 220px; margin: 0 auto; }
+    .fmvs-3d-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: center bottom;
+        transform: none;
+    }
 
     /* Radar: even smaller on tiny phones */
     #fmvsProRadar { width: 170px !important; height: 170px !important; }
@@ -991,18 +1045,35 @@
             { name: 'RED CARDS', a: p1.red_cards, b: p2.red_cards, rawA: p2.red_cards, rawB: p1.red_cards }
         ];
 
-        rows.innerHTML = list.map(m => `
+        const teamOf = (p) => (p.team && String(p.team).trim()) ? p.team : 'FREE AGENT';
+
+        const header = `
+            <div class="fmvs-h2h-headrow">
+                <div class="fmvs-h2h-side">
+                    <strong>${p1.name}</strong>
+                    <span>${teamOf(p1)}</span>
+                </div>
+                <div class="fmvs-h2h-midlabel">VS</div>
+                <div class="fmvs-h2h-side fmvs-h2h-side--right">
+                    <strong>${p2.name}</strong>
+                    <span>${teamOf(p2)}</span>
+                </div>
+            </div>
+        `;
+
+        rows.innerHTML = header + list.map(m => `
             <div class="fmvs-h2h-row">
                 <div class="${m.rawA > m.rawB ? 'win' : ''}">${m.a}</div>
-                <div style="color:var(--u-muted); font-size:10px">${m.name}</div>
+                <div class="fmvs-h2h-metlbl">${m.name}</div>
                 <div class="${m.rawB > m.rawA ? 'win' : ''}">${m.b}</div>
             </div>
         `).join('');
     }
 
     document.getElementById('fmvsOpenCompare').addEventListener('click', () => {
-        sel1.innerHTML = players.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
-        sel2.innerHTML = players.map((p, i) => `<option value="${i}" ${i === 1 ? 'selected' : ''}>${p.name}</option>`).join('');
+        const optLabel = (p) => p.name + ((p.team && String(p.team).trim()) ? ' — ' + p.team : '');
+        sel1.innerHTML = players.map((p, i) => `<option value="${i}">${optLabel(p)}</option>`).join('');
+        sel2.innerHTML = players.map((p, i) => `<option value="${i}" ${i === 1 ? 'selected' : ''}>${optLabel(p)}</option>`).join('');
         renderH2H();
         modal.hidden = false;
     });
