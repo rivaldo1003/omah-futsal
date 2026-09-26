@@ -3,8 +3,8 @@
 namespace App\Console\Commands;
 
 use App\Models\Player;
+use App\Services\PlayerCutoutService;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -18,7 +18,7 @@ use Illuminate\Support\Facades\Storage;
  *   php artisan players:generate-cutouts            # all players missing a cutout
  *   php artisan players:generate-cutouts --id=5     # single player
  *   php artisan players:generate-cutouts --force    # regenerate existing cutouts
- *   php artisan players:generate-cutouts --limit=20  # process at most N players
+ *   php artisan players:generate-cutouts --limit=20 # process at most N players
  *
  * Output: storage/app/public/players/cutouts/player-{id}.png
  * The website automatically prefers the cutout on the showcase stage.
@@ -28,7 +28,7 @@ class GeneratePlayerCutouts extends Command
     protected $signature   = 'players:generate-cutouts {--id=} {--force} {--limit=}';
     protected $description = 'Generate transparent-background player cutouts (remove.bg API or local rembg)';
 
-    public function handle(): int
+    public function handle(PlayerCutoutService $cutouts): int
     {
         $query = Player::query()->whereNotNull('photo')->where('photo', '!=', '');
 
@@ -52,9 +52,9 @@ class GeneratePlayerCutouts extends Command
             return self::SUCCESS;
         }
 
-        $engine = $this->detectEngine();
+        $engine = $cutouts->detectEngine();
         if (!$engine) {
-            $this->error('No engine available. Set REMOVE_BG_API_KEY in .env, or install rembg: pip install rembg');
+            $this->error('No engine available. Set REMOVE_BG_API_KEY in .env, or install rembg (pip install rembg) and/or set REMBG_PATH.');
             return self::FAILURE;
         }
         $this->info("Engine: {$engine}");
@@ -71,9 +71,8 @@ class GeneratePlayerCutouts extends Command
             $outPath = "players/cutouts/player-{$player->id}.png";
 
             try {
-                $png = $engine === 'removebg'
-                    ? $this->cutWithRemoveBg($source)
-                    : $this->cutWithRembg($source);
+                $png = $cutouts->generate($source);
+                @unlink($source);
 
                 if (!$png) {
                     $this->warn("[{$player->id}] {$player->name}: cutout failed, skipped.");
@@ -91,18 +90,6 @@ class GeneratePlayerCutouts extends Command
         return self::SUCCESS;
     }
 
-    private function detectEngine(): ?string
-    {
-        if ($this->removeBgKey()) {
-            return 'removebg';
-        }
-        exec('command -v rembg 2>/dev/null', $lines, $code);
-        if ($code === 0) {
-            return 'rembg';
-        }
-        return null;
-    }
-
     private function resolveSourcePath(Player $player): ?string
     {
         $photo = $player->photo;
@@ -117,10 +104,10 @@ class GeneratePlayerCutouts extends Command
             return $tmp;
         }
 
-        $candidates = [$photo, 'players/photos/' . $photo, 'players/' . $photo];
+        $candidates = [$photo, 'players/' . $photo, 'players/photos/' . $photo];
         foreach ($candidates as $c) {
             $clean = ltrim($c, '/\\');
-            if (Storage::disk('public')->exists($clean)) {
+            if ($clean && Storage::disk('public')->exists($clean)) {
                 $tmp = tempnam(sys_get_temp_dir(), 'pimg');
                 file_put_contents($tmp, Storage::disk('public')->get($clean));
                 return $tmp;
@@ -128,45 +115,5 @@ class GeneratePlayerCutouts extends Command
         }
 
         return null;
-    }
-
-    /**
-     * remove.bg API key from config (survives config:cache), falling back to env().
-     */
-    private function removeBgKey(): ?string
-    {
-        return config('services.remove_bg.key') ?: env('REMOVE_BG_API_KEY');
-    }
-
-    private function cutWithRemoveBg(string $sourcePath): ?string
-    {
-        $response = Http::asMultipart()
-            ->withToken($this->removeBgKey())
-            ->attach('image_file', fopen($sourcePath, 'r'), 'photo.jpg')
-            ->post('https://api.remove.bg/v1.0/removebg', [
-                'size'   => 'regular',
-                'format' => 'png',
-                'type'   => 'person',
-            ]);
-
-        if (!$response->successful()) {
-            $this->line('  remove.bg: ' . $response->status() . ' ' . substr($response->body(), 0, 120));
-            return null;
-        }
-
-        return $response->body();
-    }
-
-    private function cutWithRembg(string $sourcePath): ?string
-    {
-        $out = $sourcePath . '.cutout.png';
-        $cmd = ' rembg i -m u2net ' . escapeshellarg($sourcePath) . ' ' . escapeshellarg($out) . ' 2>/dev/null';
-        exec($cmd, $lines, $code);
-        if ($code !== 0 || !file_exists($out)) {
-            return null;
-        }
-        $png = file_get_contents($out);
-        @unlink($out);
-        return $png ?: null;
     }
 }

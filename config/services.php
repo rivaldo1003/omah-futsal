@@ -46,4 +46,15 @@ return [
         'key' => env('REMOVE_BG_API_KEY'),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | rembg (local background-removal CLI fallback)
+    |--------------------------------------------------------------------------
+    | Absolute path to the `rembg` binary. Useful when the web/PHP-FPM process
+    | has a minimal PATH and cannot locate rembg via `command -v`.
+    */
+    'rembg' => [
+        'path' => env('REMBG_PATH'),
+    ],
+
 ];
