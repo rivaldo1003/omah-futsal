@@ -78,7 +78,7 @@
                                             <td>
                                                 <div class="d-flex align-items-center">
                                                     <div class="text-end" style="width: 40%;">
-                                                        <strong>{{ $match->homeTeam->name }}</strong>
+                                                        <strong>{{ $match->homeTeam->name ?? 'TBD' }}</strong>
                                                         <br>
                                                         <span class="badge bg-primary">{{ $match->home_score }}</span>
                                                     </div>
@@ -86,7 +86,7 @@
                                                         <small class="text-muted">vs</small>
                                                     </div>
                                                     <div class="text-start" style="width: 40%;">
-                                                        <strong>{{ $match->awayTeam->name }}</strong>
+                                                        <strong>{{ $match->awayTeam->name ?? 'TBD' }}</strong>
                                                         <br>
                                                         <span class="badge bg-primary">{{ $match->away_score }}</span>
                                                     </div>

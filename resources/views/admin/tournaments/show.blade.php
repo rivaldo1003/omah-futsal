@@ -785,7 +785,7 @@
                                         <td>
                                             <div class="match-teams">
                                                 <div class="team-side">
-                                                    <div class="team-name-sm">{{ $match->homeTeam->name }}</div>
+                                                    <div class="team-name-sm">{{ $match->homeTeam->name ?? 'TBD' }}</div>
                                                     @if($match->group_name)
                                                         <div class="team-group-sm">Group {{ $match->group_name }}</div>
                                                     @endif
@@ -803,7 +803,7 @@
                                                     <div class="match-status">{{ ucfirst($match->status) }}</div>
                                                 </div>
                                                 <div class="team-side home">
-                                                    <div class="team-name-sm">{{ $match->awayTeam->name }}</div>
+                                                    <div class="team-name-sm">{{ $match->awayTeam->name ?? 'TBD' }}</div>
                                                     @if($match->round_type != 'group')
                                                         <div class="team-group-sm">{{ ucfirst($match->round_type) }}</div>
                                                     @endif

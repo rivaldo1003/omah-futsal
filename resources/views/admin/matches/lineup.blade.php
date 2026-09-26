@@ -284,14 +284,14 @@
         <div class="card-header">
             <div class="row align-items-center text-center">
                 <div class="col">
-                    <h5 class="mb-1">{{ $match->homeTeam->name }}</h5>
+                    <h5 class="mb-1">{{ $match->homeTeam->name ?? 'TBD' }}</h5>
                     <span class="team-badge badge-home">HOME</span>
                 </div>
                 <div class="col-auto">
                     <span class="vs-pill">VS</span>
                 </div>
                 <div class="col">
-                    <h5 class="mb-1">{{ $match->awayTeam->name }}</h5>
+                    <h5 class="mb-1">{{ $match->awayTeam->name ?? 'TBD' }}</h5>
                     <span class="team-badge badge-away">AWAY</span>
                 </div>
             </div>
@@ -314,7 +314,7 @@
                     <div class="col-md-6">
                         <div class="team-card home">
                             <div class="card-header">
-                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->homeTeam->name }}</h6>
+                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->homeTeam->name ?? 'TBD' }}</h6>
                                 <div class="form-check mb-0">
                                     <input class="form-check-input select-all" type="checkbox"
                                         data-target="home-players" id="checkAllHome">
@@ -322,7 +322,7 @@
                                 </div>
                             </div>
                             <div class="home-players">
-                                @foreach($match->homeTeam->players as $player)
+                                @foreach(($match->homeTeam->players ?? collect()) as $player)
                                     <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
                                         for="p{{ $player->id }}">
                                         <div class="form-check me-3">
@@ -345,7 +345,7 @@
                     <div class="col-md-6">
                         <div class="team-card away">
                             <div class="card-header">
-                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->awayTeam->name }}</h6>
+                                <h6><i class="bi bi-people-fill me-2"></i>{{ $match->awayTeam->name ?? 'TBD' }}</h6>
                                 <div class="form-check mb-0">
                                     <input class="form-check-input select-all" type="checkbox"
                                         data-target="away-players" id="checkAllAway">
@@ -353,7 +353,7 @@
                                 </div>
                             </div>
                             <div class="away-players">
-                                @foreach($match->awayTeam->players as $player)
+                                @foreach(($match->awayTeam->players ?? collect()) as $player)
                                     <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
                                         for="p{{ $player->id }}">
                                         <div class="form-check me-3">
