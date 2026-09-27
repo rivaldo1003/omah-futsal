@@ -1414,93 +1414,114 @@ class GameController extends Controller
      */
     private function generateKnockoutMatches(Tournament $tournament, $teams)
     {
-        $teamIds = $teams->pluck('id')->toArray();
-        $teamsCount = count($teamIds);
-        $bracketSize = $tournament->knockout_teams ?? 8;
+        $teamsCount = $teams->count();
+        $bracketSize = (int) ($tournament->knockout_teams ?? 8);
+
+        // Normalisasi bracket ke pangkat 2 (2, 4, 8, 16, 32, ...)
+        $pow = 1;
+        while ($pow < $bracketSize) {
+            $pow *= 2;
+        }
+        $bracketSize = max(2, $pow);
 
         // Validasi jumlah tim
         if ($teamsCount > $bracketSize) {
-            throw new \Exception("Knockout tournament can only have {$bracketSize} teams maximum. You have {$teamsCount} teams.");
+            throw new \Exception("Ukuran bagan ({$bracketSize} slot) lebih kecil dari jumlah tim terdaftar ({$teamsCount}). Perbesar ukuran bagan atau kurangi tim.");
         }
 
         if ($teamsCount < 2) {
-            throw new \Exception("Knockout tournament must have at least 2 teams.");
+            throw new \Exception("Turnamen knockout minimal membutuhkan 2 tim.");
         }
 
-        // Shuffle teams
-        shuffle($teamIds);
+        // Susun urutan tim sesuai metode seeding
+        $ordered = $this->seedKnockoutTeams($teams, $tournament->knockout_seeding ?? 'random');
 
-        // Generate bracket
-        $matches = [];
+        // Bye = slot bagan yang tidak terisi tim. Tim unggulan (paling awal) mendapat bye.
+        $byeCount = $bracketSize - $teamsCount;
+        $byeTeams = array_slice($ordered, 0, $byeCount);
+        $playingTeams = array_slice($ordered, $byeCount);
+
         $matchDates = $this->generateMatchDates($tournament->start_date, $tournament->end_date, $bracketSize);
+        $fallbackDate = !empty($matchDates) ? end($matchDates) : $tournament->start_date;
 
-        // Round 1 matches
-        $roundNumber = 1;
-        $totalRounds = log($bracketSize, 2);
-
-        for ($i = 0; $i < $bracketSize; $i += 2) {
-            $homeTeam = isset($teamIds[$i]) ? $teamIds[$i] : null;
-            $awayTeam = isset($teamIds[$i + 1]) ? $teamIds[$i + 1] : null;
-
-            $matchData = [
+        // =====================================================================
+        // RONDE 1 — hanya pertandingan tim yang benar-benar bertanding.
+        // Tim yang mendapat bye TIDAK dibuatkan match fiktif; mereka langsung
+        // ditempatkan ke slot ronde berikutnya (lihat di bawah).
+        // =====================================================================
+        $slot = 0;
+        for ($i = 0; $i + 1 < count($playingTeams); $i += 2) {
+            Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $matchDates[0],
-                'time_start' => $this->getTimeSlot($i / 2, $tournament),
-                'time_end' => $this->getTimeEnd($this->getTimeSlot($i / 2, $tournament), $tournament),
-                'team_home_id' => $homeTeam,
-                'team_away_id' => $awayTeam,
+                'match_date' => $matchDates[0] ?? $tournament->start_date,
+                'time_start' => $this->getTimeSlot($slot, $tournament),
+                'time_end' => $this->getTimeEnd($this->getTimeSlot($slot, $tournament), $tournament),
+                'team_home_id' => $playingTeams[$i],
+                'team_away_id' => $playingTeams[$i + 1],
                 'venue' => $tournament->location ?? 'Main Field',
                 'status' => 'upcoming',
-                'round_type' => $this->getRoundType($bracketSize, $roundNumber),
+                'round_type' => $this->getRoundType($bracketSize, 1),
                 'group_name' => null,
-            ];
-
-            // Jika ada bye (tim kosong), set status completed
-            if (is_null($homeTeam) || is_null($awayTeam)) {
-                $matchData['status'] = 'completed';
-                if (is_null($homeTeam)) {
-                    $matchData['home_score'] = 0;
-                    $matchData['away_score'] = 3; // Forfeit win
-                } elseif (is_null($awayTeam)) {
-                    $matchData['home_score'] = 3;
-                    $matchData['away_score'] = 0;
-                }
-            }
-
-            $matches[] = $matchData;
+            ]);
+            $slot++;
         }
 
-        // Subsequent rounds (quarter, semi, final)
-        $roundMatchCount = $bracketSize / 2;
+        // =====================================================================
+        // RONDE BERIKUTNYA (semifinal, final, dst) — slot kosong menunggu pemenang
+        // =====================================================================
         $roundNumber = 2;
+        $roundMatchCount = intdiv($bracketSize, 4);
+        $matchesByRound = [];
 
-        while ($roundMatchCount > 1) {
-            $nextRoundMatches = $roundMatchCount / 2;
-
-            for ($i = 0; $i < $nextRoundMatches; $i++) {
-                $matches[] = [
+        while ($roundMatchCount >= 1) {
+            $matchesByRound[$roundNumber] = [];
+            for ($i = 0; $i < $roundMatchCount; $i++) {
+                $matchesByRound[$roundNumber][] = Game::create([
                     'tournament_id' => $tournament->id,
-                    'match_date' => $matchDates[$roundNumber - 1] ?? end($matchDates),
+                    'match_date' => $matchDates[$roundNumber - 1] ?? $fallbackDate,
                     'time_start' => $this->getTimeSlot($i, $tournament),
                     'time_end' => $this->getTimeEnd($this->getTimeSlot($i, $tournament), $tournament),
-                    'team_home_id' => null, // Will be filled by winners
+                    'team_home_id' => null,
                     'team_away_id' => null,
                     'venue' => $tournament->location ?? 'Main Field',
                     'status' => 'upcoming',
                     'round_type' => $this->getRoundType($bracketSize, $roundNumber),
                     'group_name' => null,
-                ];
+                ]);
             }
-
-            $roundMatchCount = $nextRoundMatches;
+            $roundMatchCount = intdiv($roundMatchCount, 2);
             $roundNumber++;
+        }
+
+        // Tempatkan tim bye ke slot ronde 2 (sebar: satu bye per match dulu)
+        if ($byeCount > 0 && !empty($matchesByRound[2])) {
+            $byeQueue = $byeTeams;
+
+            foreach ($matchesByRound[2] as $m) {
+                if (empty($byeQueue)) {
+                    break;
+                }
+                if (!$m->team_home_id) {
+                    $m->team_home_id = array_shift($byeQueue);
+                    $m->save();
+                }
+            }
+            foreach ($matchesByRound[2] as $m) {
+                if (empty($byeQueue)) {
+                    break;
+                }
+                if (!$m->team_away_id) {
+                    $m->team_away_id = array_shift($byeQueue);
+                    $m->save();
+                }
+            }
         }
 
         // Third place match jika diperlukan
         if ($tournament->knockout_third_place) {
-            $matches[] = [
+            Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => end($matchDates),
+                'match_date' => $fallbackDate,
                 'time_start' => $this->getTimeSlot(0, $tournament),
                 'time_end' => $this->getTimeEnd($this->getTimeSlot(0, $tournament), $tournament),
                 'team_home_id' => null,
@@ -1509,13 +1530,48 @@ class GameController extends Controller
                 'status' => 'upcoming',
                 'round_type' => 'third_place',
                 'group_name' => null,
-            ];
+            ]);
+        }
+    }
+
+    /**
+     * Menyusun urutan tim untuk bagan knockout sesuai metode seeding.
+     * - random : undian acak
+     * - ranked : berdasarkan seed (unggulan atas lebih dulu), fallback ke nama
+     * - manual : mengikuti urutan tim di bagan (id pivot / id tim)
+     */
+    private function seedKnockoutTeams($teams, string $method): array
+    {
+        $collection = collect($teams);
+
+        switch ($method) {
+            case 'ranked':
+                $ordered = $collection->sortBy(function ($team) {
+                    $seed = (int) ($team->pivot->seed ?? 0);
+                    return $seed > 0 ? $seed : PHP_INT_MAX;
+                })->values();
+                break;
+
+            case 'manual':
+                $ordered = $collection->sortBy(function ($team) {
+                    return $team->pivot->id ?? $team->id;
+                })->values();
+                break;
+
+            case 'random':
+            default:
+                $ordered = $collection->shuffle()->values();
+                break;
         }
 
-        // Create all matches
-        foreach ($matches as $matchData) {
-            Game::create($matchData);
+        $ids = $ordered->pluck('id')->toArray();
+
+        if (empty($ids)) {
+            $ids = $collection->pluck('id')->toArray();
+            shuffle($ids);
         }
+
+        return $ids;
     }
 
     /**

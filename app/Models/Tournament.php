@@ -34,7 +34,6 @@ class Tournament extends Model
         'knockout_format',
         'knockout_teams',
         'knockout_seeding',
-        'knockout_byes',
         'knockout_third_place',
     ];
 

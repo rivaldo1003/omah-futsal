@@ -365,29 +365,36 @@
                                                 </label>
                                                 <select class="form-select @error('knockout_format') is-invalid @enderror" id="knockout_format" name="knockout_format">
                                                     <option value="single_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'single_elimination') ? 'selected' : '' }}>Single Elimination</option>
-                                                    <option value="double_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'double_elimination') ? 'selected' : '' }}>Double Elimination</option>
                                                 </select>
                                                 @error('knockout_format')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Single elimination: tim yang kalah langsung tersingkir.
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="knockout_tim" class="form-label">
-                                                    Jumlah Tim
+                                                <label for="knockout_teams" class="form-label">
+                                                    Ukuran Bagan
                                                     <span class="required">*</span>
                                                 </label>
-                                                <select class="form-select @error('knockout_tim') is-invalid @enderror" id="knockout_tim" name="knockout_tim">
-                                                    <option value="2" {{ (old('knockout_tim', $tournamentData['knockout_tim'] ?? 8) == 2) ? 'selected' : '' }}>2 Teams (Final)</option>
-                                                    <option value="4" {{ (old('knockout_tim', $tournamentData['knockout_tim'] ?? 8) == 4) ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
-                                                    <option value="8" {{ (old('knockout_tim', $tournamentData['knockout_tim'] ?? 8) == 8) ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
-                                                    <option value="16" {{ (old('knockout_tim', $tournamentData['knockout_tim'] ?? 8) == 16) ? 'selected' : '' }}>16 Teams (Round of 16)</option>
-                                                    <option value="32" {{ (old('knockout_tim', $tournamentData['knockout_tim'] ?? 8) == 32) ? 'selected' : '' }}>32 Teams</option>
+                                                <select class="form-select @error('knockout_teams') is-invalid @enderror" id="knockout_teams" name="knockout_teams">
+                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>2 Teams (Final)</option>
+                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
+                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
+                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>16 Teams (Round of 16)</option>
+                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>32 Teams</option>
                                                 </select>
-                                                @error('knockout_tim')
+                                                @error('knockout_teams')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Ukuran bagan (jumlah slot). Tim boleh mendaftar lebih sedikit — sisanya jadi bye otomatis.
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -406,21 +413,24 @@
                                                 @error('knockout_seeding')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
+                                                <div class="form-text">
+                                                    <i class="bi bi-info-circle"></i>
+                                                    Random: undian acak. Ranked: unggulan tersebar merata. Manual: urutan tim saat didaftarkan.
+                                                </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
-                                                <label for="knockout_byes" class="form-label">
-                                                    Jumlah Bye
+                                                <label class="form-label">
+                                                    Bye (otomatis)
                                                 </label>
-                                                <input type="number" class="form-control @error('knockout_byes') is-invalid @enderror" id="knockout_byes" name="knockout_byes"
-                                                    value="{{ old('knockout_byes', $tournamentData['knockout_byes'] ?? 0) }}" min="0" max="16">
-                                                @error('knockout_byes')
-                                                    <div class="invalid-feedback">{{ $message }}</div>
-                                                @enderror
+                                                <div class="form-control d-flex align-items-center" style="background:#f8fafc;">
+                                                    <i class="bi bi-magic me-2"></i>
+                                                    <span id="byeInfoText">Dihitung otomatis saat tim didaftarkan</span>
+                                                </div>
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Teams that get a free pass to next round
+                                                    Bye = tim yang langsung lolos ke ronde berikutnya tanpa bertanding. Dihitung dari <strong>ukuran bagan &minus; jumlah tim terdaftar</strong>.
                                                 </div>
                                             </div>
                                         </div>

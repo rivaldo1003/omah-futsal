@@ -215,7 +215,6 @@ class TournamentController extends Controller
                     'knockout_format' => 'nullable|in:single_elimination,double_elimination',
                     'knockout_teams' => 'nullable|integer|min:2|max:32',
                     'knockout_seeding' => 'nullable|in:random,ranked,manual',
-                    'knockout_byes' => 'nullable|integer|min:0|max:16',
                     'knockout_third_place' => 'nullable|boolean',
                 ]);
 
@@ -527,7 +526,6 @@ class TournamentController extends Controller
                         $settings['knockout_format'] = $tournamentData['knockout_format'] ?? 'single_elimination';
                         $settings['knockout_teams'] = $tournamentData['knockout_teams'] ?? 8;
                         $settings['knockout_seeding'] = $tournamentData['knockout_seeding'] ?? 'random';
-                        $settings['knockout_byes'] = $tournamentData['knockout_byes'] ?? 0;
                         $settings['knockout_third_place'] = (bool) ($tournamentData['knockout_third_place'] ?? false);
                     }
 

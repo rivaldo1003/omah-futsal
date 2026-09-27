@@ -148,7 +148,7 @@
             
             // Validasi khusus untuk knockout
             if (tournamentType === 'knockout') {
-                const bracketSize = parseInt($('#knockout_tim').val()) || 8;
+                const bracketSize = parseInt($('#knockout_teams').val()) || 8;
                 if (selectedTeams.length > bracketSize) {
                     showError(`Knockout tournament can only have ${bracketSize} tim maximum. You selected ${selectedTeams.length} tim.`);
                     isValid = false;
@@ -293,7 +293,7 @@
             const rounds = parseInt($('#league_rounds').val()) || 1;
             matchCount = (teamCount * (teamCount - 1) / 2) * rounds;
         } else if (type === 'knockout') {
-            const bracketSize = parseInt($('#knockout_tim').val()) || 8;
+            const bracketSize = parseInt($('#knockout_teams').val()) || 8;
             matchCount = bracketSize - 1;
             if ($('#knockout_third_place').is(':checked')) {
                 matchCount += 1;
@@ -367,7 +367,32 @@
 
         $('#totalTeamsCount').text(totalTeams);
         $('#selectedTeamsCount').text(selectedTeams.length);
+        updateByeInfo();
         updatePreview();
+    }
+
+    // Fungsi untuk menampilkan info bye otomatis (ukuran bagan - jumlah tim)
+    function updateByeInfo() {
+        const infoEl = document.getElementById('byeInfoText');
+        if (!infoEl) return;
+
+        const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+        const selectedTeams = ($('#teams').val() || []).length;
+
+        if (selectedTeams === 0) {
+            infoEl.textContent = `Bagan ${bracketSize} slot — pilih tim dulu untuk menghitung bye.`;
+            return;
+        }
+
+        const byes = bracketSize - selectedTeams;
+
+        if (byes > 0) {
+            infoEl.textContent = `${selectedTeams} tim di bagan ${bracketSize} → ${byes} bye otomatis.`;
+        } else if (byes === 0) {
+            infoEl.textContent = `${selectedTeams} tim mengisi penuh bagan ${bracketSize} → tanpa bye.`;
+        } else {
+            infoEl.textContent = `⚠️ ${selectedTeams} tim melebihi bagan ${bracketSize}. Perbesar ukuran bagan.`;
+        }
     }
 
     // ========== STEP 3 - GROUP KNOCKOUT ==========
@@ -1001,6 +1026,11 @@ $(document).on('click', 'button[type="submit"]', function() {
             updatePreview();
             loadTeamsData();
             updateGroups();
+        });
+
+        // Update info bye saat ukuran bagan berubah
+        $('#knockout_teams').on('change', function () {
+            updateByeInfo();
         });
 
         $('#name').on('input', function () {
