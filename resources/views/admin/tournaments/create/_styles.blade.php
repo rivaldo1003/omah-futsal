@@ -1142,4 +1142,131 @@
             color: var(--secondary);
             background: rgba(52, 152, 219, 0.05);
         }
+
+        /* ===== Bracket Preview (Knockout Cup) ===== */
+        .bracket-preview {
+            display: flex;
+            gap: 18px;
+            overflow-x: auto;
+            padding: 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--surface, #f8fafc);
+            min-height: 90px;
+        }
+
+        .bracket-preview-empty {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin: auto;
+        }
+
+        .bracket-round {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-width: 168px;
+            flex-shrink: 0;
+        }
+
+        .bracket-round-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            text-align: center;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .bracket-matches {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            gap: 10px;
+            flex: 1;
+        }
+
+        .bracket-match {
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            overflow: hidden;
+            background: var(--surface, #fff);
+        }
+
+        .bracket-slot {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 8px;
+            font-size: 12px;
+            line-height: 1.2;
+            min-height: 26px;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .bracket-slot:last-child {
+            border-bottom: none;
+        }
+
+        .bracket-slot .slot-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bracket-slot .slot-logo {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .bracket-slot.slot-bye {
+            background: rgba(148, 163, 184, 0.12);
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .bracket-slot.slot-tbd {
+            color: var(--text-secondary);
+        }
+
+        .bracket-slot.slot-tbd .slot-name {
+            opacity: 0.7;
+        }
+
+        .bracket-preview-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .bracket-preview-legend .legend-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+            display: inline-block;
+        }
+
+        .legend-team { background: rgba(52, 152, 219, 0.35); }
+        .legend-bye  { background: rgba(148, 163, 184, 0.45); }
+        .legend-tbd  { background: transparent; border: 1px dashed var(--text-secondary); }
     </style>

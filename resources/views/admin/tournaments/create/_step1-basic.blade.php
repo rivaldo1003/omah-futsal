@@ -382,11 +382,11 @@
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('knockout_teams') is-invalid @enderror" id="knockout_teams" name="knockout_teams">
-                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>2 Teams (Final)</option>
-                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>4 Teams (Semi-Finals)</option>
-                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>8 Teams (Quarter-Finals)</option>
-                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>16 Teams (Round of 16)</option>
-                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>32 Teams</option>
+                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>2 slot — Final</option>
+                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>4 slot — Semi-Final (3–4 tim)</option>
+                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>8 slot — Quarter-Final (5–8 tim)</option>
+                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>16 slot — Round of 16 (9–16 tim)</option>
+                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>32 slot — Round of 32 (17–32 tim)</option>
                                                 </select>
                                                 @error('knockout_teams')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -435,6 +435,25 @@
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- Preview Bagan Knockout -->
+                                    <div class="form-group mt-4">
+                                        <label class="form-label">
+                                            <i class="bi bi-diagram-3"></i>
+                                            Preview Bagan
+                                        </label>
+                                        <div class="bracket-preview" id="bracketPreview">
+                                            <div class="bracket-preview-empty">
+                                                <i class="bi bi-diagram-3"></i>
+                                                <span>Pilih tim untuk melihat bentuk bagan.</span>
+                                            </div>
+                                        </div>
+                                        <div class="bracket-preview-legend">
+                                            <span class="legend-item"><span class="legend-dot legend-team"></span> Tim</span>
+                                            <span class="legend-item"><span class="legend-dot legend-bye"></span> Bye (lolos otomatis)</span>
+                                            <span class="legend-item"><span class="legend-dot legend-tbd"></span> Menunggu pemenang</span>
+                                        </div>
+                                    </div>
+
                                     <div class="form-check mt-3">
                                         <input class="form-check-input" type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1" {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="knockout_third_place">

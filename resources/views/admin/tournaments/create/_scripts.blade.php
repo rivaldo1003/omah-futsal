@@ -150,7 +150,9 @@
             if (tournamentType === 'knockout') {
                 const bracketSize = parseInt($('#knockout_teams').val()) || 8;
                 if (selectedTeams.length > bracketSize) {
-                    showError(`Knockout tournament can only have ${bracketSize} tim maximum. You selected ${selectedTeams.length} tim.`);
+                    const suggested = nextPowerOfTwo(selectedTeams);
+                    const byes = suggested - selectedTeams;
+                    showError(`Bagan ${bracketSize} terlalu kecil untuk ${selectedTeams} tim. Naikkan Ukuran Bagan ke ${suggested} (${byes} bye otomatis).`);
                     isValid = false;
                 }
             }
@@ -367,6 +369,12 @@
 
         $('#totalTeamsCount').text(totalTeams);
         $('#selectedTeamsCount').text(selectedTeams.length);
+
+        // Auto-sync ukuran bagan untuk tipe knockout
+        if ($('#type').val() === 'knockout') {
+            autoSyncBracketSize();
+        }
+
         updateByeInfo();
         updatePreview();
     }
@@ -381,6 +389,7 @@
 
         if (selectedTeams === 0) {
             infoEl.textContent = `Bagan ${bracketSize} slot — pilih tim dulu untuk menghitung bye.`;
+            renderBracketPreview();
             return;
         }
 
@@ -393,6 +402,153 @@
         } else {
             infoEl.textContent = `⚠️ ${selectedTeams} tim melebihi bagan ${bracketSize}. Perbesar ukuran bagan.`;
         }
+
+        renderBracketPreview();
+    }
+
+    // Normalisasi ukuran bagan ke pangkat 2 terdekat (>= jumlah tim)
+    function nextPowerOfTwo(n) {
+        let p = 2;
+        while (p < n) p *= 2;
+        return p;
+    }
+
+    // Auto-sync ukuran bagan berdasarkan jumlah tim yang dipilih
+    function autoSyncBracketSize() {
+        const selectedTeams = ($('#teams').val() || []).length;
+        const select = $('#knockout_teams');
+        if (!select.length) return;
+
+        // Sembunyikan opsi < jumlah tim, pilih pangkat 2 terdekat
+        const maxOption = select.find('option').map(function () { return parseInt($(this).val()); }).get().reduce((a, b) => Math.max(a, b), 0);
+
+        let target = 8; // default minimum yang masuk akal
+        if (selectedTeams >= 2) {
+            target = nextPowerOfTwo(selectedTeams);
+        }
+        if (target > maxOption) target = maxOption;
+
+        if (parseInt(select.val()) !== target && selectedTeams > 0) {
+            select.val(target);
+        }
+    }
+
+    // Tim yang bisa mendapatkan bye (unggulan awal bila ranked/manual; selain itu urutan apa pun)
+    function getSelectedTeamsForBracket(bracketSize) {
+        const ids = $('#teams').val() || [];
+        const seedMethod = $('#knockout_seeding').val() || 'random';
+
+        let teams = ids.map(id => {
+            const opt = $('#teams option[value="' + id + '"]');
+            return {
+                id: id,
+                name: opt.data('name') || opt.text().trim(),
+                logo: opt.data('logo') || '',
+                order: $('#teams option[value="' + id + '"]').index()
+            };
+        });
+
+        if (seedMethod === 'random') {
+            // Acak deterministik untuk preview (biar tidak berubah-ubah tiap render)
+            teams.sort((a, b) => (parseInt(a.id) - parseInt(b.id)));
+        } else {
+            teams.sort((a, b) => a.order - b.order);
+        }
+
+        return teams;
+    }
+
+    // Render preview bagan knockout
+    function renderBracketPreview() {
+        const container = document.getElementById('bracketPreview');
+        if (!container) return;
+
+        const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+        const selectedTeams = ($('#teams').val() || []).length;
+
+        if (selectedTeams === 0) {
+            container.innerHTML = '<div class="bracket-preview-empty"><i class="bi bi-diagram-3"></i><span>Pilih tim untuk melihat bentuk bagan.</span></div>';
+            return;
+        }
+
+        // Bagan lebih kecil dari jumlah tim → tampilkan peringatan
+        if (selectedTeams > bracketSize) {
+            container.innerHTML = `<div class="bracket-preview-empty" style="color:var(--accent);">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>Bagan ${bracketSize} terlalu kecil untuk ${selectedTeams} tim. Naikkan Ukuran Bagan.</span>
+            </div>`;
+            return;
+        }
+
+        // Susun slot: tim unggulan (awal) dapat bye
+        const teams = getSelectedTeamsForBracket(bracketSize);
+        const byeCount = bracketSize - teams.length;
+
+        // Bangun array slot ronde 1: [team, bye/team]
+        const slots = [];
+        for (let i = 0; i < bracketSize; i++) slots.push(null);
+
+        // Tempatkan tim pada slot, biarkan bye di awal (menyebar)
+        let tIdx = 0;
+        for (let i = 0; i < bracketSize && tIdx < teams.length; i++) {
+            slots[i] = teams[tIdx++];
+        }
+        // Sisa slot = bye
+        for (let i = 0; i < bracketSize; i++) {
+            if (slots[i] === null) slots[i] = { bye: true };
+        }
+
+        // Tentukan label ronde
+        const totalRounds = Math.log2(bracketSize);
+        const roundNames = {
+            1: 'Final',
+            2: 'Semifinal',
+            4: 'Quarter-Final',
+            8: 'Round of 16',
+            16: 'Round of 32'
+        };
+
+        let html = '';
+        let matchesInRound = bracketSize / 2;
+        let slotCursor = 0;
+
+        for (let r = 1; r <= totalRounds; r++) {
+            const roundName = roundNames[matchesInRound] || ('Round ' + r);
+            html += `<div class="bracket-round">
+                <div class="bracket-round-title">${roundName}</div>
+                <div class="bracket-matches">`;
+
+            if (r === 1) {
+                for (let m = 0; m < matchesInRound; m++) {
+                    const a = slots[slotCursor++];
+                    const b = slots[slotCursor++];
+                    html += `<div class="bracket-match">${renderSlot(a)}${renderSlot(b)}</div>`;
+                }
+            } else {
+                for (let m = 0; m < matchesInRound; m++) {
+                    html += `<div class="bracket-match">
+                        <div class="bracket-slot slot-tbd"><span class="slot-name">Menunggu pemenang</span></div>
+                        <div class="bracket-slot slot-tbd"><span class="slot-name">Menunggu pemenang</span></div>
+                    </div>`;
+                }
+            }
+
+            html += `</div></div>`;
+            matchesInRound = matchesInRound / 2;
+        }
+
+        container.innerHTML = html;
+    }
+
+    function renderSlot(slot) {
+        if (!slot) {
+            return '<div class="bracket-slot slot-tbd"><span class="slot-name">TBD</span></div>';
+        }
+        if (slot.bye) {
+            return '<div class="bracket-slot slot-bye"><i class="bi bi-arrow-right-circle"></i><span class="slot-name">BYE</span></div>';
+        }
+        const logo = slot.logo ? `<img src="${slot.logo}" class="slot-logo" alt="">` : '';
+        return `<div class="bracket-slot">${logo}<span class="slot-name" title="${slot.name}">${slot.name}</span></div>`;
     }
 
     // ========== STEP 3 - GROUP KNOCKOUT ==========
@@ -1028,10 +1184,21 @@ $(document).on('click', 'button[type="submit"]', function() {
             updateGroups();
         });
 
-        // Update info bye saat ukuran bagan berubah
+        // Update info bye + preview bagan saat ukuran bagan berubah
         $('#knockout_teams').on('change', function () {
             updateByeInfo();
         });
+
+        // Update preview saat metode seeding berubah
+        $('#knockout_seeding').on('change', function () {
+            renderBracketPreview();
+        });
+
+        // Render preview bagan bila tipe knockout
+        if ($('#type').val() === 'knockout') {
+            autoSyncBracketSize();
+            updateByeInfo();
+        }
 
         $('#name').on('input', function () {
             const name = $(this).val();
