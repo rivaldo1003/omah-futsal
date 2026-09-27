@@ -4,9 +4,15 @@
             <i class="bi bi-people"></i>
             <span>All registered teams</span>
         </h3>
-        @if($teams->count() > 0)
-            <span class="app-badge app-badge-default">{{ $teams->count() }} teams</span>
-        @endif
+        <div class="d-flex align-items-center gap-2">
+            @if(!empty($totalRegisteredTeams))
+                <span class="app-badge app-badge-default">{{ $totalRegisteredTeams }} teams</span>
+            @endif
+            <a href="{{ route('all-teams') }}" class="btn-action-secondary btn-action-sm">
+                <i class="bi bi-arrow-right-circle"></i>
+                <span>View all</span>
+            </a>
+        </div>
     </div>
     <div class="app-card-body">
         @if($teams->count() > 0)

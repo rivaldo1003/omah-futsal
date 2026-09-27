@@ -1,367 +1,190 @@
-@extends('layouts.app')
+<!DOCTYPE html>
+<html lang="id">
 
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <title>All Registered Teams &mdash; OFS Futsal Center</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-@section('title', 'Data Tim - Omah Futsal Centre')
+    @include('home.partials.styles')
+</head>
 
-@section('content')
-<!-- Header dengan Statistik -->
-<div class="row mb-4">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h4 class="card-title mb-0">
-                    <i class="fas fa-users me-2"></i>Data Tim Futsal
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="row text-center">
-                    <div class="col-md-3 mb-3">
-                        <div class="p-3 bg-light rounded">
-                            <h5 class="text-primary">{{ $stats['total_teams'] }}</h5>
-                            <p class="mb-0">Total Tim Aktif</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="p-3 bg-light rounded">
-                            <h5 class="text-success">{{ $stats['total_players'] }}</h5>
-                            <p class="mb-0">Total Pemain</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="p-3 bg-light rounded">
-                            <h5 class="text-warning">{{ round($stats['avg_players_per_team'], 1) }}</h5>
-                            <p class="mb-0">Rata-rata Pemain/Tim</p>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="p-3 bg-light rounded">
-                            <h5 class="text-info">{{ $stats['most_wins']->won ?? 0 }}</h5>
-                            <p class="mb-0">Kemenangan Terbanyak</p>
-                            @if($stats['most_wins'])
-                                <small class="text-muted">{{ $stats['most_wins']->name }}</small>
-                            @endif
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<body>
+    @include('home.partials.navbar')
 
-<div class="row">
-    <!-- Filter dan Search -->
-    <div class="col-md-3 mb-4">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0"><i class="fas fa-filter me-2"></i>Filter & Pencarian</h5>
-            </div>
-            <div class="card-body">
-                <!-- Search Form -->
-                <form method="GET" action="{{ route('teams.index') }}">
-                    <div class="mb-3">
-                        <label for="search" class="form-label">Cari Tim</label>
-                        <input type="text" name="search" id="search" class="form-control" 
-                               value="{{ $search }}" placeholder="Nama tim atau pelatih...">
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="sort" class="form-label">Urutkan Berdasarkan</label>
-                        <select name="sort" id="sort" class="form-select">
-                            <option value="points" {{ $sort == 'points' ? 'selected' : '' }}>Poin</option>
-                            <option value="name" {{ $sort == 'name' ? 'selected' : '' }}>Nama Tim</option>
-                            <option value="matches_played" {{ $sort == 'matches_played' ? 'selected' : '' }}>Jumlah Pertandingan</option>
-                            <option value="won" {{ $sort == 'won' ? 'selected' : '' }}>Kemenangan</option>
-                            <option value="goals_for" {{ $sort == 'goals_for' ? 'selected' : '' }}>Gol Memasukkan</option>
-                            <option value="goals_against" {{ $sort == 'goals_against' ? 'selected' : '' }}>Gol Kemasukan</option>
-                        </select>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <label for="order" class="form-label">Urutan</label>
-                        <select name="order" id="order" class="form-select">
-                            <option value="desc" {{ $order == 'desc' ? 'selected' : '' }}>Tertinggi ke Terendah</option>
-                            <option value="asc" {{ $order == 'asc' ? 'selected' : '' }}>Terendah ke Tertinggi</option>
-                        </select>
-                    </div>
-                    
-                    <div class="d-grid gap-2">
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-search me-1"></i>Terapkan
-                        </button>
-                        <a href="{{ route('teams.index') }}" class="btn btn-secondary">
-                            <i class="fas fa-redo me-1"></i>Reset
-                        </a>
-                    </div>
-                </form>
-            </div>
-        </div>
-        
-        <!-- Top Performers -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-trophy me-2"></i>Top Performers
-                </h5>
-            </div>
-            <div class="card-body">
-                <!-- Most Goals -->
-                @if($stats['most_goals'])
-                    <div class="mb-3">
-                        <h6>Serangan Terbaik</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="team-logo me-2" style="background-color: {{ $stats['most_goals']->primary_color }}">
-                                {{ substr($stats['most_goals']->name, 0, 2) }}
-                            </div>
-                            <div>
-                                <strong>{{ $stats['most_goals']->name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ $stats['most_goals']->goals_for }} gol</small>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-                
-                <!-- Best Defense -->
-                @if($stats['best_defense'])
-                    <div>
-                        <h6>Pertahanan Terbaik</h6>
-                        <div class="d-flex align-items-center">
-                            <div class="team-logo me-2" style="background-color: {{ $stats['best_defense']->primary_color }}">
-                                {{ substr($stats['best_defense']->name, 0, 2) }}
-                            </div>
-                            <div>
-                                <strong>{{ $stats['best_defense']->name }}</strong>
-                                <br>
-                                <small class="text-muted">{{ $stats['best_defense']->goals_against }} gol kemasukan</small>
-                            </div>
-                        </div>
-                    </div>
-                @endif
-            </div>
-        </div>
-        
-        <!-- Recent Matches -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-history me-2"></i>Pertandingan Terbaru
-                </h5>
-            </div>
-            <div class="card-body">
-                @if($recentMatches->count() > 0)
-                    <div class="list-group">
-                        @foreach($recentMatches as $match)
-                            <a href="{{ route('matches.show', $match->id) }}" class="list-group-item list-group-item-action">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <small class="text-muted">{{ $match->match_date->format('d/m') }}</small>
-                                        <h6 class="mb-1">{{ $match->homeTeam->name }} vs {{ $match->awayTeam->name }}</h6>
-                                    </div>
-                                    @if($match->status == 'Completed')
-                                        <span class="badge bg-dark">
-                                            {{ $match->home_score }} - {{ $match->away_score }}
-                                        </span>
-                                    @endif
-                                </div>
-                            </a>
-                        @endforeach
-                    </div>
-                @else
-                    <p class="text-muted text-center mb-0">Tidak ada pertandingan</p>
-                @endif
-            </div>
-        </div>
-    </div>
-    
-    <!-- Teams Grid -->
-    <div class="col-md-9">
-        <div class="card">
-            <div class="card-header">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="card-title mb-0">Daftar Tim</h5>
-                    <span class="badge bg-primary">Total: {{ $teams->total() }}</span>
-                </div>
-            </div>
-            <div class="card-body">
+    <main class="app-container content-section">
+        <div class="app-card">
+            <div class="app-card-header">
+                <h3 class="app-card-title">
+                    <i class="bi bi-people"></i>
+                    <span>All registered teams</span>
+                </h3>
                 @if($teams->count() > 0)
-                    <div class="row">
-                        @foreach($teams as $team)
-                            <div class="col-md-4 mb-4">
-                                <div class="card team-card h-100" 
-                                     style="border-top: 4px solid {{ $team->primary_color }}">
-                                    <div class="card-body">
-                                        <!-- Team Header -->
-                                        <div class="text-center mb-3">
-                                            <div class="team-logo mx-auto mb-3" 
-                                                 style="width: 80px; height: 80px; background-color: {{ $team->primary_color }}">
-                                                <i class="fas fa-users fa-3x text-white"></i>
-                                            </div>
-                                            <h4 class="card-title">{{ $team->name }}</h4>
-                                            <p class="text-muted mb-2">
-                                                <i class="fas fa-user-tie me-1"></i>{{ $team->coach }}
-                                            </p>
-                                        </div>
-                                        
-                                        <!-- Team Stats -->
-                                        <div class="row text-center mb-3">
-                                            <div class="col-4">
-                                                <div class="p-2 border rounded">
-                                                    <h6 class="mb-0 text-primary">{{ $team->matches_played }}</h6>
-                                                    <small>Match</small>
+                    <span class="app-badge app-badge-default">{{ $teams->total() }} teams</span>
+                @endif
+            </div>
+            <div class="app-card-body">
+                @if($teams->count() > 0)
+                    <div class="team-toolbar-wrap">
+                        <div class="row g-2">
+                            <div class="col-12 col-md-8">
+                                <div class="team-search-input-wrap">
+                                    <i class="bi bi-search team-search-icon"></i>
+                                    <input type="text" id="teamSearch" class="team-search-input"
+                                        placeholder="Search teams, coaches, or players...">
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-4">
+                                <div class="position-relative">
+                                    <select id="teamSort" class="form-select team-sort-select">
+                                        <option value="name">Sort by name (A-Z)</option>
+                                        <option value="players">Sort by squad size</option>
+                                        <option value="tournaments">Sort by tournaments</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row g-3 teams-grid-row" id="teamsGrid">
+                        @foreach($teams as $index => $team)
+                            @php
+                                $totalPlayers = $team->players->count();
+                                $totalTournaments = $team->tournaments->count();
+                                $keyPlayers = $team->players->take(2);
+
+                                $playersData = $team->players->map(function ($player) {
+                                    return [
+                                        'id' => $player->id ?? 0,
+                                        'name' => $player->name ?? 'Unknown',
+                                        'jersey_number' => $player->jersey_number ?? '',
+                                        'position' => $player->position ?? '',
+                                        'photo' => $player->photo ?? '',
+                                        'goals' => $player->goals ?? 0,
+                                        'assists' => $player->assists ?? 0,
+                                        'saves' => $player->saves ?? 0,
+                                        'clean_sheets' => $player->clean_sheets ?? 0,
+                                        'yellow_cards' => $player->yellow_cards ?? 0,
+                                        'red_cards' => $player->red_cards ?? 0,
+                                        'appearances' => $player->appearances_count ?? 0,
+                                        'market_value' => $player->formatted_market_value ?? '',
+                                    ];
+                                })->toArray();
+
+                                $playersJson = json_encode($playersData, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP);
+                                $isActive = strtolower($team->status ?? '') === 'active';
+                            @endphp
+                            <div class="col-12 col-sm-6 col-md-4 col-xl-3 team-card"
+                                data-team-id="{{ $team->id }}"
+                                data-team-name="{{ strtolower($team->name) }}"
+                                data-team-players="{{ $totalPlayers }}"
+                                data-team-tournaments="{{ $totalTournaments }}"
+                                data-team-coach="{{ $team->coach_name }}"
+                                data-team-logo="{{ $team->logo }}"
+                                data-players-json="{{ $playersJson }}">
+                                <div class="team-item-card">
+                                    <div class="team-card-header">
+                                        <div class="team-card-identity">
+                                            @if($team->logo && Storage::disk('public')->exists($team->logo))
+                                                <img src="{{ asset('storage/' . $team->logo) }}" alt="{{ $team->name }}" class="team-card-logo">
+                                            @else
+                                                <div class="team-card-logo-fallback">{{ strtoupper(substr($team->name, 0, 2)) }}</div>
+                                            @endif
+                                            <div class="team-card-info">
+                                                <h6 class="team-card-title" title="{{ $team->name }}">{{ $team->name }}</h6>
+                                                <div class="team-card-subtitle">
+                                                    @if($team->coach_name)
+                                                        <span class="text-truncate" title="{{ $team->coach_name }}">
+                                                            <i class="bi bi-person me-1"></i>{{ $team->coach_name }}
+                                                        </span>
+                                                    @else
+                                                        <span><i class="bi bi-shield me-1"></i>Club member</span>
+                                                    @endif
                                                 </div>
                                             </div>
-                                            <div class="col-4">
-                                                <div class="p-2 border rounded">
-                                                    <h6 class="mb-0 text-success">{{ $team->won }}</h6>
-                                                    <small>Menang</small>
-                                                </div>
-                                            </div>
-                                            <div class="col-4">
-                                                <div class="p-2 border rounded">
-                                                    <h6 class="mb-0 text-danger">{{ $team->lost }}</h6>
-                                                    <small>Kalah</small>
-                                                </div>
-                                            </div>
                                         </div>
-                                        
-                                        <!-- Goals Stats -->
-                                        <div class="row text-center mb-3">
-                                            <div class="col-6">
-                                                <div class="p-2 border rounded">
-                                                    <h6 class="mb-0 text-success">{{ $team->goals_for }}</h6>
-                                                    <small>GM</small>
-                                                </div>
-                                            </div>
-                                            <div class="col-6">
-                                                <div class="p-2 border rounded">
-                                                    <h6 class="mb-0 text-danger">{{ $team->goals_against }}</h6>
-                                                    <small>GK</small>
-                                                </div>
-                                            </div>
+                                        <span class="app-badge {{ $isActive ? 'app-badge-success' : 'app-badge-default' }} flex-shrink-0">
+                                            {{ ucfirst($team->status ?? 'Registered') }}
+                                        </span>
+                                    </div>
+
+                                    <div class="team-card-stats-grid">
+                                        <div class="team-card-stat-box">
+                                            <div class="team-card-stat-num">{{ $totalPlayers }}</div>
+                                            <div class="team-card-stat-lbl">Players</div>
                                         </div>
-                                        
-                                        <!-- Points and Players -->
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <div>
-                                                <span class="badge bg-warning fs-6">{{ $team->points }} Poin</span>
-                                            </div>
-                                            <div>
-                                                <span class="badge bg-info">{{ $team->players_count }} Pemain</span>
-                                            </div>
+                                        <div class="team-card-stat-box">
+                                            <div class="team-card-stat-num">{{ $totalTournaments }}</div>
+                                            <div class="team-card-stat-lbl">Events</div>
                                         </div>
-                                        
-                                        <!-- Action Buttons -->
-                                        <div class="d-grid gap-2">
-                                            <a href="{{ route('teams.show', $team->id) }}" class="btn btn-primary">
-                                                <i class="fas fa-eye me-1"></i>Detail Tim
-                                            </a>
+                                        <div class="team-card-stat-box">
+                                            <div class="team-card-stat-num">#{{ $team->id }}</div>
+                                            <div class="team-card-stat-lbl">ID</div>
                                         </div>
+                                    </div>
+
+                                    <div class="team-card-roster">
+                                        <span class="team-card-roster-lbl"><i class="bi bi-person-lines-fill me-1"></i>Squad:</span>
+                                        @if($keyPlayers->count() > 0)
+                                            <div class="team-card-roster-chips">
+                                                @foreach($keyPlayers as $player)
+                                                    <span class="player-pill-chip" title="{{ $player->name }}">
+                                                        <span class="fw-bold text-secondary">#{{ $player->jersey_number ?? '0' }}</span>
+                                                        <span>{{ $player->name }}</span>
+                                                    </span>
+                                                @endforeach
+                                                @if($totalPlayers > 2)
+                                                    <span class="player-pill-more">+{{ $totalPlayers - 2 }}</span>
+                                                @endif
+                                            </div>
+                                        @else
+                                            <span class="small text-secondary fst-italic">No squad roster registered</span>
+                                        @endif
+                                    </div>
+
+                                    <div class="team-card-footer">
+                                        <button type="button" class="btn-action-secondary btn-action-sm w-100 view-team-details">
+                                            <i class="bi bi-people"></i>
+                                            <span>View squad roster</span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         @endforeach
                     </div>
-                    
-                    <!-- Pagination -->
-                    <div class="d-flex justify-content-center mt-4">
-                        {{ $teams->withQueryString()->links() }}
+
+                    <div id="noTeamsFound" class="text-center py-5 d-none text-secondary">
+                        <i class="bi bi-search fs-3 d-block mb-2"></i>
+                        <h6 class="fw-semibold mb-1">No matching teams found</h6>
+                        <span class="small">Try searching with a different team, coach, or player name.</span>
                     </div>
+
+                    @if($teams->hasPages())
+                        <div class="pt-4 d-flex justify-content-center">
+                            {{ $teams->links() }}
+                        </div>
+                    @endif
                 @else
-                    <div class="text-center py-5">
-                        <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
-                        <h4>Tidak ada tim</h4>
-                        <p class="text-muted">Tidak ada tim yang sesuai dengan pencarian.</p>
+                    <div class="text-center py-5 text-secondary">
+                        <i class="bi bi-people fs-2 d-block mb-2"></i>
+                        <h6 class="fw-semibold mb-1">No teams available</h6>
+                        <span class="small">Teams will appear here once registered.</span>
                     </div>
                 @endif
             </div>
         </div>
-        
-        <!-- Teams Table View (Alternative) -->
-        <div class="card mt-4">
-            <div class="card-header">
-                <h5 class="card-title mb-0">
-                    <i class="fas fa-table me-2"></i>Tabel Statistik Tim
-                </h5>
-            </div>
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th width="40">#</th>
-                                <th>Tim</th>
-                                <th class="text-center">M</th>
-                                <th class="text-center">M</th>
-                                <th class="text-center">S</th>
-                                <th class="text-center">K</th>
-                                <th class="text-center">GM</th>
-                                <th class="text-center">GK</th>
-                                <th class="text-center">SG</th>
-                                <th class="text-center">Poin</th>
-                                <th class="text-center">%</th>
-                                <th class="text-center">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($teams as $index => $team)
-                                <tr>
-                                    <td>{{ $index + 1 }}</td>
-                                    <td>
-                                        <div class="d-flex align-items-center">
-                                            <div class="team-logo me-3" style="background-color: {{ $team->primary_color }}">
-                                                {{ substr($team->name, 0, 2) }}
-                                            </div>
-                                            <div>
-                                                <h6 class="mb-0">{{ $team->name }}</h6>
-                                                <small class="text-muted">{{ $team->coach }}</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong>{{ $team->matches_played }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-success">{{ $team->won }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-warning">{{ $team->drawn }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-danger">{{ $team->lost }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-primary">{{ $team->goals_for }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-secondary">{{ $team->goals_against }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge {{ $team->goal_difference >= 0 ? 'bg-info' : 'bg-danger' }}">
-                                            {{ $team->goal_difference > 0 ? '+' : '' }}{{ $team->goal_difference }}
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <strong class="fs-5">{{ $team->points }}</strong>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="badge bg-dark">
-                                            {{ $team->matches_played > 0 ? round(($team->points / ($team->matches_played * 3)) * 100, 1) : 0 }}%
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a href="{{ route('teams.show', $team->id) }}" class="btn btn-sm btn-primary">
-                                            <i class="fas fa-eye"></i>
-                                        </a>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-@endsection
+    </main>
+
+    @include('home.partials.footer')
+    @include('home.partials.modals')
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @include('home.partials.scripts')
+</body>
+
+</html>

@@ -93,6 +93,7 @@ class HomeController extends Controller
                 'standings' => [],
                 'teams' => collect(),
                 'teamsInActiveTournament' => collect(),
+                'totalRegisteredTeams' => 0,
                 'totalTeams' => 0,
                 'matchesCount' => 0,
                 'totalGoals' => 0,
@@ -164,7 +165,11 @@ class HomeController extends Controller
                 }
             ])
             ->orderBy('name')
+            ->limit(8)
             ->get();
+
+        // Total registered teams (for headers / "view all" counters)
+        $totalRegisteredTeams = Team::count();
 
         // Ambil matches status 'ongoing' dan 'upcoming' untuk hari ini
         $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
@@ -291,7 +296,7 @@ class HomeController extends Controller
         )));
 
         // Statistics untuk tournament aktif
-        $totalTeams = $teams->count();
+        $totalTeams = Team::count();
 
         // PERBAIKAN: Gunakan nama tabel yang benar - 'matches' bukan 'games'
         $matchesCount = Game::where('tournament_id', $tournamentId)->count();
@@ -350,6 +355,7 @@ class HomeController extends Controller
             'standings',
             'teamsInActiveTournament',
             'teams',
+            'totalRegisteredTeams',
             'totalTeams',
             'matchesCount',
             'totalGoals',
@@ -1031,6 +1037,30 @@ class HomeController extends Controller
         $maxValue = $players->max('market_value') ?: 1;
 
         return view('market-value.index', compact('players', 'totalValuation', 'maxValue', 'search', 'position', 'sort'));
+    }
+
+    /**
+     * All registered teams — dedicated full listing page.
+     */
+    public function allTeams()
+    {
+        $teams = Team::withCount(['players', 'tournaments'])
+            ->with([
+                'tournaments' => function ($query) {
+                    $query->select('tournaments.id', 'name');
+                },
+                'players' => function ($query) {
+                    $query->orderBy('goals', 'desc')
+                        ->orderBy('position')
+                        ->orderBy('name');
+                }
+            ])
+            ->orderBy('name')
+            ->paginate(24);
+
+        $recentHighlights = collect();
+
+        return view('teams.index', compact('teams', 'recentHighlights'));
     }
 
     public function userDashboard()

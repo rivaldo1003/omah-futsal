@@ -47,11 +47,16 @@
                     <i class="bi bi-play-circle"></i><span>Highlights</span>
                 </a>
             </li>
+            <li>
+                <a class="nav-menu-link {{ request()->is('all-teams*') ? 'active' : '' }}" href="{{ route('all-teams') }}">
+                    <i class="bi bi-people"></i><span>Teams</span>
+                </a>
+            </li>
             @auth
                 @if(auth()->user()->role === 'admin')
                     <li>
                         <a class="nav-menu-link {{ request()->is('teams*') ? 'active' : '' }}" href="{{ route('teams.index') }}">
-                            <i class="bi bi-people"></i><span>Teams</span>
+                            <i class="bi bi-gear"></i><span>Manage teams</span>
                         </a>
                     </li>
                     <li class="ms-lg-2">
@@ -117,13 +122,16 @@
         <a class="msb-link {{ request()->is('highlights*') ? 'is-active' : '' }}" href="{{ route('highlights.index') }}">
             <i class="bi bi-play-circle"></i> Highlights
         </a>
+        <a class="msb-link {{ request()->is('all-teams*') ? 'is-active' : '' }}" href="{{ route('all-teams') }}">
+            <i class="bi bi-people"></i> All registered teams
+        </a>
         @auth
             @if(auth()->user()->role === 'admin')
                 <a class="msb-link {{ request()->is('tournaments*') ? 'is-active' : '' }}" href="{{ route('tournaments.index') }}">
                     <i class="bi bi-trophy"></i> Tournaments
                 </a>
                 <a class="msb-link {{ request()->is('teams*') ? 'is-active' : '' }}" href="{{ route('teams.index') }}">
-                    <i class="bi bi-people"></i> Teams
+                    <i class="bi bi-gear"></i> Manage teams
                 </a>
             @endif
         @endauth

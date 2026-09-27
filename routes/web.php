@@ -37,6 +37,9 @@ Route::get('/tournaments/{tournament}/teams', [TournamentController::class, 'tea
 Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
 Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
 
+// All registered teams — dedicated full listing page
+Route::get('/all-teams', [HomeController::class, 'allTeams'])->name('all-teams');
+
 // Public Matches/Schedule
 Route::get('/schedule', [GameController::class, 'schedule'])->name('schedule');
 Route::get('/matches/{game}', [GameController::class, 'show'])->name('matches.show');
