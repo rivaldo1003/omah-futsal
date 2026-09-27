@@ -1200,6 +1200,12 @@ $(document).on('click', 'button[type="submit"]', function() {
             updateByeInfo();
         }
 
+        // Sinkronkan visibilitas preview bagan sesuai tipe saat halaman dimuat
+        $('#bracketPreviewSection').toggle($('#type').val() === 'knockout');
+        if ($('#type').val() === 'knockout') {
+            renderBracketPreview();
+        }
+
         $('#name').on('input', function () {
             const name = $(this).val();
             const slugInput = $('#slug');
@@ -1231,6 +1237,11 @@ $(document).on('click', 'button[type="submit"]', function() {
         $('#groupSettings, #leagueSettings, #knockoutSettings').hide();
         // Tiebreaker rules hanya relevan untuk group_knockout
         $('#tiebreakerSettings').toggle(selectedType === 'group_knockout');
+        // Preview bagan hanya relevan untuk knockout
+        $('#bracketPreviewSection').toggle(selectedType === 'knockout');
+        if (selectedType === 'knockout') {
+            renderBracketPreview();
+        }
         
         // Show relevant settings section
         if (selectedType === 'group_knockout') {

@@ -65,6 +65,23 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                {{-- Preview Bagan Knockout (hanya untuk tipe knockout) --}}
+                                <div class="settings-section" id="bracketPreviewSection"
+                                    style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'block' : 'none' }};">
+                                    <h6><i class="bi bi-diagram-3"></i> Preview Bagan Knockout</h6>
+                                    <div class="bracket-preview" id="bracketPreview">
+                                        <div class="bracket-preview-empty">
+                                            <i class="bi bi-diagram-3"></i>
+                                            <span>Pilih tim untuk melihat bentuk bagan.</span>
+                                        </div>
+                                    </div>
+                                    <div class="bracket-preview-legend">
+                                        <span class="legend-item"><span class="legend-dot legend-team"></span> Tim</span>
+                                        <span class="legend-item"><span class="legend-dot legend-bye"></span> Bye (lolos otomatis)</span>
+                                        <span class="legend-item"><span class="legend-dot legend-tbd"></span> Menunggu pemenang</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>

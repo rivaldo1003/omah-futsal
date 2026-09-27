@@ -435,25 +435,6 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <!-- Preview Bagan Knockout -->
-                                    <div class="form-group mt-4">
-                                        <label class="form-label">
-                                            <i class="bi bi-diagram-3"></i>
-                                            Preview Bagan
-                                        </label>
-                                        <div class="bracket-preview" id="bracketPreview">
-                                            <div class="bracket-preview-empty">
-                                                <i class="bi bi-diagram-3"></i>
-                                                <span>Pilih tim untuk melihat bentuk bagan.</span>
-                                            </div>
-                                        </div>
-                                        <div class="bracket-preview-legend">
-                                            <span class="legend-item"><span class="legend-dot legend-team"></span> Tim</span>
-                                            <span class="legend-item"><span class="legend-dot legend-bye"></span> Bye (lolos otomatis)</span>
-                                            <span class="legend-item"><span class="legend-dot legend-tbd"></span> Menunggu pemenang</span>
-                                        </div>
-                                    </div>
-
                                     <div class="form-check mt-3">
                                         <input class="form-check-input" type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1" {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
                                         <label class="form-check-label" for="knockout_third_place">
