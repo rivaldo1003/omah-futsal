@@ -189,6 +189,16 @@ Route::post('/deploy/execute/{token}', function ($token) {
             }
         }
 
+        // 4b. Strip the white background from any team logos not yet processed
+        //     (idempotent: skips logos already output as teams/logos/logo-*.png).
+        $logoOutput = '';
+        try {
+            \Illuminate\Support\Facades\Artisan::call('teams:remove-logo-background');
+            $logoOutput = trim(Artisan::output());
+        } catch (\Throwable $e) {
+            $logoOutput = 'logo processing error: ' . $e->getMessage();
+        }
+
         // 5. Clear and recache config/routes/views for production performance
         \Illuminate\Support\Facades\Artisan::call('optimize:clear');
         \Illuminate\Support\Facades\Artisan::call('optimize');
@@ -218,6 +228,7 @@ Route::post('/deploy/execute/{token}', function ($token) {
             'message' => 'Deployment actions executed successfully.',
             'migrate_output' => trim($migrateOutput),
             'migration_errors' => $migrationErrors,
+            'logo_output' => $logoOutput,
             'recent_log' => $recentLog,
         ]);
     } catch (\Throwable $e) {
