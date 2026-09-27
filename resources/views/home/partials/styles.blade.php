@@ -856,28 +856,27 @@
         flex: 1;
     }
 
+    /* Show the logo directly — no card/border/background container */
     .team-card-logo {
-        width: 42px;
-        height: 42px;
-        border-radius: var(--radius-sm);
-        object-fit: cover;
-        border: 1px solid var(--border-color);
-        background-color: var(--surface-subtle);
+        width: 48px;
+        height: 48px;
+        object-fit: contain;
+        background: transparent;
+        border: none;
         flex-shrink: 0;
     }
 
     .team-card-logo-fallback {
-        width: 42px;
-        height: 42px;
-        border-radius: var(--radius-sm);
-        background-color: var(--surface-subtle);
-        border: 1px solid var(--border-color);
+        width: 48px;
+        height: 48px;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
+        background: transparent;
+        border: none;
+        font-size: 15px;
         font-weight: 700;
-        color: var(--text-primary);
+        color: var(--text-secondary);
         flex-shrink: 0;
         letter-spacing: 0.5px;
     }
