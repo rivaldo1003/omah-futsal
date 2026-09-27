@@ -40,13 +40,22 @@
             @include('admin.tournaments.create._step5-review')
 
             <!-- Navigation Buttons -->
+                    @php
+                        $prevType = old('type', $tournamentData['type'] ?? 'group_knockout');
+                        $prevSkipStep3 = in_array($prevType, ['knockout', 'league']);
+                        if ($currentStep == 4 && $prevSkipStep3) {
+                            $prevStep = 2;
+                        } else {
+                            $prevStep = max(1, $currentStep - 1);
+                        }
+                    @endphp
                     <div class="step-navigation">
-                        <button type="button" class="step-btn prev" id="prevBtn"
-                            style="display: {{ $currentStep > 1 ? 'inline-flex' : 'none' }};"
-                            onclick="goToPreviousStep()">
+                        <a href="{{ route('admin.tournaments.create.step', ['step' => $prevStep]) }}"
+                            class="step-btn prev" id="prevBtn"
+                            style="display: {{ $currentStep > 1 ? 'inline-flex' : 'none' }}; text-decoration: none;">
                             <i class="bi bi-arrow-left"></i>
                             <span>Sebelumnya</span>
-                        </button>
+                        </a>
 
                     <!-- Di bagian akhir form, ganti button create dengan ini -->
                     @if($currentStep == 5)
