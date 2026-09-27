@@ -353,3 +353,43 @@ Route::get('/deploy/cutout-diagnostics/{token}', function (\Illuminate\Http\Requ
         'cutout_log_tail' => $cutoutLog,
     ]);
 });
+
+// One-off backfill endpoint: strips the white background from team logos via
+// the teams:remove-logo-background command. Token-gated like the deploy webhook.
+// Usage: POST /api/deploy/remove-logo-background/{token}?limit=20
+Route::post('/deploy/remove-logo-background/{token}', function (\Illuminate\Http\Request $request, $token) {
+    $expectedToken = config('app.deploy_token') ?: env('DEPLOY_TOKEN');
+
+    if (empty($expectedToken) || !hash_equals((string) $expectedToken, (string) $token)) {
+        return response()->json(['message' => 'Unauthorized token'], 403);
+    }
+
+    $limit = (int) $request->query('limit', 0);
+    $force = $request->boolean('force');
+    $id    = $request->query('id');
+
+    $params = ['--force' => $force];
+    if ($limit > 0) {
+        $params['--limit'] = $limit;
+    }
+    if ($id) {
+        $params['--id'] = $id;
+    }
+
+    try {
+        \Illuminate\Support\Facades\Artisan::call('teams:remove-logo-background', $params);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+
+        return response()->json([
+            'status' => 'success',
+            'limit'  => $limit ?: 'all',
+            'force'  => $force,
+            'output' => trim($output),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'status'  => 'error',
+            'message' => $e->getMessage(),
+        ], 500);
+    }
+});
