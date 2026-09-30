@@ -67,7 +67,7 @@
             color: white;
             text-decoration: none;
             display: inline-block;
-            transition: all 0.3s;
+            transition: background-color 0.3s, border-color 0.3s, color 0.3s, opacity 0.3s, transform 0.3s, box-shadow 0.3s;
         }
 
         .btn-home:hover {

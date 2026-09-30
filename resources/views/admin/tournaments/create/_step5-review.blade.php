@@ -106,7 +106,8 @@
                                                 istirahat {{ old('half_time', $tournamentData['half_time'] ?? 10) }} menit
                                             </dd>
                                         </div>
-                                        <div class="review-row">
+                                        <div class="review-row" id="reviewPointsRow"
+                                            style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'none' : '' }};">
                                             <dt>Poin</dt>
                                             <dd id="reviewPoints">
                                                 Menang {{ old('points_win', $tournamentData['points_win'] ?? 3) }} ·

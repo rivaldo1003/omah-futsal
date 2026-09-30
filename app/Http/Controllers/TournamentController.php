@@ -15,9 +15,41 @@ use Illuminate\Support\Str;
 
 class TournamentController extends Controller
 {
+    /**
+     * Turnamen yang masih "aktif" (belum selesai/dibatalkan).
+     * Sistem hanya mengizinkan SATU turnamen aktif pada satu waktu.
+     */
+    private function activeTournament()
+    {
+        return Tournament::whereIn('status', ['upcoming', 'ongoing'])
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderBy('start_date', 'asc')
+            ->first();
+    }
+
+    /**
+     * Guard: cegah pembuatan turnamen baru bila masih ada turnamen aktif.
+     * Mengembalikan redirect error bila terblokir, atau null bila boleh lanjut.
+     */
+    private function guardSingleActiveTournament()
+    {
+        $active = $this->activeTournament();
+
+        if ($active) {
+            return redirect()->route('admin.tournaments.index')
+                ->with('error', 'Tidak bisa membuat turnamen baru. Masih ada turnamen aktif: "' . $active->name . '" (status: ' . $active->status . '). Selesaikan atau batalkan turnamen tersebut terlebih dahulu.');
+        }
+
+        return null;
+    }
+
     // Create tournament - redirect to step 1
     public function create()
     {
+        if ($redirect = $this->guardSingleActiveTournament()) {
+            return $redirect;
+        }
+
         return redirect()->route('admin.tournaments.create.step', ['step' => 1]);
     }
 
@@ -132,6 +164,14 @@ class TournamentController extends Controller
         // Check if user is admin
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized access. Admin role required.');
+        }
+
+        // Guard: hanya boleh satu turnamen aktif. Izinkan lanjut bila sedang
+        // melanjutkan draft (session tournament_data sudah ada).
+        if (empty(session()->get('tournament_data'))) {
+            if ($redirect = $this->guardSingleActiveTournament()) {
+                return $redirect;
+            }
         }
 
         // Get all teams
@@ -445,6 +485,11 @@ class TournamentController extends Controller
                     'confirmTournament' => 'required|accepted',
                 ]);
 
+                // Guard terakhir: pastikan tidak ada turnamen aktif lain sebelum menyimpan.
+                if ($redirect = $this->guardSingleActiveTournament()) {
+                    return $redirect;
+                }
+
                 $tournamentData = session()->get('tournament_data', []);
                 $tournamentType = $tournamentData['type'];
 
@@ -688,7 +733,10 @@ class TournamentController extends Controller
             'today' => Tournament::whereDate('created_at', today())->count(),
         ];
 
-        return view('admin.tournaments.index', compact('tournaments', 'stats'));
+        // Turnamen aktif (belum completed/cancelled) — dipakai untuk disable tombol create.
+        $activeTournament = $this->activeTournament();
+
+        return view('admin.tournaments.index', compact('tournaments', 'stats', 'activeTournament'));
     }
 
     // Show tournament details
@@ -745,8 +793,9 @@ class TournamentController extends Controller
             'match_duration' => 'required|integer|min:10|max:120',
             'half_time' => 'required|integer|min:5|max:30',
             'extra_time' => 'nullable|integer|min:0|max:30',
-            'points_win' => 'required|integer|min:0|max:10',
-            'points_draw' => 'required|integer|min:0|max:5',
+            // Points system opsional: knockout tidak mengirim field ini (disabled di form).
+            'points_win' => 'nullable|integer|min:0|max:10',
+            'points_draw' => 'nullable|integer|min:0|max:5',
             'points_loss' => 'nullable|integer|min:0|max:5',
             'points_no_show' => 'nullable|integer|min:-10|max:0',
             'max_substitutes' => 'nullable|integer|min:0|max:20',
@@ -820,8 +869,8 @@ class TournamentController extends Controller
                 'match_duration' => $validated['match_duration'],
                 'half_time' => $validated['half_time'],
                 'extra_time' => $validated['extra_time'] ?? ($settings['extra_time'] ?? 10),
-                'points_win' => $validated['points_win'],
-                'points_draw' => $validated['points_draw'],
+                'points_win' => $validated['points_win'] ?? ($settings['points_win'] ?? 3),
+                'points_draw' => $validated['points_draw'] ?? ($settings['points_draw'] ?? 1),
                 'points_loss' => $validated['points_loss'] ?? ($settings['points_loss'] ?? 0),
                 'points_no_show' => $validated['points_no_show'] ?? ($settings['points_no_show'] ?? -1),
                 'max_substitutes' => $validated['max_substitutes'] ?? ($settings['max_substitutes'] ?? 5),
@@ -936,6 +985,34 @@ class TournamentController extends Controller
                 ->with('error', 'Error updating tournament: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    /**
+     * Tandai / lepas turnamen sebagai unggulan yang tampil di Home.
+     * Hanya satu turnamen yang boleh menjadi unggulan pada satu waktu.
+     */
+    public function toggleFeatured(Tournament $tournament)
+    {
+        $makeFeatured = ! $tournament->is_featured;
+
+        if ($makeFeatured) {
+            // Lepas featured dari turnamen lain agar hanya satu yang unggulan.
+            Tournament::where('is_featured', true)
+                ->where('id', '!=', $tournament->id)
+                ->update(['is_featured' => false]);
+
+            $tournament->is_featured = true;
+            $tournament->save();
+
+            return redirect()->back()
+                ->with('success', 'Turnamen "' . $tournament->name . '" kini ditampilkan sebagai turnamen unggulan di Home.');
+        }
+
+        $tournament->is_featured = false;
+        $tournament->save();
+
+        return redirect()->back()
+            ->with('success', 'Turnamen "' . $tournament->name . '" tidak lagi menjadi unggulan.');
     }
 
     // Delete tournament

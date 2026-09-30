@@ -17,7 +17,7 @@
             --gray: var(--text-secondary);
             --gray-light: #B4B4B8;
             --border-color: var(--border);
-            --transition: all 0.15s ease;
+            --transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
         }.page-header {
             display: flex;
             justify-content: space-between;
@@ -1269,4 +1269,203 @@
         .legend-team { background: rgba(52, 152, 219, 0.35); }
         .legend-bye  { background: rgba(148, 163, 184, 0.45); }
         .legend-tbd  { background: transparent; border: 1px dashed var(--text-secondary); }
+
+        /* ===== Team Picker (Step 2) ===== */
+        .team-picker-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .team-picker-search {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .team-picker-search i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+            font-size: 14px;
+        }
+
+        .team-picker-search .form-control {
+            padding-left: 34px;
+        }
+
+        .team-picker-counter {
+            display: flex;
+            gap: 10px;
+        }
+
+        .team-picker-counter .counter-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 62px;
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .team-picker-counter .counter-num {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1.1;
+        }
+
+        .team-picker-counter .counter-lbl {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--text-secondary);
+        }
+
+        .team-picker-counter .counter-box.is-full .counter-num {
+            color: var(--accent);
+        }
+
+        .team-picker-hint {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+        }
+
+        .team-picker-hint.is-warning {
+            color: var(--accent);
+            border-color: rgba(192, 28, 40, 0.35);
+            background: rgba(192, 28, 40, 0.05);
+        }
+
+        .team-picker-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+            gap: 10px;
+            max-height: 420px;
+            overflow-y: auto;
+            padding: 2px;
+        }
+
+        .team-pick-card {
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 10px;
+            background: var(--bg-card, #fff);
+            cursor: pointer;
+            transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            width: 100%;
+        }
+
+        .team-pick-card:hover {
+            border-color: var(--secondary);
+        }
+
+        .team-pick-card.is-selected {
+            border-color: var(--secondary);
+            background: rgba(52, 152, 219, 0.06);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.10);
+        }
+
+        .team-pick-card.is-disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+        }
+
+        .team-pick-card .team-pick-check {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: var(--secondary);
+            color: #fff;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+        }
+
+        .team-pick-card.is-selected .team-pick-check {
+            display: flex;
+        }
+
+        .team-pick-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            overflow: hidden;
+            font-size: 13px;
+        }
+
+        .team-pick-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 2px;
+        }
+
+        .team-pick-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            gap: 2px;
+        }
+
+        .team-pick-name {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .team-pick-coach {
+            font-size: 11.5px;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .team-picker-empty {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
     </style>

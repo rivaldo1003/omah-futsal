@@ -72,8 +72,10 @@
                                     </div>
                                 </div>
 
-                                <div class="settings-section">
+                                <div class="settings-section" id="pointsSettings"
+                                    style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'none' : 'block' }};">
                                     <h6><i class="bi bi-flag"></i> Sistem Poin</h6>
+                                    <small class="text-secondary d-block mb-2">Dipakai untuk klasemen fase liga/grup. Tidak relevan untuk knockout (cup) — pemenang ditentukan langsung dari hasil pertandingan.</small>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
@@ -218,7 +220,8 @@
                                         </div>
                                     </div>
                                     <div class="row">
-                                        <div class="col-md-6">
+                                        <div class="col-md-6" id="allowDrawCol"
+                                            style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'none' : '' }};">
                                             <div class="form-check mb-3">
                                                 <input class="form-check-input" type="checkbox" id="allow_draw"
                                                     name="allow_draw" value="1" {{ old('allow_draw', $tournamentData['allow_draw'] ?? true) ? 'checked' : '' }}>
@@ -227,12 +230,13 @@
                                                 </label>
                                             </div>
                                         </div>
-                                        <div class="col-md-6">
+                                        <div class="col-md-6" id="penaltyShootoutCol"
+                                            style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'none' : '' }};">
                                             <div class="form-check mb-3">
                                                 <input class="form-check-input" type="checkbox" id="penalty_shootout"
                                                     name="penalty_shootout" value="1" {{ old('penalty_shootout', $tournamentData['penalty_shootout'] ?? true) ? 'checked' : '' }}>
                                                 <label class="form-check-label" for="penalty_shootout">
-                                                    Adu penalti setelah extra time
+                                                    Adu penalti setelah extra time (knockout)
                                                 </label>
                                             </div>
                                         </div>

@@ -177,6 +177,9 @@
                 const playerPosition = this.getAttribute('data-player-position') || '-';
                 const playerJersey = this.getAttribute('data-player-jersey') || '-';
                 const playerMarketValue = this.getAttribute('data-player-market-value') || '';
+                const playerBirthPlace = this.getAttribute('data-player-birth-place') || '';
+                const playerBirthDate = this.getAttribute('data-player-birth-date') || '';
+                const playerBirthInfo = [playerBirthPlace, playerBirthDate].filter(Boolean).join(' • ');
                 const playerInitial = playerName.charAt(0).toUpperCase();
 
                 const normalizedPos = playerPosition.toLowerCase();
@@ -240,6 +243,7 @@
                                         <span>${playerPosition}</span>
                                         ${playerMarketValue ? ` • <span class="text-primary fw-medium">${playerMarketValue}</span>` : ''}
                                     </div>
+                                    ${playerBirthInfo ? `<div class="text-secondary small mt-1"><i class="bi bi-geo-alt me-1"></i>${playerBirthInfo}</div>` : ''}
                                 </div>
                             </div>
                             <span class="app-badge app-badge-accent">Performance analytics</span>
@@ -393,7 +397,9 @@
                     data-player-photo="${photoSource.replace(/"/g, '&quot;')}"
                     data-player-position="${(player.position || '-').replace(/"/g, '&quot;')}"
                     data-player-jersey="${player.jersey_number || '-'}"
-                    data-player-market-value="${(player.market_value || '').replace(/"/g, '&quot;')}">
+                    data-player-market-value="${(player.market_value || '').replace(/"/g, '\x26quot;')}"
+                    data-player-birth-place="${(player.birth_place || '').replace(/"/g, '\x26quot;')}"
+                    data-player-birth-date="${(player.birth_date || '').replace(/"/g, '\x26quot;')}">
                     <img src="${photoSource}" onerror="this.onerror=null; this.src='${placeholder}';" alt="${player.name}" class="player-modal-photo">
                     <div class="fw-semibold small text-truncate" title="${player.name || 'Unknown'}">
                         ${player.name || 'Unknown'}
@@ -406,6 +412,7 @@
                         ${player.goals > 0 ? `<span class="app-badge app-badge-success" style="font-size: 10px;">${player.goals} G</span>` : ''}
                         ${isGoalkeeper && (player.saves || 0) > 0 ? `<span class="app-badge app-badge-accent" style="font-size: 10px;">${player.saves} S</span>` : ''}
                     </div>
+                    ${(player.birth_place || player.birth_date) ? `<div class="text-secondary mt-1" style="font-size: 10px; line-height: 1.3;"><i class="bi bi-geo-alt me-1"></i>${[player.birth_place, player.birth_date].filter(Boolean).join(' • ')}</div>` : ''}
                 </div>
             `;
         });

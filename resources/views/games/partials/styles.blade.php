@@ -600,7 +600,7 @@
         font-size: 13px;
         font-weight: 500;
         line-height: 1.4;
-        transition: all 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;

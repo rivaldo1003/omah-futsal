@@ -340,6 +340,25 @@
             background: #FDF2F3;
         }
 
+        .btn-small.btn-featured {
+            color: var(--accent);
+            border-color: var(--accent);
+            background: rgba(26, 95, 180, 0.08);
+        }
+
+        .badge-featured {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 6px;
+            background: #FDF6EC;
+            color: #B45309;
+            margin-left: 6px;
+        }
+
         /* Pagination */
         .pagination-container {
             padding: 12px 16px;
@@ -459,9 +478,17 @@
                 <i class="bi bi-search search-icon"></i>
                 <input type="text" id="searchInput" placeholder="Cari turnamen..." class="form-control form-control-sm">
             </div>
-            <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
-                <i class="bi bi-plus"></i> Buat Turnamen
-            </a>
+            @if($activeTournament)
+                <span class="btn-create" style="opacity:.5; cursor:not-allowed;"
+                    title="Masih ada turnamen aktif: {{ $activeTournament->name }}"
+                    onclick="return false;">
+                    <i class="bi bi-lock"></i> Buat Turnamen
+                </span>
+            @else
+                <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
+                    <i class="bi bi-plus"></i> Buat Turnamen
+                </a>
+            @endif
         </div>
     </div>
 
@@ -478,6 +505,20 @@
             <i class="bi bi-exclamation-triangle me-2"></i>
             {{ session('error') }}
             <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        </div>
+    @endif
+
+    @if($activeTournament)
+        <div class="alert alert-warning d-flex align-items-center" role="alert"
+            style="border-radius:10px;">
+            <i class="bi bi-lock-fill me-2"></i>
+            <div>
+                <strong>Satu turnamen aktif pada satu waktu.</strong>
+                Turnamen <strong>"{{ $activeTournament->name }}"</strong>
+                (status: {{ ucfirst($activeTournament->status) }}) masih berjalan.
+                Selesaikan (set <em>Completed</em>) atau batalkan (set <em>Cancelled</em>) turnamen
+                tersebut terlebih dahulu sebelum membuat turnamen baru.
+            </div>
         </div>
     @endif
 
@@ -567,7 +608,14 @@
                                     data-name="{{ strtolower($tournament->name) }}"
                                     data-location="{{ strtolower($tournament->location) }}">
                                     <td>
-                                        <div class="tournament-name">{{ $tournament->name }}</div>
+                                        <div class="tournament-name">
+                                            {{ $tournament->name }}
+                                            @if($tournament->is_featured)
+                                                <span class="badge-featured" title="Turnamen unggulan di Home">
+                                                    <i class="bi bi-star-fill"></i> Unggulan
+                                                </span>
+                                            @endif
+                                        </div>
                                         <div class="tournament-location">
                                             <i class="bi bi-geo-alt me-1"></i>{{ $tournament->location }}
                                         </div>
@@ -608,6 +656,15 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="action-buttons">
+                                            <form action="{{ route('admin.tournaments.feature', $tournament) }}" method="POST"
+                                                class="d-inline">
+                                                @csrf
+                                                <button type="submit"
+                                                    class="btn-small {{ $tournament->is_featured ? 'btn-featured' : '' }}"
+                                                    title="{{ $tournament->is_featured ? 'Lepas dari unggulan Home' : 'Jadikan unggulan di Home' }}">
+                                                    <i class="bi {{ $tournament->is_featured ? 'bi-star-fill' : 'bi-star' }}"></i>
+                                                </button>
+                                            </form>
                                             <a href="{{ route('admin.tournaments.show', $tournament) }}" class="btn-small"
                                                 title="Lihat">
                                                 <i class="bi bi-eye"></i>
@@ -705,9 +762,11 @@
                     <p class="empty-state-text">
                         Mulai dengan membuat turnamen pertama Anda.
                     </p>
-                    <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
-                        <i class="bi bi-plus"></i> Buat Turnamen Pertama
-                    </a>
+                    @if(!$activeTournament)
+                        <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
+                            <i class="bi bi-plus"></i> Buat Turnamen Pertama
+                        </a>
+                    @endif
                 </div>
             @endif
         </div>

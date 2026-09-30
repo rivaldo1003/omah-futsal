@@ -45,7 +45,7 @@
     align-items: center;
     gap: 8px;
     text-decoration: none;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-back:hover {
@@ -100,7 +100,7 @@
     border-radius: 6px;
     padding: 10px 12px;
     font-size: 14px;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .form-control:focus,
@@ -179,7 +179,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    transition: all 0.15s ease;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
 }
 
 .btn-submit:hover {
