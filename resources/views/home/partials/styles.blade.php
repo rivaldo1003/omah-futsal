@@ -62,6 +62,17 @@
         --radius-md: 8px;
         --radius-lg: 10px;
 
+        /* v3.0 Radii (design system tokens) */
+        --v3-radius-sm: 8px;
+        --v3-radius-md: 12px;
+        --v3-radius-lg: 20px;
+
+        /* Elevation — neutral, tight, smaller than the element casting it */
+        --v3-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+        --v3-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
+        --v3-shadow-pop: 0 8px 20px rgba(0, 0, 0, 0.35);
+        --v3-shadow-drawer: 6px 0 16px rgba(0, 0, 0, 0.28);
+
         /* Z-Index Scale */
         --z-base: 0;
         --z-sticky: 10;
@@ -146,6 +157,7 @@
         gap: var(--space-2);
         text-decoration: none;
         color: var(--text-primary);
+        flex-shrink: 0;
     }
 
     .nav-brand-logo {
@@ -171,22 +183,34 @@
     .nav-menu-list {
         display: flex;
         align-items: center;
+        flex-wrap: nowrap;
         list-style: none;
         margin: 0;
         padding: 0;
-        gap: var(--space-1);
+        gap: 3px;
     }
 
     .nav-menu-link {
         display: inline-flex;
         align-items: center;
-        gap: var(--space-2);
-        padding: var(--space-2) var(--space-3);
+        gap: 7px;
+        height: 36px;
+        padding: 0 var(--space-3);
         font-size: 13px;
         font-weight: 500;
+        line-height: 1;
+        white-space: nowrap;
         color: var(--text-secondary);
         border-radius: var(--radius-sm);
-        transition: all 150ms ease;
+        transition: color 150ms ease, background-color 150ms ease;
+    }
+
+    .nav-menu-link i {
+        font-size: 15px;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .nav-menu-link:hover {
@@ -203,14 +227,17 @@
     .nav-btn-admin {
         display: inline-flex;
         align-items: center;
-        gap: var(--space-1);
-        padding: 6px 12px;
+        gap: 6px;
+        height: 34px;
+        padding: 0 12px;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
         color: var(--accent);
-        border: 1px solid var(--border-color);
+        border: 1px solid rgba(0, 255, 135, 0.3);
         border-radius: var(--radius-sm);
-        background: transparent;
+        background: rgba(0, 255, 135, 0.06);
     }
 
     .nav-btn-admin:hover {
@@ -224,11 +251,14 @@
         color: var(--danger);
         font-size: 13px;
         font-weight: 500;
-        padding: var(--space-2) var(--space-3);
+        height: 34px;
+        padding: 0 12px;
+        line-height: 1;
+        white-space: nowrap;
         border-radius: var(--radius-sm);
         display: inline-flex;
         align-items: center;
-        gap: var(--space-1);
+        gap: 6px;
         cursor: pointer;
     }
 
@@ -239,10 +269,13 @@
     .nav-btn-login {
         display: inline-flex;
         align-items: center;
-        gap: var(--space-1);
-        padding: 6px 14px;
+        gap: 6px;
+        height: 34px;
+        padding: 0 16px;
         font-size: 13px;
-        font-weight: 500;
+        font-weight: 600;
+        line-height: 1;
+        white-space: nowrap;
         color: #ffffff !important;
         background-color: var(--accent);
         border-radius: var(--radius-sm);
@@ -254,6 +287,57 @@
         color: #ffffff;
     }
 
+    /* Wide desktop — generous, well-balanced spacing */
+    @media (min-width: 1200px) {
+        .nav-menu-list {
+            gap: var(--space-1);
+        }
+
+        .nav-menu-link {
+            padding: 0 var(--space-4);
+        }
+    }
+
+    /* Laptop (992px–1199px) — compact spacing so all items stay on one crisp line */
+    @media (min-width: 992px) and (max-width: 1199.98px) {
+        .nav-menu-list {
+            gap: 1px;
+        }
+
+        .nav-menu-link {
+            gap: 5px;
+            padding: 0 8px;
+            font-size: 12.5px;
+        }
+
+        .nav-menu-link i {
+            font-size: 14px;
+        }
+
+        .nav-brand-logo {
+            width: 30px;
+            height: 30px;
+        }
+
+        .nav-brand-title {
+            font-size: 14px;
+        }
+
+        .nav-brand-sub {
+            font-size: 10px;
+        }
+
+        .nav-btn-admin,
+        .nav-btn-login {
+            padding: 0 10px;
+            font-size: 12.5px;
+        }
+
+        .nav-btn-logout {
+            padding: 0 8px;
+            font-size: 12.5px;
+        }
+    }
 
     /* Mobile hamburger (sidebar drawer trigger) */
     .navbar-toggler {
@@ -376,7 +460,7 @@
         border-radius: var(--radius-md);
         margin-bottom: var(--space-5);
         overflow: hidden;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        box-shadow: var(--v3-shadow-sm);
     }
 
     .app-card-header {
@@ -501,7 +585,7 @@
         border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: all 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         text-decoration: none;
     }
 
@@ -539,7 +623,7 @@
         font-size: 13px;
         font-weight: 500;
         line-height: 1.4;
-        transition: all 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -1309,7 +1393,7 @@
         text-align: center;
         cursor: pointer;
         background-color: var(--surface);
-        transition: all 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
     }
 
     .player-modal-card:hover {
@@ -1592,7 +1676,6 @@
     #teamDetailsModal .player-analytics-panel {
         background-color: var(--v3-card);
         border: 1px solid var(--v3-border);
-        border-left: 3px solid var(--v3-neon-green);
         border-radius: var(--v3-radius-md, 12px);
         color: var(--v3-text-main);
     }
@@ -1619,5 +1702,19 @@
     #teamDetailsModal .progress-bar-wrap {
         background-color: var(--v3-surface);
         border: 1px solid var(--v3-border);
+    }
+
+    /* ==========================================================================
+       REDUCED MOTION (accessibility)
+       ========================================================================== */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.001ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.001ms !important;
+            scroll-behavior: auto !important;
+        }
     }
 </style>

@@ -1,6 +1,4 @@
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
-    <script><script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.14.0/Sortable.min.js"></script>
 
 <script>
@@ -379,6 +377,130 @@
         updatePreview();
     }
 
+    // Hitung batas maksimum tim sesuai tipe turnamen
+    function getMaxTeams() {
+        const type = $('#type').val();
+        if (type === 'knockout') {
+            return parseInt($('#knockout_teams').val()) || 8;
+        }
+        if (type === 'group_knockout') {
+            const groups = parseInt($('#groups_count').val()) || 2;
+            const perGroup = parseInt($('#teams_per_group').val()) || 4;
+            return groups * perGroup;
+        }
+        // league: tidak dibatasi
+        return Infinity;
+    }
+
+    // Inisialisasi team picker (kartu tim + cap jumlah)
+    function initTeamPicker() {
+        const grid = document.getElementById('teamPickerGrid');
+        if (!grid) return;
+
+        grid.addEventListener('click', function (e) {
+            const card = e.target.closest('.team-pick-card');
+            if (!card || card.classList.contains('is-disabled')) return;
+            toggleTeamCard(card);
+        });
+
+        // Pencarian
+        const searchInput = document.getElementById('team_search');
+        if (searchInput) {
+            searchInput.addEventListener('input', function () {
+                filterTeamCards(this.value);
+            });
+        }
+
+        refreshTeamPickerState();
+    }
+
+    // Toggle pilih/batal satu tim
+    function toggleTeamCard(card) {
+        const teamId = card.getAttribute('data-team-id');
+        const isSelected = card.classList.contains('is-selected');
+
+        if (!isSelected) {
+            const max = getMaxTeams();
+            const current = getSelectedTeamIds().length;
+            if (current >= max) {
+                showPickerHint(`Maksimal ${max} tim untuk tipe ini. Batalkan salah satu dulu untuk mengganti.`, true);
+                return;
+            }
+        }
+
+        card.classList.toggle('is-selected');
+        syncTeamSelect(teamId, !isSelected && card.classList.contains('is-selected'));
+        refreshTeamPickerState();
+
+        // Trigger perubahan agar preview & counter ikut update
+        $('#teams').trigger('change');
+    }
+
+    // Sinkronkan pilihan kartu ke elemen <select id="teams">
+    function syncTeamSelect(teamId, selected) {
+        const option = $('#teams option[value="' + teamId + '"]');
+        if (option.length) {
+            option.prop('selected', selected);
+        }
+    }
+
+    // Ambil daftar id tim terpilih
+    function getSelectedTeamIds() {
+        return $('#teams').val() || [];
+    }
+
+    // Perbarui counter, status disable, dan hint
+    function refreshTeamPickerState() {
+        const max = getMaxTeams();
+        const selected = getSelectedTeamIds().length;
+        const total = document.querySelectorAll('.team-pick-card').length;
+
+        $('#selectedTeamsCount').text(selected);
+        $('#maxTeamsCount').text(max === Infinity ? '∞' : max);
+        $('#totalTeamsCount').text(total);
+
+        // Tandai counter penuh
+        $('.team-picker-counter .counter-box').eq(1).toggleClass('is-full', max !== Infinity && selected >= max);
+
+        // Disable kartu yang belum dipilih saat sudah penuh
+        document.querySelectorAll('.team-pick-card').forEach(card => {
+            const isSel = card.classList.contains('is-selected');
+            if (max !== Infinity && selected >= max && !isSel) {
+                card.classList.add('is-disabled');
+            } else {
+                card.classList.remove('is-disabled');
+            }
+        });
+
+        // Hint default
+        showPickerHint(`Klik kartu tim untuk memilih / membatalkan. Maksimal ${max === Infinity ? 'tak terbatas' : max + ' tim'}.`, false);
+    }
+
+    // Tampilkan hint (normal / peringatan)
+    function showPickerHint(text, isWarning) {
+        const el = document.getElementById('teamPickerHint');
+        if (!el) return;
+        el.querySelector('span').textContent = text;
+        el.classList.toggle('is-warning', !!isWarning);
+        el.querySelector('i').className = isWarning ? 'bi bi-exclamation-triangle' : 'bi bi-info-circle';
+    }
+
+    // Filter kartu tim berdasarkan kata kunci
+    function filterTeamCards(keyword) {
+        const q = (keyword || '').toLowerCase().trim();
+        let visible = 0;
+
+        document.querySelectorAll('.team-pick-card').forEach(card => {
+            const haystack = card.getAttribute('data-search') || '';
+            const match = q === '' || haystack.includes(q);
+            card.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+
+        const emptyEl = document.getElementById('teamPickerEmpty');
+        if (emptyEl) emptyEl.classList.toggle('d-none', visible !== 0);
+    }
+
     // Fungsi untuk menampilkan info bye otomatis (ukuran bagan - jumlah tim)
     function updateByeInfo() {
         const infoEl = document.getElementById('byeInfoText');
@@ -413,23 +535,25 @@
         return p;
     }
 
-    // Auto-sync ukuran bagan berdasarkan jumlah tim yang dipilih
+    // Auto-sync ukuran bagan berdasarkan jumlah tim yang dipilih (hanya membesar)
     function autoSyncBracketSize() {
         const selectedTeams = ($('#teams').val() || []).length;
         const select = $('#knockout_teams');
         if (!select.length) return;
 
-        // Sembunyikan opsi < jumlah tim, pilih pangkat 2 terdekat
         const maxOption = select.find('option').map(function () { return parseInt($(this).val()); }).get().reduce((a, b) => Math.max(a, b), 0);
+        const current = parseInt(select.val()) || 8;
 
-        let target = 8; // default minimum yang masuk akal
+        // Ukuran bagan minimal harus menampung jumlah tim, tapi JANGAN mengurangi
+        // pilihan ukuran bagan yang sudah ada (agar tidak mengunci batas tim).
+        let need = current;
         if (selectedTeams >= 2) {
-            target = nextPowerOfTwo(selectedTeams);
+            need = Math.max(current, nextPowerOfTwo(selectedTeams));
         }
-        if (target > maxOption) target = maxOption;
+        if (need > maxOption) need = maxOption;
 
-        if (parseInt(select.val()) !== target && selectedTeams > 0) {
-            select.val(target);
+        if (need > current) {
+            select.val(need);
         }
     }
 
@@ -480,22 +604,19 @@
             return;
         }
 
-        // Susun slot: tim unggulan (awal) dapat bye
-        const teams = getSelectedTeamsForBracket(bracketSize);
-        const byeCount = bracketSize - teams.length;
+        // Preview hanya menampilkan STRUKTUR bagan (slot kosong / BYE).
+        // Nama tim TIDAK diisi di sini — penempatan tim asli dilakukan lewat
+        // fitur "Undi Tim" setelah turnamen dibuat.
+        const selectedCount = ($('#teams').val() || []).length;
+        const byeCount = Math.max(0, bracketSize - selectedCount);
 
-        // Bangun array slot ronde 1: [team, bye/team]
         const slots = [];
-        for (let i = 0; i < bracketSize; i++) slots.push(null);
-
-        // Tempatkan tim pada slot, biarkan bye di awal (menyebar)
-        let tIdx = 0;
-        for (let i = 0; i < bracketSize && tIdx < teams.length; i++) {
-            slots[i] = teams[tIdx++];
-        }
-        // Sisa slot = bye
         for (let i = 0; i < bracketSize; i++) {
-            if (slots[i] === null) slots[i] = { bye: true };
+            slots.push({ placeholder: true, slot: i + 1 });
+        }
+        // Tandai slot bye di bagian akhir bagan
+        for (let i = bracketSize - byeCount; i < bracketSize; i++) {
+            if (i >= 0) slots[i] = { bye: true };
         }
 
         // Tentukan label ronde
@@ -543,6 +664,9 @@
     function renderSlot(slot) {
         if (!slot) {
             return '<div class="bracket-slot slot-tbd"><span class="slot-name">TBD</span></div>';
+        }
+        if (slot.placeholder) {
+            return `<div class="bracket-slot slot-tbd"><span class="slot-name">Slot ${slot.slot}</span></div>`;
         }
         if (slot.bye) {
             return '<div class="bracket-slot slot-bye"><i class="bi bi-arrow-right-circle"></i><span class="slot-name">BYE</span></div>';
@@ -1116,13 +1240,8 @@ $(document).on('click', 'button[type="submit"]', function() {
     // ========== MAIN DOCUMENT READY ==========
 
     $(document).ready(function () {
-        // Initialize Select2
-        $('#teams').select2({
-            placeholder: 'Select tim to participate',
-            allowClear: true,
-            width: '100%',
-            closeOnSelect: false
-        });
+        // Team picker (Step 2) — menggantikan select2; kartu tim + cap jumlah
+        initTeamPicker();
 
         // Initialize step 3 content berdasarkan tipe yang dipilih
         const tournamentType = $('#type').val() || 'group_knockout';
@@ -1186,7 +1305,13 @@ $(document).on('click', 'button[type="submit"]', function() {
 
         // Update info bye + preview bagan saat ukuran bagan berubah
         $('#knockout_teams').on('change', function () {
+            refreshTeamPickerState();
             updateByeInfo();
+        });
+
+        // Batas maks ikut berubah saat konfigurasi grup berubah
+        $('#groups_count, #teams_per_group').on('input change', function () {
+            refreshTeamPickerState();
         });
 
         // Update preview saat metode seeding berubah
@@ -1235,6 +1360,12 @@ $(document).on('click', 'button[type="submit"]', function() {
         
         // Hide all settings sections
         $('#groupSettings, #leagueSettings, #knockoutSettings').hide();
+        // Sistem Poin hanya relevan untuk league & fase grup (bukan knockout/cup)
+        $('#pointsSettings').toggle(selectedType !== 'knockout');
+        $('#reviewPointsRow').toggle(selectedType !== 'knockout');
+        // Hasil seri hanya relevan untuk liga/grup; adu penalti hanya untuk knockout
+        $('#allowDrawCol').toggle(selectedType !== 'knockout');
+        $('#penaltyShootoutCol').toggle(selectedType !== 'league');
         // Tiebreaker rules hanya relevan untuk group_knockout
         $('#tiebreakerSettings').toggle(selectedType === 'group_knockout');
         // Preview bagan hanya relevan untuk knockout
@@ -1280,6 +1411,9 @@ $(document).on('click', 'button[type="submit"]', function() {
         };
         $('#step3Label').text(step3Labels[selectedType] || 'Groups');
         
+        // Perbarui batas maks tim pada picker
+        refreshTeamPickerState();
+
         // Update preview dan next button text
         updatePreview();
         updateNextButtonText();

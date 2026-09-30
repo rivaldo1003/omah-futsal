@@ -120,7 +120,7 @@
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        transition: all 0.2s;
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         z-index: 5;
     }
     .back-button:hover {
@@ -342,7 +342,7 @@
         border: 1px solid var(--v3-border);
         border-radius: var(--v3-radius-sm);
         margin-bottom: 0.5rem;
-        transition: all 0.2s;
+        transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;
         position: relative;
     }
     .player-card:hover {

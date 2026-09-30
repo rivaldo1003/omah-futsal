@@ -28,11 +28,6 @@
         <!-- Today's Active / Live Matches (Full Width) -->
         @include('home.partials.today-matches')
 
-        <!-- Most Valuable Players Spotlight Section (Centerpiece) -->
-        @if(!isset($heroSetting) || !isset($heroSetting->show_market_value_stars) || $heroSetting->show_market_value_stars)
-            @include('home.partials.market-value-stars')
-        @endif
-
         <!-- Two-Column Primary Workspace Grid -->
         <div class="row g-4">
             <!-- Left Primary Column (8 Cols) -->
@@ -65,6 +60,9 @@
             <!-- All Registered Teams (Search, Sort, Quick View - Full Width) -->
             @include('home.partials.all-teams')
         </section>
+
+        <!-- Other Live Tournaments (multi-tournament) -->
+        @include('home.partials.live-tournaments')
     </main>
 
     <!-- Footer -->

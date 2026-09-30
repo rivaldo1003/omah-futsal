@@ -35,6 +35,9 @@ class Tournament extends Model
         'knockout_teams',
         'knockout_seeding',
         'knockout_third_place',
+        // Multi-turnamen di Home
+        'is_featured',
+        'home_order',
     ];
 
     protected $casts = [
@@ -44,6 +47,8 @@ class Tournament extends Model
         'updated_at' => 'datetime',
         'league_allow_draw' => 'boolean',
         'knockout_third_place' => 'boolean',
+        'is_featured' => 'boolean',
+        'home_order' => 'integer',
     ];
 
     /**
@@ -302,6 +307,24 @@ class Tournament extends Model
     public function scopeCompleted($query)
     {
         return $query->where('status', 'completed');
+    }
+
+    public function scopeFeatured($query)
+    {
+        return $query->where('is_featured', true);
+    }
+
+    /**
+     * Turnamen yang sedang berjalan (ongoing/upcoming) untuk Home.
+     * Urutan: ongoing dulu, lalu featured, lalu home_order, lalu start_date.
+     */
+    public function scopeLive($query)
+    {
+        return $query->whereIn('status', ['ongoing', 'upcoming'])
+            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
+            ->orderByDesc('is_featured')
+            ->orderBy('home_order', 'asc')
+            ->orderBy('start_date', 'asc');
     }
 
     // Accessors

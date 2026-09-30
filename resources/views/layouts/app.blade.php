@@ -94,7 +94,7 @@
         border: 1px solid rgba(226, 232, 240, 0.5);
         position: relative;
         overflow: hidden;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     /* Sport-themed accent border */
@@ -228,7 +228,7 @@
         border-radius: 10px;
         padding: 0.75rem 1rem;
         font-size: 0.95rem;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         background: white;
         color: #334155;
     }
@@ -257,7 +257,7 @@
         border-left: none;
         color: #64748b;
         font-size: 1rem;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .input-group:focus-within .input-group-text {
@@ -273,7 +273,7 @@
         border: 2px solid #e2e8f0;
         border-radius: 4px;
         cursor: pointer;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
     }
 
     .form-check-input:checked {
@@ -293,7 +293,7 @@
         font-weight: 700;
         padding: 0.85rem 1.5rem;
         border: none;
-        transition: all 0.3s ease;
+        transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         display: flex;
         align-items: center;
         justify-content: center;

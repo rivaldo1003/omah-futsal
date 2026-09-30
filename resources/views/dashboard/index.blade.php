@@ -16,7 +16,7 @@
             --light-color: #f8fafc;
             --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
             --hover-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
-            --transition: all 0.3s ease;
+            --transition: background-color 0.3s ease, border-color 0.3s ease, color 0.3s ease, opacity 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         /* Hero Section - More Premium */

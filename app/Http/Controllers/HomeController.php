@@ -40,11 +40,13 @@ class HomeController extends Controller
             ];
         }
 
-        // Ambil tournament yang sedang berjalan (ongoing), jika tidak ada ambil yang akan datang (upcoming)
-        $activeTournament = Tournament::whereIn('status', ['ongoing', 'upcoming'])
-            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
-            ->orderBy('start_date', 'asc')
-            ->first();
+        // Daftar turnamen yang sedang berjalan / akan datang untuk section "Turnamen Lainnya"
+        $liveTournaments = Tournament::live()->get();
+
+        // Turnamen unggulan (featured) dipakai untuk konten utama Home.
+        // Jika admin belum menandai satupun sebagai unggulan, fallback ke turnamen live pertama.
+        $activeTournament = Tournament::live()->where('is_featured', true)->first()
+            ?? $liveTournaments->first();
 
         // Jika tidak ada tournament ongoing, tampilkan pesan kosong
         if (!$activeTournament) {
@@ -85,6 +87,7 @@ class HomeController extends Controller
             return view('home', [
                 'heroSetting' => $heroSetting,
                 'activeTournament' => null,
+                'liveTournaments' => $liveTournaments,
                 'todayMatches' => $todayMatches,
                 'upcomingMatches' => $upcomingMatches,
                 'recentResults' => $recentResults,
@@ -348,6 +351,7 @@ class HomeController extends Controller
         return view('home', compact(
             'heroSetting',
             'activeTournament',
+            'liveTournaments',
             'todayMatches',
             'upcomingMatches',
             'recentResults',
@@ -1037,6 +1041,24 @@ class HomeController extends Controller
         $maxValue = $players->max('market_value') ?: 1;
 
         return view('market-value.index', compact('players', 'totalValuation', 'maxValue', 'search', 'position', 'sort'));
+    }
+
+    /**
+     * Market Value — Ultra Analytics showcase (standalone page).
+     */
+    public function marketValueShowcase()
+    {
+        $topValuedPlayers = Player::with('team')
+            ->whereNotNull('market_value')
+            ->where('market_value', '>', 0)
+            ->orderByDesc('market_value')
+            ->orderByDesc('goals')
+            ->limit(8)
+            ->get();
+
+        $recentHighlights = collect();
+
+        return view('market-value.showcase', compact('topValuedPlayers', 'recentHighlights'));
     }
 
     /**

@@ -1995,6 +1995,14 @@ class GameController extends Controller
             return;
         }
 
+        // Jika bracket dibentuk lewat Draw engine (knockout_slots), itu menjadi
+        // sumber kebenaran progression: pemenang mengalir ke slot yang tepat.
+        if (\App\Models\KnockoutSlot::where('tournament_id', $tournament->id)->exists()) {
+            app(\App\Services\KnockoutDrawService::class)->advanceWinner($match);
+
+            return;
+        }
+
         // Determine next round based on current round
         $nextRound = $this->getNextRoundType($match->round_type);
 

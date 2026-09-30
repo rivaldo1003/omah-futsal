@@ -61,6 +61,8 @@
                                 'red_cards' => $player->red_cards ?? 0,
                                 'appearances' => $player->appearances_count ?? 0,
                                 'market_value' => $player->formatted_market_value ?? '',
+                                'birth_place' => $player->birth_place ?? '',
+                                'birth_date' => optional($player->birth_date)->format('d M Y') ?? '',
                             ];
                         })->toArray();
 
@@ -161,7 +163,7 @@
                 @auth
                     @if(auth()->user()->role === 'admin')
                         <div class="mt-3">
-                            <a href="{{ route('teams.create') }}" class="btn-action-primary btn-action-sm">
+                            <a href="{{ route('admin.teams.create') }}" class="btn-action-primary btn-action-sm">
                                 <i class="bi bi-plus-lg"></i>
                                 <span>Create first team</span>
                             </a>

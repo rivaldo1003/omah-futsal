@@ -5,68 +5,98 @@
                                 <h5><i class="bi bi-people"></i> Pilih Tim</h5>
                             </div>
                             <div class="card-body">
-                                <div class="settings-section">
-                                    <h6><i class="bi bi-filter"></i> Filter Tim</h6>
-                                    <div class="row">
-                                        <div class="col-md-12">
-                                            <div class="form-group">
-                                                <label for="team_search" class="form-label">Cari Tim</label>
-                                                <input type="text" class="form-control" id="team_search"
-                                                    placeholder="Cari nama tim atau coach...">
-                                            </div>
+                                @php
+                                    $selectedTeamIds = array_map('strval', old('teams', $tournamentData['teams'] ?? []));
+                                @endphp
+
+                                <!-- Ringkasan & batas -->
+                                <div class="team-picker-header">
+                                    <div class="team-picker-search">
+                                        <i class="bi bi-search"></i>
+                                        <input type="text" id="team_search" class="form-control"
+                                            placeholder="Cari nama tim atau coach...">
+                                    </div>
+                                    <div class="team-picker-counter">
+                                        <div class="counter-box">
+                                            <span class="counter-num" id="selectedTeamsCount">0</span>
+                                            <span class="counter-lbl">Dipilih</span>
+                                        </div>
+                                        <div class="counter-box">
+                                            <span class="counter-num" id="maxTeamsCount">∞</span>
+                                            <span class="counter-lbl">Maks</span>
+                                        </div>
+                                        <div class="counter-box">
+                                            <span class="counter-num" id="totalTeamsCount">{{ $teams->count() }}</span>
+                                            <span class="counter-lbl">Tersedia</span>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div class="settings-section">
-                                    <h6><i class="bi bi-list-check"></i> Select Tim Peserta</h6>
+                                <div class="team-picker-hint" id="teamPickerHint">
+                                    <i class="bi bi-info-circle"></i>
+                                    <span>Klik kartu tim untuk memilih / membatalkan.</span>
+                                </div>
 
-                                    <div class="d-flex justify-content-between align-items-center mb-3">
-                                        <div>
-                                            <span class="text-muted">Total tim tersedia: </span>
-                                            <span class="fw-bold" id="totalTeamsCount">{{ $teams->count() }}</span>
-                                        </div>
-                                        <div>
-                                            <span class="text-muted">Dipilih: </span>
-                                            <span class="fw-bold text-success" id="selectedTeamsCount">0</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-group">
-                                        <label for="teams" class="form-label">
-                                            <i class="bi bi-check2-square"></i>
-                                            Select Teams
-                                            <span class="required">*</span>
-                                        </label>
-                                        <select class="form-control @error('teams') is-invalid @enderror" id="teams"
-                                            name="teams[]" multiple="multiple">
-                                            @foreach($teams as $team)
-                                                @php
-                                                    $logoUrl = $team->logo ? Storage::url($team->logo) : null;
-                                                @endphp
-                                                <option value="{{ $team->id }}" data-name="{{ $team->name }}"
-                                                    data-logo="{{ $logoUrl }}" data-coach="{{ $team->coach_name }}" {{ in_array($team->id, old('teams', $tournamentData['teams'] ?? [])) ? 'selected' : '' }}>
-                                                    {{ $team->name }}
+                                <!-- Grid kartu tim -->
+                                <div class="team-picker-grid" id="teamPickerGrid">
+                                    @foreach($teams as $team)
+                                        @php
+                                            $isSelected = in_array((string) $team->id, $selectedTeamIds, true);
+                                            $logoUrl = ($team->logo && Storage::disk('public')->exists($team->logo))
+                                                ? Storage::url($team->logo)
+                                                : null;
+                                        @endphp
+                                        <button type="button"
+                                            class="team-pick-card {{ $isSelected ? 'is-selected' : '' }}"
+                                            data-team-id="{{ $team->id }}"
+                                            data-search="{{ strtolower($team->name . ' ' . ($team->coach_name ?? '')) }}">
+                                            <span class="team-pick-check"><i class="bi bi-check-lg"></i></span>
+                                            <span class="team-pick-logo">
+                                                @if($logoUrl)
+                                                    <img src="{{ $logoUrl }}" alt="{{ $team->name }}">
+                                                @else
+                                                    {{ strtoupper(substr($team->name, 0, 2)) }}
+                                                @endif
+                                            </span>
+                                            <span class="team-pick-info">
+                                                <span class="team-pick-name" title="{{ $team->name }}">{{ $team->name }}</span>
+                                                <span class="team-pick-coach">
                                                     @if($team->coach_name)
-                                                        ({{ $team->coach_name }})
+                                                        <i class="bi bi-person"></i> {{ $team->coach_name }}
+                                                    @else
+                                                        <span class="text-muted">Tanpa coach</span>
                                                     @endif
-                                                </option>
-                                            @endforeach
-                                        </select>
-                                        <input type="hidden" name="teams_required" id="teams_required"
-                                            value="{{ count(old('teams', $tournamentData['teams'] ?? [])) > 0 ? '1' : '0' }}">
-
-                                        @error('teams')
-                                            <div class="invalid-feedback">{{ $message }}</div>
-                                        @enderror
-                                        <div class="form-text">
-                                            <i class="bi bi-info-circle"></i>
-                                            Pilih semua tim yang akan ikut turnamen ini
-                                        </div>
-                                    </div>
+                                                </span>
+                                            </span>
+                                        </button>
+                                    @endforeach
                                 </div>
 
-                                {{-- Preview Bagan Knockout (hanya untuk tipe knockout) --}}
+                                <div class="team-picker-empty d-none" id="teamPickerEmpty">
+                                    <i class="bi bi-search"></i>
+                                    <span>Tidak ada tim yang cocok dengan pencarian.</span>
+                                </div>
+
+                                <!-- Sumber nilai untuk form (disembunyikan) -->
+                                <select id="teams" name="teams[]" multiple class="d-none">
+                                    @foreach($teams as $team)
+                                        <option value="{{ $team->id }}"
+                                            data-name="{{ $team->name }}"
+                                            data-logo="{{ $team->logo ? Storage::url($team->logo) : '' }}"
+                                            data-coach="{{ $team->coach_name }}"
+                                            {{ in_array((string) $team->id, $selectedTeamIds, true) ? 'selected' : '' }}>
+                                            {{ $team->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <input type="hidden" name="teams_required" id="teams_required"
+                                    value="{{ count($selectedTeamIds) > 0 ? '1' : '0' }}">
+
+                                @error('teams')
+                                    <div class="text-danger small mt-2"><i class="bi bi-exclamation-triangle"></i> {{ $message }}</div>
+                                @enderror
+
+                                <!-- Preview Bagan Knockout (hanya untuk tipe knockout) -->
                                 <div class="settings-section" id="bracketPreviewSection"
                                     style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'block' : 'none' }};">
                                     <h6><i class="bi bi-diagram-3"></i> Preview Bagan Knockout</h6>

@@ -14,7 +14,7 @@
             --border-color: var(--border);
             --shadow-sm: none;
             --shadow-md: none;
-            --transition: all 0.15s ease;
+            --transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
             --success-light: #F0F9F4;
             --success-dark: #1E7A46;
             --warning-light: #FDF6EC;
@@ -574,7 +574,7 @@
                                     // Data sudah dinormalisasi menjadi list of keys
                                     $ruleKey = is_string($rule) ? $rule : (is_array($rule) && isset($rule['key']) ? $rule['key'] : 'points');
                                 @endphp
-                                <div class="input-group mb-2 tie-breaker-item" draggable="true" style="cursor: move; transition: all 0.2s;">
+                                <div class="input-group mb-2 tie-breaker-item" draggable="true" style="cursor: move; transition: background-color 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s, transform 0.2s, box-shadow 0.2s;">
                                     <span class="input-group-text bg-light text-secondary fw-bold drag-handle" style="cursor: grab;">
                                         <i class="bi bi-grip-vertical"></i> {{ $index + 1 }}
                                     </span>
@@ -595,8 +595,8 @@
                         <small class="text-secondary d-block mt-2">Urutan ini juga dipakai untuk penentuan juara dan runner-up di halaman Home.</small>
                     </div>
 
-                    <!-- Tie-breakers for other tournament types (simpler version) -->
-                    <div class="col-md-12 mb-4 tie-breakers-section-other" style="{{ $tournament->type != 'group_knockout' ? '' : 'display: none;' }}">
+                    <!-- Tie-breakers for league only (knockout doesn't use standings/points) -->
+                    <div class="col-md-12 mb-4 tie-breakers-section-other" style="{{ $tournament->type == 'league' ? '' : 'display: none;' }}">
                         <h6 class="mb-1" style="color: var(--primary); font-weight: 600;">
                             Penentuan peringkat (tie-breakers)
                         </h6>
@@ -687,8 +687,8 @@
                         </div>
                     </div>
 
-                    <!-- Points System -->
-                    <div class="col-md-12 mb-4">
+                    <!-- Points System (tidak relevan untuk knockout: tidak ada klasemen) -->
+                    <div class="col-md-12 mb-4 points-system-section" style="{{ $tournament->type == 'knockout' ? 'display: none;' : '' }}">
                         <h6 class="mb-3" style="color: var(--primary); font-weight: 600;">
                             Sistem Poin
                         </h6>
@@ -765,7 +765,7 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 allow-draw-item" style="{{ $tournament->type == 'knockout' ? 'display: none;' : '' }}">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="allow_draw" name="allow_draw" value="1" 
                                         {{ old('allow_draw', $settings['allow_draw'] ?? true) ? 'checked' : '' }}>
@@ -861,6 +861,56 @@
             const typeSelect = document.getElementById('type');
             const groupSettings = document.querySelector('.group-settings');
             const groupAssignmentContainers = document.querySelectorAll('.group-assignment-container');
+            const tieBreakersSection = document.querySelector('.tie-breakers-section');
+            const tieBreakersSectionOther = document.querySelector('.tie-breakers-section-other');
+            const pointsSystemSection = document.querySelector('.points-system-section');
+            const allowDrawItem = document.querySelector('.allow-draw-item');
+
+            // Sistem Poin & "Izinkan hasil seri" hanya relevan untuk turnamen berklasemen
+            // (league / group_knockout). Knockout tidak punya klasemen/poin.
+            function togglePointsAndDraw() {
+                const type = typeSelect.value;
+                const notKnockout = (type !== 'knockout');
+
+                if (pointsSystemSection) {
+                    pointsSystemSection.style.display = notKnockout ? '' : 'none';
+                    pointsSystemSection.querySelectorAll('input, select').forEach(el => {
+                        el.disabled = !notKnockout;
+                    });
+                }
+
+                if (allowDrawItem) {
+                    allowDrawItem.style.display = notKnockout ? '' : 'none';
+                    allowDrawItem.querySelectorAll('input').forEach(el => {
+                        el.disabled = !notKnockout;
+                    });
+                }
+            }
+
+            // Tie-breakers hanya relevan untuk yang punya klasemen: group_knockout & league.
+            // Untuk knockout (cup) tidak ada klasemen/poin, jadi disembunyikan.
+            function toggleTieBreakerSections() {
+                const type = typeSelect.value;
+
+                if (tieBreakersSection) {
+                    const showMain = (type === 'group_knockout');
+                    tieBreakersSection.style.display = showMain ? '' : 'none';
+                    // Nonaktifkan field saat disembunyikan agar tidak memblokir validasi submit
+                    tieBreakersSection.querySelectorAll('select, input').forEach(el => {
+                        el.disabled = !showMain;
+                    });
+                }
+
+                if (tieBreakersSectionOther) {
+                    const showOther = (type === 'league');
+                    tieBreakersSectionOther.style.display = showOther ? '' : 'none';
+
+                    // Nonaktifkan field saat disembunyikan agar tidak memblokir validasi submit
+                    tieBreakersSectionOther.querySelectorAll('select, input').forEach(el => {
+                        el.disabled = !showOther;
+                    });
+                }
+            }
 
             function toggleGroupSettings() {
                 if (typeSelect.value === 'group_knockout') {
@@ -875,9 +925,13 @@
                     });
                 }
                 updateGroupSelectState();
+                toggleTieBreakerSections();
+                togglePointsAndDraw();
             }
 
             typeSelect.addEventListener('change', toggleGroupSettings);
+            toggleTieBreakerSections();
+            togglePointsAndDraw();
 
             // Update group dropdown options when groups_count changes
             const groupsCountInput = document.getElementById('groups_count');

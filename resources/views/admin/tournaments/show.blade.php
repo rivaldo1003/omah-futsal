@@ -621,6 +621,12 @@
                 <span>Pertandingan</span>
                 <span class="tab-badge">{{ $tournament->matches_count }}</span>
             </button>
+            @if($tournament->type === 'knockout')
+                <button class="tab-btn" data-tab="bracket">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Bagan & Undi</span>
+                </button>
+            @endif
             <button class="tab-btn" data-tab="settings">
                 <i class="bi bi-gear"></i>
                 <span>Pengaturan</span>
@@ -842,6 +848,106 @@
                     </div>
                 @endif
             </div>
+
+            @if($tournament->type === 'knockout')
+                <!-- Tab bagan & undi tim (knockout) -->
+                <div id="bracket-tab" class="tab-pane" style="display: none;">
+                    @php
+                        $drawnAt = $settings['knockout_drawn_at'] ?? null;
+                        $bracketSize = (int) ($settings['knockout_teams'] ?? 8);
+
+                        $seeded = $tournament->teams->sortBy('pivot.seed')->values()->all();
+                        $slots = [];
+                        for ($i = 0; $i < $bracketSize; $i++) {
+                            $slots[$i] = $seeded[$i] ?? null;
+                        }
+                        $pairs = [];
+                        for ($i = 0; $i + 1 < $bracketSize; $i += 2) {
+                            $pairs[] = [$slots[$i], $slots[$i + 1]];
+                        }
+                    @endphp
+
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <h6 class="mb-1"><i class="bi bi-shuffle me-2"></i>Undi Tim & Bagan</h6>
+                            <small class="text-secondary">
+                                @if($drawnAt)
+                                    Undian terakhir: {{ \Carbon\Carbon::parse($drawnAt)->format('d M Y H:i') }}
+                                @else
+                                    Belum dilakukan undian. Tim akan ditempatkan ke bagan setelah undian.
+                                @endif
+                            </small>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-diagram-3 me-1"></i> Buka Tournament Draw
+                            </a>
+                            <form action="{{ route('admin.tournaments.draw', $tournament) }}" method="POST"
+                                onsubmit="return confirm('Lakukan undi tim? Urutan bagan akan diacak ulang.')">
+                                @csrf
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="bi bi-shuffle me-1"></i> {{ $drawnAt ? 'Undi Ulang' : 'Undi Tim Sekarang' }}
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    @if($tournament->teams_count < 2)
+                        <div class="empty-state">
+                            <div class="empty-icon"><i class="bi bi-people"></i></div>
+                            <h6 class="empty-title">Minimal 2 tim</h6>
+                            <p class="empty-text">Tambahkan minimal 2 tim sebelum melakukan undian.</p>
+                        </div>
+                    @else
+                        <div class="bracket-simple">
+                            @foreach($pairs as $idx => $pair)
+                                <div class="bracket-simple-match">
+                                    <div class="bracket-simple-slot {{ $pair[0] ? '' : 'is-bye' }}">
+                                        @if($pair[0])
+                                            <span class="bracket-seed">#{{ $pair[0]->pivot->seed ?? '-' }}</span>
+                                            <span class="bracket-simple-name">{{ $pair[0]->name }}</span>
+                                        @else
+                                            <span class="bracket-simple-name">BYE</span>
+                                        @endif
+                                    </div>
+                                    <div class="bracket-simple-vs">VS</div>
+                                    <div class="bracket-simple-slot {{ $pair[1] ? '' : 'is-bye' }}">
+                                        @if($pair[1])
+                                            <span class="bracket-seed">#{{ $pair[1]->pivot->seed ?? '-' }}</span>
+                                            <span class="bracket-simple-name">{{ $pair[1]->name }}</span>
+                                        @else
+                                            <span class="bracket-simple-name">BYE</span>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                        <small class="text-secondary d-block mt-3">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Bagan {{ $bracketSize }} slot. Tim yang menempati slot BYE otomatis lolos ke ronde berikutnya.
+                        </small>
+                    @endif
+
+                    <style>
+                        .bracket-simple { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+                        .bracket-simple-match {
+                            border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+                            background: var(--bg);
+                        }
+                        .bracket-simple-slot {
+                            display: flex; align-items: center; gap: 8px; padding: 6px 0;
+                        }
+                        .bracket-simple-slot.is-bye { opacity: .55; }
+                        .bracket-seed {
+                            font-size: 11px; font-weight: 700; color: var(--accent);
+                            background: var(--surface); border: 1px solid var(--border);
+                            border-radius: 4px; padding: 1px 6px; flex-shrink: 0;
+                        }
+                        .bracket-simple-name { font-weight: 500; font-size: 14px; color: var(--text-primary); }
+                        .bracket-simple-vs { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); }
+                    </style>
+                </div>
+            @endif
 
             <!-- Tab pengaturan -->
             <div id="settings-tab" class="tab-pane" style="display: none;">

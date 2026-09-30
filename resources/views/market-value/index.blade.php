@@ -170,7 +170,7 @@
             border: 1px solid var(--mv-border);
             border-radius: 12px;
             padding: 12px 18px;
-            transition: all 200ms ease;
+            transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, opacity 200ms ease, transform 200ms ease, box-shadow 200ms ease;
             min-width: 0;
         }
 
