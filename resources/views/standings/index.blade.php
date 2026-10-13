@@ -4,7 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
-    <title>{{ isset($selectedTournament) ? $selectedTournament->name . ' - Standings' : 'Tournament Standings' }} | OFS Futsal</title>
+    <title>{{ isset($selectedTournament) ? $selectedTournament->name . ' - Standings' : 'Tournament Standings' }} | OFS
+        Futsal</title>
     <link rel="icon" type="image/png" href="{{ asset('images/logo-ofs.png') }}">
 
     <!-- External Assets -->
@@ -27,7 +28,9 @@
         <!-- Page Header: Tournament Title + Selector Dropdown -->
         @include('standings.partials.header')
 
-        @if(isset($selectedTournament) && isset($groupedStandingsWithPosition) && $groupedStandingsWithPosition->count() > 0)
+        @if(isset($selectedTournament) && $selectedTournament->type === 'knockout')
+            <x-knockout-bracket :knockout-bracket="$knockoutBracket" />
+        @elseif(isset($selectedTournament) && isset($groupedStandingsWithPosition) && $groupedStandingsWithPosition->count() > 0)
             <!-- Tournament Stats (Preserved for future activation) -->
             @include('standings.partials.stats')
 

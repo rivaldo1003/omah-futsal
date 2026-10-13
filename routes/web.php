@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\HeroSettingController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\MatchApiController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchEventController;
@@ -12,6 +13,7 @@ use App\Http\Controllers\StandingController;
 use App\Http\Controllers\TeamController;
 use App\Http\Controllers\TopScorerController;
 use App\Http\Controllers\TournamentController;
+use App\Http\Controllers\TournamentDrawController;
 use Illuminate\Support\Facades\Route;
 
 // ==================== PUBLIC ROUTES ====================
@@ -35,6 +37,7 @@ Route::get('/tournaments/{tournament}/teams', [TournamentController::class, 'tea
 
 // Public Teams
 Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+Route::get('/teams/{team}/history', [HomeController::class, 'teamHistory'])->name('teams.history');
 Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
 
 // All registered teams — dedicated full listing page
@@ -177,7 +180,19 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('tournaments/{tournament}/start', [TournamentController::class, 'start'])->name('tournaments.start');
     Route::post('tournaments/{tournament}/end', [TournamentController::class, 'end'])->name('tournaments.end');
     Route::post('tournaments/{tournament}/feature', [TournamentController::class, 'toggleFeatured'])->name('tournaments.feature');
+    Route::post('tournaments/{tournament}/draw', [TournamentController::class, 'drawKnockout'])->name('tournaments.draw');
     Route::post('tournaments/{tournament}/activate', [TournamentController::class, 'activate'])->name('tournaments.activate');
+
+    // ========== KNOCKOUT DRAW (Bracket + Undi Slot) ==========
+    // Bracket = struktur; Draw = posisi tim; Result = pemenang maju.
+    Route::prefix('tournaments/{tournament}/draw')->name('tournaments.draw.')->group(function () {
+        Route::get('/', [TournamentDrawController::class, 'show'])->name('show');
+        Route::post('build', [TournamentDrawController::class, 'build'])->name('build');
+        Route::post('cabut', [TournamentDrawController::class, 'draw'])->name('cabut');
+        Route::post('all', [TournamentDrawController::class, 'drawAll'])->name('all');
+        Route::post('generate-matches', [MatchApiController::class, 'generateFromDraw'])->name('generate-matches');
+        Route::post('reset', [TournamentDrawController::class, 'reset'])->name('reset');
+    });
     Route::get('tournaments/{tournament}/export', [TournamentController::class, 'export'])->name('tournaments.export');
     Route::get('tournaments/{tournament}/settings', [TournamentController::class, 'settings'])->name('tournaments.settings');
     Route::put('tournaments/{tournament}/settings', [TournamentController::class, 'updateSettings'])->name('tournaments.update-settings');

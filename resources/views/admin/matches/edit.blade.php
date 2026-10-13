@@ -257,7 +257,7 @@
                                     Final
                                 </option>
                                 <option value="third_place" {{ old('round_type', $match->round_type) == 'third_place' ? 'selected' : '' }}>
-                                    Third Place
+                                    Third-place playoff (3rd/4th)
                                 </option>
 
                                 {{-- Group stage (untuk turnamen grup + knockout) --}}

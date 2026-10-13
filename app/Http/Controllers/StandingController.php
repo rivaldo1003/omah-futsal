@@ -424,9 +424,10 @@ class StandingController extends Controller
     {
         try {
             // Ambil semua match knockout
-            $matches = Game::with(['homeTeam', 'awayTeam'])
+            $matches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
                 ->where('tournament_id', $tournamentId)
                 ->whereIn('round_type', [
+                    'round_of_64',
                     'round_of_32',
                     'round_of_16',
                     'quarterfinal',
@@ -436,21 +437,28 @@ class StandingController extends Controller
                 ])
                 ->orderByRaw("
                 CASE 
-                    WHEN round_type = 'round_of_32' THEN 1
-                    WHEN round_type = 'round_of_16' THEN 2
-                    WHEN round_type = 'quarterfinal' THEN 3
-                    WHEN round_type = 'semifinal' THEN 4
-                    WHEN round_type = 'third_place' THEN 5
-                    WHEN round_type = 'final' THEN 6
-                    ELSE 7
+                    WHEN round_type = 'round_of_64' THEN 1
+                    WHEN round_type = 'round_of_32' THEN 2
+                    WHEN round_type = 'round_of_16' THEN 3
+                    WHEN round_type = 'quarterfinal' THEN 4
+                    WHEN round_type = 'semifinal' THEN 5
+                    WHEN round_type = 'third_place' THEN 6
+                    WHEN round_type = 'final' THEN 7
+                    ELSE 8
                 END
             ")
-                ->orderBy('match_date')
-                ->orderBy('time_start')
+                ->orderBy('id')
                 ->get();
+
+            $tournament = Tournament::find($tournamentId);
+            $draw = app(\App\Services\KnockoutDrawService::class);
+            if ($tournament) {
+                $matches = $draw->orderMatchesForBracket($tournament, $matches);
+            }
 
             // Organize matches by round
             $bracket = [
+                'round_of_64' => [],
                 'round_of_32' => [],
                 'round_of_16' => [],
                 'quarterfinal' => [],
@@ -469,21 +477,39 @@ class StandingController extends Controller
                         $winner = $this->getMatchWinner($match);
                     }
 
+                    $isBye = (bool) $match->getAttribute('bracket_bye');
+                    $byeSide = $match->getAttribute('bracket_bye_side');
+                    $homeTeam = $match->homeTeam ? [
+                        'id' => $match->homeTeam->id,
+                        'name' => $match->homeTeam->name,
+                        'logo' => $match->homeTeam->logo,
+                        'score' => $match->home_score,
+                    ] : null;
+                    $awayTeam = $match->awayTeam ? [
+                        'id' => $match->awayTeam->id,
+                        'name' => $match->awayTeam->name,
+                        'logo' => $match->awayTeam->logo,
+                        'score' => $match->away_score,
+                    ] : null;
+
+                    if ($isBye) {
+                        $byeTeam = ['name' => 'BYE', 'logo' => null, 'is_bye' => true];
+                        if ($byeSide === 'home') {
+                            $homeTeam = $byeTeam;
+                            $winner = 'away';
+                        } else {
+                            $awayTeam = $byeTeam;
+                            $winner = 'home';
+                        }
+                    }
+
                     $bracket[$round][] = [
                         'id' => $match->id,
-                        'home_team' => $match->homeTeam ? [
-                            'id' => $match->homeTeam->id,
-                            'name' => $match->homeTeam->name,
-                            'logo' => $match->homeTeam->logo,
-                            'score' => $match->home_score
-                        ] : null,
-                        'away_team' => $match->awayTeam ? [
-                            'id' => $match->awayTeam->id,
-                            'name' => $match->awayTeam->name,
-                            'logo' => $match->awayTeam->logo,
-                            'score' => $match->away_score
-                        ] : null,
+                        'bracket_index' => $match->getAttribute('bracket_match_index') ?? count($bracket[$round]),
+                        'home_team' => $homeTeam,
+                        'away_team' => $awayTeam,
                         'status' => $match->status,
+                        'is_bye' => $isBye,
                         'date' => $match->match_date,
                         'time' => $match->time_start,
                         'winner' => $winner,

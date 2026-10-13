@@ -463,6 +463,32 @@
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
+
+                            <div class="col-md-6 mb-3 knockout-third-place-setting"
+                                style="{{ in_array(old('type', $tournament->type), ['knockout', 'group_knockout'], true) ? '' : 'display: none;' }}">
+                                <div class="form-check">
+                                    <input type="hidden" name="knockout_third_place"
+                                        value="{{ $thirdPlaceLocked ? (int) $tournament->knockout_third_place : 0 }}">
+                                    <input class="form-check-input @error('knockout_third_place') is-invalid @enderror"
+                                        type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1"
+                                        data-has-existing-fixture="{{ $thirdPlaceFixtureExists ? 'true' : 'false' }}"
+                                        {{ $thirdPlaceLocked ? 'disabled' : '' }}
+                                        {{ ($thirdPlaceLocked ? $tournament->knockout_third_place : old('knockout_third_place', $settings['knockout_third_place'] ?? $tournament->knockout_third_place)) ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="knockout_third_place">
+                                        Aktifkan laga perebutan juara 3/4
+                                    </label>
+                                    @error('knockout_third_place')
+                                        <div class="invalid-feedback d-block">{{ $message }}</div>
+                                    @enderror
+                                </div>
+                                @if($thirdPlaceLocked)
+                                    <div class="form-text text-warning">Pengaturan terkunci karena laga sudah berlangsung/selesai atau fixture aktif memiliki event. Hapus event sebelum menonaktifkannya.</div>
+                                @elseif($thirdPlaceHasEvents && !$tournament->knockout_third_place)
+                                    <div class="form-text text-warning">Fixture nonaktif ini masih memiliki event. Aktifkan kembali untuk memeriksanya; hapus event sebelum menonaktifkan lagi.</div>
+                                @else
+                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Jika dinonaktifkan sebelum mulai, fixture dibatalkan dan disembunyikan dari jadwal publik; datanya tetap tersimpan di admin.</div>
+                                @endif
+                            </div>
                         </div>
                     </div>
 
@@ -674,11 +700,12 @@
                                 @enderror
                             </div>
 
-                            <div class="col-md-4 mb-3">
+                            <div class="col-md-4 mb-3 knockout-rule-item" style="{{ $tournament->type == 'league' ? 'display: none;' : '' }}">
                                 <label for="extra_time" class="form-label">Durasi per babak extra time (menit)</label>
                                 <input type="number" class="form-control @error('extra_time') is-invalid @enderror" 
                                     id="extra_time" name="extra_time" min="0" max="30" 
-                                    value="{{ old('extra_time', $settings['extra_time'] ?? 10) }}">
+                                    value="{{ old('extra_time', $settings['extra_time'] ?? 10) }}"
+                                    {{ $tournament->type == 'league' ? 'disabled' : '' }}>
                                 <div class="form-text">Dimainkan jika skor seri di knockout</div>
                                 @error('extra_time')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -765,30 +792,33 @@
                         </div>
 
                         <div class="row">
-                            <div class="col-md-6 mb-3 allow-draw-item" style="{{ $tournament->type == 'knockout' ? 'display: none;' : '' }}">
+                            <div class="col-md-6 mb-3 allow-draw-item" style="{{ $tournament->type == 'group_knockout' ? '' : 'display: none;' }}">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="allow_draw" name="allow_draw" value="1" 
-                                        {{ old('allow_draw', $settings['allow_draw'] ?? true) ? 'checked' : '' }}>
+                                        {{ old('allow_draw', $settings['allow_draw'] ?? true) ? 'checked' : '' }}
+                                        {{ old('type', $tournament->type) !== 'group_knockout' ? 'disabled' : '' }}>
                                     <label class="form-check-label" for="allow_draw">
-                                        <strong>Izinkan hasil seri di group stage</strong>
+                                        <strong>Izinkan hasil seri di fase grup</strong>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 knockout-rule-item" style="{{ $tournament->type == 'league' ? 'display: none;' : '' }}">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="extra_time_enabled" name="extra_time_enabled" value="1" 
-                                        {{ old('extra_time_enabled', $settings['extra_time_enabled'] ?? true) ? 'checked' : '' }}>
+                                        {{ old('extra_time_enabled', $settings['extra_time_enabled'] ?? true) ? 'checked' : '' }}
+                                        {{ $tournament->type == 'league' ? 'disabled' : '' }}>
                                     <label class="form-check-label" for="extra_time_enabled">
                                         <strong>Extra time untuk pertandingan knockout</strong>
                                     </label>
                                 </div>
                             </div>
 
-                            <div class="col-md-6 mb-3">
+                            <div class="col-md-6 mb-3 knockout-rule-item" style="{{ $tournament->type == 'league' ? 'display: none;' : '' }}">
                                 <div class="form-check form-switch">
                                     <input class="form-check-input" type="checkbox" id="penalty_shootout" name="penalty_shootout" value="1" 
-                                        {{ old('penalty_shootout', $settings['penalty_shootout'] ?? true) ? 'checked' : '' }}>
+                                        {{ old('penalty_shootout', $settings['penalty_shootout'] ?? true) ? 'checked' : '' }}
+                                        {{ $tournament->type == 'league' ? 'disabled' : '' }}>
                                     <label class="form-check-label" for="penalty_shootout">
                                         <strong>Adu penalti setelah extra time</strong>
                                     </label>
@@ -843,6 +873,15 @@
 @section('scripts')
     <script>
         document.addEventListener('DOMContentLoaded', function () {
+            const thirdPlaceToggle = document.getElementById('knockout_third_place');
+            if (thirdPlaceToggle && thirdPlaceToggle.dataset.hasExistingFixture === 'true' && !thirdPlaceToggle.disabled) {
+                thirdPlaceToggle.addEventListener('change', function () {
+                    if (!this.checked && !window.confirm('Fixture perebutan juara 3/4 akan dinonaktifkan dan disembunyikan dari jadwal publik. Data tetap tersimpan di admin dan dapat diaktifkan lagi selama laga belum dimulai. Lanjutkan?')) {
+                        this.checked = true;
+                    }
+                });
+            }
+
             // Auto-generate slug from name
             const nameInput = document.getElementById('name');
             const slugInput = document.getElementById('slug');
@@ -865,12 +904,20 @@
             const tieBreakersSectionOther = document.querySelector('.tie-breakers-section-other');
             const pointsSystemSection = document.querySelector('.points-system-section');
             const allowDrawItem = document.querySelector('.allow-draw-item');
+            const knockoutRuleItems = document.querySelectorAll('.knockout-rule-item');
+            const thirdPlaceSetting = document.querySelector('.knockout-third-place-setting');
 
-            // Sistem Poin & "Izinkan hasil seri" hanya relevan untuk turnamen berklasemen
-            // (league / group_knockout). Knockout tidak punya klasemen/poin.
+            function toggleThirdPlaceSetting() {
+                if (thirdPlaceSetting) {
+                    thirdPlaceSetting.style.display = typeSelect.value === 'league' ? 'none' : '';
+                }
+            }
+
+            // Liga selalu memperbolehkan seri; opsi seri hanya untuk fase grup.
             function togglePointsAndDraw() {
                 const type = typeSelect.value;
                 const notKnockout = (type !== 'knockout');
+                const hasGroupStage = (type === 'group_knockout');
 
                 if (pointsSystemSection) {
                     pointsSystemSection.style.display = notKnockout ? '' : 'none';
@@ -880,11 +927,22 @@
                 }
 
                 if (allowDrawItem) {
-                    allowDrawItem.style.display = notKnockout ? '' : 'none';
+                    allowDrawItem.style.display = hasGroupStage ? '' : 'none';
                     allowDrawItem.querySelectorAll('input').forEach(el => {
-                        el.disabled = !notKnockout;
+                        el.disabled = !hasGroupStage;
                     });
                 }
+            }
+
+            function toggleKnockoutRules() {
+                const hasKnockoutStage = typeSelect.value !== 'league';
+
+                knockoutRuleItems.forEach(item => {
+                    item.style.display = hasKnockoutStage ? '' : 'none';
+                    item.querySelectorAll('input, select').forEach(el => {
+                        el.disabled = !hasKnockoutStage;
+                    });
+                });
             }
 
             // Tie-breakers hanya relevan untuk yang punya klasemen: group_knockout & league.
@@ -927,11 +985,15 @@
                 updateGroupSelectState();
                 toggleTieBreakerSections();
                 togglePointsAndDraw();
+                toggleKnockoutRules();
             }
 
             typeSelect.addEventListener('change', toggleGroupSettings);
+            typeSelect.addEventListener('change', toggleThirdPlaceSetting);
             toggleTieBreakerSections();
             togglePointsAndDraw();
+            toggleKnockoutRules();
+            toggleThirdPlaceSetting();
 
             // Update group dropdown options when groups_count changes
             const groupsCountInput = document.getElementById('groups_count');

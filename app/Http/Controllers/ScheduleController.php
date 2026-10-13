@@ -32,7 +32,7 @@ class ScheduleController extends Controller
             ->get();
 
         // Get unique groups from matches for filter
-        $groups = Game::select('group_name')
+        $groups = Game::publiclyVisible()->select('group_name')
             ->whereNotNull('group_name')
             ->distinct()
             ->orderBy('group_name')
@@ -41,7 +41,7 @@ class ScheduleController extends Controller
             ->values();
 
         // Initialize query
-        $query = Game::with(['homeTeam', 'awayTeam', 'tournament']);
+        $query = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'tournament']);
 
         // Apply tournament filter
         $selectedTournament = null;

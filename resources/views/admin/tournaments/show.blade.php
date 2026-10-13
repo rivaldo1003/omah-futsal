@@ -404,7 +404,7 @@
             font-size: 12px;
             color: var(--secondary);
             margin-bottom: 4px;
-            
+
         }
 
         .setting-value {
@@ -533,7 +533,12 @@
             <h1>Detail Turnamen</h1>
             <p class="page-subtitle">Kelola dan lihat turnamen {{ $tournament->name }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
+            @if($tournament->type === 'knockout')
+                <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-diagram-3 me-1"></i> Tournament Draw
+                </a>
+            @endif
             <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary">
                 <i class="bi bi-pencil-square me-1"></i> Edit
             </a>
@@ -571,7 +576,8 @@
                     </span>
                 </div>
                 @if($tournament->description)
-                    <p class="mt-2 mb-0" style="font-size: 14px; color: var(--text-secondary);">{{ $tournament->description }}</p>
+                    <p class="mt-2 mb-0" style="font-size: 14px; color: var(--text-secondary);">{{ $tournament->description }}
+                    </p>
                 @endif
             </div>
             <div class="text-end">
@@ -579,7 +585,8 @@
                     {{ ucfirst($tournament->status) }}
                 </span>
                 <div class="mt-2">
-                    <small style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
+                    <small
+                        style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
                 </div>
             </div>
         </div>
@@ -621,6 +628,12 @@
                 <span>Pertandingan</span>
                 <span class="tab-badge">{{ $tournament->matches_count }}</span>
             </button>
+            @if($tournament->type === 'knockout')
+                <button class="tab-btn" data-tab="bracket">
+                    <i class="bi bi-diagram-3"></i>
+                    <span>Bagan & Undi</span>
+                </button>
+            @endif
             <button class="tab-btn" data-tab="settings">
                 <i class="bi bi-gear"></i>
                 <span>Pengaturan</span>
@@ -843,6 +856,24 @@
                 @endif
             </div>
 
+            @if($tournament->type === 'knockout')
+                <!-- Tab bagan & undi tim (knockout) -->
+                <div id="bracket-tab" class="tab-pane" style="display: none;">
+                    <div class="alert alert-info mb-0">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div>
+                                <h6 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>Bracket Knockout</h6>
+                                <p class="mb-0">Undian, BYE, progres pemenang, dan fixture dikelola pada satu halaman Tournament
+                                    Draw.</p>
+                            </div>
+                            <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-primary btn-sm">
+                                Buka Tournament Draw <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
             <!-- Tab pengaturan -->
             <div id="settings-tab" class="tab-pane" style="display: none;">
                 <div class="settings-grid">
@@ -866,6 +897,14 @@
                         <div class="setting-label">Batas kartu kuning</div>
                         <div class="setting-value">{{ $settings['yellow_card_suspension'] ?? 3 }}</div>
                     </div>
+                    @if(in_array($tournament->type, ['knockout', 'group_knockout'], true))
+                        <div class="setting-item">
+                            <div class="setting-label">Perebutan juara 3/4</div>
+                            <div class="setting-value">
+                                {{ ($settings['knockout_third_place'] ?? $tournament->knockout_third_place) ? 'Aktif' : 'Tidak aktif' }}
+                            </div>
+                        </div>
+                    @endif
                     <div class="setting-item">
                         <div class="setting-label">Poin (menang / seri / kalah)</div>
                         <div class="setting-value">

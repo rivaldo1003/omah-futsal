@@ -24,6 +24,7 @@ class Game extends Model
         'away_score',
         'venue',
         'status',
+        'is_cancelled',
         'round_type',
         'group_name',
         'notes',
@@ -43,7 +44,13 @@ class Game extends Model
         'match_date' => 'date:Y-m-d',
         'youtube_uploaded_at' => 'datetime',
         'is_penalty' => 'boolean',
+        'is_cancelled' => 'boolean',
     ];
+
+    public function scopePubliclyVisible($query)
+    {
+        return $query->where('is_cancelled', false);
+    }
 
     protected $appends = [
         'youtube_embed_url',
@@ -203,23 +210,38 @@ class Game extends Model
         // Jika ada penalti
         if ($this->is_penalty && $this->penalty_score) {
             $penalty = $this->penalty_score_array;
-            return $penalty['home'] > $penalty['away']
-                ? $this->team_home_id
-                : $this->team_away_id;
+            if ($penalty['home'] > $penalty['away']) {
+                return $this->team_home_id;
+            }
+            if ($penalty['home'] < $penalty['away']) {
+                return $this->team_away_id;
+            }
+
+            return null;
         }
 
         // Jika ada extra time
         if ($this->et_score) {
             $et = $this->et_score_array;
-            return $et['home'] > $et['away']
-                ? $this->team_home_id
-                : $this->team_away_id;
+            if ($et['home'] > $et['away']) {
+                return $this->team_home_id;
+            }
+            if ($et['home'] < $et['away']) {
+                return $this->team_away_id;
+            }
+
+            return null;
         }
 
         // Regular time
-        return $this->home_score > $this->away_score
-            ? $this->team_home_id
-            : $this->team_away_id;
+        if ($this->home_score > $this->away_score) {
+            return $this->team_home_id;
+        }
+        if ($this->home_score < $this->away_score) {
+            return $this->team_away_id;
+        }
+
+        return null;
     }
 
     /**
@@ -232,6 +254,10 @@ class Game extends Model
         }
 
         $winnerId = $this->getWinnerId();
+
+        if (!$winnerId) {
+            return null;
+        }
 
         if ($winnerId === $this->team_home_id) {
             return $this->team_away_id;
@@ -280,8 +306,25 @@ class Game extends Model
                 'event_count' => $events->count()
             ]);
 
+            $yellowCardsByPlayer = $events
+                ->where('event_type', 'yellow_card')
+                ->groupBy('player_id');
+
             foreach ($events as $event) {
+                // Yellow-card stats treat a second yellow in the same match as
+                // the dismissal: it adds a red card and removes the yellow tally.
+                // Revert that net effect once per player, below.
+                if ($event->event_type === 'yellow_card') {
+                    continue;
+                }
+
                 $this->revertSingleEventStats($event);
+            }
+
+            foreach ($yellowCardsByPlayer as $playerId => $playerEvents) {
+                if ($playerEvents->count() === 1) {
+                    Player::whereKey($playerId)->decrement('yellow_cards');
+                }
             }
 
             DB::commit();
@@ -340,6 +383,18 @@ class Game extends Model
 
             case 'penalty':
                 $player->decrement('penalty_missed');
+                break;
+
+            case 'assist':
+                $player->decrement('assists');
+                break;
+
+            case 'save':
+                $player->decrement('saves');
+                break;
+
+            case 'clean_sheet':
+                $player->decrement('clean_sheets');
                 break;
         }
 

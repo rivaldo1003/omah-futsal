@@ -42,16 +42,30 @@ class HomeController extends Controller
 
         // Daftar turnamen yang sedang berjalan / akan datang untuk section "Turnamen Lainnya"
         $liveTournaments = Tournament::live()->get();
+        $recentCompletedTournament = $this->getLatestCompletedTournamentSummary();
 
-        // Turnamen unggulan (featured) dipakai untuk konten utama Home.
-        // Jika admin belum menandai satupun sebagai unggulan, fallback ke turnamen live pertama.
-        $activeTournament = Tournament::live()->where('is_featured', true)->first()
+        // Turnamen ongoing selalu menjadi konteks utama Home. Jika belum ada,
+        // gunakan turnamen unggulan yang akan datang, lalu fallback ke daftar live.
+        $activeTournament = $liveTournaments->firstWhere('status', 'ongoing')
+            ?? Tournament::live()->where('is_featured', true)->first()
             ?? $liveTournaments->first();
+
+        // Keep both tournament participants and the global team directory
+        // available when there is no live tournament.
+        $teamSectionTournament = $activeTournament
+            ?? ($recentCompletedTournament['tournament'] ?? null);
+        $teamsInHomeTournament = $teamSectionTournament
+            ? $this->getTeamsForHomeTournament((int) $teamSectionTournament->id)
+            : collect();
+        $teams = $this->getTeamDirectoryForHome();
+        $this->attachTournamentHistoryToTeams($teams->concat($teamsInHomeTournament));
+        $totalRegisteredTeams = Team::count();
+        $totalTeams = $totalRegisteredTeams;
 
         // Jika tidak ada tournament ongoing, tampilkan pesan kosong
         if (!$activeTournament) {
             // Tetap tampilkan friendly matches walau tidak ada tournament ongoing
-            $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+            $todayMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
                 ->where('round_type', 'friendly')
                 ->whereIn('status', ['ongoing', 'upcoming'])
                 ->whereDate('match_date', Carbon::today())
@@ -59,7 +73,7 @@ class HomeController extends Controller
                 ->orderBy('time_start')
                 ->get();
 
-            $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+            $upcomingMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
                 ->where('round_type', 'friendly')
                 ->where('status', 'upcoming')
                 ->whereDate('match_date', '>=', Carbon::today())
@@ -68,7 +82,7 @@ class HomeController extends Controller
                 ->limit(5)
                 ->get();
 
-            $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+            $recentResults = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
                 ->where('round_type', 'friendly')
                 ->where('status', 'completed')
                 ->orderBy('match_date', 'desc')
@@ -88,16 +102,18 @@ class HomeController extends Controller
                 'heroSetting' => $heroSetting,
                 'activeTournament' => null,
                 'liveTournaments' => $liveTournaments,
+                'recentCompletedTournament' => $recentCompletedTournament,
                 'todayMatches' => $todayMatches,
                 'upcomingMatches' => $upcomingMatches,
                 'recentResults' => $recentResults,
                 'topScorers' => collect(),
                 'topValuedPlayers' => $topValuedPlayers,
                 'standings' => [],
-                'teams' => collect(),
-                'teamsInActiveTournament' => collect(),
-                'totalRegisteredTeams' => 0,
-                'totalTeams' => 0,
+                'teams' => $teams,
+                'teamsInHomeTournament' => $teamsInHomeTournament,
+                'teamSectionTournament' => $teamSectionTournament,
+                'totalRegisteredTeams' => $totalRegisteredTeams,
+                'totalTeams' => $totalTeams,
                 'matchesCount' => 0,
                 'totalGoals' => 0,
                 'daysLeft' => 0,
@@ -111,8 +127,7 @@ class HomeController extends Controller
                 'isCupType' => false,
                 'isLeagueType' => false,
                 'hasGroups' => false,
-                'knockoutMatches' => collect(),
-                'bracketData' => null, // NEW
+                'knockoutBracket' => collect(),
             ]);
         }
 
@@ -124,58 +139,8 @@ class HomeController extends Controller
         $isLeagueType = ($tournamentType === 'league');
         $hasGroups = ($tournamentType === 'group_knockout');
 
-        // ==============================
-        // NEW: Get bracket data for knockout tournament
-        // ==============================
-        $bracketData = null;
-        if ($isCupType) {
-            $bracketData = $this->getKnockoutBracketData($tournamentId);
-        }
-
-        // ==============================
-        // GET TEAMS DATA (peserta tournament aktif)
-        // ==============================
-        $teamsInActiveTournament = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
-            $query->where('tournament_id', $tournamentId);
-        })
-            ->withCount(['players', 'tournaments'])
-            ->with([
-                'tournaments' => function ($query) use ($tournamentId) {
-                    $query->where('tournament_id', $tournamentId)
-                        ->select('tournaments.id', 'name');
-                },
-                'players' => function ($query) {
-                    $query->orderBy('goals', 'desc')
-                        ->orderBy('position')
-                        ->orderBy('name');
-                }
-            ])
-            ->orderBy('name')
-            ->get();
-
-        // ==============================
-        // GET TEAMS DATA (semua team terdaftar di sistem)
-        // ==============================
-        $teams = Team::withCount(['players', 'tournaments'])
-            ->with([
-                'tournaments' => function ($query) {
-                    $query->select('tournaments.id', 'name');
-                },
-                'players' => function ($query) {
-                    $query->orderBy('goals', 'desc')
-                        ->orderBy('position')
-                        ->orderBy('name');
-                }
-            ])
-            ->orderBy('name')
-            ->limit(8)
-            ->get();
-
-        // Total registered teams (for headers / "view all" counters)
-        $totalRegisteredTeams = Team::count();
-
         // Ambil matches status 'ongoing' dan 'upcoming' untuk hari ini
-        $todayMatches = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+        $todayMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
             ->where(function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId)
                     ->orWhere('round_type', 'friendly');
@@ -187,7 +152,7 @@ class HomeController extends Controller
             ->get();
 
         // PERUBAHAN: Upcoming matches hanya dari tournament aktif
-        $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+        $upcomingMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
             ->where(function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId)
                     ->orWhere('round_type', 'friendly');
@@ -200,7 +165,7 @@ class HomeController extends Controller
             ->get();
 
         // PERUBAHAN: Recent results hanya dari tournament aktif
-        $recentResults = Game::with(['homeTeam', 'awayTeam', 'events.player'])
+        $recentResults = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
             ->where(function ($query) use ($tournamentId) {
                 $query->where('tournament_id', $tournamentId)
                     ->orWhere('round_type', 'friendly');
@@ -212,13 +177,16 @@ class HomeController extends Controller
             ->get();
 
         // ==============================
-        // NEW: Get knockout matches for cup tournament (untuk backup view)
+        // Get every generated knockout match for the Home bracket preview
         // ==============================
         $knockoutMatches = collect();
+        $knockoutBracket = collect();
         if ($isCupType) {
-            $knockoutMatches = Game::with(['homeTeam', 'awayTeam'])
+            $knockoutMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
                 ->where('tournament_id', $tournamentId)
                 ->whereIn('round_type', [
+                    'round_of_64',
+                    'round_of_32',
                     'round_of_16',
                     'quarterfinal',
                     'semifinal',
@@ -229,19 +197,74 @@ class HomeController extends Controller
                 ])
                 ->orderByRaw("
                     CASE 
-                        WHEN round_type = 'final' THEN 1
-                        WHEN round_type = 'semifinal' THEN 2
-                        WHEN round_type = 'quarterfinal' THEN 3
-                        WHEN round_type = 'round_of_16' THEN 4
-                        WHEN round_type = 'third_place' THEN 5
-                        WHEN round_type = 'qualifying' THEN 6
-                        WHEN round_type = 'preliminary' THEN 7
-                        ELSE 8
+                        WHEN round_type = 'round_of_64' THEN 1
+                        WHEN round_type = 'round_of_32' THEN 2
+                        WHEN round_type = 'round_of_16' THEN 3
+                        WHEN round_type = 'quarterfinal' THEN 4
+                        WHEN round_type = 'semifinal' THEN 5
+                        WHEN round_type = 'third_place' THEN 6
+                        WHEN round_type = 'final' THEN 7
+                        WHEN round_type = 'qualifying' THEN 8
+                        WHEN round_type = 'preliminary' THEN 9
+                        ELSE 10
                     END
                 ")
-                ->orderBy('match_date')
-                ->limit(8)
+                ->orderBy('id')
                 ->get();
+
+            $draw = app(\App\Services\KnockoutDrawService::class);
+            $knockoutMatches = $draw->orderMatchesForBracket($activeTournament, $knockoutMatches);
+
+            $knockoutBracket = $knockoutMatches
+                ->groupBy('round_type')
+                ->map(function ($roundMatches) {
+                    return $roundMatches->values()->map(function (Game $match, int $index) {
+                        $winnerId = $match->getWinnerId();
+                        $isBye = (bool) $match->getAttribute('bracket_bye');
+                        $byeSide = $match->getAttribute('bracket_bye_side');
+                        $homeTeam = $match->homeTeam ? [
+                            'id' => $match->homeTeam->id,
+                            'name' => $match->homeTeam->name,
+                            'logo' => $match->homeTeam->logo,
+                            'score' => $match->home_score,
+                        ] : null;
+                        $awayTeam = $match->awayTeam ? [
+                            'id' => $match->awayTeam->id,
+                            'name' => $match->awayTeam->name,
+                            'logo' => $match->awayTeam->logo,
+                            'score' => $match->away_score,
+                        ] : null;
+
+                        if ($isBye) {
+                            $byeTeam = ['name' => 'BYE', 'logo' => null, 'is_bye' => true];
+                            if ($byeSide === 'home') {
+                                $homeTeam = $byeTeam;
+                            } else {
+                                $awayTeam = $byeTeam;
+                            }
+                        }
+
+                        return [
+                            'id' => $match->id,
+                            'bracket_index' => $match->getAttribute('bracket_match_index') ?? $index,
+                            'home_team' => $homeTeam,
+                            'away_team' => $awayTeam,
+                            'status' => $match->status,
+                            'is_bye' => $isBye,
+                            'winner' => $winnerId && (int) $winnerId === (int) $match->team_home_id
+                                ? 'home'
+                                : ($winnerId && (int) $winnerId === (int) $match->team_away_id
+                                    ? 'away'
+                                    : ($isBye ? ($byeSide === 'home' ? 'away' : 'home') : null)),
+                            'extras' => [
+                                'et_score' => $match->status === 'completed' ? $match->et_score : null,
+                                'penalty_score' => $match->status === 'completed' && $match->is_penalty
+                                    ? $match->penalty_score
+                                    : null,
+                            ],
+                        ];
+                    });
+                });
         }
 
         // ==============================
@@ -299,10 +322,8 @@ class HomeController extends Controller
         )));
 
         // Statistics untuk tournament aktif
-        $totalTeams = Team::count();
-
         // PERBAIKAN: Gunakan nama tabel yang benar - 'matches' bukan 'games'
-        $matchesCount = Game::where('tournament_id', $tournamentId)->count();
+        $matchesCount = Game::publiclyVisible()->where('tournament_id', $tournamentId)->count();
 
         // PERBAIKAN: Total goals dalam tournament aktif - gunakan tabel 'matches'
         $totalGoals = 0;
@@ -310,6 +331,7 @@ class HomeController extends Controller
             $totalGoals = DB::table('match_events')
                 ->join('matches', 'match_events.match_id', '=', 'matches.id')  // <-- BENAR
                 ->where('matches.tournament_id', $tournamentId)
+                ->where('matches.is_cancelled', false)
                 ->where('match_events.event_type', 'goal')
                 ->where('match_events.is_own_goal', false)
                 ->count();
@@ -326,7 +348,7 @@ class HomeController extends Controller
         }
 
         // PERUBAHAN: Highlights hanya dari tournament aktif
-        $recentHighlights = Game::where('tournament_id', $tournamentId)
+        $recentHighlights = Game::publiclyVisible()->where('tournament_id', $tournamentId)
             ->whereNotNull('youtube_id')
             ->with(['homeTeam', 'awayTeam'])
             ->orderBy('youtube_uploaded_at', 'desc')
@@ -344,20 +366,23 @@ class HomeController extends Controller
             'top_scorers_count' => $topScorers->count(),
             'matches_count' => $matchesCount,
             'total_goals' => $totalGoals,
-            'knockout_matches_count' => $knockoutMatches->count(),
-            'has_bracket_data' => $bracketData ? 'YES' : 'NO',
+            'knockout_matches_count' => $knockoutMatches
+                ->reject(fn (Game $match) => (bool) $match->getAttribute('bracket_bye'))
+                ->count(),
         ];
 
         return view('home', compact(
             'heroSetting',
             'activeTournament',
             'liveTournaments',
+            'recentCompletedTournament',
             'todayMatches',
             'upcomingMatches',
             'recentResults',
             'topScorers',
             'standings',
-            'teamsInActiveTournament',
+            'teamsInHomeTournament',
+            'teamSectionTournament',
             'teams',
             'totalRegisteredTeams',
             'totalTeams',
@@ -372,105 +397,317 @@ class HomeController extends Controller
             'isCupType',
             'isLeagueType',
             'hasGroups',
-            'knockoutMatches',
-            'bracketData' // NEW
+            'knockoutBracket',
         ));
     }
 
     /**
-     * Get knockout bracket visualization data
+     * Summary card for the newest completed tournament on the public home page.
      */
-    /**
-     * Get knockout bracket visualization data - FIXED VERSION (Read from JSON settings)
-     */
-    private function getKnockoutBracketData($tournamentId)
+    private function getLatestCompletedTournamentSummary(): ?array
     {
-        try {
-            $tournament = Tournament::find($tournamentId);
+        $tournament = Tournament::where('status', 'completed')
+            ->orderByDesc('end_date')
+            ->orderByDesc('updated_at')
+            ->first();
 
-            if (!$tournament) {
-                \Log::error('Tournament not found: ' . $tournamentId);
-                return null;
-            }
-
-            // Cek tournament type
-            if ($tournament->type !== 'knockout') {
-                \Log::info('Tournament is not knockout type. Type: ' . $tournament->type);
-                return null;
-            }
-
-            // Cek settings JSON
-            $settings = $tournament->settings ?? [];
-            \Log::info('Tournament settings:', $settings);
-
-            // ... rest of the code ...
-
-        } catch (\Exception $e) {
-            \Log::error('Error in getKnockoutBracketData: ' . $e->getMessage());
+        if (!$tournament) {
             return null;
         }
-    }
 
-    /**
-     * Get round order based on bracket size
-     */
-    private function getRoundOrderForBracketSize($bracketSize, $hasThirdPlace = false)
-    {
-        $roundOrder = [];
+        $champion = null;
 
-        if ($bracketSize >= 16) {
-            $roundOrder['round_of_16'] = ['name' => 'Round of 16', 'matches_needed' => 8];
-        }
-        if ($bracketSize >= 8) {
-            $roundOrder['quarterfinal'] = ['name' => 'Quarter Final', 'matches_needed' => 4];
-        }
-        if ($bracketSize >= 4) {
-            $roundOrder['semifinal'] = ['name' => 'Semi Final', 'matches_needed' => 2];
-        }
+        if ($tournament->type === 'league') {
+            $standings = $this->getAllGroupStandingsFixed($tournament);
+            $leader = $standings['Klasemen'][0] ?? null;
 
-        $roundOrder['final'] = ['name' => 'Final', 'matches_needed' => 1];
-
-        if ($hasThirdPlace) {
-            $roundOrder['third_place'] = ['name' => '3rd Place', 'matches_needed' => 1];
-        }
-
-        return $roundOrder;
-    }
-
-    /**
-     * Calculate bracket completion progress
-     */
-    private function calculateBracketProgress($rounds)
-    {
-        $totalMatches = 0;
-        $completedMatches = 0;
-        $totalRounds = count($rounds);
-        $completedRounds = 0;
-
-        foreach ($rounds as $round) {
-            $totalMatches += $round['total_matches'];
-
-            // Count completed matches in this round
-            foreach ($round['matches'] as $match) {
-                if ($match['completed']) {
-                    $completedMatches++;
-                }
+            if ($leader && (int) ($leader->matches_played ?? 0) > 0) {
+                $champion = [
+                    'name' => $leader->team_name ?? $leader->team->name ?? null,
+                    'logo' => $leader->team_logo ?? $leader->team->logo ?? null,
+                ];
             }
+        } else {
+            $finalMatch = Game::publiclyVisible()
+                ->with(['homeTeam', 'awayTeam'])
+                ->where('tournament_id', $tournament->id)
+                ->where('round_type', 'final')
+                ->where('status', 'completed')
+                ->orderByDesc('match_date')
+                ->orderByDesc('id')
+                ->first();
 
-            // Check if round is complete (all needed matches exist)
-            if ($round['total_matches'] >= $round['matches_needed']) {
-                $completedRounds++;
+            $winnerId = $finalMatch ? $this->getDecidedWinnerId($finalMatch) : null;
+            $winnerTeam = $winnerId && $finalMatch
+                ? ((int) $winnerId === (int) $finalMatch->team_home_id
+                    ? $finalMatch->homeTeam
+                    : $finalMatch->awayTeam)
+                : null;
+
+            if ($winnerTeam) {
+                $champion = [
+                    'name' => $winnerTeam->name,
+                    'logo' => $winnerTeam->logo,
+                ];
             }
         }
 
         return [
-            'total_matches' => $totalMatches,
-            'completed_matches' => $completedMatches,
-            'total_rounds' => $totalRounds,
-            'completed_rounds' => $completedRounds,
-            'match_percentage' => $totalMatches > 0 ? round(($completedMatches / $totalMatches) * 100) : 0,
-            'round_percentage' => $totalRounds > 0 ? round(($completedRounds / $totalRounds) * 100) : 0,
+            'tournament' => $tournament,
+            'champion' => $champion,
         ];
+    }
+
+    private function getTeamsForHomeTournament(int $tournamentId)
+    {
+        return Team::whereHas('tournaments', function ($query) use ($tournamentId) {
+            $query->where('tournament_id', $tournamentId);
+        })
+            ->withCount(['players', 'tournaments'])
+            ->with([
+                'tournaments:id,name,status,type,start_date,end_date,settings',
+                'players' => function ($query) {
+                    $query->orderBy('goals', 'desc')
+                        ->orderBy('position')
+                        ->orderBy('name');
+                }
+            ])
+            ->orderBy('name')
+            ->get();
+    }
+
+    private function getTeamDirectoryForHome()
+    {
+        return Team::withCount(['players', 'tournaments'])
+            ->with([
+                'tournaments' => function ($query) {
+                    $query->select('tournaments.id', 'name', 'status', 'type', 'start_date', 'end_date', 'settings');
+                },
+                'players' => function ($query) {
+                    $query->orderBy('goals', 'desc')
+                        ->orderBy('position')
+                        ->orderBy('name');
+                }
+            ])
+            ->orderBy('name')
+            ->limit(8)
+            ->get();
+    }
+
+    /** Attach tournament names and outcome labels to the team cards on Home. */
+    private function attachTournamentHistoryToTeams($teams): void
+    {
+        $tournaments = $teams
+            ->flatMap(fn ($team) => $team->tournaments)
+            ->unique('id')
+            ->keyBy('id');
+
+        if ($tournaments->isEmpty()) {
+            foreach ($teams as $team) {
+                $team->setAttribute('tournament_history', collect());
+            }
+            return;
+        }
+
+        $matchesByTournament = Game::publiclyVisible()
+            ->whereIn('tournament_id', $tournaments->keys())
+            ->orderByDesc('match_date')
+            ->orderByDesc('id')
+            ->get()
+            ->groupBy('tournament_id');
+
+        $leagueRanksByTournament = [];
+        foreach ($tournaments as $tournament) {
+            if ($tournament->type !== 'league' || $tournament->status !== 'completed') {
+                continue;
+            }
+
+            $leagueStandings = $this->getAllGroupStandingsFixed($tournament);
+            foreach (($leagueStandings['Klasemen'] ?? []) as $position => $standing) {
+                if ((int) ($standing->matches_played ?? 0) > 0) {
+                    $leagueRanksByTournament[$tournament->id][$standing->team_id] = $position + 1;
+                }
+            }
+        }
+
+        foreach ($teams as $team) {
+            $history = $team->tournaments
+                ->map(function ($tournament) use ($team, $matchesByTournament, $leagueRanksByTournament) {
+                    $matches = $matchesByTournament->get($tournament->id, collect());
+                    $outcome = $this->getTournamentOutcomeForTeam(
+                        $tournament,
+                        (int) $team->id,
+                        $matches,
+                        $leagueRanksByTournament[$tournament->id] ?? [],
+                    );
+
+                    return [
+                        'id' => $tournament->id,
+                        'name' => $tournament->name,
+                        'start_date' => $tournament->start_date,
+                        'type' => $tournament->type,
+                        'status' => $tournament->status,
+                        'outcome' => $outcome['label'],
+                        'state' => $outcome['state'],
+                    ];
+                })
+                ->sortByDesc(fn ($event) => $event['start_date']?->format('Y-m-d') ?? '')
+                ->values();
+
+            $team->setAttribute('tournament_history', $history);
+        }
+    }
+
+    private function getTournamentOutcomeForTeam(Tournament $tournament, int $teamId, $matches, array $leagueRanks): array
+    {
+        if ($tournament->status === 'upcoming') {
+            return ['label' => 'Akan datang', 'state' => 'upcoming'];
+        }
+
+        if ($tournament->status === 'ongoing') {
+            return ['label' => 'Berlangsung', 'state' => 'ongoing'];
+        }
+
+        if ($tournament->status !== 'completed') {
+            return ['label' => ucfirst((string) $tournament->status), 'state' => 'neutral'];
+        }
+
+        if ($tournament->type === 'league') {
+            $rank = $leagueRanks[$teamId] ?? null;
+
+            return $rank
+                ? [
+                    'label' => $rank === 1 ? 'Juara' : ($rank === 2 ? 'Juara 2' : "Peringkat {$rank}"),
+                    'state' => $rank === 1 ? 'champion' : 'placement',
+                ]
+                : ['label' => 'Selesai · peringkat belum tersedia', 'state' => 'neutral'];
+        }
+
+        $teamInMatch = fn ($match) => in_array($teamId, [(int) $match->team_home_id, (int) $match->team_away_id], true);
+        $finalMatch = $matches->first(fn ($match) => $match->round_type === 'final'
+            && $match->status === 'completed'
+            && $teamInMatch($match));
+
+        if ($finalMatch) {
+            $winnerId = $this->getDecidedWinnerId($finalMatch);
+
+            if (!$winnerId) {
+                return ['label' => 'Hasil final belum lengkap', 'state' => 'neutral'];
+            }
+
+            return $winnerId === $teamId
+                ? ['label' => 'Juara', 'state' => 'champion']
+                : ['label' => 'Juara 2', 'state' => 'runner-up'];
+        }
+
+        $thirdPlaceMatch = $matches->first(fn ($match) => $match->round_type === 'third_place'
+            && $match->status === 'completed'
+            && $teamInMatch($match));
+
+        if ($thirdPlaceMatch) {
+            $winnerId = $this->getDecidedWinnerId($thirdPlaceMatch);
+
+            if (!$winnerId) {
+                return ['label' => 'Hasil perebutan juara 3 belum lengkap', 'state' => 'neutral'];
+            }
+
+            return $winnerId === $teamId
+                ? ['label' => 'Juara 3', 'state' => 'placement']
+                : ['label' => 'Juara 4', 'state' => 'placement'];
+        }
+
+        $roundLabels = [
+            'preliminary' => 'Babak pendahuluan',
+            'qualifying' => 'Babak kualifikasi',
+            'round_of_64' => 'Babak 64 besar',
+            'round_of_32' => 'Babak 32 besar',
+            'round_of_16' => 'Babak 16 besar',
+            'quarterfinal' => 'Perempat final',
+            'semifinal' => 'Semifinal',
+            'knockout' => 'Babak knockout',
+        ];
+        $roundOrder = [
+            'preliminary' => 1,
+            'qualifying' => 2,
+            'round_of_64' => 3,
+            'round_of_32' => 4,
+            'round_of_16' => 5,
+            'quarterfinal' => 6,
+            'semifinal' => 7,
+            'knockout' => 7,
+        ];
+
+        $eliminatingMatch = $matches
+            ->filter(fn ($match) => $match->status === 'completed'
+                && isset($roundOrder[$match->round_type])
+                && $teamInMatch($match)
+                && $this->getDecidedWinnerId($match) !== null
+                && $this->getDecidedWinnerId($match) !== $teamId)
+            ->sortByDesc(fn ($match) => $roundOrder[$match->round_type])
+            ->first();
+
+        if ($eliminatingMatch) {
+            $roundLabel = $roundLabels[$eliminatingMatch->round_type] ?? 'Babak knockout';
+
+            return ['label' => "Gugur · {$roundLabel}", 'state' => 'eliminated'];
+        }
+
+        $knockoutRounds = array_merge(array_keys($roundLabels), ['final', 'third_place']);
+        $hasKnockoutFixture = $matches->contains(fn ($match) => in_array($match->round_type, $knockoutRounds, true)
+            && $teamInMatch($match));
+        $hasGroupResult = $matches->contains(fn ($match) => in_array($match->round_type, ['group', 'league'], true)
+            && $match->status === 'completed'
+            && $teamInMatch($match));
+
+        if ($tournament->type === 'group_knockout' && !$hasKnockoutFixture && $hasGroupResult) {
+            return ['label' => 'Gugur · Fase grup', 'state' => 'eliminated'];
+        }
+
+        if ($hasKnockoutFixture) {
+            return ['label' => 'Hasil babak belum lengkap', 'state' => 'neutral'];
+        }
+
+        return ['label' => 'Peserta', 'state' => 'neutral'];
+    }
+
+    private function getDecidedWinnerId(Game $match): ?int
+    {
+        if ($match->status !== 'completed' || !$match->team_home_id || !$match->team_away_id) {
+            return null;
+        }
+
+        if ($match->is_penalty) {
+            $penaltyScore = $match->penalty_score_array;
+            if (!$penaltyScore) {
+                return null;
+            }
+            if ($penaltyScore['home'] !== $penaltyScore['away']) {
+                return $penaltyScore['home'] > $penaltyScore['away']
+                    ? (int) $match->team_home_id
+                    : (int) $match->team_away_id;
+            }
+            return null;
+        }
+
+        if ($match->et_score_array) {
+            $extraTimeScore = $match->et_score_array;
+            if ($extraTimeScore['home'] !== $extraTimeScore['away']) {
+                return $extraTimeScore['home'] > $extraTimeScore['away']
+                    ? (int) $match->team_home_id
+                    : (int) $match->team_away_id;
+            }
+        }
+
+        $homeScore = (int) $match->home_score;
+        $awayScore = (int) $match->away_score;
+
+        if ($homeScore === $awayScore) {
+            return null;
+        }
+
+        return $homeScore > $awayScore
+            ? (int) $match->team_home_id
+            : (int) $match->team_away_id;
     }
 
     private function getTopScorersForTournament($tournamentId)
@@ -1069,7 +1306,7 @@ class HomeController extends Controller
         $teams = Team::withCount(['players', 'tournaments'])
             ->with([
                 'tournaments' => function ($query) {
-                    $query->select('tournaments.id', 'name');
+                    $query->select('tournaments.id', 'name', 'status', 'type', 'start_date', 'end_date');
                 },
                 'players' => function ($query) {
                     $query->orderBy('goals', 'desc')
@@ -1080,21 +1317,42 @@ class HomeController extends Controller
             ->orderBy('name')
             ->paginate(24);
 
+        $this->attachTournamentHistoryToTeams($teams->getCollection());
+
         $recentHighlights = collect();
 
         return view('teams.index', compact('teams', 'recentHighlights'));
+    }
+
+    /**
+     * Public team profile focused on tournament participation and results.
+     */
+    public function teamHistory(Team $team)
+    {
+        $team->load([
+            'tournaments' => function ($query) {
+                $query->select('tournaments.id', 'name', 'status', 'type', 'start_date', 'end_date');
+            },
+        ]);
+
+        $this->attachTournamentHistoryToTeams(collect([$team]));
+
+        return view('teams.history', [
+            'team' => $team,
+            'tournamentHistory' => $team->tournament_history ?? collect(),
+        ]);
     }
 
     public function userDashboard()
     {
         $totalTeams = Team::count();
         $totalPlayers = Player::count();
-        $totalMatches = Game::count();
-        $totalGoals = (int) Game::where('status', 'completed')
+        $totalMatches = Game::publiclyVisible()->count();
+        $totalGoals = (int) Game::publiclyVisible()->where('status', 'completed')
             ->selectRaw('COALESCE(SUM(COALESCE(home_score, 0) + COALESCE(away_score, 0)), 0)')
             ->value('aggregate');
 
-        $upcomingMatches = Game::with(['homeTeam', 'awayTeam'])
+        $upcomingMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
             ->where('status', 'scheduled')
             ->orderBy('match_date')
             ->limit(5)
@@ -1156,7 +1414,7 @@ class HomeController extends Controller
     // HomeController.php
     public function highlights()
     {
-        $highlights = Game::with(['homeTeam', 'awayTeam', 'tournament'])
+        $highlights = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'tournament'])
             ->where('status', 'completed')
             ->whereNotNull('highlight_video')
             ->orderBy('match_date', 'desc')

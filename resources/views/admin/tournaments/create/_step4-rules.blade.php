@@ -45,10 +45,12 @@
                                                 @enderror
                                             </div>
                                         </div>
-                                        <div class="col-md-4">
+                                        <div class="col-md-4" id="extraTimeSettings"
+                                            style="display: {{ old('type', $tournamentData['type'] ?? '') === 'league' ? 'none' : '' }};">
                                             <div class="form-check mb-3" style="margin-top: 38px;">
                                                 <input class="form-check-input" type="checkbox" id="extra_time_enabled"
                                                     name="extra_time_enabled" value="1" {{ old('extra_time_enabled', $tournamentData['extra_time_enabled'] ?? true) ? 'checked' : '' }}
+                                                    {{ old('type', $tournamentData['type'] ?? '') === 'league' ? 'disabled' : '' }}
                                                     onchange="document.getElementById('extraTimeField').style.display = this.checked ? 'block' : 'none';">
                                                 <label class="form-check-label" for="extra_time_enabled">
                                                     Extra time untuk pertandingan knockout
@@ -62,7 +64,8 @@
                                                     class="form-control @error('extra_time') is-invalid @enderror"
                                                     id="extra_time" name="extra_time"
                                                     value="{{ old('extra_time', $tournamentData['extra_time'] ?? 10) }}"
-                                                    min="0" max="30">
+                                                    min="0" max="30"
+                                                    {{ old('type', $tournamentData['type'] ?? '') === 'league' ? 'disabled' : '' }}>
                                                 <div class="form-text">Dimainkan jika skor seri di knockout</div>
                                                 @error('extra_time')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -221,12 +224,13 @@
                                     </div>
                                     <div class="row">
                                         <div class="col-md-6" id="allowDrawCol"
-                                            style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'none' : '' }};">
+                                            style="display: {{ old('type', $tournamentData['type'] ?? '') === 'group_knockout' ? '' : 'none' }};">
                                             <div class="form-check mb-3">
                                                 <input class="form-check-input" type="checkbox" id="allow_draw"
-                                                    name="allow_draw" value="1" {{ old('allow_draw', $tournamentData['allow_draw'] ?? true) ? 'checked' : '' }}>
+                                                    name="allow_draw" value="1" {{ old('allow_draw', $tournamentData['allow_draw'] ?? true) ? 'checked' : '' }}
+                                                    {{ old('type', $tournamentData['type'] ?? '') !== 'group_knockout' ? 'disabled' : '' }}>
                                                 <label class="form-check-label" for="allow_draw">
-                                                    Izinkan hasil seri di group stage
+                                                    Izinkan hasil seri di fase grup
                                                 </label>
                                             </div>
                                         </div>
@@ -234,7 +238,8 @@
                                             style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'none' : '' }};">
                                             <div class="form-check mb-3">
                                                 <input class="form-check-input" type="checkbox" id="penalty_shootout"
-                                                    name="penalty_shootout" value="1" {{ old('penalty_shootout', $tournamentData['penalty_shootout'] ?? true) ? 'checked' : '' }}>
+                                                    name="penalty_shootout" value="1" {{ old('penalty_shootout', $tournamentData['penalty_shootout'] ?? true) ? 'checked' : '' }}
+                                                    {{ old('type', $tournamentData['type'] ?? '') === 'league' ? 'disabled' : '' }}>
                                                 <label class="form-check-label" for="penalty_shootout">
                                                     Adu penalti setelah extra time (knockout)
                                                 </label>

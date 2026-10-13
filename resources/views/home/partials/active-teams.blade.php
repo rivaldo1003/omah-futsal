@@ -2,19 +2,17 @@
     <div class="app-card-header">
         <h3 class="app-card-title">
             <i class="bi bi-trophy"></i>
-            <span>Teams in ongoing tournament</span>
+            <span>{{ $activeTournament ? 'Teams in ongoing tournament' : 'Teams in latest completed tournament' }}</span>
         </h3>
         <div class="d-flex align-items-center gap-2">
-            @if(isset($activeTournament) && $activeTournament)
-                <span class="app-badge app-badge-default">{{ $activeTournament->name }}</span>
-            @endif
-            <span class="app-badge app-badge-accent">{{ $teamsInActiveTournament->count() }} teams</span>
+            <span class="app-badge app-badge-default">{{ $teamSectionTournament->name }}</span>
+            <span class="app-badge app-badge-accent">{{ $teamsInHomeTournament->count() }} teams</span>
         </div>
     </div>
     <div class="app-card-body">
-        @if($teamsInActiveTournament->count() > 0)
+        @if($teamsInHomeTournament->count() > 0)
             <div class="row g-3 teams-grid-row">
-                @foreach($teamsInActiveTournament as $index => $team)
+                @foreach($teamsInHomeTournament as $index => $team)
                     @php
                         $totalPlayers = $team->players->count();
                         $totalTournaments = $team->tournaments->count();
@@ -59,7 +57,7 @@
                                         <div class="team-card-logo-fallback">{{ strtoupper(substr($team->name, 0, 2)) }}</div>
                                     @endif
                                     <div class="team-card-info">
-                                        <h6 class="team-card-title" title="{{ $team->name }}">{{ $team->name }}</h6>
+                                        <h6 class="team-card-title" title="{{ $team->name }}"><a href="{{ route('teams.history', $team) }}">{{ $team->name }}</a></h6>
                                         <div class="team-card-subtitle">
                                             @if($team->coach_name)
                                                 <span class="text-truncate" title="{{ $team->coach_name }}">
@@ -71,8 +69,8 @@
                                         </div>
                                     </div>
                                 </div>
-                                <span class="app-badge app-badge-success flex-shrink-0">
-                                    <i class="bi bi-circle-fill" style="font-size: 5px;"></i> Active
+                                <span class="app-badge {{ $activeTournament ? 'app-badge-success' : 'app-badge-default' }} flex-shrink-0">
+                                    @if($activeTournament)<i class="bi bi-circle-fill" style="font-size: 5px;"></i> Active @else Completed @endif
                                 </span>
                             </div>
 
@@ -110,6 +108,8 @@
                                 @endif
                             </div>
 
+                            @include('home.partials.team-tournament-history', ['team' => $team])
+
                             <div class="team-card-footer">
                                 <button type="button" class="btn-action-secondary btn-action-sm w-100 view-team-details"
                                     data-team-index="active_{{ $index }}">
@@ -124,7 +124,7 @@
         @else
             <div class="text-center py-4 text-secondary">
                 <i class="bi bi-people fs-4 d-block mb-1"></i>
-                <span>No teams currently registered in this ongoing tournament</span>
+                <span>{{ $activeTournament ? 'No teams currently registered in this ongoing tournament' : 'No team entries were recorded for this completed tournament' }}</span>
             </div>
         @endif
     </div>

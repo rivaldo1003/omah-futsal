@@ -345,11 +345,9 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-check mt-3">
-                                        <input class="form-check-input" type="checkbox" id="league_allow_draw" name="league_allow_draw" value="1" {{ old('league_allow_draw', $tournamentData['league_allow_draw'] ?? true) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="league_allow_draw">
-                                            Allow draws in league matches
-                                        </label>
+                                    <div class="form-text mt-2">
+                                        <i class="bi bi-info-circle me-1" aria-hidden="true"></i>
+                                        Hasil seri otomatis diperbolehkan pada pertandingan liga.
                                     </div>
                                 </div>
 
@@ -382,18 +380,19 @@
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('knockout_teams') is-invalid @enderror" id="knockout_teams" name="knockout_teams">
-                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>2 slot — Final</option>
-                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>4 slot — Semi-Final (3–4 tim)</option>
-                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>8 slot — Quarter-Final (5–8 tim)</option>
-                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>16 slot — Round of 16 (9–16 tim)</option>
-                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>32 slot — Round of 32 (17–32 tim)</option>
+                                                    <option value="2" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 2) ? 'selected' : '' }}>Maksimal 2 tim</option>
+                                                    <option value="4" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 4) ? 'selected' : '' }}>Maksimal 4 tim</option>
+                                                    <option value="8" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 8) ? 'selected' : '' }}>Maksimal 8 tim</option>
+                                                    <option value="16" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 16) ? 'selected' : '' }}>Maksimal 16 tim</option>
+                                                    <option value="32" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 32) ? 'selected' : '' }}>Maksimal 32 tim</option>
+                                                    <option value="64" {{ (old('knockout_teams', $tournamentData['knockout_teams'] ?? 8) == 64) ? 'selected' : '' }}>Maksimal 64 tim</option>
                                                 </select>
                                                 @error('knockout_teams')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Ukuran bagan (jumlah slot). Tim boleh mendaftar lebih sedikit — sisanya jadi bye otomatis.
+                                                    Ini batas maksimal peserta. Bracket aktual menyesuaikan jumlah tim ke ukuran pangkat dua terkecil yang cukup; tim mendapat BYE bila diperlukan. Contoh: 27 dari kapasitas 64 memakai bracket 32 dengan 5 BYE.
                                                 </div>
                                             </div>
                                         </div>
@@ -435,12 +434,15 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="form-check mt-3">
-                                        <input class="form-check-input" type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1" {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
-                                        <label class="form-check-label" for="knockout_third_place">
-                                            Include third place match
-                                        </label>
-                                    </div>
+                                </div>
+                                <div id="thirdPlaceSettings" class="form-check mt-3 mb-3"
+                                    style="display: {{ in_array(old('type', $tournamentData['type'] ?? ''), ['knockout', 'group_knockout'], true) ? 'block' : 'none' }};">
+                                    <input type="hidden" name="knockout_third_place" value="0">
+                                    <input class="form-check-input" type="checkbox" id="knockout_third_place" name="knockout_third_place" value="1" {{ old('knockout_third_place', $tournamentData['knockout_third_place'] ?? false) ? 'checked' : '' }}>
+                                    <label class="form-check-label fw-semibold" for="knockout_third_place">
+                                        Aktifkan laga perebutan juara 3/4
+                                    </label>
+                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pemenangnya menjadi juara 3; tim yang kalah menjadi juara 4. Ronde ini hanya muncul di bracket jika diaktifkan.</div>
                                 </div>
                             </div>
                         </div>
