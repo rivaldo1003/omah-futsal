@@ -10,7 +10,8 @@
     @if(isset($tournaments) && $tournaments->count() > 0)
         <div class="standings-tournament-buttons">
             @foreach($tournaments as $tournament)
-                <a href="{{ route('standings') }}?tournament_id={{ $tournament->id }}" class="btn-action-secondary btn-action-sm">
+                <a href="{{ route('standings') }}?tournament_id={{ $tournament->id }}"
+                    class="btn-action-secondary btn-action-sm">
                     <i class="bi bi-trophy"></i>
                     {{ $tournament->name }}
                 </a>

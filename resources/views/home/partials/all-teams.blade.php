@@ -86,7 +86,7 @@
                                         <div class="team-card-logo-fallback">{{ strtoupper(substr($team->name, 0, 2)) }}</div>
                                     @endif
                                     <div class="team-card-info">
-                                        <h6 class="team-card-title" title="{{ $team->name }}">{{ $team->name }}</h6>
+                                        <h6 class="team-card-title" title="{{ $team->name }}"><a href="{{ route('teams.history', $team) }}">{{ $team->name }}</a></h6>
                                         <div class="team-card-subtitle">
                                             @if($team->coach_name)
                                                 <span class="text-truncate" title="{{ $team->coach_name }}">
@@ -136,6 +136,8 @@
                                     <span class="small text-secondary fst-italic">No squad roster registered</span>
                                 @endif
                             </div>
+
+                            @include('home.partials.team-tournament-history', ['team' => $team])
 
                             <div class="team-card-footer">
                                 <button type="button" class="btn-action-secondary btn-action-sm w-100 view-team-details"

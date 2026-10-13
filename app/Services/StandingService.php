@@ -69,17 +69,22 @@ class StandingService
 
     private static function processMatchResult(Game $match)
     {
+        // Matches in a league have no group_name, while standings.group_name
+        // is required by the database. Keep the same sentinel used by the
+        // standings controller for ungrouped league matches.
+        $groupName = $match->group_name ?: 'A';
+
         // Use firstOrCreate to get existing standing without resetting values
         // The reset has already been done in recalculateGroupStandings/recalculateAllStandings
         $homeStanding = Standing::firstOrCreate([
             'team_id' => $match->team_home_id,
-            'group_name' => $match->group_name,
+            'group_name' => $groupName,
             'tournament_id' => $match->tournament_id,
         ]);
 
         $awayStanding = Standing::firstOrCreate([
             'team_id' => $match->team_away_id,
-            'group_name' => $match->group_name,
+            'group_name' => $groupName,
             'tournament_id' => $match->tournament_id,
         ]);
 
@@ -131,7 +136,8 @@ class StandingService
         }
 
         // Ambil semua completed matches
-        $matchesQuery = Game::where('status', 'completed');
+        $matchesQuery = Game::where('status', 'completed')
+            ->whereIn('round_type', ['group', 'league']);
         if ($tournamentId) {
             $matchesQuery->where('tournament_id', $tournamentId);
         }

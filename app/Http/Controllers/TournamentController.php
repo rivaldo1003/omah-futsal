@@ -250,10 +250,9 @@ class TournamentController extends Controller
                     // Hanya untuk league
                     'league_rounds' => 'nullable|integer|min:1|max:2',
                     'league_standings_type' => 'nullable|in:total_points,head_to_head,goal_difference',
-                    'league_allow_draw' => 'nullable|boolean',
                     // Hanya untuk knockout
                     'knockout_format' => 'nullable|in:single_elimination,double_elimination',
-                    'knockout_teams' => 'nullable|integer|min:2|max:32',
+                    'knockout_teams' => 'nullable|integer|min:2|max:64',
                     'knockout_seeding' => 'nullable|in:random,ranked,manual',
                     'knockout_third_place' => 'nullable|boolean',
                 ]);
@@ -282,7 +281,7 @@ class TournamentController extends Controller
 
                 if ($validated['type'] === 'knockout') {
                     $request->validate([
-                        'knockout_teams' => 'required|integer|min:2|max:32',
+                        'knockout_teams' => 'required|integer|min:2|max:64',
                     ], [
                         'knockout_teams.required' => 'Number of knockout teams is required',
                     ]);
@@ -292,6 +291,13 @@ class TournamentController extends Controller
                     unset($validated['teams_per_group']);
                     unset($validated['qualify_per_group']);
                 }
+
+                $thirdPlaceBracketSize = $validated['type'] === 'knockout'
+                    ? (int) ($validated['knockout_teams'] ?? $tournamentData['knockout_teams'] ?? 8)
+                    : (int) ($validated['groups_count'] ?? 0) * (int) ($validated['qualify_per_group'] ?? 0);
+                $validated['knockout_third_place'] = in_array($validated['type'], ['knockout', 'group_knockout'], true)
+                    && $thirdPlaceBracketSize >= 4
+                    && $request->boolean('knockout_third_place');
 
                 // Handle file upload untuk logo
                 if ($request->hasFile('logo')) {
@@ -311,6 +317,11 @@ class TournamentController extends Controller
 
                 // Merge validated data
                 $tournamentData = array_merge($tournamentData, $validated);
+                // Liga selalu mengizinkan hasil seri; tidak ada toggle tersimpan untuk aturan ini.
+                unset($tournamentData['league_allow_draw']);
+                if ($validated['type'] !== 'group_knockout') {
+                    unset($tournamentData['tie_breakers']);
+                }
                 session()->put('tournament_data', $tournamentData);
 
                 return redirect()->route('admin.tournaments.create.step', ['step' => 2])
@@ -319,7 +330,7 @@ class TournamentController extends Controller
             case 2:
                 $validated = $request->validate([
                     'teams' => 'required|array|min:2',
-                    'teams.*' => 'exists:teams,id',
+                    'teams.*' => 'required|integer|distinct|exists:teams,id',
                 ]);
 
                 $selectedTeamCount = count($validated['teams']);
@@ -336,13 +347,22 @@ class TournamentController extends Controller
                             ->withInput();
                     }
 
-                    // Warning jika bukan power of 2
+                    // Informasikan ukuran aktual dan jumlah BYE yang akan dipakai.
                     if (!($selectedTeamCount >= 2 && ($selectedTeamCount & ($selectedTeamCount - 1)) == 0)) {
+                        $actualBracketSize = 2;
+                        while ($actualBracketSize < $selectedTeamCount) {
+                            $actualBracketSize *= 2;
+                        }
+                        $byeCount = $actualBracketSize - $selectedTeamCount;
+
                         session()->flash(
                             'warning',
-                            'Knockout tournament works best with power of 2 teams (2, 4, 8, 16, 32). ' .
-                            'Byes will be added for missing teams.'
+                            "Bracket aktual {$actualBracketSize} slot untuk {$selectedTeamCount} tim; {$byeCount} tim mendapat BYE otomatis."
                         );
+                    }
+
+                    if ($selectedTeamCount < 4) {
+                        $tournamentData['knockout_third_place'] = false;
                     }
                 } elseif ($tournamentType === 'group_knockout') {
                     $groupsCount = $tournamentData['groups_count'] ?? 2;
@@ -456,6 +476,17 @@ class TournamentController extends Controller
                     'tie_breakers' => 'nullable|array',
                 ]);
 
+                $tournamentType = $tournamentData['type'] ?? null;
+                // Browser tidak mengirim checkbox yang tidak dicentang. Tetapkan nilai eksplisit
+                // agar nilai lama di session tidak mengaktifkan aturan yang sudah dinonaktifkan.
+                $validated['allow_draw'] = $tournamentType === 'league'
+                    || ($tournamentType === 'group_knockout' && $request->boolean('allow_draw'));
+                $validated['extra_time_enabled'] = $tournamentType !== 'league'
+                    && $request->boolean('extra_time_enabled');
+                $validated['penalty_shootout'] = $tournamentType !== 'league'
+                    && $request->boolean('penalty_shootout');
+                $validated['var_enabled'] = $request->boolean('var_enabled');
+
                 // Normalisasi tie_breakers: form mengirim [['key' => 'x'], ...],
                 // simpan sebagai list of keys ['x', ...] agar konsisten dengan settings.
                 if (!empty($validated['tie_breakers'])) {
@@ -552,18 +583,24 @@ class TournamentController extends Controller
                         'matches_per_day' => $tournamentData['matches_per_day'] ?? 4,
                         'match_interval' => $tournamentData['match_interval'] ?? 30,
                         'match_time_slots' => $tournamentData['match_time_slots'] ?? '14:00,16:00,18:00,20:00',
-                        'allow_draw' => (bool) ($tournamentData['allow_draw'] ?? true),
-                        'extra_time_enabled' => (bool) ($tournamentData['extra_time_enabled'] ?? true),
-                        'penalty_shootout' => (bool) ($tournamentData['penalty_shootout'] ?? true),
+                        'allow_draw' => $tournamentType === 'league'
+                            || ($tournamentType === 'group_knockout' && (bool) ($tournamentData['allow_draw'] ?? true)),
+                        'extra_time_enabled' => $tournamentType !== 'league'
+                            && (bool) ($tournamentData['extra_time_enabled'] ?? true),
+                        'penalty_shootout' => $tournamentType !== 'league'
+                            && (bool) ($tournamentData['penalty_shootout'] ?? true),
                         'var_enabled' => (bool) ($tournamentData['var_enabled'] ?? false),
-                        'tie_breakers' => $tournamentData['tie_breakers'] ?? null,
+                        'tie_breakers' => $tournamentType === 'group_knockout'
+                            ? ($tournamentData['tie_breakers'] ?? null)
+                            : null,
+                        'knockout_third_place' => in_array($tournamentType, ['knockout', 'group_knockout'], true)
+                            && (bool) ($tournamentData['knockout_third_place'] ?? false),
                     ];
 
                     // **PERBAIKAN: Tambah setting khusus berdasarkan tipe yang benar**
                     if ($tournamentType === 'league') {
                         $settings['league_rounds'] = $tournamentData['league_rounds'] ?? 1;
                         $settings['league_standings_type'] = $tournamentData['league_standings_type'] ?? 'total_points';
-                        $settings['league_allow_draw'] = (bool) ($tournamentData['league_allow_draw'] ?? true);
                         // League tidak punya groups_count di settings
                     }
 
@@ -571,7 +608,6 @@ class TournamentController extends Controller
                         $settings['knockout_format'] = $tournamentData['knockout_format'] ?? 'single_elimination';
                         $settings['knockout_teams'] = $tournamentData['knockout_teams'] ?? 8;
                         $settings['knockout_seeding'] = $tournamentData['knockout_seeding'] ?? 'random';
-                        $settings['knockout_third_place'] = (bool) ($tournamentData['knockout_third_place'] ?? false);
                     }
 
                     // Create tournament
@@ -766,8 +802,17 @@ class TournamentController extends Controller
 
         // Decode settings
         $settings = $tournament->settings ?? [];
+        $thirdPlaceFixture = Game::where('tournament_id', $tournament->id)
+            ->where('round_type', 'third_place')
+            ->first();
+        $thirdPlaceFixtureExists = (bool) $thirdPlaceFixture;
+        $thirdPlaceHasEvents = $thirdPlaceFixture?->events()->exists() ?? false;
+        $thirdPlaceHasStarted = $thirdPlaceFixture
+            && in_array($thirdPlaceFixture->status, ['ongoing', 'completed'], true);
+        $thirdPlaceLocked = $thirdPlaceHasStarted
+            || ($thirdPlaceHasEvents && $tournament->knockout_third_place);
 
-        return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings'));
+        return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings', 'thirdPlaceLocked', 'thirdPlaceFixtureExists', 'thirdPlaceHasEvents'));
     }
 
     // Update tournament
@@ -786,7 +831,7 @@ class TournamentController extends Controller
             'type' => 'required|in:league,knockout,group_knockout',
             'status' => 'required|in:upcoming,ongoing,completed,cancelled',
             'teams' => 'required|array|min:2',
-            'teams.*' => 'exists:teams,id',
+            'teams.*' => 'required|integer|distinct|exists:teams,id',
             'groups_count' => 'nullable|required_if:type,group_knockout|integer|min:1|max:8',
             'group_assignments' => 'nullable|array',
             'group_assignments.*' => 'nullable|string|max:1',
@@ -805,7 +850,67 @@ class TournamentController extends Controller
             'penalty_shootout' => 'nullable|boolean',
             'var_enabled' => 'nullable|boolean',
             'tie_breakers' => 'nullable|array',
+            'knockout_third_place' => 'nullable|boolean',
         ]);
+
+        if ($validated['type'] === 'knockout' && count($validated['teams']) > 64) {
+            return back()
+                ->withErrors(['teams' => 'Turnamen knockout mendukung maksimal 64 tim.'])
+                ->withInput();
+        }
+
+        if ($validated['type'] === 'knockout') {
+            $capacity = (int) (($tournament->settings['knockout_teams'] ?? $tournament->knockout_teams) ?: 8);
+            if (count($validated['teams']) > $capacity) {
+                return back()
+                    ->withErrors(['teams' => "Kapasitas knockout saat ini {$capacity} tim. Naikkan kapasitas sebelum menambahkan peserta."])
+                    ->withInput();
+            }
+        }
+
+        $currentTeamIds = $tournament->teams()->pluck('teams.id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+        $requestedTeamIds = collect($validated['teams'])->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
+        $hasKnockoutStructure = DB::table('knockout_slots')->where('tournament_id', $tournament->id)->exists()
+            || Game::where('tournament_id', $tournament->id)
+                ->whereNull('group_name')
+                ->whereIn('round_type', [
+                    'round_of_64', 'round_of_32', 'round_of_16', 'quarterfinal',
+                    'semifinal', 'final', 'third_place', 'knockout',
+                ])
+                ->exists();
+
+        if ($hasKnockoutStructure
+            && ($tournament->type === 'knockout' || $validated['type'] === 'knockout')
+            && ($currentTeamIds !== $requestedTeamIds || $tournament->type !== $validated['type'])) {
+            return back()
+                ->withErrors(['teams' => 'Peserta atau tipe turnamen tidak dapat diubah setelah bracket/match knockout dibuat. Reset bracket dan hapus fixture yang belum dimainkan terlebih dahulu.'])
+                ->withInput();
+        }
+
+        $currentSettings = $tournament->settings ?? [];
+        $thirdPlaceBracketSize = $validated['type'] === 'knockout'
+            ? count($validated['teams'])
+            : (int) ($validated['groups_count'] ?? 0) * (int) ($currentSettings['qualify_per_group'] ?? $tournament->qualify_per_group ?? 2);
+        $willEnableThirdPlace = in_array($validated['type'], ['knockout', 'group_knockout'], true)
+            && $thirdPlaceBracketSize >= 4
+            && (bool) ($validated['knockout_third_place'] ?? false);
+        $thirdPlaceMatch = Game::where('tournament_id', $tournament->id)
+            ->where('round_type', 'third_place')
+            ->first();
+        $thirdPlaceHasEvents = $thirdPlaceMatch?->events()->exists() ?? false;
+        $thirdPlaceHasStarted = $thirdPlaceMatch
+            && in_array($thirdPlaceMatch->status, ['ongoing', 'completed'], true);
+        $wouldDisableFixtureWithEvents = $thirdPlaceHasEvents
+            && $tournament->knockout_third_place
+            && !$willEnableThirdPlace;
+
+        if ($thirdPlaceMatch
+            && (($thirdPlaceHasStarted && $willEnableThirdPlace !== (bool) $tournament->knockout_third_place)
+                || $wouldDisableFixtureWithEvents)) {
+            return back()
+                ->withErrors(['knockout_third_place' => 'Laga perebutan juara 3/4 sudah memiliki event, dimulai, atau selesai. Hapus event terlebih dahulu sebelum mengubah pengaturan.'])
+                ->withInput();
+        }
 
         try {
             DB::beginTransaction();
@@ -843,7 +948,7 @@ class TournamentController extends Controller
             }
 
             // Prepare settings
-            $settings = $tournament->settings ?? [];
+            $settings = $currentSettings;
             
             // Process tie_breakers - extract keys from array format
             $tieBreakersKeys = [];
@@ -864,7 +969,7 @@ class TournamentController extends Controller
             }
             
             \Log::info('Extracted tie-breaker keys', $tieBreakersKeys);
-            
+
             $settings = array_merge($settings, [
                 'match_duration' => $validated['match_duration'],
                 'half_time' => $validated['half_time'],
@@ -875,12 +980,17 @@ class TournamentController extends Controller
                 'points_no_show' => $validated['points_no_show'] ?? ($settings['points_no_show'] ?? -1),
                 'max_substitutes' => $validated['max_substitutes'] ?? ($settings['max_substitutes'] ?? 5),
                 'yellow_card_suspension' => $validated['yellow_card_suspension'] ?? ($settings['yellow_card_suspension'] ?? 3),
-                'allow_draw' => (bool) ($validated['allow_draw'] ?? false),
-                'extra_time_enabled' => (bool) ($validated['extra_time_enabled'] ?? false),
-                'penalty_shootout' => (bool) ($validated['penalty_shootout'] ?? false),
+                'allow_draw' => $validated['type'] === 'league'
+                    || ($validated['type'] === 'group_knockout' && (bool) ($validated['allow_draw'] ?? false)),
+                'extra_time_enabled' => $validated['type'] !== 'league'
+                    && (bool) ($validated['extra_time_enabled'] ?? false),
+                'penalty_shootout' => $validated['type'] !== 'league'
+                    && (bool) ($validated['penalty_shootout'] ?? false),
                 'var_enabled' => (bool) ($validated['var_enabled'] ?? false),
                 'tie_breakers' => !empty($tieBreakersKeys) ? $tieBreakersKeys : null,
+                'knockout_third_place' => $willEnableThirdPlace,
             ]);
+            unset($settings['league_allow_draw']);
             
             \Log::info('Final settings before save', $settings);
             \Log::info('JSON encoded settings', ['json' => json_encode($settings)]);
@@ -906,6 +1016,12 @@ class TournamentController extends Controller
             \Log::info('Update data', $updateData);
             
             $tournament->update($updateData);
+
+            if ($willEnableThirdPlace) {
+                app(\App\Services\KnockoutDrawService::class)->ensureThirdPlaceFixture($tournament);
+            } elseif ($thirdPlaceMatch && in_array($thirdPlaceMatch->status, ['upcoming', 'postponed'], true)) {
+                $thirdPlaceMatch->update(['is_cancelled' => true]);
+            }
             
             \Log::info('Tournament updated successfully', ['settings' => $tournament->settings]);
 
@@ -1027,36 +1143,9 @@ class TournamentController extends Controller
                 ->with('error', 'Undi tim hanya tersedia untuk turnamen tipe Knockout.');
         }
 
-        $teams = $tournament->teams()->pluck('teams.id')->toArray();
-
-        if (count($teams) < 2) {
-            return redirect()->back()
-                ->with('error', 'Minimal 2 tim diperlukan untuk melakukan undian.');
-        }
-
-        // Acak urutan tim
-        shuffle($teams);
-
-        // Simpan urutan undian sebagai seed pada pivot team_tournament
-        foreach ($teams as $index => $teamId) {
-            DB::table('team_tournament')
-                ->where('tournament_id', $tournament->id)
-                ->where('team_id', $teamId)
-                ->update([
-                    'seed' => $index + 1,
-                    'updated_at' => now(),
-                ]);
-        }
-
-        // Catat waktu undian pada settings
-        $settings = $tournament->settings ?? [];
-        $settings['knockout_drawn_at'] = now()->toDateTimeString();
-        $settings['knockout_draw_order'] = $teams;
-        $tournament->settings = $settings;
-        $tournament->save();
-
-        return redirect()->back()
-            ->with('success', 'Undi tim berhasil! Urutan bagan telah diperbarui.');
+        return redirect()
+            ->route('admin.tournaments.draw.show', $tournament)
+            ->with('success', 'Gunakan Tournament Draw untuk mengundi tim dan memperbarui bracket tanpa membuat hasil yang berbeda.');
     }
 
     // Delete tournament
@@ -1072,7 +1161,15 @@ class TournamentController extends Controller
                 Storage::disk('public')->delete($tournament->banner);
             }
 
-            $tournament->delete();
+            DB::transaction(function () use ($tournament) {
+                // Hapus tiap match sebagai model agar hook pembalik statistik pemain berjalan.
+                foreach ($tournament->matches()->get() as $match) {
+                    $match->delete();
+                }
+
+                Standing::where('tournament_id', $tournament->id)->delete();
+                $tournament->delete();
+            });
 
             return redirect()->route('admin.tournaments.index')
                 ->with('success', 'Tournament deleted successfully!');
@@ -1089,8 +1186,11 @@ class TournamentController extends Controller
         try {
             DB::beginTransaction();
 
-            // Hapus match yang ada
-            $tournament->matches()->delete();
+            // Hapus tiap match sebagai model agar statistik pemain dari event ikut dibalik.
+            foreach ($tournament->matches()->get() as $existingMatch) {
+                $existingMatch->delete();
+            }
+            Standing::where('tournament_id', $tournament->id)->delete();
 
             $teams = $tournament->teams;
 

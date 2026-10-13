@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\KnockoutSlot;
+use App\Models\Game;
 use App\Models\Team;
 use App\Models\Tournament;
 use App\Models\TournamentDraw;
@@ -25,8 +25,17 @@ class TournamentDrawController extends Controller
     {
         abort_unless($tournament->type === 'knockout', 404, 'Undian hanya untuk turnamen Knockout.');
 
+        $hasBracket = $this->draw->hasBracket($tournament);
         $status = $this->draw->drawStatus($tournament);
-        $tree = $this->draw->bracketTree($tournament);
+        $tree = $hasBracket ? $this->draw->bracketTree($tournament) : [];
+        $hasKnockoutFixtures = Game::where('tournament_id', $tournament->id)
+            ->whereNull('group_name')
+            ->whereIn('round_type', [
+                'round_of_64', 'round_of_32', 'round_of_16', 'quarterfinal',
+                'semifinal', 'final', 'third_place', 'knockout',
+            ])
+            ->exists();
+        $hasDrawHistory = TournamentDraw::where('tournament_id', $tournament->id)->exists();
 
         $remainingTeams = $this->draw->remainingTeams($tournament);
         $availableSlots = $this->draw->availableSlotNumbers($tournament);
@@ -37,17 +46,22 @@ class TournamentDrawController extends Controller
             ->get();
 
         $bracketSize = $this->draw->bracketSize($tournament);
+        $bracketCapacity = $this->draw->configuredBracketCapacity($tournament);
         $teamCount = $tournament->teams()->count();
         $byeCount = max(0, $bracketSize - $teamCount);
 
         return view('admin.tournaments.draw', compact(
             'tournament',
+            'hasBracket',
+            'hasKnockoutFixtures',
+            'hasDrawHistory',
             'status',
             'tree',
             'remainingTeams',
             'availableSlots',
             'drawnTeams',
             'bracketSize',
+            'bracketCapacity',
             'teamCount',
             'byeCount'
         ));
@@ -63,9 +77,21 @@ class TournamentDrawController extends Controller
         try {
             $this->draw->buildBracket($tournament);
 
+            $bracketSize = $this->draw->bracketSize($tournament);
+            $capacity = $this->draw->configuredBracketCapacity($tournament);
+            $teams = $tournament->teams()->count();
+            $byeCount = max(0, $bracketSize - $teams);
+            $summary = "Bracket {$bracketSize} slot untuk {$teams} tim berhasil dibuat";
+            if ($byeCount > 0) {
+                $summary .= ", dengan {$byeCount} BYE otomatis";
+            }
+            if ($bracketSize < $capacity) {
+                $summary .= " (kapasitas terpilih {$capacity} slot)";
+            }
+
             return redirect()
                 ->route('admin.tournaments.draw.show', $tournament)
-                ->with('success', 'Bracket berhasil dibuat. Slot masih kosong, siap untuk undian.');
+                ->with('success', $summary . '. Slot siap untuk undian.');
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Gagal membuat bracket: ' . $e->getMessage());
         }
@@ -82,14 +108,14 @@ class TournamentDrawController extends Controller
             'team_id' => 'required|exists:teams,id',
         ]);
 
-        // Pastikan bracket sudah dibangun
-        if (!$this->draw->hasBracket($tournament)) {
-            $this->draw->buildBracket($tournament);
-        }
-
-        $team = Team::findOrFail($validated['team_id']);
-
         try {
+            // Pastikan bracket sudah dibangun. Keep this inside try so a
+            // registration/capacity issue is returned as a normal draw error.
+            if (!$this->draw->hasBracket($tournament)) {
+                $this->draw->buildBracket($tournament);
+            }
+
+            $team = Team::findOrFail($validated['team_id']);
             $slotNumber = $this->draw->drawForTeam($tournament, $team);
 
             if ($request->expectsJson()) {
@@ -127,7 +153,7 @@ class TournamentDrawController extends Controller
 
             $message = $rebuild
                 ? 'Undian direset dan bracket dibangun ulang.'
-                : 'Undian direset. Bracket lama dipertahankan.';
+                : 'Undian dan struktur bracket dihapus. Bangun bracket baru sebelum mengundi lagi.';
 
             return redirect()
                 ->route('admin.tournaments.draw.show', $tournament)
@@ -144,11 +170,11 @@ class TournamentDrawController extends Controller
     {
         abort_unless($tournament->type === 'knockout', 404);
 
-        if (!$this->draw->hasBracket($tournament)) {
-            $this->draw->buildBracket($tournament);
-        }
-
         try {
+            if (!$this->draw->hasBracket($tournament)) {
+                $this->draw->buildBracket($tournament);
+            }
+
             $teams = $this->draw->remainingTeams($tournament);
             foreach ($teams as $team) {
                 $this->draw->drawForTeam($tournament, $team);

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\HeroSettingController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\MatchApiController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchEventController;
@@ -36,6 +37,7 @@ Route::get('/tournaments/{tournament}/teams', [TournamentController::class, 'tea
 
 // Public Teams
 Route::get('/teams', [TeamController::class, 'index'])->name('teams.index');
+Route::get('/teams/{team}/history', [HomeController::class, 'teamHistory'])->name('teams.history');
 Route::get('/teams/{team}', [TeamController::class, 'show'])->name('teams.show');
 
 // All registered teams — dedicated full listing page
@@ -188,6 +190,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('build', [TournamentDrawController::class, 'build'])->name('build');
         Route::post('cabut', [TournamentDrawController::class, 'draw'])->name('cabut');
         Route::post('all', [TournamentDrawController::class, 'drawAll'])->name('all');
+        Route::post('generate-matches', [MatchApiController::class, 'generateFromDraw'])->name('generate-matches');
         Route::post('reset', [TournamentDrawController::class, 'reset'])->name('reset');
     });
     Route::get('tournaments/{tournament}/export', [TournamentController::class, 'export'])->name('tournaments.export');

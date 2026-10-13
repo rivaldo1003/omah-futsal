@@ -29,7 +29,6 @@ class Tournament extends Model
         // Tambahan field untuk league
         'league_rounds',
         'league_standings_type',
-        'league_allow_draw',
         // Tambahan field untuk knockout
         'knockout_format',
         'knockout_teams',
@@ -45,7 +44,6 @@ class Tournament extends Model
         'end_date' => 'date',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'league_allow_draw' => 'boolean',
         'knockout_third_place' => 'boolean',
         'is_featured' => 'boolean',
         'home_order' => 'integer',
@@ -177,6 +175,14 @@ class Tournament extends Model
 
     public function getAllowDrawAttribute()
     {
+        if ($this->type === 'league') {
+            return true;
+        }
+
+        if ($this->type === 'knockout') {
+            return false;
+        }
+
         return $this->settings['allow_draw'] ?? true;
     }
 
@@ -189,6 +195,21 @@ class Tournament extends Model
     public function getLeagueMatchOrderAttribute()
     {
         return $this->settings['league_match_order'] ?? 'sequential';
+    }
+
+    /**
+     * Third-place option is stored in settings; fall back to the old DB column
+     * for tournaments created before the setting was moved into JSON.
+     */
+    public function getKnockoutThirdPlaceAttribute($value = null): bool
+    {
+        $settings = $this->settings ?? [];
+
+        if (array_key_exists('knockout_third_place', $settings)) {
+            return filter_var($settings['knockout_third_place'], FILTER_VALIDATE_BOOLEAN);
+        }
+
+        return (bool) $value;
     }
 
     public function getKnockoutFormatTypeAttribute()
@@ -225,9 +246,8 @@ class Tournament extends Model
                 return ($teamCount * ($teamCount - 1) / 2) * $rounds;
 
             case 'knockout':
-                $bracketSize = $this->knockout_teams ?? 8;
-                $total = $bracketSize - 1;
-                if ($this->knockout_third_place) {
+                $total = $teamCount - 1;
+                if ($this->knockout_third_place && $teamCount >= 4) {
                     $total += 1;
                 }
 
@@ -244,7 +264,7 @@ class Tournament extends Model
                 // Knockout matches
                 $knockoutTeams = $groupsCount * $qualifyPerGroup;
                 $knockoutMatches = $knockoutTeams - 1;
-                if ($this->knockout_third_place) {
+                if ($this->knockout_third_place && $knockoutTeams >= 4) {
                     $knockoutMatches += 1;
                 }
 
@@ -419,7 +439,18 @@ class Tournament extends Model
     public function getKnockoutBracketSizeAttribute(): int
     {
         if ($this->type === 'knockout') {
-            return $this->knockout_teams ?? 8;
+            $builtSize = (int) ($this->settings['draw_bracket_size'] ?? 0);
+            if ($builtSize >= 2) {
+                return min(64, $builtSize);
+            }
+
+            $teamCount = $this->teams()->count();
+            $size = 2;
+            while ($size < $teamCount && $size < 64) {
+                $size *= 2;
+            }
+
+            return $size;
         } elseif ($this->type === 'group_knockout') {
             $groupsCount = $this->groups_count ?? 2;
             $qualifyPerGroup = $this->qualify_per_group ?? 2;
@@ -428,6 +459,12 @@ class Tournament extends Model
         }
 
         return 0;
+    }
+
+    /** Configured knockout slot count, stored in settings for current tournaments. */
+    public function getConfiguredKnockoutTeamsAttribute(): int
+    {
+        return (int) ($this->settings['knockout_teams'] ?? $this->getAttribute('knockout_teams') ?? 8);
     }
 
     /**
@@ -448,10 +485,14 @@ class Tournament extends Model
     public function allowsDraws(): bool
     {
         if ($this->type === 'league') {
-            return $this->league_allow_draw ?? true;
+            return true;
         }
 
-        return $this->allow_draw ?? true;
+        if ($this->type === 'knockout') {
+            return false;
+        }
+
+        return (bool) ($this->allow_draw ?? true);
     }
 
     /**
@@ -474,7 +515,7 @@ class Tournament extends Model
                 break;
 
             case 'knockout':
-                $summary['bracket_size'] = $this->knockout_teams ?? 8;
+                $summary['bracket_size'] = $this->configured_knockout_teams;
                 $summary['format'] = $this->knockout_format_type;
                 $summary['third_place'] = $this->knockout_third_place ? 'Yes' : 'No';
                 break;
@@ -484,6 +525,7 @@ class Tournament extends Model
                 $summary['teams_per_group'] = $this->teams_per_group ?? 4;
                 $summary['qualify_per_group'] = $this->qualify_per_group ?? 2;
                 $summary['knockout_teams'] = $this->getKnockoutBracketSizeAttribute();
+                $summary['third_place'] = $this->knockout_third_place ? 'Yes' : 'No';
                 break;
         }
 

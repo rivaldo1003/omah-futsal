@@ -183,7 +183,8 @@
                                 <strong>Format:</strong> Single Round-Robin (tanpa grup)
                             @elseif($tournamentType === 'knockout')
                                 <strong>Format:</strong> {{ ucfirst(str_replace('_', ' ', $tournamentSettings['knockout_format'] ?? 'single_elimination')) }} |
-                                <strong>Tim:</strong> {{ $tournamentSettings['knockout_teams'] ?? 8 }}
+                                <strong>Kapasitas:</strong> {{ $tournamentSettings['knockout_teams'] ?? 8 }} |
+                                <strong>Bracket aktual:</strong> {{ $selectedTournament->knockout_bracket_size }}
                             @endif
                         </small>
                     </div>
@@ -356,8 +357,13 @@
                                             <option value="">Pilih tipe ronde</option>
                                             @if($tournamentType === 'knockout')
                                                 @php
-                                                    $knockoutTeams = $tournamentSettings['knockout_teams'] ?? 8;
+                                                    $knockoutTeams = $selectedTournament->knockout_bracket_size;
                                                 @endphp
+                                                @if($knockoutTeams >= 64)
+                                                    <option value="round_of_64" {{ old('round_type') == 'round_of_64' ? 'selected' : '' }}>
+                                                        Babak 64 Besar
+                                                    </option>
+                                                @endif
                                                 @if($knockoutTeams >= 32)
                                                     <option value="round_of_32" {{ old('round_type') == 'round_of_32' ? 'selected' : '' }}>
                                                         Round of 32
@@ -383,7 +389,7 @@
                                                 </option>
                                                 @if($tournamentSettings['knockout_third_place'] ?? false)
                                                     <option value="third_place" {{ old('round_type') == 'third_place' ? 'selected' : '' }}>
-                                                        Third Place
+                                                        Third-place playoff (3rd/4th)
                                                     </option>
                                                 @endif
                                             @elseif($tournamentType === 'group_knockout')
@@ -410,7 +416,7 @@
                                                 </option>
                                                 @if($tournamentSettings['knockout_third_place'] ?? false)
                                                     <option value="third_place" {{ old('round_type') == 'third_place' ? 'selected' : '' }}>
-                                                        Third Place
+                                                        Third-place playoff (3rd/4th)
                                                     </option>
                                                 @endif
                                             @endif

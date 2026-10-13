@@ -70,6 +70,7 @@ Route::prefix('v1')->group(function () {
 Route::middleware('auth:sanctum')->prefix('v1')->group(function () {
     // Admin endpoints
     Route::apiResource('admin/tournaments', TournamentApiController::class)->except(['index', 'show']);
+    Route::post('admin/tournaments/{tournament}/generate-matches-from-draw', [MatchApiController::class, 'generateFromDraw']);
     Route::apiResource('admin/matches', MatchApiController::class)->except(['index', 'show']);
     Route::apiResource('admin/teams', TeamApiController::class)->except(['index', 'show']);
     Route::apiResource('admin/players', PlayerApiController::class)->except(['index', 'show']);

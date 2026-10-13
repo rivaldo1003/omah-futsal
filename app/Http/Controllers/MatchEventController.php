@@ -16,6 +16,11 @@ class MatchEventController extends Controller
      */
     public function index(Game $match)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         // Ambil events - HANYA orderBy minute saja
         $events = MatchEvent::where('match_id', $match->id)
             ->orderBy('minute')
@@ -72,6 +77,11 @@ class MatchEventController extends Controller
      */
     public function create(Game $match)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         // Gunakan team_away_id secara langsung untuk menghindari error jika relasi belum dimuat
         $teams = Team::whereIn('id', [$match->team_home_id, $match->team_away_id])->get();
 
@@ -106,6 +116,11 @@ class MatchEventController extends Controller
      */
     public function store(Request $request, Game $match)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         $validated = $request->validate([
             'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
@@ -170,6 +185,11 @@ class MatchEventController extends Controller
      */
     public function edit(Game $match, MatchEvent $event)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         $teams = Team::whereIn('id', [$match->team_home_id, $match->team_away_id])->get();
 
         // Ambil players dari kedua tim
@@ -203,6 +223,11 @@ class MatchEventController extends Controller
      */
     public function update(Request $request, Game $match, MatchEvent $event)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         $validated = $request->validate([
             'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
@@ -264,6 +289,11 @@ class MatchEventController extends Controller
      */
     public function destroy(Game $match, MatchEvent $event)
     {
+        if ($match->is_cancelled) {
+            return redirect()->route('admin.matches.index')
+                ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
+        }
+
         try {
             DB::transaction(function () use ($match, $event) {
                 // Revert effects before deleting
@@ -353,6 +383,10 @@ class MatchEventController extends Controller
                 }
                 break;
 
+            case 'assist':
+                $player->increment('assists');
+                break;
+
             case 'yellow_card':
                 // Cari kartu kuning lain milik pemain ini di pertandingan yang sama (selain event ini)
                 $otherYellow = MatchEvent::where('match_id', $event->match_id)
@@ -364,7 +398,7 @@ class MatchEventController extends Controller
                 if ($otherYellow) {
                     // Jika ini kartu kuning kedua:
                     // 1. Buat event kartu merah otomatis
-                    MatchEvent::updateOrCreate(
+                    $automaticRedCard = MatchEvent::updateOrCreate(
                         [
                             'match_id' => $event->match_id,
                             'player_id' => $player->id,
@@ -378,7 +412,9 @@ class MatchEventController extends Controller
                     );
 
                     // 2. Update Statistik: Merah +1, Kuning -1 (membatalkan kuning pertama)
-                    $player->increment('red_cards');
+                    if ($automaticRedCard->wasRecentlyCreated) {
+                        $player->increment('red_cards');
+                    }
                     $player->yellow_cards = max(0, $player->yellow_cards - 1);
                     $player->save();
                 } else {
@@ -423,6 +459,10 @@ class MatchEventController extends Controller
                 if ($event->is_penalty) {
                     $player->decrement('penalty_goals');
                 }
+                break;
+
+            case 'assist':
+                $player->decrement('assists');
                 break;
 
             case 'yellow_card':
@@ -477,6 +517,8 @@ class MatchEventController extends Controller
      */
     public function timeline(Game $match)
     {
+        abort_if($match->is_cancelled, 404);
+
         $events = $match->events()
             ->with(['player', 'relatedPlayer', 'team'])
             ->orderBy('minute')
@@ -503,6 +545,13 @@ class MatchEventController extends Controller
      */
     public function quickAddGoal(Request $request, Game $match)
     {
+        if ($match->is_cancelled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.',
+            ], 422);
+        }
+
         $request->validate([
             'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
@@ -548,6 +597,13 @@ class MatchEventController extends Controller
      */
     public function quickAddCard(Request $request, Game $match)
     {
+        if ($match->is_cancelled) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.',
+            ], 422);
+        }
+
         $request->validate([
             'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
@@ -586,10 +642,12 @@ class MatchEventController extends Controller
      * Model agregasi (konsisten dengan updatePlayerStats()):
      * - goals         = jumlah event 'goal' per player
      * - penalty_goals = jumlah event 'goal' dengan is_penalty = 1
-     * - assists       = jumlah event 'goal' dengan related_player_id = player.id
-     * - yellow_cards  = jumlah event 'yellow_card' dikurangi jumlah pertandingan
-     *                   dengan >= 2 kartu kuning (kartu kuning kedua jadi merah)
+     * - assists       = assist eksplisit dan pemain terkait pada event goal
+     * - yellow_cards  = satu kartu bila hanya ada satu event kuning dalam match;
+     *                   dua atau lebih menghasilkan kartu merah dan nol kartu kuning
      * - red_cards     = jumlah event 'red_card'
+     * - event tetap menjadi sumber statistik selama fixture belum dihapus;
+     *   fixture juara 3 yang dinonaktifkan seharusnya tidak memiliki event
      */
     public function recalculateStats()
     {
@@ -605,29 +663,28 @@ class MatchEventController extends Controller
                 ->get()
                 ->keyBy('player_id');
 
-            // 2. Assists dari related_player_id pada event goal
-            $assistStats = MatchEvent::selectRaw('related_player_id as player_id, COUNT(*) as assists')
+            // 2. Assists from goal events and explicitly recorded assist events.
+            $goalAssistStats = MatchEvent::selectRaw('related_player_id as player_id, COUNT(*) as assists')
                 ->where('event_type', 'goal')
                 ->whereNotNull('related_player_id')
                 ->groupBy('related_player_id')
                 ->get()
                 ->keyBy('player_id');
 
-            // 3. Yellow cards: raw event dikurangi pertandingan dengan >= 2 kuning
-            //    (sesuai logika kartu kuning kedua = kartu merah di updatePlayerStats)
-            $yellowRaw = MatchEvent::selectRaw('player_id, COUNT(*) as total')
-                ->where('event_type', 'yellow_card')
+            $explicitAssistStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'assist')
                 ->groupBy('player_id')
                 ->get()
                 ->keyBy('player_id');
 
-            $yellowNetting = MatchEvent::selectRaw('player_id, COUNT(DISTINCT match_id) as netting')
+            // 3. Yellow-card contribution per player per match follows the
+            // event-entry logic: a second caution is converted into a red.
+            $yellowByMatch = MatchEvent::selectRaw('player_id, match_id, COUNT(*) as total')
                 ->where('event_type', 'yellow_card')
                 ->groupBy('player_id', 'match_id')
-                ->havingRaw('COUNT(*) >= 2')
                 ->get()
                 ->groupBy('player_id')
-                ->map(fn ($rows) => $rows->count());
+                ->map(fn ($matches) => $matches->where('total', 1)->count());
 
             // 4. Red cards dari event
             $redStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
@@ -636,34 +693,60 @@ class MatchEventController extends Controller
                 ->get()
                 ->keyBy('player_id');
 
+            $penaltyStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'penalty')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            $saveStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'save')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
+            $cleanSheetStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
+                ->where('event_type', 'clean_sheet')
+                ->groupBy('player_id')
+                ->get()
+                ->keyBy('player_id');
+
             // 5. Terapkan ke semua player yang punya event ATAU yang stat-nya
             //    non-zero (supaya player yang event-nya habis/dipindah ikut di-reset ke 0)
             $playerIds = $goalStats->keys()
-                ->merge($assistStats->keys())
-                ->merge($yellowRaw->keys())
+                ->merge($goalAssistStats->keys())
+                ->merge($explicitAssistStats->keys())
+                ->merge($yellowByMatch->keys())
                 ->merge($redStats->keys())
+                ->merge($penaltyStats->keys())
+                ->merge($saveStats->keys())
+                ->merge($cleanSheetStats->keys())
                 ->merge(
                     Player::where(function ($q) {
                         $q->where('goals', '>', 0)
                             ->orWhere('penalty_goals', '>', 0)
                             ->orWhere('assists', '>', 0)
                             ->orWhere('yellow_cards', '>', 0)
-                            ->orWhere('red_cards', '>', 0);
+                            ->orWhere('red_cards', '>', 0)
+                            ->orWhere('penalty_missed', '>', 0)
+                            ->orWhere('saves', '>', 0)
+                            ->orWhere('clean_sheets', '>', 0);
                     })->pluck('id')
                 )
                 ->unique();
 
             $updated = 0;
             foreach ($playerIds as $playerId) {
-                $yellowRawCount = $yellowRaw->has($playerId) ? (int) $yellowRaw[$playerId]->total : 0;
-                $netting = $yellowNetting->has($playerId) ? (int) $yellowNetting[$playerId] : 0;
-
                 $newStats = [
                     'goals' => $goalStats->has($playerId) ? (int) $goalStats[$playerId]->goals : 0,
                     'penalty_goals' => $goalStats->has($playerId) ? (int) $goalStats[$playerId]->penalty_goals : 0,
-                    'assists' => $assistStats->has($playerId) ? (int) $assistStats[$playerId]->assists : 0,
-                    'yellow_cards' => max(0, $yellowRawCount - $netting),
+                    'assists' => ($goalAssistStats->has($playerId) ? (int) $goalAssistStats[$playerId]->assists : 0)
+                        + ($explicitAssistStats->has($playerId) ? (int) $explicitAssistStats[$playerId]->total : 0),
+                    'yellow_cards' => $yellowByMatch->has($playerId) ? (int) $yellowByMatch[$playerId] : 0,
                     'red_cards' => $redStats->has($playerId) ? (int) $redStats[$playerId]->total : 0,
+                    'penalty_missed' => $penaltyStats->has($playerId) ? (int) $penaltyStats[$playerId]->total : 0,
+                    'saves' => $saveStats->has($playerId) ? (int) $saveStats[$playerId]->total : 0,
+                    'clean_sheets' => $cleanSheetStats->has($playerId) ? (int) $cleanSheetStats[$playerId]->total : 0,
                 ];
 
                 $player = Player::find($playerId);
@@ -671,7 +754,7 @@ class MatchEventController extends Controller
                     continue;
                 }
 
-                $player->fill($newStats);
+                $player->forceFill($newStats);
                 if ($player->isDirty()) {
                     $player->save();
                     $updated++;

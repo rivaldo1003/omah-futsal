@@ -135,7 +135,7 @@
         }
 
         if (step === 2) {
-            const selectedTeams = $('#teams').val();
+            const selectedTeams = $('#teams').val() || [];
             if (!selectedTeams || selectedTeams.length === 0) {
                 showError('Please select at least one team');
                 isValid = false;
@@ -147,10 +147,11 @@
             // Validasi khusus untuk knockout
             if (tournamentType === 'knockout') {
                 const bracketSize = parseInt($('#knockout_teams').val()) || 8;
-                if (selectedTeams.length > bracketSize) {
-                    const suggested = nextPowerOfTwo(selectedTeams);
-                    const byes = suggested - selectedTeams;
-                    showError(`Bagan ${bracketSize} terlalu kecil untuk ${selectedTeams} tim. Naikkan Ukuran Bagan ke ${suggested} (${byes} bye otomatis).`);
+                if (selectedTeams.length > 64) {
+                    showError('Turnamen knockout mendukung maksimal 64 tim. Kurangi tim yang dipilih.');
+                    isValid = false;
+                } else if (selectedTeams.length > bracketSize) {
+                    showError(`Kapasitas ${bracketSize} tim terlalu kecil untuk ${selectedTeams.length} tim. Naikkan kapasitas bagan.`);
                     isValid = false;
                 }
             }
@@ -294,8 +295,8 @@
             matchCount = (teamCount * (teamCount - 1) / 2) * rounds;
         } else if (type === 'knockout') {
             const bracketSize = parseInt($('#knockout_teams').val()) || 8;
-            matchCount = bracketSize - 1;
-            if ($('#knockout_third_place').is(':checked')) {
+            matchCount = Math.max(0, teamCount - 1);
+            if (bracketSize >= 4 && teamCount >= 4 && $('#knockout_third_place').is(':checked')) {
                 matchCount += 1;
             }
         } else if (type === 'group_knockout') {
@@ -308,6 +309,9 @@
             const knockoutTeams = groupsCount * qualifyPerGroup;
             const knockoutMatches = knockoutTeams - 1;
             matchCount = groupMatches + knockoutMatches;
+            if (knockoutTeams >= 4 && $('#knockout_third_place').is(':checked')) {
+                matchCount += 1;
+            }
         }
 
         $('#previewName').text(name);
@@ -501,28 +505,33 @@
         if (emptyEl) emptyEl.classList.toggle('d-none', visible !== 0);
     }
 
-    // Fungsi untuk menampilkan info bye otomatis (ukuran bagan - jumlah tim)
+    // Kapasitas adalah batas peserta; ukuran bracket aktual mengikuti jumlah tim.
     function updateByeInfo() {
         const infoEl = document.getElementById('byeInfoText');
         if (!infoEl) return;
 
-        const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+        const capacity = parseInt($('#knockout_teams').val()) || 8;
         const selectedTeams = ($('#teams').val() || []).length;
 
         if (selectedTeams === 0) {
-            infoEl.textContent = `Bagan ${bracketSize} slot — pilih tim dulu untuk menghitung bye.`;
+            infoEl.textContent = `Kapasitas ${capacity} tim — bracket aktual menyesuaikan jumlah peserta.`;
             renderBracketPreview();
             return;
         }
 
-        const byes = bracketSize - selectedTeams;
+        if (selectedTeams > capacity) {
+            infoEl.textContent = `Kapasitas ${capacity} tim terlampaui. Kurangi peserta atau naikkan kapasitas.`;
+            renderBracketPreview();
+            return;
+        }
+
+        const actualBracketSize = nextPowerOfTwo(selectedTeams);
+        const byes = actualBracketSize - selectedTeams;
 
         if (byes > 0) {
-            infoEl.textContent = `${selectedTeams} tim di bagan ${bracketSize} → ${byes} bye otomatis.`;
-        } else if (byes === 0) {
-            infoEl.textContent = `${selectedTeams} tim mengisi penuh bagan ${bracketSize} → tanpa bye.`;
+            infoEl.textContent = `${selectedTeams} tim → bracket aktual ${actualBracketSize} slot dengan ${byes} BYE otomatis (kapasitas ${capacity}).`;
         } else {
-            infoEl.textContent = `⚠️ ${selectedTeams} tim melebihi bagan ${bracketSize}. Perbesar ukuran bagan.`;
+            infoEl.textContent = `${selectedTeams} tim mengisi penuh bracket aktual ${actualBracketSize} slot (kapasitas ${capacity}).`;
         }
 
         renderBracketPreview();
@@ -587,7 +596,7 @@
         const container = document.getElementById('bracketPreview');
         if (!container) return;
 
-        const bracketSize = parseInt($('#knockout_teams').val()) || 8;
+        const capacity = parseInt($('#knockout_teams').val()) || 8;
         const selectedTeams = ($('#teams').val() || []).length;
 
         if (selectedTeams === 0) {
@@ -596,10 +605,10 @@
         }
 
         // Bagan lebih kecil dari jumlah tim → tampilkan peringatan
-        if (selectedTeams > bracketSize) {
+        if (selectedTeams > capacity) {
             container.innerHTML = `<div class="bracket-preview-empty" style="color:var(--accent);">
                 <i class="bi bi-exclamation-triangle"></i>
-                <span>Bagan ${bracketSize} terlalu kecil untuk ${selectedTeams} tim. Naikkan Ukuran Bagan.</span>
+                <span>Kapasitas ${capacity} tim terlalu kecil untuk ${selectedTeams} tim. Naikkan kapasitas bagan.</span>
             </div>`;
             return;
         }
@@ -608,15 +617,18 @@
         // Nama tim TIDAK diisi di sini — penempatan tim asli dilakukan lewat
         // fitur "Undi Tim" setelah turnamen dibuat.
         const selectedCount = ($('#teams').val() || []).length;
+        const bracketSize = nextPowerOfTwo(selectedCount);
         const byeCount = Math.max(0, bracketSize - selectedCount);
 
         const slots = [];
         for (let i = 0; i < bracketSize; i++) {
             slots.push({ placeholder: true, slot: i + 1 });
         }
-        // Tandai slot bye di bagian akhir bagan
-        for (let i = bracketSize - byeCount; i < bracketSize; i++) {
-            if (i >= 0) slots[i] = { bye: true };
+        // BYE ditempatkan satu per pertandingan awal agar struktur preview
+        // sama dengan bracket hasil undian.
+        for (let i = 0; i < byeCount; i++) {
+            const byeSlotIndex = (i * 2) + 1;
+            if (byeSlotIndex < bracketSize) slots[byeSlotIndex] = { bye: true };
         }
 
         // Tentukan label ronde
@@ -626,7 +638,8 @@
             2: 'Semifinal',
             4: 'Quarter-Final',
             8: 'Round of 16',
-            16: 'Round of 32'
+            16: 'Round of 32',
+            32: 'Round of 64'
         };
 
         let html = '';
@@ -1303,6 +1316,8 @@ $(document).on('click', 'button[type="submit"]', function() {
             updateGroups();
         });
 
+        $('#knockout_third_place').on('change', updatePreview);
+
         // Update info bye + preview bagan saat ukuran bagan berubah
         $('#knockout_teams').on('change', function () {
             refreshTeamPickerState();
@@ -1360,12 +1375,18 @@ $(document).on('click', 'button[type="submit"]', function() {
         
         // Hide all settings sections
         $('#groupSettings, #leagueSettings, #knockoutSettings').hide();
+        $('#thirdPlaceSettings').toggle(selectedType === 'knockout' || selectedType === 'group_knockout');
         // Sistem Poin hanya relevan untuk league & fase grup (bukan knockout/cup)
         $('#pointsSettings').toggle(selectedType !== 'knockout');
         $('#reviewPointsRow').toggle(selectedType !== 'knockout');
-        // Hasil seri hanya relevan untuk liga/grup; adu penalti hanya untuk knockout
-        $('#allowDrawCol').toggle(selectedType !== 'knockout');
+        // Hasil seri selalu berlaku di liga; opsi hanya dibutuhkan untuk fase grup.
+        $('#allowDrawCol').toggle(selectedType === 'group_knockout');
+        $('#allowDrawCol').find(':input').prop('disabled', selectedType !== 'group_knockout');
+        // Extra time dan penalti hanya digunakan pada format yang memiliki fase knockout.
+        $('#extraTimeSettings').toggle(selectedType !== 'league');
+        $('#extraTimeSettings').find(':input').prop('disabled', selectedType === 'league');
         $('#penaltyShootoutCol').toggle(selectedType !== 'league');
+        $('#penaltyShootoutCol').find(':input').prop('disabled', selectedType === 'league');
         // Tiebreaker rules hanya relevan untuk group_knockout
         $('#tiebreakerSettings').toggle(selectedType === 'group_knockout');
         // Preview bagan hanya relevan untuk knockout

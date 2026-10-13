@@ -389,6 +389,12 @@
             color: var(--text-secondary);
         }
 
+        .status-cancelled {
+            background: rgba(108, 117, 125, .12);
+            border: 1px solid rgba(108, 117, 125, .3);
+            color: var(--text-secondary);
+        }
+
         /* Action buttons */
         .action-buttons {
             display: flex;
@@ -506,6 +512,196 @@
             margin-bottom: 16px;
         }
 
+        /* Match score editor */
+        #scoreUpdateModal .modal-dialog {
+            max-width: 680px;
+        }
+
+        #scoreUpdateModal .modal-content {
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--bg);
+            box-shadow: 0 24px 64px rgba(17, 17, 19, 0.2);
+        }
+
+        #scoreUpdateModal .modal-header,
+        #scoreUpdateModal .modal-footer {
+            padding: 16px 20px;
+            border-color: var(--border);
+            background: var(--bg);
+        }
+
+        #scoreUpdateModal .modal-header {
+            align-items: flex-start;
+        }
+
+        .score-modal-title {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 650;
+        }
+
+        .score-modal-description {
+            margin: 4px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+
+        #scoreUpdateModal .modal-body {
+            display: grid;
+            gap: 16px;
+            padding: 20px;
+        }
+
+        .score-modal-section-title {
+            margin: 0 0 10px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 650;
+        }
+
+        .score-modal-main {
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg);
+        }
+
+        .score-modal-matchup {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 28px minmax(0, 1fr);
+            align-items: end;
+            gap: 10px;
+        }
+
+        .score-modal-team {
+            display: grid;
+            min-width: 0;
+            gap: 6px;
+        }
+
+        .score-modal-team label,
+        .score-modal-side-label {
+            overflow: hidden;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 600;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .score-modal-vs {
+            padding-bottom: 12px;
+            color: var(--text-secondary);
+            font-size: 17px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        #scoreUpdateModal .score-input {
+            height: 52px;
+            border-color: var(--border);
+            border-radius: 7px;
+            color: var(--text-primary);
+            font-size: 24px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        #scoreUpdateModal .score-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(26, 95, 180, 0.12);
+        }
+
+        .score-modal-periods {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .score-modal-period {
+            min-width: 0;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--surface);
+        }
+
+        .score-modal-period-heading {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .score-modal-period-heading .form-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 0;
+            margin: 0;
+        }
+
+        .score-modal-period-heading .form-check-input {
+            float: none;
+            flex: 0 0 auto;
+            margin: 0;
+        }
+
+        .score-modal-period-heading .form-check-label {
+            color: var(--text-primary);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .score-modal-period-note {
+            margin: 0 0 10px;
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .score-modal-period .score-modal-matchup {
+            grid-template-columns: minmax(0, 1fr) 18px minmax(0, 1fr);
+            gap: 6px;
+        }
+
+        .score-modal-period .score-input {
+            height: 40px;
+            font-size: 17px;
+        }
+
+        .score-modal-period .score-modal-vs {
+            padding-bottom: 9px;
+            font-size: 14px;
+        }
+
+        #scoreUpdateModal .modal-footer .btn {
+            min-height: 40px;
+            padding-inline: 14px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        @media (max-width: 575.98px) {
+            #scoreUpdateModal .modal-dialog {
+                margin: 12px;
+            }
+
+            #scoreUpdateModal .modal-header,
+            #scoreUpdateModal .modal-footer,
+            #scoreUpdateModal .modal-body {
+                padding: 14px;
+            }
+
+            .score-modal-periods {
+                grid-template-columns: 1fr;
+            }
+        }
+
         @media (prefers-reduced-motion: reduce) {
 
             *,
@@ -574,17 +770,15 @@
                                         if ($tournament->type === 'league') {
                                             $estMatches = $teamCount * ($teamCount - 1) / 2;
                                         } elseif ($tournament->type === 'knockout') {
-                                            $estMatches = max(0, ($tournament->knockout_teams ?? 8) - 1);
+                                            $estMatches = max(0, $teamCount - 1);
                                         } elseif ($tournament->type === 'group_knockout') {
                                             $g = $tournament->groups_count ?? 2;
                                             $tpg = $tournament->teams_per_group ?? 4;
                                             $estMatches = $g * ($tpg * ($tpg - 1) / 2) + max(0, $g * ($tournament->qualify_per_group ?? 2) - 1);
                                         }
                                     @endphp
-                                    <option value="{{ $tournament->id }}"
-                                        data-type="{{ $tournament->type }}"
-                                        data-teams="{{ $teamCount }}"
-                                        data-est="{{ $estMatches }}"
+                                    <option value="{{ $tournament->id }}" data-type="{{ $tournament->type }}"
+                                        data-teams="{{ $teamCount }}" data-est="{{ $estMatches }}"
                                         data-existing="{{ \App\Models\Game::where('tournament_id', $tournament->id)->count() }}"
                                         {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
                                         {{ $tournament->name }} ({{ ucfirst($tournament->type) }})
@@ -595,7 +789,8 @@
 
                         <div id="generateInfo" class="alert alert-info mb-3" style="display: none;">
                             <div><strong id="genInfoType"></strong></div>
-                            <div class="small">Tim terdaftar: <strong id="genInfoTeams"></strong> &middot; Estimasi match: <strong id="genInfoEst"></strong></div>
+                            <div class="small">Tim terdaftar: <strong id="genInfoTeams"></strong> &middot; Estimasi match:
+                                <strong id="genInfoEst"></strong></div>
                         </div>
 
                         <div id="generateWarning" class="alert alert-warning mb-3" style="display: none;">
@@ -613,7 +808,8 @@
                         <div class="alert alert-secondary mb-0 small">
                             <i class="bi bi-info-circle me-1"></i>
                             Sistem otomatis membuat seluruh jadwal: <strong>league</strong> = round-robin semua tim;
-                            <strong>knockout</strong> = bracket penuh; <strong>group knockout</strong> = group stage + bracket.
+                            <strong>knockout</strong> = bracket penuh; <strong>group knockout</strong> = group stage +
+                            bracket.
                             Tanggal, waktu & venue diambil dari pengaturan turnamen.
                         </div>
                     </div>
@@ -652,7 +848,7 @@
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-title">Upcoming</div>
-            <div class="stat-value">{{ $matches->where('status', 'upcoming')->count() }}</div>
+            <div class="stat-value">{{ $matches->where('status', 'upcoming')->where('is_cancelled', false)->count() }}</div>
         </div>
         <div class="stat-card">
             <div class="stat-title">Ongoing</div>
@@ -681,6 +877,7 @@
 
         <select id="statusFilter" class="filter-select">
             <option value="">Semua status</option>
+            <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dinonaktifkan</option>
             <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Upcoming</option>
             <option value="ongoing" {{ request('status') == 'ongoing' ? 'selected' : '' }}>Ongoing</option>
             <option value="completed" {{ request('status') == 'completed' ? 'selected' : '' }}>Completed</option>
@@ -692,6 +889,7 @@
             <option value="group" {{ request('round') == 'group' ? 'selected' : '' }}>Group Stage</option>
             <option value="quarterfinal" {{ request('round') == 'quarterfinal' ? 'selected' : '' }}>Quarterfinal</option>
             <option value="semifinal" {{ request('round') == 'semifinal' ? 'selected' : '' }}>Semifinal</option>
+            <option value="third_place" {{ request('round') == 'third_place' ? 'selected' : '' }}>Perebutan Juara 3/4</option>
             <option value="final" {{ request('round') == 'final' ? 'selected' : '' }}>Final</option>
         </select>
 
@@ -742,7 +940,7 @@
                         <tbody>
                             @foreach($matches as $match)
                                 <tr class="match-row {{ ($match->status == 'completed' && ($match->et_score || $match->is_penalty)) ? 'row-has-extras' : '' }}"
-                                    data-status="{{ $match->status }}" data-round="{{ $match->round_type }}"
+                                    data-status="{{ $match->is_cancelled ? 'cancelled' : $match->status }}" data-round="{{ $match->round_type }}"
                                     data-date="{{ $match->match_date->format('Y-m-d') }}"
                                     data-tournament="{{ $match->tournament_id }}">
                                     <td>
@@ -848,12 +1046,14 @@
                                             </span>
                                         @else
                                             <span class="badge badge-knockout">
-                                                {{ ucfirst($match->round_type) }}
+                                                {{ $match->round_type === 'third_place' ? 'Perebutan Juara 3/4' : ucfirst(str_replace('_', ' ', $match->round_type)) }}
                                             </span>
                                         @endif
                                     </td>
                                     <td>
-                                        @if($match->status === 'upcoming')
+                                        @if($match->is_cancelled)
+                                            <span class="status-badge status-cancelled">Dinonaktifkan</span>
+                                        @elseif($match->status === 'upcoming')
                                             <span class="status-badge status-upcoming">Upcoming</span>
                                         @elseif($match->status === 'ongoing')
                                             <span class="status-badge status-ongoing">Ongoing</span>
@@ -865,19 +1065,33 @@
                                     </td>
                                     <td class="text-end">
                                         <div class="action-buttons">
-                                            <a href="{{ route('admin.matches.edit', $match) }}" class="btn-small btn-edit"
-                                                title="Edit">
-                                                <i class="bi bi-pencil"></i>
-                                            </a>
-                                            <a href="{{ route('admin.matches.events.index', $match) }}" class="btn-small btn-events"
-                                                title="Events">
-                                                <i class="bi bi-activity"></i>
-                                            </a>
-                                            <a href="{{ route('admin.matches.lineup', $match) }}" class="btn-small btn-lineup"
-                                                title="Manage Lineup">
-                                                <i class="bi bi-people-fill"></i>
-                                            </a>
-                                            <button type="button" class="btn-small btn-score update-score-btn" title="Update Score"
+                                            @if($match->is_cancelled)
+                                                <a href="{{ route('admin.tournaments.edit', $match->tournament_id) }}" class="btn-small btn-edit"
+                                                    title="Atur kembali perebutan juara 3/4" aria-label="Atur kembali perebutan juara 3/4">
+                                                    <i class="bi bi-toggles"></i>
+                                                </a>
+                                            @else
+                                                <a href="{{ route('admin.matches.edit', $match) }}" class="btn-small btn-edit"
+                                                    title="Edit">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                            @endif
+                                            @unless($match->is_cancelled)
+                                                <a href="{{ route('admin.matches.events.index', $match) }}" class="btn-small btn-events"
+                                                    title="Events">
+                                                    <i class="bi bi-activity"></i>
+                                                </a>
+                                                <a href="{{ route('admin.matches.lineup', $match) }}" class="btn-small btn-lineup"
+                                                    title="Manage Lineup">
+                                                    <i class="bi bi-people-fill"></i>
+                                                </a>
+                                            @endunless
+                                            @if($match->is_cancelled)
+                                                <button type="button" class="btn-small btn-score" title="Aktifkan lagi dari pengaturan turnamen" disabled>
+                                                    <i class="bi bi-lock-fill"></i>
+                                                </button>
+                                            @else
+                                            <button type="button" class="btn-small btn-score update-score-btn" title="Perbarui skor" aria-label="Perbarui skor {{ $match->homeTeam->name ?? 'Home Team' }} vs {{ $match->awayTeam->name ?? 'Away Team' }}"
                                                 data-match-id="{{ $match->id }}"
                                                 data-home-team="{{ $match->homeTeam->name ?? 'Home Team' }}"
                                                 data-away-team="{{ $match->awayTeam->name ?? 'Away Team' }}"
@@ -889,6 +1103,7 @@
                                                 data-update-url="{{ route('admin.matches.update-score', $match) }}">
                                                 <i class="bi bi-bar-chart"></i>
                                             </button>
+                                            @endif
                                             <form action="{{ route('admin.matches.destroy', $match) }}" method="POST"
                                                 class="d-inline">
                                                 @csrf
@@ -920,7 +1135,8 @@
                 @if($matches->hasPages())
                     <div class="pagination-container d-flex justify-content-between align-items-center flex-wrap">
                         <div class="pagination-info">
-                            Menampilkan {{ $matches->firstItem() }}–{{ $matches->lastItem() }} dari {{ $matches->total() }} pertandingan
+                            Menampilkan {{ $matches->firstItem() }}–{{ $matches->lastItem() }} dari {{ $matches->total() }}
+                            pertandingan
                         </div>
 
                         <div class="pagination-controls">
@@ -1084,128 +1300,181 @@
         </div>
     </div>
 
-    <!-- Score Update Modal -->
-    <!-- Score Update Modal -->
-    <div class="modal fade" id="scoreUpdateModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal fade" id="scoreUpdateModal" tabindex="-1" aria-labelledby="scoreUpdateTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <form id="scoreUpdateForm" method="POST">
                     @csrf
                     <div class="modal-header">
-                        <h5 class="modal-title">Update Score</h5>
+                        <div>
+                            <h2 class="score-modal-title" id="scoreUpdateTitle">Perbarui skor</h2>
+                            <p class="score-modal-description">Masukkan skor pertandingan dan hasil babak tambahan jika ada.</p>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-
-                        <!-- Regular Time -->
-                        <div class="mb-4">
-                            <h6 class="text-center mb-3 text-primary">Regular Time Score</h6>
-                            <div class="row align-items-center">
-                                <div class="col-5">
-                                    <input type="number" name="home_score" id="modalHomeScore"
-                                        class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
-                                        placeholder="0">
+                        <section class="score-modal-main" aria-labelledby="regularScoreLabel">
+                            <h3 class="score-modal-section-title" id="regularScoreLabel">Skor waktu normal</h3>
+                            <div class="score-modal-matchup">
+                                <div class="score-modal-team">
+                                    <label for="modalHomeScore" id="modalHomeTeamLabel">Tim tuan rumah</label>
+                                    <input type="number" name="home_score" id="modalHomeScore" class="form-control score-input"
+                                        min="0" inputmode="numeric" required placeholder="0">
                                 </div>
-                                <div class="col-2 text-center">
-                                    <span class="fw-bold fs-4">:</span>
-                                </div>
-                                <div class="col-5">
-                                    <input type="number" name="away_score" id="modalAwayScore"
-                                        class="form-control form-control-lg text-center fw-bold" min="0" max="99" required
-                                        placeholder="0">
+                                <span class="score-modal-vs" aria-hidden="true">:</span>
+                                <div class="score-modal-team">
+                                    <label for="modalAwayScore" id="modalAwayTeamLabel">Tim tamu</label>
+                                    <input type="number" name="away_score" id="modalAwayScore" class="form-control score-input"
+                                        min="0" inputmode="numeric" required placeholder="0">
                                 </div>
                             </div>
+                        </section>
+
+                        <div class="score-modal-periods">
+                            <section class="score-modal-period" aria-labelledby="extraTimeLabel">
+                                <div class="score-modal-period-heading">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="hasExtraTime" aria-controls="extraTimeSection">
+                                        <label class="form-check-label" for="hasExtraTime" id="extraTimeLabel">
+                                            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Extra time
+                                        </label>
+                                    </div>
+                                </div>
+                                <p class="score-modal-period-note">Skor gol di extra time</p>
+                                <div id="extraTimeSection" class="d-none">
+                                    <input type="hidden" name="et_score" id="modalETScore">
+                                    <div class="score-modal-matchup">
+                                        <div class="score-modal-team">
+                                            <label class="score-modal-side-label" for="modalETHome">Tuan rumah</label>
+                                            <input type="number" id="modalETHome" class="form-control score-input" min="0" inputmode="numeric" placeholder="0">
+                                        </div>
+                                        <span class="score-modal-vs" aria-hidden="true">:</span>
+                                        <div class="score-modal-team">
+                                            <label class="score-modal-side-label" for="modalETAway">Tim tamu</label>
+                                            <input type="number" id="modalETAway" class="form-control score-input" min="0" inputmode="numeric" placeholder="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <section class="score-modal-period" aria-labelledby="penaltyLabel">
+                                <div class="score-modal-period-heading">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="hasPenalty" name="is_penalty" value="1" aria-controls="penaltySection">
+                                        <label class="form-check-label" for="hasPenalty" id="penaltyLabel">
+                                            <i class="bi bi-flag me-1" aria-hidden="true"></i>Adu penalti
+                                        </label>
+                                    </div>
+                                </div>
+                                <p class="score-modal-period-note">Isi jika pemenang ditentukan lewat penalti</p>
+                                <div id="penaltySection" class="d-none">
+                                    <input type="hidden" name="penalty_score" id="modalPenaltyScore">
+                                    <div class="score-modal-matchup">
+                                        <div class="score-modal-team">
+                                            <label class="score-modal-side-label" for="modalPenaltyHome">Tuan rumah</label>
+                                            <input type="number" id="modalPenaltyHome" class="form-control score-input" min="0" inputmode="numeric" placeholder="0">
+                                        </div>
+                                        <span class="score-modal-vs" aria-hidden="true">:</span>
+                                        <div class="score-modal-team">
+                                            <label class="score-modal-side-label" for="modalPenaltyAway">Tim tamu</label>
+                                            <input type="number" id="modalPenaltyAway" class="form-control score-input" min="0" inputmode="numeric" placeholder="0">
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
                         </div>
-
-                        <!-- Extra Time (Optional) -->
-                        <div class="mb-4">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="hasExtraTime">
-                                <label class="form-check-label fw-bold" for="hasExtraTime">
-                                    <i class="bi bi-clock-history me-1"></i> Extra Time
-                                </label>
-                            </div>
-
-                            <div id="extraTimeSection" class="d-none">
-                                <div class="row align-items-center">
-                                    <div class="col-5">
-                                        <input type="text" name="et_score" id="modalETScore"
-                                            class="form-control text-center" pattern="\d+-\d+" placeholder="0-0"
-                                            title="Format: home-away (contoh: 1-0)">
-                                    </div>
-                                    <div class="col-2 text-center">
-                                        <span class="fw-bold">:</span>
-                                    </div>
-                                    <div class="col-5">
-                                        <small class="text-muted">Format: home-away</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Penalty Shootout (Optional) -->
-                        <div class="mb-4">
-                            <div class="form-check mb-2">
-                                <input class="form-check-input" type="checkbox" id="hasPenalty" name="is_penalty" value="1">
-                                <label class="form-check-label fw-bold" for="hasPenalty">
-                                    <i class="bi bi-flag me-1"></i> Penalty Shootout
-                                </label>
-                            </div>
-
-                            <div id="penaltySection" class="d-none">
-                                <div class="row align-items-center">
-                                    <div class="col-5">
-                                        <input type="text" name="penalty_score" id="modalPenaltyScore"
-                                            class="form-control text-center" pattern="\d+-\d+" placeholder="3-2"
-                                            title="Format: home-away (contoh: 3-2)">
-                                    </div>
-                                    <div class="col-2 text-center">
-                                        <span class="fw-bold">:</span>
-                                    </div>
-                                    <div class="col-5">
-                                        <small class="text-muted">Format: home-away</small>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Update Score</button>
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan skor
+                        </button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- JavaScript untuk toggle extra time & penalty -->
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-            // Toggle Extra Time
-            document.getElementById('hasExtraTime').addEventListener('change', function () {
-                const extraTimeSection = document.getElementById('extraTimeSection');
-                if (this.checked) {
-                    extraTimeSection.classList.remove('d-none');
-                    document.getElementById('modalETScore').required = true;
-                } else {
-                    extraTimeSection.classList.add('d-none');
-                    document.getElementById('modalETScore').required = false;
-                    document.getElementById('modalETScore').value = '';
+            const form = document.getElementById('scoreUpdateForm');
+            const modalEl = document.getElementById('scoreUpdateModal');
+            const scoreUpdateModal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            const fields = {
+                extraTime: {
+                    checkbox: document.getElementById('hasExtraTime'),
+                    section: document.getElementById('extraTimeSection'),
+                    home: document.getElementById('modalETHome'),
+                    away: document.getElementById('modalETAway'),
+                    combined: document.getElementById('modalETScore')
+                },
+                penalty: {
+                    checkbox: document.getElementById('hasPenalty'),
+                    section: document.getElementById('penaltySection'),
+                    home: document.getElementById('modalPenaltyHome'),
+                    away: document.getElementById('modalPenaltyAway'),
+                    combined: document.getElementById('modalPenaltyScore')
                 }
+            };
+
+            function parseScore(value) {
+                const match = (value || '').match(/^(\d+)\s*-\s*(\d+)$/);
+                return match ? { home: match[1], away: match[2] } : { home: '', away: '' };
+            }
+
+            function syncPeriod(period, clearWhenDisabled = false) {
+                const enabled = period.checkbox.checked;
+                period.section.classList.toggle('d-none', !enabled);
+                period.home.required = enabled;
+                period.away.required = enabled;
+
+                if (!enabled && clearWhenDisabled) {
+                    period.home.value = '';
+                    period.away.value = '';
+                }
+
+                period.combined.value = enabled && period.home.value !== '' && period.away.value !== ''
+                    ? `${period.home.value}-${period.away.value}`
+                    : '';
+            }
+
+            Object.values(fields).forEach(period => {
+                period.checkbox.addEventListener('change', () => syncPeriod(period, true));
+                period.home.addEventListener('input', () => syncPeriod(period));
+                period.away.addEventListener('input', () => syncPeriod(period));
             });
 
-            // Toggle Penalty
-            document.getElementById('hasPenalty').addEventListener('change', function () {
-                const penaltySection = document.getElementById('penaltySection');
-                if (this.checked) {
-                    penaltySection.classList.remove('d-none');
-                    document.getElementById('modalPenaltyScore').required = true;
-                } else {
-                    penaltySection.classList.add('d-none');
-                    document.getElementById('modalPenaltyScore').required = false;
-                    document.getElementById('modalPenaltyScore').value = '';
-                }
+            form.addEventListener('submit', function () {
+                Object.values(fields).forEach(period => syncPeriod(period));
+            });
+
+            modalEl.addEventListener('shown.bs.modal', function () {
+                document.getElementById('modalHomeScore').focus();
+            });
+
+            document.querySelectorAll('.update-score-btn').forEach(button => {
+                button.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    document.getElementById('modalHomeTeamLabel').textContent = this.dataset.homeTeam || 'Tim tuan rumah';
+                    document.getElementById('modalAwayTeamLabel').textContent = this.dataset.awayTeam || 'Tim tamu';
+                    document.getElementById('modalHomeScore').value = this.dataset.homeScore || 0;
+                    document.getElementById('modalAwayScore').value = this.dataset.awayScore || 0;
+                    form.action = this.dataset.updateUrl;
+
+                    const etScore = parseScore(this.dataset.etScore);
+                    fields.extraTime.home.value = etScore.home;
+                    fields.extraTime.away.value = etScore.away;
+                    fields.extraTime.checkbox.checked = Boolean(this.dataset.etScore);
+                    syncPeriod(fields.extraTime, !fields.extraTime.checkbox.checked);
+
+                    const penaltyScore = parseScore(this.dataset.penaltyScore);
+                    fields.penalty.home.value = penaltyScore.home;
+                    fields.penalty.away.value = penaltyScore.away;
+                    fields.penalty.checkbox.checked = this.dataset.isPenalty === '1' || Boolean(this.dataset.penaltyScore);
+                    syncPeriod(fields.penalty, !fields.penalty.checkbox.checked);
+
+                    scoreUpdateModal.show();
+                });
             });
         });
     </script>
@@ -1550,146 +1819,6 @@
             history.replaceState({}, '', url.toString());
         }
 
-        // Score Update Modal
-        let scoreUpdateModal = null;
-
-        // Initialize modals after DOM is loaded
-        document.addEventListener('DOMContentLoaded', function () {
-            const scoreUpdateModalEl = document.getElementById('scoreUpdateModal');
-            if (scoreUpdateModalEl) {
-                scoreUpdateModal = new bootstrap.Modal(scoreUpdateModalEl);
-            }
-
-            const scoreUpdateForm = document.getElementById('scoreUpdateForm');
-
-            // Handle update score button clicks
-            document.querySelectorAll('.update-score-btn').forEach(button => {
-                button.addEventListener('click', function (e) {
-                    e.preventDefault();
-
-                    // Get data from button attributes
-                    const matchId = this.dataset.matchId;
-                    const homeTeam = this.dataset.homeTeam;
-                    const awayTeam = this.dataset.awayTeam;
-                    const homeScore = this.dataset.homeScore;
-                    const awayScore = this.dataset.awayScore;
-                    const updateUrl = this.dataset.updateUrl;
-
-                    // Cari row match untuk mendapatkan logo
-                    const matchRow = this.closest('.match-row');
-
-                    // DAPATKAN LOGO DARI ROW YANG SAMA
-                    let homeLogoHtml = '<div class="team-initial-modal">' +
-                        (homeTeam ? homeTeam.charAt(0).toUpperCase() : 'H') +
-                        '</div>';
-                    let awayLogoHtml = '<div class="team-initial-modal">' +
-                        (awayTeam ? awayTeam.charAt(0).toUpperCase() : 'A') +
-                        '</div>';
-
-                    // Coba ambil logo dari tabel
-                    if (matchRow) {
-                        // Home team logo dari row
-                        const homeLogoContainer = matchRow.querySelector('.team-info:first-child .team-logo-small');
-                        if (homeLogoContainer) {
-                            // Clone logo content dari tabel
-                            homeLogoHtml = homeLogoContainer.innerHTML;
-                        }
-
-                        // Away team logo dari row
-                        const awayLogoContainer = matchRow.querySelector('.team-info:last-child .team-logo-small');
-                        if (awayLogoContainer) {
-                            // Clone logo content dari tabel
-                            awayLogoHtml = awayLogoContainer.innerHTML;
-                        }
-                    }
-
-                    // // Set modal data
-                    // document.getElementById('modalHomeTeam').textContent = homeTeam;
-                    // document.getElementById('modalAwayTeam').textContent = awayTeam;
-                    document.getElementById('modalHomeScore').value = homeScore;
-                    document.getElementById('modalAwayScore').value = awayScore;
-
-                    // SET LOGO KE MODAL
-                    const modalHomeLogo = document.getElementById('modalHomeLogo');
-                    const modalAwayLogo = document.getElementById('modalAwayLogo');
-
-                    if (modalHomeLogo) {
-                        modalHomeLogo.innerHTML = '';
-
-                        // Buat container logo baru untuk modal
-                        const homeLogoDiv = document.createElement('div');
-                        homeLogoDiv.className = 'team-logo-modal';
-
-                        // Ambil hanya elemen gambar atau initial dari HTML tabel
-                        if (homeLogoHtml.includes('<img')) {
-                            // Jika ada gambar, extract src dan alt
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = homeLogoHtml;
-                            const img = tempDiv.querySelector('img');
-                            if (img) {
-                                const newImg = document.createElement('img');
-                                newImg.src = img.src;
-                                newImg.alt = img.alt || homeTeam;
-                                newImg.style.width = '100%';
-                                newImg.style.height = '100%';
-                                newImg.style.objectFit = 'cover';
-                                homeLogoDiv.appendChild(newImg);
-                            } else {
-                                homeLogoDiv.innerHTML = homeLogoHtml;
-                            }
-                        } else {
-                            // Jika hanya initial/fallback
-                            homeLogoDiv.innerHTML = homeLogoHtml;
-                        }
-
-                        modalHomeLogo.appendChild(homeLogoDiv);
-                    }
-
-                    if (modalAwayLogo) {
-                        modalAwayLogo.innerHTML = '';
-
-                        // Buat container logo baru untuk modal
-                        const awayLogoDiv = document.createElement('div');
-                        awayLogoDiv.className = 'team-logo-modal';
-
-                        // Ambil hanya elemen gambar atau initial dari HTML tabel
-                        if (awayLogoHtml.includes('<img')) {
-                            // Jika ada gambar, extract src dan alt
-                            const tempDiv = document.createElement('div');
-                            tempDiv.innerHTML = awayLogoHtml;
-                            const img = tempDiv.querySelector('img');
-                            if (img) {
-                                const newImg = document.createElement('img');
-                                newImg.src = img.src;
-                                newImg.alt = img.alt || awayTeam;
-                                newImg.style.width = '100%';
-                                newImg.style.height = '100%';
-                                newImg.style.objectFit = 'cover';
-                                awayLogoDiv.appendChild(newImg);
-                            } else {
-                                awayLogoDiv.innerHTML = awayLogoHtml;
-                            }
-                        } else {
-                            // Jika hanya initial/fallback
-                            awayLogoDiv.innerHTML = awayLogoHtml;
-                        }
-
-                        modalAwayLogo.appendChild(awayLogoDiv);
-                    }
-
-                    // Set form action
-                    if (scoreUpdateForm) {
-                        scoreUpdateForm.action = updateUrl;
-                    }
-
-                    // Show modal
-                    if (scoreUpdateModal) {
-                        scoreUpdateModal.show();
-                    }
-                });
-            });
-        });
-
         // Highlight Upload Functionality
         document.addEventListener('DOMContentLoaded', function () {
             // Get CSRF token from form
@@ -1951,11 +2080,11 @@
                                 // Success
                                 if (statusDiv) {
                                     statusDiv.innerHTML = `
-                                                                                                    <div class="alert alert-success alert-dismissible fade show" role="alert">
-                                                                                                        <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
-                                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                                                    </div>
-                                                                                                `;
+                                                                                                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                                                                                            <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
+                                                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                                        </div>
+                                                                                                    `;
                                     statusDiv.classList.remove('d-none');
                                 }
 
@@ -2007,11 +2136,11 @@
 
                 if (statusDiv) {
                     statusDiv.innerHTML = `
-                                                                                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                                                                                        <i class="bi bi-exclamation-triangle"></i> ${message}
-                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                                    </div>
-                                                                                `;
+                                                                                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                                                                                            <i class="bi bi-exclamation-triangle"></i> ${message}
+                                                                                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                        </div>
+                                                                                    `;
                     statusDiv.classList.remove('d-none');
                 }
 
@@ -2077,13 +2206,13 @@
                             // Create video player
                             if (playerContainer && highlight.video_url) {
                                 playerContainer.innerHTML = `
-                                                                                            <div class="ratio ratio-16x9">
-                                                                                                <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
-                                                                                                    <source src="${highlight.video_url}" type="video/mp4">
-                                                                                                    Your browser does not support the video tag.
-                                                                                                </video>
-                                                                                            </div>
-                                                                                        `;
+                                                                                                <div class="ratio ratio-16x9">
+                                                                                                    <video controls class="rounded" poster="${highlight.thumbnail_url || ''}" style="background: #000;">
+                                                                                                        <source src="${highlight.video_url}" type="video/mp4">
+                                                                                                        Your browser does not support the video tag.
+                                                                                                    </video>
+                                                                                                </div>
+                                                                                            `;
                             }
                         } else {
                             throw new Error(data.message || 'Failed to load highlight info');
@@ -2094,10 +2223,10 @@
 
                         if (playerContainer) {
                             playerContainer.innerHTML = `
-                                                                                        <div class="alert alert-warning">
-                                                                                            <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
-                                                                                        </div>
-                                                                                    `;
+                                                                                            <div class="alert alert-warning">
+                                                                                                <i class="bi bi-exclamation-triangle"></i> ${error.message || 'Failed to load highlight information'}
+                                                                                            </div>
+                                                                                        `;
                         }
 
                         if (infoSize) infoSize.textContent = 'Error';
@@ -2249,11 +2378,11 @@
 
             // Tampilkan loading
             currentVideoContainer.innerHTML = `
-                                                                            <div class="text-center p-4">
-                                                                                <div class="spinner-border text-primary" role="status"></div>
-                                                                                <p class="mt-2">Loading highlight...</p>
-                                                                            </div>
-                                                                        `;
+                                                                                <div class="text-center p-4">
+                                                                                    <div class="spinner-border text-primary" role="status"></div>
+                                                                                    <p class="mt-2">Loading highlight...</p>
+                                                                                </div>
+                                                                            `;
             currentVideoInfo.textContent = 'Loading...';
 
             // Coba load dari data yang sudah ada di tombol
@@ -2333,11 +2462,11 @@
             // Helper function untuk menampilkan embed
             function displayYoutubeEmbed(youtubeId) {
                 currentVideoContainer.innerHTML = `
-                                                                                <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1" 
-                                                                                        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                                                        allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                                                                                </iframe>
-                                                                            `;
+                                                                                    <iframe src="https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1"
+                                                                                            frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                                            allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                                    </iframe>
+                                                                                `;
             }
 
             // Helper function untuk fetch info tambahan
@@ -2364,10 +2493,10 @@
             // Helper function untuk menampilkan no highlight
             function showNoHighlight() {
                 currentVideoContainer.innerHTML = `
-                                                                                <div class="alert alert-warning p-3 text-center">
-                                                                                    <i class="bi bi-exclamation-triangle"></i> No highlight available
-                                                                                </div>
-                                                                            `;
+                                                                                    <div class="alert alert-warning p-3 text-center">
+                                                                                        <i class="bi bi-exclamation-triangle"></i> No highlight available
+                                                                                    </div>
+                                                                                `;
                 currentVideoInfo.textContent = 'No highlight available';
             }
         }
@@ -2412,11 +2541,11 @@
 
             // Show preview
             previewContainer.innerHTML = `
-                                                                            <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1" 
-                                                                                    frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                                                                                    allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
-                                                                            </iframe>
-                                                                        `;
+                                                                                <iframe src="https://www.youtube.com/embed/${videoId}?rel=0&showinfo=0&modestbranding=1"
+                                                                                        frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                                                        allowfullscreen style="border-radius: 4px; width: 100%; height: 100%;">
+                                                                                </iframe>
+                                                                            `;
 
             if (previewInfo) {
                 previewInfo.textContent = `Video ID: ${videoId}`;
@@ -2809,14 +2938,14 @@
                     type === 'warning' ? 'alert-warning' : 'alert-info';
 
             statusDiv.innerHTML = `
-                                                                            <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
-                                                                                <i class="bi ${type === 'success' ? 'bi-check-circle' :
+                                                                                <div class="alert ${alertClass} alert-dismissible fade show" role="alert">
+                                                                                    <i class="bi ${type === 'success' ? 'bi-check-circle' :
                     type === 'danger' ? 'bi-exclamation-triangle' :
                         'bi-info-circle'}"></i> 
-                                                                                ${message}
-                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                                                                            </div>
-                                                                        `;
+                                                                                    ${message}
+                                                                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                </div>
+                                                                            `;
             statusDiv.classList.remove('d-none');
 
             // Auto-hide after 5 seconds (except for success which will auto-close)

@@ -25,6 +25,13 @@
 
     <!-- Main Content Container -->
     <main class="app-container content-section">
+        @if($activeTournament)
+            <!-- Selected tournament standings or bracket lead the Home content at full width -->
+            <section class="w-100 mb-4" aria-label="Klasemen atau bracket turnamen berjalan">
+                @include('home.partials.standings')
+            </section>
+        @endif
+
         <!-- Today's Active / Live Matches (Full Width) -->
         @include('home.partials.today-matches')
 
@@ -37,9 +44,6 @@
 
                 <!-- Recent Match Results -->
                 @include('home.partials.recent-results')
-
-                <!-- Group Standings / Knockout Information -->
-                @include('home.partials.standings')
             </div>
 
             <!-- Right Secondary Column (4 Cols) -->
@@ -54,8 +58,10 @@
 
         <!-- Full-Width Teams Workspace Section -->
         <section class="mt-4 pt-2">
-            <!-- Active Tournament Teams (Full Width) -->
-            @include('home.partials.active-teams')
+            <!-- Current or most recently completed tournament participants -->
+            @if($teamSectionTournament)
+                @include('home.partials.active-teams')
+            @endif
 
             <!-- All Registered Teams (Search, Sort, Quick View - Full Width) -->
             @include('home.partials.all-teams')
@@ -63,6 +69,9 @@
 
         <!-- Other Live Tournaments (multi-tournament) -->
         @include('home.partials.live-tournaments')
+
+        <!-- Latest completed tournament stays accessible as a public archive -->
+        @include('home.partials.completed-tournament')
     </main>
 
     <!-- Footer -->

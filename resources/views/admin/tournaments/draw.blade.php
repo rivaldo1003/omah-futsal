@@ -350,6 +350,33 @@
 
         .tdw-side .nm.filled { color: var(--v3-text-main); font-weight: 700; }
 
+        .tdw-pending {
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            max-width: 100%;
+            padding: 4px 9px;
+            border: 1px solid rgba(0, 229, 255, 0.2);
+            border-radius: 999px;
+            background: rgba(0, 229, 255, 0.06);
+            color: var(--v3-text-sub);
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .tdw-pending::before {
+            content: '';
+            width: 5px;
+            height: 5px;
+            flex: 0 0 5px;
+            border-radius: 50%;
+            background: var(--v3-neon-blue);
+            box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
+        }
+
         .tdw-side.slot-highlight {
             background: rgba(0, 255, 135, 0.18);
             box-shadow: 0 0 28px rgba(0, 255, 135, 0.55);
@@ -522,7 +549,11 @@
             <div class="v3-hud-right">
                 <span>{{ $teamCount }} TIM</span>
                 <span class="v3-hud-sep">/</span>
-                <span>BRACKET {{ $bracketSize }} SLOT</span>
+                @if($bracketCapacity > $bracketSize)
+                    <span>KAPASITAS {{ $bracketCapacity }} / BAGAN AKTUAL {{ $bracketSize }} SLOT</span>
+                @else
+                    <span>BRACKET {{ $bracketSize }} SLOT</span>
+                @endif
                 @if($byeCount > 0)
                     <span class="v3-hud-sep">/</span>
                     <span>{{ $byeCount }} BYE</span>
@@ -550,6 +581,14 @@
             </div>
         @endif
 
+        @if(session('error'))
+            <div class="tdw-panel" role="alert" style="margin-bottom:16px; border-color: rgba(255, 0, 85, .55);">
+                <div class="tdw-panel-body" style="color:#ff7b9d;">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
+                </div>
+            </div>
+        @endif
+
         <div class="tdw-grid">
             {{-- LEFT column --}}
             <div>
@@ -557,7 +596,7 @@
                     <div class="tdw-panel-head">Controls</div>
                     <div class="tdw-panel-body">
                         <div style="display:flex; flex-wrap:wrap; gap:8px;">
-                            @if(!$tree || $status === 'DRAFT')
+                            @if(!$hasBracket && !$hasKnockoutFixtures && !$hasDrawHistory && $teamCount >= 2)
                                 <form method="POST" action="{{ route('admin.tournaments.draw.build', $tournament) }}">
                                     @csrf
                                     <button class="tdw-btn tdw-btn--primary" type="submit">
@@ -566,7 +605,7 @@
                                 </form>
                             @endif
 
-                            @if($tree && $remainingTeams->count() > 0)
+                            @if($hasBracket && $remainingTeams->count() > 0)
                                 <form method="POST" action="{{ route('admin.tournaments.draw.all', $tournament) }}">
                                     @csrf
                                     <button class="tdw-btn" type="submit">
@@ -575,9 +614,18 @@
                                 </form>
                             @endif
 
-                            @if($tree)
+                            @if($status === 'DRAW_COMPLETED')
+                                <form method="POST" action="{{ route('admin.tournaments.draw.generate-matches', $tournament) }}">
+                                    @csrf
+                                    <button class="tdw-btn tdw-btn--primary" type="submit" title="Buat match untuk seluruh babak bracket">
+                                        <i class="bi bi-calendar2-check"></i> Generate Semua Match
+                                    </button>
+                                </form>
+                            @endif
+
+                            @if($hasBracket || $hasKnockoutFixtures || $hasDrawHistory)
                                 <form method="POST" action="{{ route('admin.tournaments.draw.reset', $tournament) }}"
-                                    onsubmit="return confirm('Reset ulang undian bracket?');">
+                                    onsubmit="return confirm('Reset akan menghapus undian dan fixture knockout yang belum dimainkan. Pertandingan yang sudah dimulai atau selesai tidak dapat direset. Lanjutkan?');">
                                     @csrf
                                     <input type="hidden" name="rebuild" value="1">
                                     <button class="tdw-btn tdw-btn--danger" type="submit">
@@ -586,6 +634,17 @@
                                 </form>
                             @endif
                         </div>
+
+                        @if(!$hasBracket && !$hasKnockoutFixtures && !$hasDrawHistory && $teamCount < 2)
+                            <p class="mb-0 mt-3" style="color: var(--v3-text-sub);">
+                                Daftarkan minimal 2 tim untuk membuat bracket dan memulai undian.
+                            </p>
+                        @elseif(!$hasBracket && ($hasKnockoutFixtures || $hasDrawHistory))
+                            <p class="mb-0 mt-3" style="color: var(--v3-text-sub);">
+                                Data undian atau fixture lama ditemukan tanpa struktur bracket. Gunakan Reset untuk memulihkan;
+                                fixture yang sudah dimulai atau memiliki hasil/event akan membuat reset ditolak demi menjaga data.
+                            </p>
+                        @endif
                     </div>
                 </div>
 
@@ -605,10 +664,16 @@
                                             <i class="bi bi-person-fill me-1"></i>{{ $team->coach_name ?: 'Club member' }}
                                         </div>
                                     </div>
-                                    <button type="button" class="tdw-btn cabut-btn" data-team-id="{{ $team->id }}"
-                                        data-team-name="{{ $team->name }}">
-                                        <i class="bi bi-ticket-perforated"></i> Cabut
-                                    </button>
+                                    @if($hasBracket)
+                                        <button type="button" class="tdw-btn cabut-btn" data-team-id="{{ $team->id }}"
+                                            data-team-name="{{ $team->name }}">
+                                            <i class="bi bi-ticket-perforated"></i> Cabut
+                                        </button>
+                                    @else
+                                        <button type="button" class="tdw-btn" disabled title="Generate Bracket terlebih dahulu">
+                                            <i class="bi bi-lock"></i> Belum aktif
+                                        </button>
+                                    @endif
                                 </div>
                             @empty
                                 <div class="text-center py-4" style="color: var(--v3-text-sub);">
@@ -646,10 +711,16 @@
                     </span>
                 </div>
                 <div class="tdw-panel-body">
-                    @if(!$tree)
+                    @if(!$hasBracket)
                         <div class="text-center py-5" style="color: var(--v3-text-sub);">
                             <i class="bi bi-diagram-3 fs-1 d-block mb-3" style="color: var(--v3-text-muted);"></i>
-                            Bracket belum dibuat. Klik <strong style="color: var(--v3-neon-green);">Generate Bracket</strong>.
+                            @if($hasKnockoutFixtures || $hasDrawHistory)
+                                Data undian lama ditemukan tanpa bracket. Gunakan Reset untuk memulihkan sebelum mengundi kembali.
+                            @elseif($teamCount < 2)
+                                Bracket bisa dibuat setelah minimal 2 tim terdaftar.
+                            @else
+                                Bracket belum dibuat. Klik <strong style="color: var(--v3-neon-green);">Generate Bracket</strong> untuk masuk ke mode undian.
+                            @endif
                         </div>
                     @else
                         <div class="tdw-bracket-wrapper">
@@ -676,7 +747,7 @@
                                                                 @elseif($isBye)
                                                                     <em style="color: var(--v3-text-sub);">BYE</em>
                                                                 @else
-                                                                    <span style="color: var(--v3-text-sub);">— menunggu —</span>
+                                                                    <span class="tdw-pending" aria-label="Slot menunggu diisi">Menunggu</span>
                                                                 @endif
                                                             </span>
                                                         </div>

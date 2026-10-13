@@ -404,7 +404,7 @@
             font-size: 12px;
             color: var(--secondary);
             margin-bottom: 4px;
-            
+
         }
 
         .setting-value {
@@ -533,7 +533,12 @@
             <h1>Detail Turnamen</h1>
             <p class="page-subtitle">Kelola dan lihat turnamen {{ $tournament->name }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
+            @if($tournament->type === 'knockout')
+                <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-outline-primary">
+                    <i class="bi bi-diagram-3 me-1"></i> Tournament Draw
+                </a>
+            @endif
             <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary">
                 <i class="bi bi-pencil-square me-1"></i> Edit
             </a>
@@ -571,7 +576,8 @@
                     </span>
                 </div>
                 @if($tournament->description)
-                    <p class="mt-2 mb-0" style="font-size: 14px; color: var(--text-secondary);">{{ $tournament->description }}</p>
+                    <p class="mt-2 mb-0" style="font-size: 14px; color: var(--text-secondary);">{{ $tournament->description }}
+                    </p>
                 @endif
             </div>
             <div class="text-end">
@@ -579,7 +585,8 @@
                     {{ ucfirst($tournament->status) }}
                 </span>
                 <div class="mt-2">
-                    <small style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
+                    <small
+                        style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
                 </div>
             </div>
         </div>
@@ -852,100 +859,18 @@
             @if($tournament->type === 'knockout')
                 <!-- Tab bagan & undi tim (knockout) -->
                 <div id="bracket-tab" class="tab-pane" style="display: none;">
-                    @php
-                        $drawnAt = $settings['knockout_drawn_at'] ?? null;
-                        $bracketSize = (int) ($settings['knockout_teams'] ?? 8);
-
-                        $seeded = $tournament->teams->sortBy('pivot.seed')->values()->all();
-                        $slots = [];
-                        for ($i = 0; $i < $bracketSize; $i++) {
-                            $slots[$i] = $seeded[$i] ?? null;
-                        }
-                        $pairs = [];
-                        for ($i = 0; $i + 1 < $bracketSize; $i += 2) {
-                            $pairs[] = [$slots[$i], $slots[$i + 1]];
-                        }
-                    @endphp
-
-                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
-                        <div>
-                            <h6 class="mb-1"><i class="bi bi-shuffle me-2"></i>Undi Tim & Bagan</h6>
-                            <small class="text-secondary">
-                                @if($drawnAt)
-                                    Undian terakhir: {{ \Carbon\Carbon::parse($drawnAt)->format('d M Y H:i') }}
-                                @else
-                                    Belum dilakukan undian. Tim akan ditempatkan ke bagan setelah undian.
-                                @endif
-                            </small>
-                        </div>
-                        <div class="d-flex align-items-center gap-2">
-                            <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-outline-primary btn-sm">
-                                <i class="bi bi-diagram-3 me-1"></i> Buka Tournament Draw
+                    <div class="alert alert-info mb-0">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                            <div>
+                                <h6 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>Bracket Knockout</h6>
+                                <p class="mb-0">Undian, BYE, progres pemenang, dan fixture dikelola pada satu halaman Tournament
+                                    Draw.</p>
+                            </div>
+                            <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-primary btn-sm">
+                                Buka Tournament Draw <i class="bi bi-arrow-right ms-1"></i>
                             </a>
-                            <form action="{{ route('admin.tournaments.draw', $tournament) }}" method="POST"
-                                onsubmit="return confirm('Lakukan undi tim? Urutan bagan akan diacak ulang.')">
-                                @csrf
-                                <button type="submit" class="btn btn-primary btn-sm">
-                                    <i class="bi bi-shuffle me-1"></i> {{ $drawnAt ? 'Undi Ulang' : 'Undi Tim Sekarang' }}
-                                </button>
-                            </form>
                         </div>
                     </div>
-
-                    @if($tournament->teams_count < 2)
-                        <div class="empty-state">
-                            <div class="empty-icon"><i class="bi bi-people"></i></div>
-                            <h6 class="empty-title">Minimal 2 tim</h6>
-                            <p class="empty-text">Tambahkan minimal 2 tim sebelum melakukan undian.</p>
-                        </div>
-                    @else
-                        <div class="bracket-simple">
-                            @foreach($pairs as $idx => $pair)
-                                <div class="bracket-simple-match">
-                                    <div class="bracket-simple-slot {{ $pair[0] ? '' : 'is-bye' }}">
-                                        @if($pair[0])
-                                            <span class="bracket-seed">#{{ $pair[0]->pivot->seed ?? '-' }}</span>
-                                            <span class="bracket-simple-name">{{ $pair[0]->name }}</span>
-                                        @else
-                                            <span class="bracket-simple-name">BYE</span>
-                                        @endif
-                                    </div>
-                                    <div class="bracket-simple-vs">VS</div>
-                                    <div class="bracket-simple-slot {{ $pair[1] ? '' : 'is-bye' }}">
-                                        @if($pair[1])
-                                            <span class="bracket-seed">#{{ $pair[1]->pivot->seed ?? '-' }}</span>
-                                            <span class="bracket-simple-name">{{ $pair[1]->name }}</span>
-                                        @else
-                                            <span class="bracket-simple-name">BYE</span>
-                                        @endif
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                        <small class="text-secondary d-block mt-3">
-                            <i class="bi bi-info-circle me-1"></i>
-                            Bagan {{ $bracketSize }} slot. Tim yang menempati slot BYE otomatis lolos ke ronde berikutnya.
-                        </small>
-                    @endif
-
-                    <style>
-                        .bracket-simple { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
-                        .bracket-simple-match {
-                            border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
-                            background: var(--bg);
-                        }
-                        .bracket-simple-slot {
-                            display: flex; align-items: center; gap: 8px; padding: 6px 0;
-                        }
-                        .bracket-simple-slot.is-bye { opacity: .55; }
-                        .bracket-seed {
-                            font-size: 11px; font-weight: 700; color: var(--accent);
-                            background: var(--surface); border: 1px solid var(--border);
-                            border-radius: 4px; padding: 1px 6px; flex-shrink: 0;
-                        }
-                        .bracket-simple-name { font-weight: 500; font-size: 14px; color: var(--text-primary); }
-                        .bracket-simple-vs { text-align: center; font-size: 11px; font-weight: 700; color: var(--text-secondary); }
-                    </style>
                 </div>
             @endif
 
@@ -972,6 +897,14 @@
                         <div class="setting-label">Batas kartu kuning</div>
                         <div class="setting-value">{{ $settings['yellow_card_suspension'] ?? 3 }}</div>
                     </div>
+                    @if(in_array($tournament->type, ['knockout', 'group_knockout'], true))
+                        <div class="setting-item">
+                            <div class="setting-label">Perebutan juara 3/4</div>
+                            <div class="setting-value">
+                                {{ ($settings['knockout_third_place'] ?? $tournament->knockout_third_place) ? 'Aktif' : 'Tidak aktif' }}
+                            </div>
+                        </div>
+                    @endif
                     <div class="setting-item">
                         <div class="setting-label">Poin (menang / seri / kalah)</div>
                         <div class="setting-value">
