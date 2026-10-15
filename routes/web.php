@@ -190,6 +190,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('build', [TournamentDrawController::class, 'build'])->name('build');
         Route::post('cabut', [TournamentDrawController::class, 'draw'])->name('cabut');
         Route::post('all', [TournamentDrawController::class, 'drawAll'])->name('all');
+        Route::delete('placement/{team}', [TournamentDrawController::class, 'cancelPlacement'])->name('cancel-placement');
         Route::post('generate-matches', [MatchApiController::class, 'generateFromDraw'])->name('generate-matches');
         Route::post('reset', [TournamentDrawController::class, 'reset'])->name('reset');
     });

@@ -237,6 +237,32 @@
         .tdw-team-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; width: 100%; min-width: 0; }
         .tdw-team-actions .tdw-btn { max-width: 100%; height: 34px; padding: 0 10px; font-size: 9px; white-space: nowrap; }
 
+        .tdw-placed-list { display: grid; gap: 8px; max-height: 280px; overflow-y: auto; }
+        .tdw-placed-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--v3-border);
+            border-radius: var(--v3-radius-sm);
+            background: var(--v3-card);
+        }
+        .tdw-placed-summary { display: flex; align-items: center; gap: 9px; min-width: 0; }
+        .tdw-placed-slot {
+            flex: 0 0 auto;
+            padding: 4px 7px;
+            border: 1px solid var(--v3-border);
+            border-radius: 6px;
+            color: var(--v3-neon-green);
+            font: 700 11px/1.2 var(--v3-font-mono);
+            font-variant-numeric: tabular-nums;
+        }
+        .tdw-placed-name { min-width: 0; overflow-wrap: anywhere; color: var(--v3-text-main); font-size: 14px; font-weight: 700; }
+        .tdw-placed-row .tdw-btn { min-height: 44px; padding: 0 10px; white-space: nowrap; }
+        .tdw-placement-lock { color: var(--v3-text-sub); font-size: 14px; text-align: right; }
+        .tdw-placement-help { margin: 0 0 12px; color: var(--v3-text-sub); font-size: 14px; line-height: 1.45; }
+
         .tdw-manual-hint {
             margin-bottom: 12px;
             padding: 10px 12px;
@@ -731,6 +757,54 @@
                         </div>
                     </div>
                 </div>
+
+                @if($drawnTeams->isNotEmpty())
+                    <div class="tdw-panel">
+                        <div class="tdw-panel-head">
+                            <span>Tim Sudah Ditempatkan</span>
+                            <span class="count">{{ $drawnTeams->count() }}</span>
+                        </div>
+                        <div class="tdw-panel-body">
+                            @if($canCancelPlacement)
+                                <p class="tdw-placement-help">Batalkan satu penempatan untuk mengembalikan tim ke daftar. Penempatan tim lain tetap.</p>
+                            @elseif(!$hasBracket)
+                                <p class="tdw-placement-help">Penempatan lama terkunci karena struktur bracket belum tersedia.</p>
+                            @else
+                                <p class="tdw-placement-help">Penempatan terkunci karena pertandingan knockout sudah dimulai atau memiliki hasil/event.</p>
+                            @endif
+
+                            <div class="tdw-placed-list">
+                                @foreach($drawnTeams as $drawnTeam)
+                                    <div class="tdw-placed-row">
+                                        <div class="tdw-placed-summary">
+                                            <span class="tdw-placed-slot">Slot #{{ $drawnTeam->slot_number }}</span>
+                                            <span class="tdw-placed-name">{{ $drawnTeam->team?->name ?? ('Tim #' . $drawnTeam->team_id) }}</span>
+                                        </div>
+
+                                        @if($canCancelPlacement && $drawnTeam->team)
+                                            <form method="POST"
+                                                action="{{ route('admin.tournaments.draw.cancel-placement', [$tournament, $drawnTeam->team_id]) }}"
+                                                onsubmit="return confirm('Kembalikan tim dari slot #{{ (int) $drawnTeam->slot_number }} ke daftar undian? Match yang belum dimainkan akan disesuaikan.');">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="tdw-btn tdw-btn--danger"
+                                                    aria-label="Batalkan penempatan {{ $drawnTeam->team->name }} dari slot {{ $drawnTeam->slot_number }}"
+                                                    title="Kembalikan tim ke daftar undian">
+                                                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>
+                                                    <span>Batalkan</span>
+                                                </button>
+                                            </form>
+                                        @else
+                                            <span class="tdw-placement-lock">
+                                                <i class="bi bi-lock-fill me-1" aria-hidden="true"></i>Terkunci
+                                            </span>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    </div>
+                @endif
 
                 {{-- Available slots --}}
                 <div class="tdw-panel">

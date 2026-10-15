@@ -36,6 +36,7 @@ class TournamentDrawController extends Controller
             ])
             ->exists();
         $hasDrawHistory = TournamentDraw::where('tournament_id', $tournament->id)->exists();
+        $canCancelPlacement = $hasBracket && !$this->draw->hasStartedKnockoutMatches($tournament);
 
         $remainingTeams = $this->draw->remainingTeams($tournament);
         $availableSlots = $this->draw->availableSlotNumbers($tournament);
@@ -55,6 +56,7 @@ class TournamentDrawController extends Controller
             'hasBracket',
             'hasKnockoutFixtures',
             'hasDrawHistory',
+            'canCancelPlacement',
             'status',
             'tree',
             'remainingTeams',
@@ -142,6 +144,22 @@ class TournamentDrawController extends Controller
             }
 
             return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+
+    /** Return one incorrectly placed team to the undrawn pool. */
+    public function cancelPlacement(Tournament $tournament, Team $team)
+    {
+        abort_unless($tournament->type === 'knockout', 404);
+
+        try {
+            $slotNumber = $this->draw->cancelTeamPlacement($tournament, $team);
+
+            return redirect()
+                ->route('admin.tournaments.draw.show', $tournament)
+                ->with('success', "Penempatan {$team->name} dari slot #{$slotNumber} dibatalkan. Tim dikembalikan ke daftar undian.");
+        } catch (\Exception $e) {
+            return redirect()->back()->with('error', 'Gagal membatalkan penempatan: ' . $e->getMessage());
         }
     }
 

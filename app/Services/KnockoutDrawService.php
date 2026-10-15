@@ -259,6 +259,9 @@ class KnockoutDrawService
     public function drawForTeam(Tournament $tournament, Team $team, ?int $preferredSlotNumber = null): int
     {
         return DB::transaction(function () use ($tournament, $team, $preferredSlotNumber) {
+            // Serialize placement changes with per-team cancellation requests.
+            Tournament::query()->whereKey($tournament->id)->lockForUpdate()->firstOrFail();
+
             // Idempoten untuk tim yang sama
             $existing = TournamentDraw::where('tournament_id', $tournament->id)
                 ->where('team_id', $team->id)
@@ -323,6 +326,115 @@ class KnockoutDrawService
             if ($this->drawnCount($tournament) >= $this->drawPoolSize($tournament)) {
                 $this->markDrawCompleted($tournament);
             }
+
+            return $slotNumber;
+        });
+    }
+
+    /** Remove one placement while preserving every other drawn slot. */
+    public function cancelTeamPlacement(Tournament $tournament, Team $team): int
+    {
+        return DB::transaction(function () use ($tournament, $team) {
+            $lockedTournament = Tournament::query()
+                ->whereKey($tournament->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            $matches = Game::query()
+                ->where('tournament_id', $lockedTournament->id)
+                ->whereNull('group_name')
+                ->whereIn('round_type', [
+                    'round_of_64', 'round_of_32', 'round_of_16', 'quarterfinal',
+                    'semifinal', 'final', 'third_place', 'knockout',
+                ])
+                ->lockForUpdate()
+                ->get()
+                ->keyBy('id');
+
+            $hasStartedMatch = $matches->contains(fn (Game $match) =>
+                in_array($match->status, ['ongoing', 'completed'], true)
+                || (int) ($match->home_score ?? 0) !== 0
+                || (int) ($match->away_score ?? 0) !== 0
+                || $match->et_score !== null
+                || $match->penalty_score !== null
+                || $match->events()->exists()
+            );
+
+            if ($hasStartedMatch) {
+                throw new \RuntimeException('Penempatan tidak dapat dibatalkan karena pertandingan knockout sudah dimulai atau memiliki hasil/event.');
+            }
+
+            $draw = TournamentDraw::query()
+                ->where('tournament_id', $lockedTournament->id)
+                ->where('team_id', $team->id)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$draw) {
+                throw new \RuntimeException('Tim ini belum memiliki penempatan yang dapat dibatalkan.');
+            }
+
+            $slot = KnockoutSlot::query()
+                ->where('tournament_id', $lockedTournament->id)
+                ->where('round_number', 1)
+                ->where('slot_number', $draw->slot_number)
+                ->lockForUpdate()
+                ->first();
+
+            if (!$slot
+                || (int) $slot->team_id !== (int) $team->id
+                || $slot->source !== KnockoutSlot::SOURCE_DRAW) {
+                throw new \RuntimeException('Penempatan tim dan slot bracket tidak sinkron. Tidak ada data yang diubah.');
+            }
+
+            $slotNumber = (int) $slot->slot_number;
+            $firstRoundMatchId = $slot->match_id;
+            $futureSlots = KnockoutSlot::query()
+                ->where('tournament_id', $lockedTournament->id)
+                ->where('round_number', '>', 1)
+                ->lockForUpdate()
+                ->get();
+            $futureMatchIds = $futureSlots->pluck('match_id')->filter()->unique();
+
+            KnockoutSlot::query()
+                ->where('tournament_id', $lockedTournament->id)
+                ->where('round_number', '>', 1)
+                ->update([
+                    'team_id' => null,
+                    'source' => KnockoutSlot::SOURCE_WINNER,
+                    'source_match_id' => null,
+                    'status' => KnockoutSlot::STATUS_EMPTY,
+                    'result' => KnockoutSlot::RESULT_PENDING,
+                ]);
+
+            foreach ($futureMatchIds as $matchId) {
+                $match = $matches->get($matchId);
+                if ($match) {
+                    $this->syncMatchParticipants($match, null, null);
+                }
+            }
+
+            $slot->team_id = null;
+            $slot->source = KnockoutSlot::SOURCE_EMPTY;
+            $slot->status = KnockoutSlot::STATUS_EMPTY;
+            $slot->result = KnockoutSlot::RESULT_PENDING;
+            $slot->save();
+            $draw->delete();
+
+            if ($firstRoundMatchId && ($firstRoundMatch = $matches->get($firstRoundMatchId))) {
+                $home = $this->leafSlot($lockedTournament, (int) $slot->match_index, 'home');
+                $away = $this->leafSlot($lockedTournament, (int) $slot->match_index, 'away');
+                $this->syncMatchParticipants($firstRoundMatch, $home?->team_id, $away?->team_id);
+            }
+
+            $settings = $lockedTournament->settings ?? [];
+            $settings['draw_status'] = self::DRAW_DRAWING;
+            unset($settings['draw_completed_at']);
+            $lockedTournament->settings = $settings;
+            $lockedTournament->save();
+
+            // Re-advance any first-round BYE teams whose placements remain valid.
+            $this->resolveFirstRound($lockedTournament);
 
             return $slotNumber;
         });
