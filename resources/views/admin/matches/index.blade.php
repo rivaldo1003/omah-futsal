@@ -939,13 +939,23 @@
                         </thead>
                         <tbody>
                             @foreach($matches as $match)
+                                @php
+                                    $isDrawManagedKnockoutMatch = in_array((int) $match->tournament_id, $drawManagedTournamentIds, true)
+                                        && in_array($match->round_type, [
+                                            'round_of_64', 'round_of_32', 'round_of_16',
+                                            'quarterfinal', 'semifinal', 'third_place', 'final', 'knockout',
+                                        ], true);
+                                @endphp
                                 <tr class="match-row {{ ($match->status == 'completed' && ($match->et_score || $match->is_penalty)) ? 'row-has-extras' : '' }}"
                                     data-status="{{ $match->is_cancelled ? 'cancelled' : $match->status }}" data-round="{{ $match->round_type }}"
                                     data-date="{{ $match->match_date->format('Y-m-d') }}"
                                     data-tournament="{{ $match->tournament_id }}">
                                     <td>
                                         <input type="checkbox" class="match-checkbox" value="{{ $match->id }}"
-                                            data-tournament="{{ $match->tournament_id }}">
+                                            data-tournament="{{ $match->tournament_id }}"
+                                            @if($isDrawManagedKnockoutMatch)
+                                                disabled title="Fixture bracket draw hanya dapat dihapus melalui pengelolaan bracket."
+                                            @endif>
                                     </td>
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
@@ -1104,15 +1114,22 @@
                                                 <i class="bi bi-bar-chart"></i>
                                             </button>
                                             @endif
-                                            <form action="{{ route('admin.matches.destroy', $match) }}" method="POST"
-                                                class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn-small btn-delete"
-                                                    onclick="return confirm('Delete this match?')" title="Delete">
+                                            @if($isDrawManagedKnockoutMatch)
+                                                <button type="button" class="btn-small btn-delete" disabled
+                                                    title="Fixture bracket draw tidak dapat dihapus satu per satu. Gunakan Update Score atau Reset Draw.">
                                                     <i class="bi bi-trash"></i>
                                                 </button>
-                                            </form>
+                                            @else
+                                                <form action="{{ route('admin.matches.destroy', $match) }}" method="POST"
+                                                    class="d-inline">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn-small btn-delete"
+                                                        onclick="return confirm('Delete this match?')" title="Delete">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            @endif
 
                                             @if($match->status === 'completed')
                                                 <!-- Tombol YouTube Highlight -->
@@ -2773,14 +2790,14 @@
             const deleteAllUrlTemplate = '{{ route('admin.admin.tournaments.delete-matches', ['tournament' => ':id']) }}';
 
             function updateBulkState() {
-                const checked = Array.from(document.querySelectorAll('.match-checkbox:checked'));
+                const checked = Array.from(document.querySelectorAll('.match-checkbox:checked:not(:disabled)'));
                 if (bulkCount) bulkCount.textContent = checked.length + ' dipilih';
                 if (bulkDeleteBtn) bulkDeleteBtn.disabled = checked.length === 0;
             }
 
             if (selectAll) {
                 selectAll.addEventListener('change', function () {
-                    document.querySelectorAll('.match-checkbox').forEach(cb => {
+                    document.querySelectorAll('.match-checkbox:not(:disabled)').forEach(cb => {
                         cb.checked = this.checked;
                     });
                     updateBulkState();
@@ -2793,7 +2810,7 @@
 
             if (bulkDeleteBtn) {
                 bulkDeleteBtn.addEventListener('click', function () {
-                    const checked = Array.from(document.querySelectorAll('.match-checkbox:checked'));
+                    const checked = Array.from(document.querySelectorAll('.match-checkbox:checked:not(:disabled)'));
 
                     // ===== VALIDASI =====
                     if (checked.length === 0) {

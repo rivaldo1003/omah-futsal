@@ -262,12 +262,19 @@ class TournamentController extends Controller
                     $request->validate([
                         'groups_count' => 'required|integer|min:1|max:8',
                         'teams_per_group' => 'required|integer|min:2|max:10',
-                        'qualify_per_group' => 'required|integer|min:1|max:4',
+                        'qualify_per_group' => 'required|integer|min:1|max:4|lte:teams_per_group',
                     ], [
                         'groups_count.required' => 'Number of groups is required for Group + Knockout tournament',
                         'teams_per_group.required' => 'Teams per group is required for Group + Knockout tournament',
                         'qualify_per_group.required' => 'Qualify per group is required for Group + Knockout tournament',
+                        'qualify_per_group.lte' => 'Jumlah tim lolos tidak boleh melebihi jumlah tim dalam grup.',
                     ]);
+
+                    if ((int) $request->groups_count * (int) $request->qualify_per_group < 2) {
+                        return back()
+                            ->withErrors(['qualify_per_group' => 'Fase gugur membutuhkan minimal dua tim yang lolos dari seluruh grup.'])
+                            ->withInput();
+                    }
                 }
 
                 if ($validated['type'] === 'league') {
@@ -368,12 +375,14 @@ class TournamentController extends Controller
                     $groupsCount = $tournamentData['groups_count'] ?? 2;
                     $teamsPerGroup = $tournamentData['teams_per_group'] ?? 4;
 
-                    $minTeams = $groupsCount * 2; // Minimal 2 tim per grup
+                    $qualifyPerGroup = (int) ($tournamentData['qualify_per_group'] ?? 2);
+                    $teamsPerGroupMinimum = max(2, $qualifyPerGroup);
+                    $minTeams = $groupsCount * $teamsPerGroupMinimum;
                     $maxTeams = $groupsCount * $teamsPerGroup;
 
                     if ($selectedTeamCount < $minTeams) {
                         return redirect()->back()
-                            ->with('error', "For {$groupsCount} groups, you need at least {$minTeams} teams (2 teams per group)")
+                            ->with('error', "For {$groupsCount} groups, you need at least {$minTeams} teams ({$teamsPerGroupMinimum} per group to support the selected qualifiers)")
                             ->withInput();
                     }
 
@@ -430,12 +439,57 @@ class TournamentController extends Controller
 
                     // Validasi apakah semua tim sudah diassign
                     $selectedTeams = $tournamentData['teams'] ?? [];
-                    $assignedTeamIds = array_column($groupAssignments, 'team_id');
-                    $unassignedTeams = array_diff($selectedTeams, $assignedTeamIds);
+                    $selectedTeamIds = array_map('intval', $selectedTeams);
+                    $selectedTeamLookup = array_fill_keys($selectedTeamIds, true);
+                    $groupsCount = (int) ($tournamentData['groups_count'] ?? 0);
+                    $teamsPerGroup = (int) ($tournamentData['teams_per_group'] ?? 4);
+                    $qualifyPerGroup = (int) ($tournamentData['qualify_per_group'] ?? 2);
+                    $minimumTeamsPerGroup = max(2, $qualifyPerGroup);
+                    $validGroupNames = array_map(fn ($index) => chr(65 + $index), range(0, max(0, $groupsCount - 1)));
+                    $groupSizes = array_fill_keys($validGroupNames, 0);
+                    $assignedTeamIds = [];
+
+                    foreach ($groupAssignments as $assignment) {
+                        if (!is_array($assignment)) {
+                            return redirect()->back()
+                                ->with('error', 'Pembagian grup tidak valid. Muat ulang halaman lalu tetapkan grup untuk setiap tim.')
+                                ->withInput();
+                        }
+
+                        $teamId = (int) ($assignment['team_id'] ?? 0);
+                        $groupName = strtoupper(trim((string) ($assignment['group'] ?? '')));
+
+                        if (!isset($selectedTeamLookup[$teamId])
+                            || isset($assignedTeamIds[$teamId])
+                            || !array_key_exists($groupName, $groupSizes)) {
+                            return redirect()->back()
+                                ->with('error', 'Pembagian grup tidak valid. Pastikan setiap tim terpilih tepat satu kali dan hanya memakai grup yang tersedia.')
+                                ->withInput();
+                        }
+
+                        $assignedTeamIds[$teamId] = true;
+                        $groupSizes[$groupName]++;
+                    }
+
+                    $unassignedTeams = array_diff($selectedTeamIds, array_keys($assignedTeamIds));
 
                     if (!empty($unassignedTeams)) {
                         return redirect()->back()
                             ->with('error', 'Please assign all teams to groups. There are still unassigned teams.')
+                            ->withInput();
+                    }
+
+                    foreach ($groupSizes as $groupName => $groupSize) {
+                        if ($groupSize < $minimumTeamsPerGroup || $groupSize > $teamsPerGroup) {
+                            return redirect()->back()
+                                ->with('error', "Group {$groupName} harus berisi {$minimumTeamsPerGroup} sampai {$teamsPerGroup} tim.")
+                                ->withInput();
+                        }
+                    }
+
+                    if (max($groupSizes) - min($groupSizes) > 1) {
+                        return redirect()->back()
+                            ->with('error', 'Jumlah tim antarkelompok harus seimbang, dengan selisih maksimal satu tim.')
                             ->withInput();
                     }
 
@@ -859,6 +913,13 @@ class TournamentController extends Controller
                 ->withInput();
         }
 
+        if ($validated['type'] === 'group_knockout'
+            && (int) $validated['groups_count'] * (int) ($tournament->qualify_per_group ?? 2) < 2) {
+            return back()
+                ->withErrors(['groups_count' => 'Fase gugur membutuhkan minimal dua tim yang lolos dari seluruh grup.'])
+                ->withInput();
+        }
+
         if ($validated['type'] === 'knockout') {
             $capacity = (int) (($tournament->settings['knockout_teams'] ?? $tournament->knockout_teams) ?: 8);
             if (count($validated['teams']) > $capacity) {
@@ -870,6 +931,58 @@ class TournamentController extends Controller
 
         $currentTeamIds = $tournament->teams()->pluck('teams.id')->map(fn ($id) => (int) $id)->sort()->values()->all();
         $requestedTeamIds = collect($validated['teams'])->map(fn ($id) => (int) $id)->unique()->sort()->values()->all();
+
+        if ($validated['type'] === 'group_knockout') {
+            $groupCount = (int) $validated['groups_count'];
+            $teamsPerGroup = (int) ($tournament->teams_per_group ?? 4);
+            $qualifyPerGroup = (int) ($tournament->qualify_per_group ?? 2);
+            $minimumPerGroup = max(2, $qualifyPerGroup);
+            $minimumTeams = $groupCount * $minimumPerGroup;
+            $maximumTeams = $groupCount * $teamsPerGroup;
+
+            if (count($requestedTeamIds) < $minimumTeams || count($requestedTeamIds) > $maximumTeams) {
+                return back()
+                    ->withErrors(['teams' => "Pilih {$minimumTeams} sampai {$maximumTeams} tim agar setiap grup memenuhi batas peserta dan jumlah tim lolos."])
+                    ->withInput();
+            }
+
+            $currentGroupAssignments = DB::table('team_tournament')
+                ->where('tournament_id', $tournament->id)
+                ->pluck('group_name', 'team_id')
+                ->mapWithKeys(fn ($groupName, $teamId) => [(int) $teamId => strtoupper(trim((string) $groupName))])
+                ->all();
+            $submittedGroupAssignments = $request->input('group_assignments', []);
+            $groupSizes = array_fill_keys(array_map(fn ($index) => chr(65 + $index), range(0, $groupCount - 1)), 0);
+
+            foreach ($requestedTeamIds as $teamId) {
+                $groupName = array_key_exists($teamId, $submittedGroupAssignments)
+                    ? strtoupper(trim((string) $submittedGroupAssignments[$teamId]))
+                    : ($currentGroupAssignments[$teamId] ?? '');
+
+                if (!array_key_exists($groupName, $groupSizes)) {
+                    return back()
+                        ->withErrors(['group_assignments' => 'Tetapkan setiap tim ke grup yang tersedia sebelum menyimpan turnamen.'])
+                        ->withInput();
+                }
+
+                $groupSizes[$groupName]++;
+            }
+
+            foreach ($groupSizes as $groupName => $groupSize) {
+                if ($groupSize < $minimumPerGroup || $groupSize > $teamsPerGroup) {
+                    return back()
+                        ->withErrors(['group_assignments' => "Group {$groupName} harus berisi {$minimumPerGroup} sampai {$teamsPerGroup} tim."])
+                        ->withInput();
+                }
+            }
+
+            if (max($groupSizes) - min($groupSizes) > 1) {
+                return back()
+                    ->withErrors(['group_assignments' => 'Jumlah tim antarkelompok harus seimbang, dengan selisih maksimal satu tim.'])
+                    ->withInput();
+            }
+        }
+
         $hasKnockoutStructure = DB::table('knockout_slots')->where('tournament_id', $tournament->id)->exists()
             || Game::where('tournament_id', $tournament->id)
                 ->whereNull('group_name')
@@ -878,6 +991,54 @@ class TournamentController extends Controller
                     'semifinal', 'final', 'third_place', 'knockout',
                 ])
                 ->exists();
+
+        $currentSettings = $tournament->settings ?? [];
+        $hasGroupFixtures = Game::where('tournament_id', $tournament->id)
+            ->where('round_type', 'group')
+            ->exists();
+
+        if ($hasGroupFixtures && ($tournament->type === 'group_knockout' || $validated['type'] === 'group_knockout')) {
+            $currentGroups = DB::table('team_tournament')
+                ->where('tournament_id', $tournament->id)
+                ->pluck('group_name', 'team_id')
+                ->mapWithKeys(fn ($groupName, $teamId) => [(int) $teamId => strtoupper((string) $groupName)])
+                ->all();
+            $requestedGroupAssignments = $request->input('group_assignments', []);
+            $requestedGroups = [];
+            $groupCount = max(1, (int) ($validated['groups_count'] ?? 1));
+            foreach ($requestedTeamIds as $teamId) {
+                $requestedGroups[$teamId] = strtoupper(trim((string) (
+                    $requestedGroupAssignments[$teamId]
+                    ?? $currentGroups[$teamId]
+                    ?? ''
+                )));
+            }
+            ksort($currentGroups);
+            ksort($requestedGroups);
+
+            $groupStructureChanged = $tournament->type !== $validated['type']
+                || $currentTeamIds !== $requestedTeamIds
+                || (int) $tournament->groups_count !== (int) ($validated['groups_count'] ?? 0)
+                || $currentGroups !== $requestedGroups;
+            $currentPoints = [
+                (int) ($currentSettings['points_win'] ?? 3),
+                (int) ($currentSettings['points_draw'] ?? 1),
+                (int) ($currentSettings['points_loss'] ?? 0),
+                (bool) $tournament->allow_draw,
+            ];
+            $requestedPoints = [
+                (int) ($validated['points_win'] ?? $currentPoints[0]),
+                (int) ($validated['points_draw'] ?? $currentPoints[1]),
+                (int) ($validated['points_loss'] ?? $currentPoints[2]),
+                (bool) ($validated['allow_draw'] ?? $currentPoints[3]),
+            ];
+
+            if ($groupStructureChanged || $currentPoints !== $requestedPoints) {
+                return back()
+                    ->withErrors(['teams' => 'Peserta, pembagian grup, dan aturan poin tidak dapat diubah setelah jadwal grup dibuat. Hapus dan buat ulang jadwal grup sebelum mengubahnya.'])
+                    ->withInput();
+            }
+        }
 
         if ($hasKnockoutStructure
             && ($tournament->type === 'knockout' || $validated['type'] === 'knockout')
@@ -909,6 +1070,14 @@ class TournamentController extends Controller
                 || $wouldDisableFixtureWithEvents)) {
             return back()
                 ->withErrors(['knockout_third_place' => 'Laga perebutan juara 3/4 sudah memiliki event, dimulai, atau selesai. Hapus event terlebih dahulu sebelum mengubah pengaturan.'])
+                ->withInput();
+        }
+
+        if ($hasKnockoutStructure
+            && $willEnableThirdPlace !== (bool) $tournament->knockout_third_place
+            && app(\App\Services\KnockoutDrawService::class)->hasStartedKnockoutMatches($tournament)) {
+            return back()
+                ->withErrors(['knockout_third_place' => 'Pengaturan juara 3/4 tidak dapat diubah setelah pertandingan knockout dimulai.'])
                 ->withInput();
         }
 

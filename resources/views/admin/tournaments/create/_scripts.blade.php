@@ -301,9 +301,12 @@
             }
         } else if (type === 'group_knockout') {
             const groupsCount = parseInt($('#groups_count').val()) || 2;
-            const timPerGroup = parseInt($('#teams_per_group').val()) || 4;
-            // Group stage matches
-            const groupMatches = groupsCount * (timPerGroup * (timPerGroup - 1) / 2);
+            const baseTeamsPerGroup = Math.floor(teamCount / groupsCount);
+            const extraTeams = teamCount % groupsCount;
+            const groupSizes = Array.from({ length: groupsCount }, (_, index) =>
+                baseTeamsPerGroup + (index < extraTeams ? 1 : 0)
+            );
+            const groupMatches = groupSizes.reduce((total, size) => total + (size * (size - 1) / 2), 0);
             // Knockout matches (qualifiers from each group)
             const qualifyPerGroup = parseInt($('#qualify_per_group').val()) || 2;
             const knockoutTeams = groupsCount * qualifyPerGroup;

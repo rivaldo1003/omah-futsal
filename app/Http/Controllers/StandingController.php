@@ -70,7 +70,7 @@ class StandingController extends Controller
                 foreach ($groupedStandings as $group => $groupStandings) {
                     $position = 1;
                     // Get completed matches for head-to-head
-                    $groupMatches = Game::where('tournament_id', $tournamentId)
+                    $groupMatches = Game::where('tournament_id', $selectedTournament->id)
                         ->where('group_name', $group)
                         ->where('status', 'completed')
                         ->get();
@@ -153,6 +153,11 @@ class StandingController extends Controller
 
             } elseif ($tournamentType === 'knockout') {
                 // Untuk knockout: tampilkan bracket
+                $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
+            }
+
+            if ($tournamentType === 'group_knockout'
+                && app(\App\Services\GroupKnockoutBracketService::class)->sync($selectedTournament)) {
                 $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
             }
 
@@ -388,25 +393,34 @@ class StandingController extends Controller
             return 0; // No head-to-head matches
         }
 
+        $tournament = $headToHeadMatches->first()->tournament;
+        $pointsWin = (int) ($tournament?->points_win ?? 3);
+        $pointsDraw = (int) ($tournament?->points_draw ?? 1);
+        $pointsLoss = (int) ($tournament?->points_loss ?? 0);
+
         $teamAPoints = 0;
         $teamBPoints = 0;
 
         foreach ($headToHeadMatches as $match) {
             if ($match->home_score > $match->away_score) {
                 if ($match->team_home_id == $teamA->team_id) {
-                    $teamAPoints += 3;
+                    $teamAPoints += $pointsWin;
+                    $teamBPoints += $pointsLoss;
                 } else {
-                    $teamBPoints += 3;
+                    $teamBPoints += $pointsWin;
+                    $teamAPoints += $pointsLoss;
                 }
             } elseif ($match->home_score < $match->away_score) {
                 if ($match->team_away_id == $teamA->team_id) {
-                    $teamAPoints += 3;
+                    $teamAPoints += $pointsWin;
+                    $teamBPoints += $pointsLoss;
                 } else {
-                    $teamBPoints += 3;
+                    $teamBPoints += $pointsWin;
+                    $teamAPoints += $pointsLoss;
                 }
             } else {
-                $teamAPoints += 1;
-                $teamBPoints += 1;
+                $teamAPoints += $pointsDraw;
+                $teamBPoints += $pointsDraw;
             }
         }
 

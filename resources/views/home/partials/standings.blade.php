@@ -184,6 +184,29 @@
     @endif
 @endif
 
+@if($hasGroups && isset($knockoutBracket) && $knockoutBracket->isNotEmpty())
+    <div class="app-card v3-card mt-4">
+        <div class="app-card-header v3-card-header">
+            <h3 class="app-card-title v3-card-title">
+                <span class="v3-beacon"></span>
+                <i class="bi bi-diagram-3"></i>
+                <span>KNOCKOUT BRACKET</span>
+            </h3>
+            <span class="v3-hud-tag">FASE GUGUR</span>
+        </div>
+        <div class="app-card-body">
+            <x-knockout-bracket :knockout-bracket="$knockoutBracket" variant="home" />
+
+            <div class="pt-3">
+                <a href="{{ route('standings', ['tournament_id' => $activeTournament->id]) }}" class="btn-action-secondary w-100 v3-action">
+                    <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                    <span>VIEW FULL BRACKET</span>
+                </a>
+            </div>
+        </div>
+    </div>
+@endif
+
     <style>
         /* ==================================================================
            ULTRA ANALYTICS ENGINE v3.0 — home standings & tournament format

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Game;
 use App\Models\Standing;
 use App\Models\Team;
+use Illuminate\Support\Facades\DB;
 
 class StandingService
 {
@@ -35,10 +36,17 @@ class StandingService
             ->where('status', 'completed')
             ->get();
 
-        // Ambil SEMUA tim yang terlibat dalam matches grup ini
-        $allTeamIdsInGroup = $completedMatches->flatMap(function ($match) {
-            return [$match->team_home_id, $match->team_away_id];
-        })->unique()->filter()->values()->toArray();
+        // Reset seluruh peserta grup, termasuk tim yang belum memainkan laga.
+        // Ini juga menghapus angka sisa jika fixture selesai diedit ke pasangan lain.
+        $registeredTeamIds = DB::table('team_tournament')
+            ->where('tournament_id', $tournamentId)
+            ->where('group_name', $groupName)
+            ->pluck('team_id');
+        $allTeamIdsInGroup = $registeredTeamIds
+            ->merge($completedMatches->flatMap(fn ($match) => [$match->team_home_id, $match->team_away_id]))
+            ->unique()
+            ->filter()
+            ->values();
 
         // Reset stats untuk SEMUA tim di grup
         foreach ($allTeamIdsInGroup as $teamId) {
@@ -88,15 +96,20 @@ class StandingService
             'tournament_id' => $match->tournament_id,
         ]);
 
+        $tournament = $match->tournament;
+        $pointsWin = (int) ($tournament?->points_win ?? 3);
+        $pointsDraw = (int) ($tournament?->points_draw ?? 1);
+        $pointsLoss = (int) ($tournament?->points_loss ?? 0);
+
         // Update stats untuk kedua tim (accumulate, don't reset)
-        self::updateTeamStats($homeStanding, $match->home_score, $match->away_score, true);
-        self::updateTeamStats($awayStanding, $match->away_score, $match->home_score, false);
+        self::updateTeamStats($homeStanding, $match->home_score, $match->away_score, true, $pointsWin, $pointsDraw, $pointsLoss);
+        self::updateTeamStats($awayStanding, $match->away_score, $match->home_score, false, $pointsWin, $pointsDraw, $pointsLoss);
 
         $homeStanding->save();
         $awayStanding->save();
     }
 
-    private static function updateTeamStats(Standing $standing, $goalsFor, $goalsAgainst, $isHome)
+    private static function updateTeamStats(Standing $standing, $goalsFor, $goalsAgainst, $isHome, int $pointsWin, int $pointsDraw, int $pointsLoss)
     {
         $standing->matches_played += 1;
         $standing->goals_for += $goalsFor;
@@ -105,12 +118,13 @@ class StandingService
 
         if ($goalsFor > $goalsAgainst) {
             $standing->wins += 1;
-            $standing->points += 3;
+            $standing->points += $pointsWin;
         } elseif ($goalsFor < $goalsAgainst) {
             $standing->losses += 1;
+            $standing->points += $pointsLoss;
         } else {
             $standing->draws += 1;
-            $standing->points += 1;
+            $standing->points += $pointsDraw;
         }
     }
 

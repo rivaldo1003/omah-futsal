@@ -215,10 +215,10 @@
         .tdw-team-scroll::-webkit-scrollbar-thumb { background: var(--v3-border); border-radius: 4px; }
 
         .tdw-team {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr);
+            gap: 10px;
+            min-width: 0;
             padding: 12px 14px;
             border: 1px solid var(--v3-border);
             border-radius: var(--v3-radius-sm);
@@ -229,10 +229,44 @@
 
         .tdw-team:hover { border-color: var(--v3-border-glow); }
         .tdw-team.is-drawing { border-color: var(--v3-neon-green); box-shadow: 0 0 18px rgba(0, 255, 135, 0.25); }
+        .tdw-team.is-manual-selected { border-color: var(--v3-neon-blue); box-shadow: 0 0 16px rgba(0, 229, 255, 0.16); }
         .tdw-team.is-leaving { opacity: 0; transform: translateX(-24px); }
 
-        .tdw-team-name { font-weight: 700; font-size: 0.9rem; color: var(--v3-text-main); }
+        .tdw-team-name { overflow-wrap: anywhere; font-weight: 700; font-size: 0.9rem; color: var(--v3-text-main); }
         .tdw-team-meta { font-size: 11px; color: var(--v3-text-sub); margin-top: 2px; }
+        .tdw-team-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; width: 100%; min-width: 0; }
+        .tdw-team-actions .tdw-btn { max-width: 100%; height: 34px; padding: 0 10px; font-size: 9px; white-space: nowrap; }
+
+        .tdw-manual-hint {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--v3-border);
+            border-radius: var(--v3-radius-sm);
+            background: var(--v3-bg);
+            color: var(--v3-text-sub);
+            font-size: 11px;
+            line-height: 1.5;
+        }
+        .tdw-manual-hint.is-active { border-color: rgba(0, 229, 255, .4); color: var(--v3-text-main); }
+
+        .tdw-side.is-manual-target {
+            cursor: pointer;
+            outline: none;
+            background: rgba(0, 229, 255, .045);
+        }
+        .tdw-side.is-manual-target:hover,
+        .tdw-side.is-manual-target:focus-visible {
+            background: rgba(0, 229, 255, .13);
+            box-shadow: inset 0 0 0 1px rgba(0, 229, 255, .55);
+        }
+        .tdw-side.is-manual-target::after {
+            content: 'PILIH SLOT';
+            flex: 0 0 auto;
+            color: var(--v3-neon-blue);
+            font-size: 8px;
+            font-weight: 800;
+            letter-spacing: .5px;
+        }
 
         .tdw-slots { display: flex; flex-wrap: wrap; gap: 7px; }
 
@@ -651,10 +685,17 @@
                 {{-- Team list --}}
                 <div class="tdw-panel">
                     <div class="tdw-panel-head">
-                        <span>Tim Belum Cabut Lot</span>
+                        <span>Tim Belum Ditempatkan</span>
                         <span class="count" id="remainingCount">{{ $remainingTeams->count() }}</span>
                     </div>
                     <div class="tdw-panel-body">
+                        @if($hasBracket)
+                            <div class="tdw-manual-hint" id="manualPlacementHint" role="status" aria-live="polite">
+                                <i class="bi bi-cursor me-1"></i>
+                                Manual: pilih <strong>Atur Slot</strong> pada tim, lalu klik slot kosong di ronde pertama.
+                                Slot BYE dan slot terisi tidak bisa dipilih. Atau gunakan <strong>Undi Acak</strong>.
+                            </div>
+                        @endif
                         <div class="tdw-team-scroll" id="teamList">
                             @forelse($remainingTeams as $team)
                                 <div class="tdw-team" data-team-id="{{ $team->id }}" data-team-name="{{ $team->name }}">
@@ -665,10 +706,16 @@
                                         </div>
                                     </div>
                                     @if($hasBracket)
-                                        <button type="button" class="tdw-btn cabut-btn" data-team-id="{{ $team->id }}"
-                                            data-team-name="{{ $team->name }}">
-                                            <i class="bi bi-ticket-perforated"></i> Cabut
-                                        </button>
+                                        <div class="tdw-team-actions">
+                                            <button type="button" class="tdw-btn manual-place-btn" data-team-id="{{ $team->id }}"
+                                                data-team-name="{{ $team->name }}" aria-pressed="false">
+                                                <i class="bi bi-cursor"></i> Atur Slot
+                                            </button>
+                                            <button type="button" class="tdw-btn cabut-btn" data-team-id="{{ $team->id }}"
+                                                data-team-name="{{ $team->name }}">
+                                                <i class="bi bi-shuffle"></i> Undi Acak
+                                            </button>
+                                        </div>
                                     @else
                                         <button type="button" class="tdw-btn" disabled title="Generate Bracket terlebih dahulu">
                                             <i class="bi bi-lock"></i> Belum aktif
@@ -735,9 +782,15 @@
                                                         @php
                                                             $isBye = $slot && $slot->source === 'bye';
                                                             $teamName = $slot && $slot->team ? $slot->team->name : null;
+                                                            $canManualPlace = $slot
+                                                                && $rm['round_number'] === 1
+                                                                && $slot->slot_number
+                                                                && in_array((int) $slot->slot_number, $availableSlots, true);
                                                         @endphp
                                                         <div class="tdw-side"
-                                                            @if($slot && $slot->slot_number) data-slot="{{ $slot->slot_number }}" @endif>
+                                                            @if($slot && $slot->slot_number) data-slot="{{ $slot->slot_number }}" @endif
+                                                            data-manual-slot="{{ $canManualPlace ? 'true' : 'false' }}"
+                                                            @if($canManualPlace) role="button" tabindex="-1" aria-disabled="true" aria-label="Pilih slot {{ $slot->slot_number }} untuk tim" @endif>
                                                             <span class="seed">
                                                                 {{ $slot && $slot->slot_number ? '#' . $slot->slot_number : '–' }}
                                                             </span>
@@ -798,9 +851,11 @@
             const ovTeam = document.getElementById('ovTeam');
             const ovNumber = document.getElementById('ovNumber');
             const ovCaption = document.getElementById('ovCaption');
+            const manualHint = document.getElementById('manualPlacementHint');
 
             const delay = (ms) => new Promise(r => setTimeout(r, ms));
             let busy = false;
+            let manualSelection = null;
 
             let audioCtx = null;
 
@@ -894,7 +949,9 @@
 
                 const flyer = document.createElement('div');
                 flyer.className = 'flying-badge';
-                flyer.innerHTML = `<i class="bi bi-shield-lock-fill me-2"></i>${teamName} → SLOT #${slotNumber}`;
+                const icon = document.createElement('i');
+                icon.className = 'bi bi-shield-lock-fill me-2';
+                flyer.append(icon, document.createTextNode(`${teamName} → SLOT #${slotNumber}`));
                 document.body.appendChild(flyer);
 
                 const startX = window.innerWidth / 2 - 120;
@@ -931,10 +988,54 @@
                 }, 850);
             }
 
-            async function cabut(teamId, teamName, btn) {
+            function syncManualSelection() {
+                document.querySelectorAll('.manual-place-btn').forEach(button => {
+                    const selected = manualSelection && button.dataset.teamId === manualSelection.teamId;
+                    const row = button.closest('.tdw-team');
+                    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+                    button.classList.toggle('tdw-btn--primary', !!selected);
+                    button.innerHTML = selected
+                        ? '<i class="bi bi-crosshair"></i> Pilih Slot'
+                        : '<i class="bi bi-cursor"></i> Atur Slot';
+                    if (row) row.classList.toggle('is-manual-selected', !!selected);
+                });
+
+                document.querySelectorAll('.tdw-side[data-manual-slot="true"]').forEach(slot => {
+                    const enabled = !!manualSelection;
+                    slot.classList.toggle('is-manual-target', enabled);
+                    slot.setAttribute('aria-disabled', enabled ? 'false' : 'true');
+                    slot.tabIndex = enabled ? 0 : -1;
+                });
+
+                if (manualHint) {
+                    manualHint.classList.toggle('is-active', !!manualSelection);
+                    manualHint.textContent = manualSelection
+                        ? `Tim ${manualSelection.teamName} dipilih. Klik slot kosong di ronde pertama; klik tombol tim lagi untuk membatalkan.`
+                        : 'Manual: pilih Atur Slot pada tim, lalu klik slot kosong di ronde pertama. Slot BYE dan slot terisi tidak bisa dipilih. Atau gunakan Undi Acak.';
+                }
+            }
+
+            function toggleManualSelection(button) {
+                if (busy) return;
+
+                if (manualSelection && manualSelection.teamId === button.dataset.teamId) {
+                    manualSelection = null;
+                } else {
+                    manualSelection = {
+                        teamId: button.dataset.teamId,
+                        teamName: button.dataset.teamName,
+                        button
+                    };
+                }
+
+                syncManualSelection();
+            }
+
+            async function assignSlot(teamId, teamName, btn, preferredSlotNumber = null) {
                 if (busy) return;
                 busy = true;
                 if (btn) btn.disabled = true;
+                const isManualPlacement = preferredSlotNumber !== null;
 
                 const row = document.querySelector(`.tdw-team[data-team-id="${teamId}"]`);
                 if (row) row.classList.add('is-drawing');
@@ -942,14 +1043,22 @@
                 initAudio();
                 openOverlay(teamName);
 
-                const rollTimer = setInterval(() => {
-                    const n = Math.floor(Math.random() * bracketSize) + 1;
-                    ovNumber.textContent = String(n).padStart(2, '0');
-                    playTickSFX();
-                }, 55);
+                let rollTimer = null;
+                if (isManualPlacement) {
+                    ovNumber.textContent = String(preferredSlotNumber).padStart(2, '0');
+                    ovCaption.textContent = `MEMERIKSA SLOT PILIHAN #${preferredSlotNumber}`;
+                } else {
+                    rollTimer = setInterval(() => {
+                        const n = Math.floor(Math.random() * bracketSize) + 1;
+                        ovNumber.textContent = String(n).padStart(2, '0');
+                        playTickSFX();
+                    }, 55);
+                }
 
                 const startedAt = performance.now();
                 let data = null;
+                const requestBody = { team_id: teamId };
+                if (isManualPlacement) requestBody.slot_number = preferredSlotNumber;
 
                 try {
                     const res = await fetch(drawUrl, {
@@ -959,22 +1068,21 @@
                             'X-CSRF-TOKEN': csrf,
                             'Accept': 'application/json'
                         },
-                        body: JSON.stringify({ team_id: teamId })
+                        body: JSON.stringify(requestBody)
                     });
                     data = await res.json();
                 } catch (e) {
                     data = { ok: false, message: e.message };
                 }
 
-                // Rolling duration: 5 seconds
-                const DRAW_DURATION = 5000;
+                const DRAW_DURATION = isManualPlacement ? 700 : 5000;
                 const elapsed = performance.now() - startedAt;
                 if (elapsed < DRAW_DURATION) await delay(DRAW_DURATION - elapsed);
 
-                clearInterval(rollTimer);
+                if (rollTimer) clearInterval(rollTimer);
 
                 if (!data || !data.ok) {
-                    ovCaption.textContent = 'GAGAL DIUNDI';
+                    ovCaption.textContent = isManualPlacement ? 'GAGAL MENEMPATKAN TIM' : 'GAGAL DIUNDI';
                     await delay(800);
                     closeOverlay();
                     if (row) row.classList.remove('is-drawing');
@@ -989,7 +1097,9 @@
                 playLockSFX();
                 ovNumber.className = 'tdw-ov-number is-locked';
                 ovNumber.textContent = String(slotNumber).padStart(2, '0');
-                ovCaption.textContent = `TERKUNCI DI SLOT #${slotNumber}`;
+                ovCaption.textContent = isManualPlacement
+                    ? `DITEMPATKAN MANUAL DI SLOT #${slotNumber}`
+                    : `TERKUNCI DI SLOT #${slotNumber}`;
 
                 triggerConfetti();
                 await delay(1300);
@@ -1011,13 +1121,24 @@
                     statusWrap.setAttribute('data-state', data.status);
                 }
 
-                if (data.remaining === 0) {
+                if (manualSelection && manualSelection.teamId === String(teamId)) {
+                    manualSelection = null;
+                    syncManualSelection();
+                }
+
+                const refreshForAccurateBracket = isManualPlacement && data.remaining > 0;
+                if (data.remaining === 0 || refreshForAccurateBracket) {
+                    if (refreshForAccurateBracket && manualHint) {
+                        manualHint.textContent = 'Penempatan tersimpan. Bracket sedang diperbarui sebelum Anda memilih slot berikutnya.';
+                    }
                     setTimeout(() => location.reload(), 2500);
                 } else if (btn) {
                     btn.disabled = false;
                 }
 
-                busy = false;
+                // Manual placements may advance a team over a BYE. Reload the
+                // resolved bracket before allowing the next placement.
+                busy = data.remaining === 0 || refreshForAccurateBracket;
             }
 
             function updateCounters(slotNumber) {
@@ -1034,11 +1155,43 @@
                     setTimeout(() => chip.classList.add('taken'), 600);
                     setTimeout(() => chip.classList.remove('just-taken'), 1000);
                 }
+
+                const bracketSlot = document.querySelector(`.tdw-side[data-slot="${slotNumber}"]`);
+                if (bracketSlot) {
+                    bracketSlot.dataset.manualSlot = 'false';
+                    bracketSlot.classList.remove('is-manual-target');
+                    bracketSlot.setAttribute('aria-disabled', 'true');
+                    bracketSlot.tabIndex = -1;
+                }
             }
+
+            document.querySelectorAll('.manual-place-btn').forEach(button => {
+                button.addEventListener('click', () => toggleManualSelection(button));
+            });
 
             document.querySelectorAll('.cabut-btn').forEach(btn => {
                 btn.addEventListener('click', () => {
-                    cabut(btn.dataset.teamId, btn.dataset.teamName, btn);
+                    assignSlot(btn.dataset.teamId, btn.dataset.teamName, btn);
+                });
+            });
+
+            document.querySelectorAll('.tdw-side[data-manual-slot="true"]').forEach(slot => {
+                const placeTeamInSlot = () => {
+                    if (!manualSelection || busy) return;
+                    assignSlot(
+                        manualSelection.teamId,
+                        manualSelection.teamName,
+                        manualSelection.button,
+                        Number(slot.dataset.slot)
+                    );
+                };
+
+                slot.addEventListener('click', placeTeamInSlot);
+                slot.addEventListener('keydown', event => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        placeTeamInSlot();
+                    }
                 });
             });
         })();

@@ -106,6 +106,7 @@ class TournamentDrawController extends Controller
 
         $validated = $request->validate([
             'team_id' => 'required|exists:teams,id',
+            'slot_number' => 'nullable|integer|min:1|max:64',
         ]);
 
         try {
@@ -116,7 +117,11 @@ class TournamentDrawController extends Controller
             }
 
             $team = Team::findOrFail($validated['team_id']);
-            $slotNumber = $this->draw->drawForTeam($tournament, $team);
+            $slotNumber = $this->draw->drawForTeam(
+                $tournament,
+                $team,
+                isset($validated['slot_number']) ? (int) $validated['slot_number'] : null
+            );
 
             if ($request->expectsJson()) {
                 return response()->json([

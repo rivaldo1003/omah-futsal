@@ -138,6 +138,8 @@ class HomeController extends Controller
         $isCupType = ($tournamentType === 'knockout');
         $isLeagueType = ($tournamentType === 'league');
         $hasGroups = ($tournamentType === 'group_knockout');
+        $hasGroupKnockoutBracket = $hasGroups
+            && app(\App\Services\GroupKnockoutBracketService::class)->sync($activeTournament);
 
         // Ambil matches status 'ongoing' dan 'upcoming' untuk hari ini
         $todayMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
@@ -181,7 +183,7 @@ class HomeController extends Controller
         // ==============================
         $knockoutMatches = collect();
         $knockoutBracket = collect();
-        if ($isCupType) {
+        if ($isCupType || $hasGroupKnockoutBracket) {
             $knockoutMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
                 ->where('tournament_id', $tournamentId)
                 ->whereIn('round_type', [
@@ -1068,25 +1070,34 @@ class HomeController extends Controller
             return 0; // No head-to-head matches
         }
 
+        $tournament = $headToHeadMatches->first()->tournament;
+        $pointsWin = (int) ($tournament?->points_win ?? 3);
+        $pointsDraw = (int) ($tournament?->points_draw ?? 1);
+        $pointsLoss = (int) ($tournament?->points_loss ?? 0);
+
         $teamAPoints = 0;
         $teamBPoints = 0;
 
         foreach ($headToHeadMatches as $match) {
             if ($match->home_score > $match->away_score) {
                 if ($match->team_home_id == $teamA->team_id) {
-                    $teamAPoints += 3;
+                    $teamAPoints += $pointsWin;
+                    $teamBPoints += $pointsLoss;
                 } else {
-                    $teamBPoints += 3;
+                    $teamBPoints += $pointsWin;
+                    $teamAPoints += $pointsLoss;
                 }
             } elseif ($match->home_score < $match->away_score) {
                 if ($match->team_away_id == $teamA->team_id) {
-                    $teamAPoints += 3;
+                    $teamAPoints += $pointsWin;
+                    $teamBPoints += $pointsLoss;
                 } else {
-                    $teamBPoints += 3;
+                    $teamBPoints += $pointsWin;
+                    $teamAPoints += $pointsLoss;
                 }
             } else {
-                $teamAPoints += 1;
-                $teamBPoints += 1;
+                $teamAPoints += $pointsDraw;
+                $teamBPoints += $pointsDraw;
             }
         }
 

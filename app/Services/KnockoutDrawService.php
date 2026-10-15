@@ -65,7 +65,7 @@ class KnockoutDrawService
             $types[] = $this->roundType($size, $roundNumber);
         }
 
-        if ($tournament->knockout_third_place && $tournament->teams()->count() >= 4 && $size >= 4) {
+        if ($tournament->knockout_third_place && $size >= 4) {
             $types[] = 'third_place';
         }
 
@@ -291,7 +291,13 @@ class KnockoutDrawService
                 ->where('round_number', 1)
                 ->where('slot_number', $slotNumber)
                 ->lockForUpdate()
-                ->firstOrFail();
+                ->first();
+
+            // Recheck after acquiring the row lock so simultaneous manual
+            // placements cannot overwrite a slot selected by another request.
+            if (!$slot || $slot->source === KnockoutSlot::SOURCE_BYE || $slot->team_id !== null) {
+                throw new \RuntimeException('Slot yang dipilih sudah tidak tersedia. Pilih slot kosong lainnya.');
+            }
 
             $slot->team_id = $team->id;
             $slot->source = KnockoutSlot::SOURCE_DRAW;
@@ -396,7 +402,7 @@ class KnockoutDrawService
      * mendapat bye pada ronde mana pun. Tidak menyentuh jalur yang masih
      * menunggu hasil pertandingan nyata.
      */
-    private function resolveAutomaticByes(Tournament $tournament): void
+    private function resolveAutomaticByes(Tournament $tournament, bool $syncFixtures = true): void
     {
         if (!$this->isDrawComplete($tournament)) {
             return;
@@ -490,7 +496,9 @@ class KnockoutDrawService
                         $target->save();
                     }
 
-                    $this->resolveMatchSlots($tournament, $roundNumber + 1, $nextMatchIndex);
+                    if ($syncFixtures) {
+                        $this->resolveMatchSlots($tournament, $roundNumber + 1, $nextMatchIndex);
+                    }
                 } elseif ($target->team_id === null) {
                     $target->source = KnockoutSlot::SOURCE_BYE;
                     $target->source_match_id = null;
@@ -559,7 +567,7 @@ class KnockoutDrawService
         if (!$match) {
             $match = Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $tournament->start_date,
+                'match_date' => $this->matchDate($tournament, 1),
                 'time_start' => $this->timeSlot($matchIndex, $tournament),
                 'time_end' => $this->timeEnd($this->timeSlot($matchIndex, $tournament), $tournament),
                 'team_home_id' => $homeTeamId,
@@ -673,7 +681,7 @@ class KnockoutDrawService
         if (!$match) {
             $match = Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $tournament->start_date,
+                'match_date' => $this->matchDate($tournament, $roundNumber),
                 'time_start' => $this->timeSlot($matchIndex, $tournament),
                 'time_end' => $this->timeEnd($this->timeSlot($matchIndex, $tournament), $tournament),
                 'team_home_id' => $home->team_id,
@@ -703,7 +711,7 @@ class KnockoutDrawService
     /**
      * Panggil ketika sebuah pertandingan selesai: isi slot ronde berikutnya.
      */
-    public function advanceWinner(Game $match): bool
+    public function advanceWinner(Game $match, bool $syncFixtures = true): bool
     {
         if (!$match->tournament_id) {
             return false;
@@ -788,11 +796,15 @@ class KnockoutDrawService
             $sourceSlot->save();
         }
 
-        // Sinkronkan pertandingan ronde berikutnya bila kedua sisinya sudah terisi
-        $this->resolveMatchSlots($tournament, $target->round_number, $target->match_index);
-        $this->resolveAutomaticByes($tournament);
+        // Saat replay progres, seluruh slot diisi dahulu. Fixture disinkronkan
+        // setelahnya agar final yang sedang disimpan tidak terlihat setengah
+        // kosong selama proses rekonstruksi bracket.
+        if ($syncFixtures) {
+            $this->resolveMatchSlots($tournament, $target->round_number, $target->match_index);
+            $this->resolveAutomaticByes($tournament);
+        }
 
-        if ($match->round_type === 'semifinal' && $tournament->knockout_third_place && $loserId) {
+        if ($syncFixtures && $match->round_type === 'semifinal' && $tournament->knockout_third_place && $loserId) {
             $this->assignThirdPlaceLoser($match, $tournament, (int) $loserId);
         }
 
@@ -827,7 +839,10 @@ class KnockoutDrawService
                     'result' => KnockoutSlot::RESULT_PENDING,
                 ]);
 
-            $this->resolveAutomaticByes($tournament);
+            // Rebuild slot state without writing intermediate, partially
+            // reconstructed participants to fixtures that may already have a
+            // result (for example, the final currently being updated).
+            $this->resolveAutomaticByes($tournament, false);
 
             $matches = Game::where('tournament_id', $tournament->id)
                 ->where('status', 'completed')
@@ -851,17 +866,20 @@ class KnockoutDrawService
             foreach ($matches as $match) {
                 $match->refresh();
                 if ($match->status === 'completed') {
-                    $this->advanceWinner($match);
+                    $this->advanceWinner($match, false);
                 }
             }
 
-            // Keep upcoming fixture participants in sync after clearing stale
-            // progression. Started fixtures are protected by syncMatchParticipants.
+            // Apply the fully rebuilt participant slots to each later fixture.
             for ($roundNumber = 2; $roundNumber <= $rounds; $roundNumber++) {
                 $matchesInRound = intdiv($size, (int) pow(2, $roundNumber));
                 for ($matchIndex = 0; $matchIndex < $matchesInRound; $matchIndex++) {
                     $this->resolveMatchSlots($tournament, $roundNumber, $matchIndex);
                 }
+            }
+
+            if ($tournament->knockout_third_place) {
+                $this->ensureThirdPlaceFixture($tournament);
             }
 
             $this->resolveAutomaticByes($tournament);
@@ -960,6 +978,10 @@ class KnockoutDrawService
     public function ensureThirdPlaceFixture(Tournament $tournament): ?Game
     {
         if (!$tournament->knockout_third_place || $tournament->teams()->count() < 4) {
+            return null;
+        }
+
+        if ($tournament->type === 'group_knockout' && !$this->hasBracket($tournament)) {
             return null;
         }
 
@@ -1183,6 +1205,27 @@ class KnockoutDrawService
     /** Roster undian lengkap? */
     public function isDrawComplete(Tournament $tournament): bool
     {
+        if ($tournament->type === 'group_knockout'
+            && ($tournament->settings[GroupKnockoutBracketService::READY_KEY] ?? false)) {
+            $expectedTeamIds = collect($tournament->settings[GroupKnockoutBracketService::QUALIFIERS_KEY] ?? [])
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->sort()
+                ->values();
+            $slotTeamIds = KnockoutSlot::where('tournament_id', $tournament->id)
+                ->where('round_number', 1)
+                ->where('source', KnockoutSlot::SOURCE_DRAW)
+                ->whereNotNull('team_id')
+                ->pluck('team_id')
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->sort()
+                ->values();
+
+            return $expectedTeamIds->count() >= 2
+                && $expectedTeamIds->all() === $slotTeamIds->all();
+        }
+
         $teams = $tournament->teams()->count();
         $drawn = $this->drawnCount($tournament);
 
@@ -1276,7 +1319,7 @@ class KnockoutDrawService
                 }
             }
 
-            if ($tournament->knockout_third_place && $tournament->teams()->count() >= 4 && $size >= 4) {
+            if ($tournament->knockout_third_place && $size >= 4) {
                 $thirdPlaceFixture = Game::where('tournament_id', $tournament->id)
                     ->where('round_type', 'third_place')
                     ->first();
@@ -1392,7 +1435,7 @@ class KnockoutDrawService
         });
     }
 
-    private function hasStartedKnockoutMatches(Tournament $tournament): bool
+    public function hasStartedKnockoutMatches(Tournament $tournament): bool
     {
         $matches = Game::where('tournament_id', $tournament->id)
             ->whereNull('group_name')
@@ -1456,9 +1499,19 @@ class KnockoutDrawService
 
     private function matchDate(Tournament $tournament, int $roundNumber): string
     {
-        $date = $tournament->start_date
-            ? Carbon::parse($tournament->start_date)
-            : now();
+        if ($tournament->type === 'group_knockout'
+            && ($tournament->settings[GroupKnockoutBracketService::READY_KEY] ?? false)) {
+            $lastGroupDate = Game::where('tournament_id', $tournament->id)
+                ->where('round_type', 'group')
+                ->max('match_date');
+            $date = $lastGroupDate
+                ? Carbon::parse($lastGroupDate)->addDay()
+                : ($tournament->start_date ? Carbon::parse($tournament->start_date) : now());
+        } else {
+            $date = $tournament->start_date
+                ? Carbon::parse($tournament->start_date)
+                : now();
+        }
         $date->addDays(max(0, $roundNumber - 1) * 2);
 
         if ($tournament->end_date) {
