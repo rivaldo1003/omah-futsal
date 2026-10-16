@@ -191,7 +191,6 @@
                     : `<img src="${squadPlaceholder}" alt="${playerName}" style="width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 1px solid var(--v3-border, var(--border-color));">`;
 
                 const totalContrib = goals + assists;
-                const totalGoalkeeping = saves + cleanSheets;
                 const discipline = yellowCards + (redCards * 2);
 
                 const keyStatsHtml = isGoalkeeper ? `
@@ -200,16 +199,20 @@
                         <div class="key-stat-lbl">Played</div>
                     </div>
                     <div class="key-stat-cell">
+                        <div class="key-stat-num" data-target="${goals}">0</div>
+                        <div class="key-stat-lbl">Goals</div>
+                    </div>
+                    <div class="key-stat-cell">
+                        <div class="key-stat-num" data-target="${assists}">0</div>
+                        <div class="key-stat-lbl">Assists</div>
+                    </div>
+                    <div class="key-stat-cell">
                         <div class="key-stat-num" data-target="${saves}">0</div>
                         <div class="key-stat-lbl">Saves</div>
                     </div>
                     <div class="key-stat-cell">
                         <div class="key-stat-num" data-target="${cleanSheets}">0</div>
                         <div class="key-stat-lbl">Clean sheets</div>
-                    </div>
-                    <div class="key-stat-cell">
-                        <div class="key-stat-num">${totalGoalkeeping}</div>
-                        <div class="key-stat-lbl">GK impact</div>
                     </div>
                 ` : `
                     <div class="key-stat-cell">
@@ -257,7 +260,7 @@
                             </div>
 
                             <div class="col-12 col-md-7">
-                                <div class="d-grid gap-2" style="grid-template-columns: repeat(4, 1fr);">
+                                <div class="d-grid gap-2" style="grid-template-columns: repeat(${isGoalkeeper ? 3 : 4}, minmax(0, 1fr));">
                                     ${keyStatsHtml}
                                 </div>
 
