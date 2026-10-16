@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\MatchEvent;
 use App\Models\Player;
 use App\Models\Team;
+use App\Services\GoalkeeperCleanSheetService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -23,8 +24,9 @@ class MatchEventController extends Controller
 
         // Ambil events - HANYA orderBy minute saja
         $events = MatchEvent::where('match_id', $match->id)
+            ->where('event_type', '!=', 'clean_sheet')
             ->orderBy('minute')
-            ->with(['team', 'player', 'relatedPlayer'])
+            ->with(['team', 'player', 'relatedPlayer', 'concededByGoalkeeper'])
             ->get();
 
         // Ambil players dari kedua tim
@@ -95,6 +97,7 @@ class MatchEventController extends Controller
             ->get();
 
         $players = $homeTeamPlayers->merge($awayTeamPlayers)->sortBy('name');
+        $goalkeepers = $this->goalkeepersInMatchLineup($match);
 
         $eventTypes = [
             'goal' => 'Goal',
@@ -105,10 +108,9 @@ class MatchEventController extends Controller
             'foul' => 'Foul',
             'injury' => 'Injury',
             'save' => 'Save (Goalkeeper)',
-            'clean_sheet' => 'Clean Sheet (Goalkeeper)',
         ];
 
-        return view('admin.matches.events.create', compact('match', 'teams', 'players', 'eventTypes'));
+        return view('admin.matches.events.create', compact('match', 'teams', 'players', 'goalkeepers', 'eventTypes'));
     }
 
     /**
@@ -125,7 +127,8 @@ class MatchEventController extends Controller
             'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
+            'conceded_by_goalkeeper_id' => 'required_if:event_type,goal|nullable|integer|exists:players,id',
+            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save',
             'minute' => 'required|integer|min:1|max:120',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
@@ -146,8 +149,23 @@ class MatchEventController extends Controller
 
         if (!$this->isGoalkeeperEventAllowed($validated['event_type'], (int) $validated['player_id'])) {
             return redirect()->back()
-                ->with('error', 'Event save/clean sheet hanya untuk pemain dengan posisi kiper.')
+                ->with('error', 'Event save hanya untuk pemain dengan posisi kiper.')
                 ->withInput();
+        }
+
+        if ($validated['event_type'] === 'goal' && !$this->isValidConcededGoalkeeper(
+            $match,
+            (int) $validated['team_id'],
+            (bool) ($validated['is_own_goal'] ?? false),
+            (int) $validated['conceded_by_goalkeeper_id']
+        )) {
+            return redirect()->back()
+                ->withErrors(['conceded_by_goalkeeper_id' => 'Pilih kiper dari lineup tim yang kebobolan. Pastikan lineup pertandingan sudah disimpan.'])
+                ->withInput();
+        }
+
+        if ($validated['event_type'] !== 'goal') {
+            $validated['conceded_by_goalkeeper_id'] = null;
         }
 
         try {
@@ -190,6 +208,11 @@ class MatchEventController extends Controller
                 ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
         }
 
+        if ($event->event_type === 'clean_sheet') {
+            return redirect()->route('admin.matches.events.index', $match)
+                ->with('error', 'Clean Sheet sekarang dihitung dari lineup dan kiper yang tercatat kebobolan pada setiap gol.');
+        }
+
         $teams = Team::whereIn('id', [$match->team_home_id, $match->team_away_id])->get();
 
         // Ambil players dari kedua tim
@@ -202,6 +225,7 @@ class MatchEventController extends Controller
             ->get();
 
         $players = $homeTeamPlayers->merge($awayTeamPlayers)->sortBy('name');
+        $goalkeepers = $this->goalkeepersInMatchLineup($match);
 
         $eventTypes = [
             'goal' => 'Goal',
@@ -212,10 +236,9 @@ class MatchEventController extends Controller
             'foul' => 'Foul',
             'injury' => 'Injury',
             'save' => 'Save (Goalkeeper)',
-            'clean_sheet' => 'Clean Sheet (Goalkeeper)',
         ];
 
-        return view('admin.matches.events.edit', compact('match', 'event', 'teams', 'players', 'eventTypes'));
+        return view('admin.matches.events.edit', compact('match', 'event', 'teams', 'players', 'goalkeepers', 'eventTypes'));
     }
 
     /**
@@ -228,11 +251,17 @@ class MatchEventController extends Controller
                 ->with('error', 'Fixture dinonaktifkan. Event pertandingan tidak dapat diubah.');
         }
 
+        if ($event->event_type === 'clean_sheet') {
+            return redirect()->route('admin.matches.events.index', $match)
+                ->with('error', 'Clean Sheet sekarang dihitung dari lineup dan kiper yang tercatat kebobolan pada setiap gol.');
+        }
+
         $validated = $request->validate([
             'team_id' => 'required|exists:teams,id|in:' . $match->team_home_id . ',' . $match->team_away_id,
             'player_id' => 'required|exists:players,id',
             'related_player_id' => 'nullable|exists:players,id|different:player_id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save,clean_sheet',
+            'conceded_by_goalkeeper_id' => 'required_if:event_type,goal|nullable|integer|exists:players,id',
+            'event_type' => 'required|in:goal,yellow_card,red_card,substitution,penalty,foul,injury,assist,save',
             'minute' => 'required|integer|min:1|max:120',
             'description' => 'nullable|string|max:500',
             'is_own_goal' => 'nullable|boolean',
@@ -246,9 +275,24 @@ class MatchEventController extends Controller
         $validated['is_own_goal'] = $request->boolean('is_own_goal');
         $validated['is_penalty'] = $request->boolean('is_penalty');
 
+        if ($validated['event_type'] === 'goal' && !$this->isValidConcededGoalkeeper(
+            $match,
+            (int) $validated['team_id'],
+            $validated['is_own_goal'],
+            (int) $validated['conceded_by_goalkeeper_id']
+        )) {
+            return redirect()->back()
+                ->withErrors(['conceded_by_goalkeeper_id' => 'Pilih kiper dari lineup tim yang kebobolan. Pastikan lineup pertandingan sudah disimpan.'])
+                ->withInput();
+        }
+
+        if ($validated['event_type'] !== 'goal') {
+            $validated['conceded_by_goalkeeper_id'] = null;
+        }
+
         if (!$this->isGoalkeeperEventAllowed($validated['event_type'], (int) $validated['player_id'])) {
             return redirect()->back()
-                ->with('error', 'Event save/clean sheet hanya untuk pemain dengan posisi kiper.')
+                ->with('error', 'Event save hanya untuk pemain dengan posisi kiper.')
                 ->withInput();
         }
 
@@ -432,9 +476,6 @@ class MatchEventController extends Controller
             case 'save':
                 $player->increment('saves');
                 break;
-            case 'clean_sheet':
-                $player->increment('clean_sheets');
-                break;
         }
 
         // Update related player stats if applicable
@@ -498,9 +539,6 @@ class MatchEventController extends Controller
             case 'save':
                 $player->decrement('saves');
                 break;
-            case 'clean_sheet':
-                $player->decrement('clean_sheets');
-                break;
         }
 
         // Revert related player stats
@@ -555,9 +593,22 @@ class MatchEventController extends Controller
         $request->validate([
             'team_id' => 'required|exists:teams,id',
             'player_id' => 'required|exists:players,id',
+            'conceded_by_goalkeeper_id' => 'required|integer|exists:players,id',
             'minute' => 'required|integer|min:1|max:120',
             'is_penalty' => 'boolean',
         ]);
+
+        if (!$this->isValidConcededGoalkeeper(
+            $match,
+            (int) $request->team_id,
+            false,
+            (int) $request->conceded_by_goalkeeper_id
+        )) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Pilih kiper dari lineup tim yang kebobolan. Pastikan lineup pertandingan sudah disimpan.',
+            ], 422);
+        }
 
         try {
             DB::beginTransaction();
@@ -566,6 +617,7 @@ class MatchEventController extends Controller
                 'match_id' => $match->id,
                 'team_id' => $request->team_id,
                 'player_id' => $request->player_id,
+                'conceded_by_goalkeeper_id' => $request->conceded_by_goalkeeper_id,
                 'event_type' => 'goal',
                 'minute' => $request->minute,
                 'is_penalty' => $request->boolean('is_penalty'),
@@ -705,12 +757,6 @@ class MatchEventController extends Controller
                 ->get()
                 ->keyBy('player_id');
 
-            $cleanSheetStats = MatchEvent::selectRaw('player_id, COUNT(*) as total')
-                ->where('event_type', 'clean_sheet')
-                ->groupBy('player_id')
-                ->get()
-                ->keyBy('player_id');
-
             // 5. Terapkan ke semua player yang punya event ATAU yang stat-nya
             //    non-zero (supaya player yang event-nya habis/dipindah ikut di-reset ke 0)
             $playerIds = $goalStats->keys()
@@ -720,7 +766,6 @@ class MatchEventController extends Controller
                 ->merge($redStats->keys())
                 ->merge($penaltyStats->keys())
                 ->merge($saveStats->keys())
-                ->merge($cleanSheetStats->keys())
                 ->merge(
                     Player::where(function ($q) {
                         $q->where('goals', '>', 0)
@@ -746,7 +791,6 @@ class MatchEventController extends Controller
                     'red_cards' => $redStats->has($playerId) ? (int) $redStats[$playerId]->total : 0,
                     'penalty_missed' => $penaltyStats->has($playerId) ? (int) $penaltyStats[$playerId]->total : 0,
                     'saves' => $saveStats->has($playerId) ? (int) $saveStats[$playerId]->total : 0,
-                    'clean_sheets' => $cleanSheetStats->has($playerId) ? (int) $cleanSheetStats[$playerId]->total : 0,
                 ];
 
                 $player = Player::find($playerId);
@@ -761,10 +805,12 @@ class MatchEventController extends Controller
                 }
             }
 
+            app(GoalkeeperCleanSheetService::class)->recalculateAll();
+
             DB::commit();
 
             return redirect()->back()
-                ->with('success', "Statistik {$updated} player berhasil dihitung ulang dari match events!");
+                ->with('success', "Statistik {$updated} player berhasil dihitung ulang dari event dan hasil pertandingan selesai!");
 
         } catch (\Exception $e) {
             DB::rollBack();
@@ -776,19 +822,51 @@ class MatchEventController extends Controller
 
     private function isGoalkeeperEventAllowed(string $eventType, int $playerId): bool
     {
-        if (!in_array($eventType, ['save', 'clean_sheet'], true)) {
+        if ($eventType !== 'save') {
             return true;
         }
 
         $player = Player::find($playerId);
-        if (!$player) {
+        return $player
+            && GoalkeeperCleanSheetService::isGoalkeeperPosition($player->position);
+    }
+
+    private function goalkeepersInMatchLineup(Game $match)
+    {
+        return DB::table('match_player as mp')
+            ->join('players as p', 'p.id', '=', 'mp.player_id')
+            ->join('teams as t', 't.id', '=', 'mp.team_id')
+            ->where('mp.match_id', $match->id)
+            ->whereIn('mp.team_id', [$match->team_home_id, $match->team_away_id])
+            ->select([
+                'p.id',
+                'p.name',
+                'mp.team_id as match_team_id',
+                't.name as match_team_name',
+            ])
+            ->selectRaw("COALESCE(NULLIF(mp.position_snapshot, ''), p.position) as position")
+            ->get()
+            ->filter(fn ($player) => GoalkeeperCleanSheetService::isGoalkeeperPosition($player->position))
+            ->values();
+    }
+
+    private function isValidConcededGoalkeeper(Game $match, int $eventTeamId, bool $isOwnGoal, int $goalkeeperId): bool
+    {
+        if (!in_array($eventTeamId, [(int) $match->team_home_id, (int) $match->team_away_id], true)) {
             return false;
         }
 
-        $position = strtolower((string) $player->position);
-        return str_contains($position, 'goalkeeper')
-            || str_contains($position, 'kiper')
-            || str_contains($position, 'keeper')
-            || str_contains($position, 'gk');
+        $scoringTeamId = $isOwnGoal
+            ? ((int) $eventTeamId === (int) $match->team_home_id ? (int) $match->team_away_id : (int) $match->team_home_id)
+            : $eventTeamId;
+        $concedingTeamId = $scoringTeamId === (int) $match->team_home_id
+            ? (int) $match->team_away_id
+            : (int) $match->team_home_id;
+
+        return GoalkeeperCleanSheetService::isGoalkeeperInMatchLineup(
+            (int) $match->id,
+            $concedingTeamId,
+            $goalkeeperId
+        );
     }
 }

@@ -1326,6 +1326,7 @@
                         <div>
                             <h2 class="score-modal-title" id="scoreUpdateTitle">Perbarui skor</h2>
                             <p class="score-modal-description">Masukkan skor pertandingan dan hasil babak tambahan jika ada.</p>
+                            <p class="score-modal-description">Untuk Clean Sheet per kiper, catat setiap gol lewat Event Pertandingan dan pilih kiper yang kebobolan. Event gol juga menambah skor; skor manual saja tidak cukup untuk atribusi kiper.</p>
                         </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>

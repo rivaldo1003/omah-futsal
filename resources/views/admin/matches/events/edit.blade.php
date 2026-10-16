@@ -96,6 +96,28 @@
                             @enderror
                         </div>
 
+                        <div class="col-md-6 mb-3" id="conceded_goalkeeper_field" style="display: none;">
+                            <label for="conceded_by_goalkeeper_id" class="form-label">Kiper yang kebobolan <span class="text-danger">*</span></label>
+                            <select class="form-select @error('conceded_by_goalkeeper_id') is-invalid @enderror"
+                                id="conceded_by_goalkeeper_id" name="conceded_by_goalkeeper_id">
+                                <option value="">Pilih kiper tim yang kebobolan</option>
+                                @foreach($goalkeepers as $goalkeeper)
+                                    <option value="{{ $goalkeeper->id }}"
+                                        data-team-id="{{ $goalkeeper->match_team_id }}"
+                                        {{ old('conceded_by_goalkeeper_id', $event->conceded_by_goalkeeper_id) == $goalkeeper->id ? 'selected' : '' }}>
+                                        {{ $goalkeeper->name }} — {{ $goalkeeper->match_team_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <small class="text-muted">Pilih kiper yang sedang menjaga gawang saat gol terjadi.</small>
+                            @if($goalkeepers->isEmpty())
+                                <small class="d-block text-danger">Belum ada kiper di lineup pertandingan. Simpan lineup kiper terlebih dahulu.</small>
+                            @endif
+                            @error('conceded_by_goalkeeper_id')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                        </div>
+
                         <!-- Related Player -->
                         <div class="col-md-6 mb-3">
                             <label for="related_player_id" class="form-label">Related Player (Optional)</label>
@@ -159,18 +181,24 @@
                             const isOwnGoalCheck = document.getElementById('is_own_goal');
                             const isPenaltyCheck = document.getElementById('is_penalty');
                             const relatedPlayerSelect = document.getElementById('related_player_id');
+                            const concededGoalkeeperField = document.getElementById('conceded_goalkeeper_field');
+                            const concededGoalkeeperSelect = document.getElementById('conceded_by_goalkeeper_id');
+                            const allGoalkeeperOptions = Array.from(concededGoalkeeperSelect.options);
+                            const homeTeamId = {{ (int) $match->team_home_id }};
+                            const awayTeamId = {{ (int) $match->team_away_id }};
 
                             function isGoalkeeperPosition(position) {
                                 return position.includes('goalkeeper')
                                     || position.includes('kiper')
                                     || position.includes('keeper')
-                                    || position.includes('gk');
+                                    || position.includes('gk')
+                                    || position.trim() === 'g';
                             }
 
                             function filterPlayers() {
                                 const selectedEvent = eventTypeSelect.value;
                                 const selectedTeamId = teamSelect.value;
-                                const goalkeeperOnly = selectedEvent === 'save' || selectedEvent === 'clean_sheet';
+                                const goalkeeperOnly = selectedEvent === 'save';
 
                                 Array.from(playerSelect.options).forEach(function (option) {
                                     if (!option.value) {
@@ -192,6 +220,11 @@
 
                             function toggleFields() {
                                 const selectedEvent = eventTypeSelect.value;
+                                const isGoalEvent = selectedEvent === 'goal';
+
+                                concededGoalkeeperField.style.display = isGoalEvent ? 'block' : 'none';
+                                concededGoalkeeperSelect.required = isGoalEvent;
+                                if (!isGoalEvent) concededGoalkeeperSelect.value = '';
 
                                 // Toggle own goal checkbox (hanya untuk goal)
                                 if (selectedEvent === 'goal') {
@@ -210,10 +243,34 @@
                                 }
 
                                 filterPlayers();
+                                filterConcededGoalkeepers();
+                            }
+
+                            function filterConcededGoalkeepers() {
+                                const eventTeamId = Number(teamSelect.value || 0);
+                                const ownGoal = isOwnGoalCheck.checked;
+                                const concededTeamId = ownGoal
+                                    ? eventTeamId
+                                    : (eventTeamId === homeTeamId ? awayTeamId : homeTeamId);
+                                const previousValue = concededGoalkeeperSelect.value || @json((string) old('conceded_by_goalkeeper_id', $event->conceded_by_goalkeeper_id));
+
+                                concededGoalkeeperSelect.innerHTML = '';
+                                allGoalkeeperOptions.forEach(option => {
+                                    if (!option.value || Number(option.dataset.teamId) === concededTeamId) {
+                                        concededGoalkeeperSelect.appendChild(option.cloneNode(true));
+                                    }
+                                });
+
+                                concededGoalkeeperSelect.value = previousValue;
+                                if (!concededGoalkeeperSelect.value) {
+                                    concededGoalkeeperSelect.value = '';
+                                }
                             }
 
                             eventTypeSelect.addEventListener('change', toggleFields);
                             teamSelect.addEventListener('change', filterPlayers);
+                            teamSelect.addEventListener('change', filterConcededGoalkeepers);
+                            isOwnGoalCheck.addEventListener('change', filterConcededGoalkeepers);
                             toggleFields(); // Initial call
                         });
                     </script>

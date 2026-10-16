@@ -111,7 +111,8 @@
         <div>
             <h1>Tambah Event Pertandingan</h1>
             <p class="page-subtitle">
-                {{ $match->homeTeam->name ?? 'Tim Home' }} vs {{ $match->awayTeam->name ?? 'Tim Away' }}, {{ $match->match_date->format('d M Y') }}
+                {{ $match->homeTeam->name ?? 'Tim Home' }} vs {{ $match->awayTeam->name ?? 'Tim Away' }},
+                {{ $match->match_date->format('d M Y') }}
             </p>
         </div>
         <a href="{{ route('admin.matches.events.index', $match) }}" class="btn-back">
@@ -172,13 +173,13 @@
                         @error('event_type')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                        <small class="text-muted">Save dicatat manual. Saat mencatat gol, pilih kiper tim yang kebobolan; Clean Sheet dihitung otomatis setelah pertandingan selesai.</small>
                     </div>
 
                     <!-- Tim (otomatis mengikuti pemain yang dipilih) -->
                     <div class="col-md-6 mb-3">
                         <label for="team_id_display" class="form-label">Tim <span class="required">*</span></label>
-                        <select class="form-select @error('team_id') is-invalid @enderror" id="team_id_display"
-                            disabled>
+                        <select class="form-select @error('team_id') is-invalid @enderror" id="team_id_display" disabled>
                             <option value="">Pilih pemain untuk menentukan tim</option>
                             @foreach($teams as $team)
                                 <option value="{{ $team->id }}">
@@ -197,8 +198,8 @@
                     <!-- Pemain -->
                     <div class="col-md-6 mb-3">
                         <label for="player_id" class="form-label">Pemain <span class="required">*</span></label>
-                        <select class="form-select @error('player_id') is-invalid @enderror" id="player_id"
-                            name="player_id" required>
+                        <select class="form-select @error('player_id') is-invalid @enderror" id="player_id" name="player_id"
+                            required>
                             <option value="">Pilih pemain</option>
                             @foreach($players as $player)
                                 <option value="{{ $player->id }}" {{ old('player_id') == $player->id ? 'selected' : '' }}
@@ -213,11 +214,33 @@
                         @enderror
                     </div>
 
+                    <div class="col-md-6 mb-3" id="conceded_goalkeeper_field" style="display: none;">
+                        <label for="conceded_by_goalkeeper_id" class="form-label">Kiper yang kebobolan <span class="required">*</span></label>
+                        <select class="form-select @error('conceded_by_goalkeeper_id') is-invalid @enderror"
+                            id="conceded_by_goalkeeper_id" name="conceded_by_goalkeeper_id">
+                            <option value="">Pilih kiper tim yang kebobolan</option>
+                            @foreach($goalkeepers as $goalkeeper)
+                                <option value="{{ $goalkeeper->id }}"
+                                    data-team-id="{{ $goalkeeper->match_team_id }}"
+                                    {{ old('conceded_by_goalkeeper_id') == $goalkeeper->id ? 'selected' : '' }}>
+                                    {{ $goalkeeper->name }} — {{ $goalkeeper->match_team_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                        <small class="text-muted">Pilih kiper yang sedang menjaga gawang saat gol terjadi.</small>
+                        @if($goalkeepers->isEmpty())
+                            <small class="d-block text-danger">Belum ada kiper di lineup pertandingan. Simpan lineup kiper terlebih dahulu.</small>
+                        @endif
+                        @error('conceded_by_goalkeeper_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
                     <!-- Pemain terkait -->
                     <div class="col-md-6 mb-3">
                         <label for="related_player_id" class="form-label">Pemain Terkait (Opsional)</label>
-                        <select class="form-select @error('related_player_id') is-invalid @enderror"
-                            id="related_player_id" name="related_player_id">
+                        <select class="form-select @error('related_player_id') is-invalid @enderror" id="related_player_id"
+                            name="related_player_id">
                             <option value="">Pilih pemain terkait</option>
                             @foreach($players as $player)
                                 <option value="{{ $player->id }}" {{ old('related_player_id') == $player->id ? 'selected' : '' }}
@@ -293,7 +316,12 @@
             const playerSelect = document.getElementById('player_id');
             const teamDisplay = document.getElementById('team_id_display');
             const teamHidden = document.getElementById('team_id_hidden');
+            const concededGoalkeeperField = document.getElementById('conceded_goalkeeper_field');
+            const concededGoalkeeperSelect = document.getElementById('conceded_by_goalkeeper_id');
             const allRelatedOptions = relatedPlayerSelect ? Array.from(relatedPlayerSelect.options) : [];
+            const allGoalkeeperOptions = concededGoalkeeperSelect ? Array.from(concededGoalkeeperSelect.options) : [];
+            const homeTeamId = {{ (int) $match->team_home_id }};
+            const awayTeamId = {{ (int) $match->team_away_id }};
 
             // ===== Tim otomatis mengikuti pemain yang dipilih =====
             function syncTeamFromPlayer() {
@@ -302,6 +330,7 @@
 
                 teamHidden.value = teamId;
                 teamDisplay.value = teamId;
+                filterConcededGoalkeepers();
 
                 // Filter pemain terkait: hanya pemain satu tim dengan pemain utama
                 if (relatedPlayerSelect) {
@@ -330,11 +359,36 @@
             playerSelect.addEventListener('change', syncTeamFromPlayer);
             syncTeamFromPlayer();
 
+            function filterConcededGoalkeepers() {
+                if (!concededGoalkeeperSelect) return;
+
+                const eventTeamId = Number(teamHidden.value || 0);
+                const concededTeamId = isOwnGoalCheck.checked
+                    ? eventTeamId
+                    : (eventTeamId === homeTeamId ? awayTeamId : homeTeamId);
+                const previousValue = concededGoalkeeperSelect.value || @json((string) old('conceded_by_goalkeeper_id'));
+
+                concededGoalkeeperSelect.innerHTML = '';
+                allGoalkeeperOptions.forEach(option => {
+                    if (!option.value || Number(option.dataset.teamId) === concededTeamId) {
+                        concededGoalkeeperSelect.appendChild(option.cloneNode(true));
+                    }
+                });
+
+                concededGoalkeeperSelect.value = previousValue;
+                if (!concededGoalkeeperSelect.value) concededGoalkeeperSelect.value = '';
+            }
+
             function toggleFields() {
                 const selectedEvent = eventTypeSelect.value;
-                const isGoalkeeperEvent = selectedEvent === 'save' || selectedEvent === 'clean_sheet';
+                const isGoalkeeperEvent = selectedEvent === 'save';
+                const isGoalEvent = selectedEvent === 'goal';
 
-                // Filter pemain berdasarkan tipe event (kiper untuk save/clean sheet)
+                concededGoalkeeperField.style.display = isGoalEvent ? 'block' : 'none';
+                concededGoalkeeperSelect.required = isGoalEvent;
+                if (!isGoalEvent) concededGoalkeeperSelect.value = '';
+
+                // Event save hanya berlaku untuk pemain berposisi kiper.
                 Array.from(playerSelect.options).forEach(option => {
                     if (option.value === "") return;
 
@@ -342,7 +396,8 @@
                     const isGoalkeeper = position.includes('goalkeeper') ||
                         position.includes('kiper') ||
                         position.includes('keeper') ||
-                        position.includes('gk');
+                        position.includes('gk') ||
+                        position.trim() === 'g';
 
                     if (isGoalkeeperEvent) {
                         if (isGoalkeeper) {
@@ -369,6 +424,7 @@
                     isOwnGoalCheck.checked = false;
                     isPenaltyCheck.checked = false;
                 }
+                filterConcededGoalkeepers();
 
                 // Pemain terkait hanya untuk goal & substitution
                 if (selectedEvent === 'goal' || selectedEvent === 'substitution') {
@@ -380,6 +436,7 @@
             }
 
             eventTypeSelect.addEventListener('change', toggleFields);
+            isOwnGoalCheck.addEventListener('change', filterConcededGoalkeepers);
             toggleFields();
         });
     </script>

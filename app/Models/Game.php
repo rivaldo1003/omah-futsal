@@ -47,6 +47,8 @@ class Game extends Model
         'is_cancelled' => 'boolean',
     ];
 
+    protected array $cleanSheetPlayerIdsBeforeDelete = [];
+
     public function scopePubliclyVisible($query)
     {
         return $query->where('is_cancelled', false);
@@ -276,9 +278,46 @@ class Game extends Model
     {
         parent::boot();
 
+        static::updated(function (Game $game) {
+            if ($game->wasChanged([
+                'status',
+                'home_score',
+                'away_score',
+                'et_score',
+                'is_cancelled',
+                'team_home_id',
+                'team_away_id',
+            ])) {
+                app(\App\Services\GoalkeeperCleanSheetService::class)
+                    ->recalculateForMatch($game);
+            }
+        });
+
         // Ketika match akan dihapus, revert semua statistik pemain
         static::deleting(function ($game) {
+            $game->cleanSheetPlayerIdsBeforeDelete = DB::table('match_player')
+                ->where('match_id', $game->id)
+                ->pluck('player_id')
+                ->merge(
+                    DB::table('match_events')
+                        ->where('match_id', $game->id)
+                        ->where(function ($query) {
+                            $query->where('event_type', 'clean_sheet')
+                                ->orWhereNotNull('conceded_by_goalkeeper_id');
+                        })
+                        ->get(['player_id', 'conceded_by_goalkeeper_id'])
+                        ->flatMap(fn ($event) => [$event->player_id, $event->conceded_by_goalkeeper_id])
+                )
+                ->unique()
+                ->values()
+                ->all();
+
             $game->revertAllPlayerStats();
+        });
+
+        static::deleted(function (Game $game) {
+            app(\App\Services\GoalkeeperCleanSheetService::class)
+                ->recalculateForPlayers($game->cleanSheetPlayerIdsBeforeDelete);
         });
     }
 
@@ -393,9 +432,6 @@ class Game extends Model
                 $player->decrement('saves');
                 break;
 
-            case 'clean_sheet':
-                $player->decrement('clean_sheets');
-                break;
         }
 
         // Revert assist jika ada (untuk goal events)
@@ -432,7 +468,8 @@ class Game extends Model
 
     public function events()
     {
-        return $this->hasMany(MatchEvent::class, 'match_id');
+        return $this->hasMany(MatchEvent::class, 'match_id')
+            ->where('event_type', '!=', 'clean_sheet');
     }
 
     // ========== YOUTUBE METHODS ==========

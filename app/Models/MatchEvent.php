@@ -16,6 +16,7 @@ class MatchEvent extends Model
         'team_id',           // Kolom baru
         'player_id',
         'related_player_id', // Kolom baru
+        'conceded_by_goalkeeper_id',
         'event_type',
         'minute',
         'description',
@@ -46,5 +47,34 @@ class MatchEvent extends Model
     public function relatedPlayer(): BelongsTo
     {
         return $this->belongsTo(Player::class, 'related_player_id');
+    }
+
+    public function concededByGoalkeeper(): BelongsTo
+    {
+        return $this->belongsTo(Player::class, 'conceded_by_goalkeeper_id');
+    }
+
+    protected static function booted(): void
+    {
+        static::created(function (MatchEvent $event) {
+            if ($event->event_type === 'goal') {
+                app(\App\Services\GoalkeeperCleanSheetService::class)
+                    ->recalculateForMatch((int) $event->match_id);
+            }
+        });
+
+        static::updated(function (MatchEvent $event) {
+            if ($event->event_type === 'goal' || $event->wasChanged(['event_type', 'match_id'])) {
+                app(\App\Services\GoalkeeperCleanSheetService::class)
+                    ->recalculateForMatch((int) $event->match_id);
+            }
+        });
+
+        static::deleted(function (MatchEvent $event) {
+            if ($event->event_type === 'goal') {
+                app(\App\Services\GoalkeeperCleanSheetService::class)
+                    ->recalculateForMatch((int) $event->match_id);
+            }
+        });
     }
 }

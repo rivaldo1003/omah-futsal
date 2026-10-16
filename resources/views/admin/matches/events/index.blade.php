@@ -494,6 +494,9 @@
                                         @if($event->related_player_id)
                                             • Assist: {{ $event->relatedPlayer->name ?? 'Unknown' }}
                                         @endif
+                                        @if($event->conceded_by_goalkeeper_id)
+                                            • Kiper kebobolan: {{ $event->concededByGoalkeeper->name ?? 'Unknown' }}
+                                        @endif
                                     @endif
 
                                     @if($event->event_type === 'substitution' && $event->related_player_id)

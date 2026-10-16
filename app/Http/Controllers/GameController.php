@@ -1354,7 +1354,14 @@ class GameController extends Controller
         ]);
 
         try {
-            DB::transaction(function () use ($request, $match) {
+            $lineupPlayerIds = DB::table('match_player')
+                ->where('match_id', $match->id)
+                ->pluck('player_id')
+                ->merge($request->input('player_ids', []))
+                ->unique()
+                ->values();
+
+            DB::transaction(function () use ($request, $match, $lineupPlayerIds) {
                 // Hapus lineup lama (jika ingin update ulang)
                 DB::table('match_player')->where('match_id', $match->id)->delete();
 
@@ -1365,10 +1372,15 @@ class GameController extends Controller
                         'match_id' => $match->id,
                         'player_id' => $playerId,
                         'team_id' => $player->team_id,
+                        'position_snapshot' => $player->position,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
                 }
+
+                $cleanSheetService = app(\App\Services\GoalkeeperCleanSheetService::class);
+                $cleanSheetService->recalculateForPlayers($lineupPlayerIds);
+                $cleanSheetService->recalculateForMatch($match);
             });
 
             return redirect()->back()->with('success', 'Lineup saved successfully!');
@@ -2368,13 +2380,51 @@ class GameController extends Controller
         $request->validate([
             'player_id' => 'required|exists:players,id',
             'team_id' => 'required|exists:teams,id',
-            'event_type' => 'required|in:goal,yellow_card,red_card,assist,substitution,penalty,save,clean_sheet',
+            'event_type' => 'required|in:goal,yellow_card,red_card,assist,substitution,penalty,save',
+            'conceded_by_goalkeeper_id' => 'required_if:event_type,goal|nullable|integer|exists:players,id',
             'minute' => 'required|integer|min:1|max:120',
             'description' => 'nullable|string',
             'is_own_goal' => 'boolean',
             'is_penalty' => 'boolean',
             'related_player_id' => 'nullable|exists:players,id',
         ]);
+
+        if ($request->event_type === 'save') {
+            $goalkeeper = Player::find($request->player_id);
+
+            if (!$goalkeeper || !\App\Services\GoalkeeperCleanSheetService::isGoalkeeperPosition($goalkeeper->position)) {
+                return redirect()->back()
+                    ->withErrors(['player_id' => 'Event save hanya dapat dicatat untuk pemain dengan posisi kiper.'])
+                    ->withInput();
+            }
+        }
+
+        if ($request->event_type === 'goal') {
+            $eventTeamId = (int) $request->team_id;
+            if (!in_array($eventTeamId, [(int) $match->team_home_id, (int) $match->team_away_id], true)) {
+                return redirect()->back()
+                    ->withErrors(['team_id' => 'Tim ini bukan peserta pertandingan.'])
+                    ->withInput();
+            }
+
+            $ownGoal = $request->boolean('is_own_goal');
+            $scoringTeamId = $ownGoal
+                ? ($eventTeamId === (int) $match->team_home_id ? (int) $match->team_away_id : (int) $match->team_home_id)
+                : $eventTeamId;
+            $concedingTeamId = $scoringTeamId === (int) $match->team_home_id
+                ? (int) $match->team_away_id
+                : (int) $match->team_home_id;
+
+            if (!\App\Services\GoalkeeperCleanSheetService::isGoalkeeperInMatchLineup(
+                (int) $match->id,
+                $concedingTeamId,
+                (int) $request->conceded_by_goalkeeper_id
+            )) {
+                return redirect()->back()
+                    ->withErrors(['conceded_by_goalkeeper_id' => 'Pilih kiper dari lineup tim yang kebobolan. Simpan lineup pertandingan terlebih dahulu.'])
+                    ->withInput();
+            }
+        }
 
         try {
             DB::transaction(function () use ($request, $match) {
@@ -2385,6 +2435,7 @@ class GameController extends Controller
                     'team_id' => $request->team_id,
                     'player_id' => $request->player_id,
                     'related_player_id' => $request->related_player_id,
+                    'conceded_by_goalkeeper_id' => $request->event_type === 'goal' ? $request->conceded_by_goalkeeper_id : null,
                     'event_type' => $request->event_type,
                     'minute' => $request->minute,
                     'description' => $request->description,
@@ -2469,9 +2520,6 @@ class GameController extends Controller
                 if ($request->event_type === 'save') {
                     $player->increment('saves');
                 }
-                if ($request->event_type === 'clean_sheet') {
-                    $player->increment('clean_sheets');
-                }
             });
 
             return redirect()->back()
@@ -2551,10 +2599,6 @@ class GameController extends Controller
                 if ($event->event_type === 'save') {
                     $event->player->decrement('saves');
                 }
-                if ($event->event_type === 'clean_sheet') {
-                    $event->player->decrement('clean_sheets');
-                }
-
                 $event->delete();
             });
 
