@@ -1,31 +1,30 @@
 @if($heroSetting->is_active)
     <header class="hero-wrap" id="mainHeroSection" style="
-        @if($heroSetting->background_type === 'gradient')
-            background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
-        @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
-            background-color: {{ $heroSetting->background_color }};
-        @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
-            background-image: url('{{ Storage::url($heroSetting->background_image) }}');
-            background-size: cover;
-            background-position: center;
-            cursor: pointer;
-        @else
-            background: linear-gradient(135deg, #0f172a, #1e293b);
-        @endif
-        color: {{ $heroSetting->text_color ?? '#ffffff' }};
-    " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
-        onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ addslashes($heroSetting->title) }}')"
-        title="Click to view full image"
-    @endif>
+            @if($heroSetting->background_type === 'gradient')
+                background: linear-gradient(135deg, {{ $heroSetting->gradient_start ?? '#0f172a' }}, {{ $heroSetting->gradient_end ?? '#1e293b' }});
+            @elseif($heroSetting->background_type === 'color' && $heroSetting->background_color)
+                background-color: {{ $heroSetting->background_color }};
+            @elseif($heroSetting->background_type === 'image' && $heroSetting->background_image)
+                background-image: url('{{ Storage::url($heroSetting->background_image) }}');
+                background-size: cover;
+                background-position: center;
+                cursor: pointer;
+            @else
+                background: linear-gradient(135deg, #0f172a, #1e293b);
+            @endif
+            color: {{ $heroSetting->text_color ?? '#ffffff' }};
+        " @if($heroSetting->background_type === 'image' && $heroSetting->background_image)
+            onclick="openHeroFullscreen('{{ Storage::url($heroSetting->background_image) }}', '{{ addslashes($heroSetting->title) }}')"
+        title="Click to view full image" @endif>
 
         @if($heroSetting->background_type === 'image' && $heroSetting->background_image && $heroSetting->overlay_opacity > 0)
             <div style="
-                position: absolute;
-                inset: 0;
-                background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
-                z-index: 1;
-                pointer-events: none;
-            "></div>
+                        position: absolute;
+                        inset: 0;
+                        background-color: rgba(0, 0, 0, {{ $heroSetting->overlay_opacity / 100 }});
+                        z-index: 1;
+                        pointer-events: none;
+                    "></div>
         @endif
 
         <div class="app-container">
@@ -43,11 +42,10 @@
                 @if($heroSetting->cta_button_text)
                     <div>
                         <a href="{{ $heroSetting->cta_button_link ?? '#' }}" class="hero-cta hero-cta-button" style="
-                            background-color: {{ $heroSetting->button_color ?? 'var(--accent)' }};
-                            color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
-                        ">
+                                    background-color: {{ $heroSetting->button_color ?? 'var(--accent)' }};
+                                    color: {{ $heroSetting->button_text_color ?? '#ffffff' }};
+                                ">
                             <span>{{ $heroSetting->cta_button_text }}</span>
-                            <i class="bi bi-arrow-right"></i>
                         </a>
                     </div>
                 @endif

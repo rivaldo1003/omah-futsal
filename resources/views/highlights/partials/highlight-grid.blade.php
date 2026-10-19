@@ -163,7 +163,7 @@
                                             @if($highlight->youtube_uploaded_at)
                                                 <li class="mb-2">
                                                     <span class="modal-detail-label">Added</span>
-                                                    <span class="modal-detail-value">{{ $highlight->youtube_uploaded_at->format('d M Y H:i') }}</span>
+                                                    <span class="modal-detail-value">{{ $highlight->youtube_uploaded_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y H:i') }} WIB</span>
                                                 </li>
                                             @endif
                                             <li class="mb-0">

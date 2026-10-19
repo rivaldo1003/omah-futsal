@@ -90,6 +90,10 @@
             @endauth
         </ul>
 
+        <a class="nav-btn-booking ms-lg-2" href="{{ route('booking.index') }}">
+            <i class="bi bi-calendar-plus"></i><span>Booking Lapangan</span>
+        </a>
+
         {{-- Hamburger (mobile only) --}}
         <button class="navbar-toggler" id="sidebarToggle" type="button" aria-label="Open menu" aria-expanded="false">
             <span class="navbar-toggler-icon"></span>
@@ -127,6 +131,9 @@
         </a>
         <a class="msb-link {{ request()->is('schedule*') || request()->is('matches*') ? 'is-active' : '' }}" href="{{ route('schedule') }}">
             <i class="bi bi-calendar2-week"></i><span>Schedule</span>
+        </a>
+        <a class="msb-link {{ request()->is('booking*') ? 'is-active' : '' }}" href="{{ route('booking.index') }}">
+            <i class="bi bi-calendar-check"></i><span>Booking lapangan</span>
         </a>
         <a class="msb-link {{ request()->is('standings*') ? 'is-active' : '' }}" href="{{ route('standings') }}">
             <i class="bi bi-bar-chart-line"></i><span>Standings</span>
@@ -177,16 +184,34 @@
 </aside>
 
 <style>
+.nav-btn-booking {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    height: 34px;
+    padding: 0 12px;
+    border: 1px solid rgba(0, 255, 135, .42);
+    border-radius: var(--radius-sm);
+    background: var(--accent);
+    color: #02120a;
+    font-size: 13px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+.nav-btn-booking:hover { color: #02120a; background: #38ffa5; }
+
 /* ── Desktop: show desktop menu, hide hamburger ── */
 @media (min-width: 992px) {
     .nav-menu-desktop { display: flex !important; gap: 4px; }
     #sidebarToggle    { display: none !important; }
+    .nav-btn-booking { display: inline-flex !important; }
 }
 
 /* ── Mobile: hide desktop menu, show hamburger ── */
 @media (max-width: 991.98px) {
     .nav-menu-desktop { display: none !important; }
     #sidebarToggle    { display: inline-flex !important; }
+    .nav-btn-booking { display: none !important; }
 }
 
 /* ── Overlay ── */

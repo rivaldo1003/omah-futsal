@@ -4,143 +4,16 @@
 
 @section('styles')
     <style>
-        /* ===== Create team page — design guidelines ===== */
-
-        /* Page header */
-        .page-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .page-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin: 0 0 4px;
-        }
-
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin: 0;
-        }
-
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
-            font-size: 14px;
-            font-weight: 500;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* Cards */
-        .form-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .form-card .card-header {
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 16px;
-        }
-
-        .form-card .card-header h5 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-        }
-
-        .form-card .card-body {
-            padding: 24px;
-        }
-
-        /* Form sections & fields */
-        .form-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 0 0 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .form-label {
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .required {
-            color: #c01c28;
-        }
-
-        .x-small {
-            font-size: 12px;
-        }
-
-        /* Logo preview */
-        #logoPreview,
-        #logoPreviewCard {
-            overflow: hidden;
-        }
-
-        #logoPreview img,
-        #logoPreviewCard img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            border-radius: 6px;
-        }
-
-        .form-check-label {
-            cursor: pointer;
-            width: 100%;
-        }
-
-        .form-check-label:hover {
-            background-color: rgba(26, 95, 180, 0.05);
-        }
-
-        .btn-xs {
-            padding: 2px 6px;
-            font-size: 12px;
-            line-height: 1.2;
-            border-radius: 4px;
-        }
-
-        .form-control-color {
-            width: 40px;
-            padding: 4px;
-        }
+        @include('admin.teams.partials.team-form-styles')
     </style>
 @endsection
 
 @section('content')
+    <div class="admin-team-form-page">
     <div class="page-header">
         <div>
             <h1>Buat Tim Baru</h1>
-            <p class="page-subtitle">Tambahkan tim baru ke turnamen</p>
+            <p class="page-subtitle">Lengkapi identitas, kontak, dan keanggotaan turnamen tim.</p>
         </div>
         <a href="{{ route('admin.teams.index') }}" class="btn-back">
             <i class="bi bi-arrow-left"></i> Kembali
@@ -177,7 +50,7 @@
                                 <input type="file"
                                     class="form-control @error('logo') is-invalid @enderror"
                                     id="logo" name="logo" accept="image/*">
-                                <button type="button" class="btn-back" id="clearLogoBtn">
+                                <button type="button" class="btn-back" id="clearLogoBtn" aria-label="Hapus pilihan logo" title="Hapus pilihan logo">
                                     <i class="bi bi-x"></i>
                                 </button>
                             </div>
@@ -217,40 +90,40 @@
                         <div class="form-section-title" style="margin-top: 24px;">Informasi Pelatih</div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="head_coach" class="form-label">Head Coach</label>
+                                <label for="head_coach" class="form-label">Pelatih kepala</label>
                                 <input type="text"
                                     class="form-control @error('head_coach') is-invalid @enderror"
                                     id="head_coach" name="head_coach" value="{{ old('head_coach') }}"
-                                    placeholder="Nama head coach">
+                                    placeholder="Nama pelatih kepala">
                                 @error('head_coach')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label for="assistant_coach" class="form-label">Assistant Coach</label>
+                                <label for="assistant_coach" class="form-label">Asisten pelatih</label>
                                 <input type="text"
                                     class="form-control @error('assistant_coach') is-invalid @enderror"
                                     id="assistant_coach" name="assistant_coach" value="{{ old('assistant_coach') }}"
-                                    placeholder="Nama assistant coach">
+                                    placeholder="Nama asisten pelatih">
                                 @error('assistant_coach')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label for="goalkeeper_coach" class="form-label">Goalkeeper Coach</label>
+                                <label for="goalkeeper_coach" class="form-label">Pelatih kiper</label>
                                 <input type="text"
                                     class="form-control @error('goalkeeper_coach') is-invalid @enderror"
                                     id="goalkeeper_coach" name="goalkeeper_coach" value="{{ old('goalkeeper_coach') }}"
-                                    placeholder="Nama goalkeeper coach">
+                                    placeholder="Nama pelatih kiper">
                                 @error('goalkeeper_coach')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label for="kitman" class="form-label">Kitman</label>
+                                <label for="kitman" class="form-label">Manajer perlengkapan</label>
                                 <input type="text"
                                     class="form-control @error('kitman') is-invalid @enderror"
                                     id="kitman" name="kitman" value="{{ old('kitman') }}"
@@ -321,36 +194,36 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label for="coach_phone" class="form-label">Telepon Coach</label>
+                                <label for="coach_phone" class="form-label">Telepon pelatih</label>
                                 <input type="text"
                                     class="form-control @error('coach_phone') is-invalid @enderror"
                                     id="coach_phone" name="coach_phone" value="{{ old('coach_phone') }}"
-                                    placeholder="Nomor telepon coach">
+                                    placeholder="Nomor telepon pelatih">
                                 @error('coach_phone')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
 
                             <div class="col-md-6">
-                                <label for="coach_email" class="form-label">Email Coach</label>
+                                <label for="coach_email" class="form-label">Email pelatih</label>
                                 <input type="email"
                                     class="form-control @error('coach_email') is-invalid @enderror"
                                     id="coach_email" name="coach_email" value="{{ old('coach_email') }}"
-                                    placeholder="Email coach">
+                                    placeholder="Email pelatih">
                                 @error('coach_email')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
-                        <div class="form-section-title" style="margin-top: 24px;">Venue & Lainnya</div>
+                        <div class="form-section-title" style="margin-top: 24px;">Informasi tambahan</div>
                         <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="home_venue" class="form-label">Home Venue</label>
+                                <label for="home_venue" class="form-label">Lapangan kandang</label>
                                 <input type="text"
                                     class="form-control @error('home_venue') is-invalid @enderror"
                                     id="home_venue" name="home_venue" value="{{ old('home_venue') }}"
-                                    placeholder="Stadion/venue kandang">
+                                    placeholder="Nama lapangan kandang">
                                 @error('home_venue')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -361,7 +234,7 @@
                                 <input type="number"
                                     class="form-control @error('founded_year') is-invalid @enderror"
                                     id="founded_year" name="founded_year" value="{{ old('founded_year') }}"
-                                    min="1900" max="{{ date('Y') }}" placeholder="contoh: 1990">
+                                    min="1900" max="{{ \Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->year }}" placeholder="contoh: 1990">
                                 @error('founded_year')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
@@ -383,9 +256,9 @@
                                 <select class="form-select @error('status') is-invalid @enderror" id="status"
                                     name="status" required>
                                     <option value="">Pilih status</option>
-                                    <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Active</option>
-                                    <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Pending</option>
-                                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                                    <option value="active" {{ old('status') == 'active' ? 'selected' : '' }}>Aktif</option>
+                                    <option value="pending" {{ old('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
+                                    <option value="inactive" {{ old('status') == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
                                 </select>
                                 @error('status')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -426,7 +299,7 @@
                                         <button type="button" class="btn-xs btn-back ms-1" id="deselectAllPlayers">Tidak ada</button>
                                     </div>
                                 </div>
-                                <div class="border rounded p-2" style="max-height: 200px; overflow-y: auto; background: var(--surface);">
+                                <div class="selection-surface">
                                     <div class="row g-1">
                                         @foreach($players as $player)
                                             <div class="col-md-6">
@@ -460,7 +333,7 @@
                         @if($tournaments->count() > 0)
                             <div class="form-section-title" style="margin-top: 24px;">Daftarkan ke Turnamen</div>
                             <div class="mb-0">
-                                <div class="border rounded p-2" style="background: var(--surface);">
+                                <div class="selection-surface selection-tournament">
                                     @foreach($tournaments as $tournament)
                                         <div class="form-check mb-1">
                                             <input class="form-check-input" type="checkbox"
@@ -479,7 +352,7 @@
                         @endif
 
                         <!-- Aksi form -->
-                        <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                        <div class="team-form-actions d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
                             <a href="{{ route('admin.teams.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-1"></i> Buat Tim
@@ -499,8 +372,8 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-3">
-                        <div class="fw-medium mb-1">Field Wajib</div>
-                        <div class="text-secondary" style="font-size: 13px;">Field bertanda <span class="required">*</span> wajib diisi</div>
+                        <div class="fw-medium mb-1">Kolom wajib</div>
+                        <div class="text-secondary" style="font-size: 13px;">Kolom bertanda <span class="required">*</span> wajib diisi</div>
                     </div>
                     <div class="mb-3">
                         <div class="fw-medium mb-1">Informasi Pelatih</div>
@@ -520,7 +393,7 @@
             <!-- Preview logo -->
             <div class="form-card mb-4">
                 <div class="card-header">
-                    <h5><i class="bi bi-image me-2"></i>Preview Logo</h5>
+                    <h5><i class="bi bi-image me-2"></i>Pratinjau logo</h5>
                 </div>
                 <div class="card-body text-center">
                     <div id="logoPreviewCard"
@@ -529,7 +402,7 @@
                         <div id="cardPreviewContainer"
                             class="w-100 h-100 d-flex flex-column align-items-center justify-content-center">
                             <i class="bi bi-image text-secondary" style="font-size: 1.5rem;"></i>
-                            <p class="text-secondary x-small mt-1 mb-0">Preview logo</p>
+                            <p class="text-secondary x-small mt-1 mb-0">Pratinjau logo</p>
                         </div>
                     </div>
                 </div>
@@ -538,7 +411,7 @@
             <!-- Preview warna -->
             <div class="form-card mb-4">
                 <div class="card-header">
-                    <h5><i class="bi bi-palette me-2"></i>Preview Warna Tim</h5>
+                    <h5><i class="bi bi-palette me-2"></i>Pratinjau warna tim</h5>
                 </div>
                 <div class="card-body">
                     <div class="d-flex gap-4 mb-3">
@@ -588,6 +461,7 @@
                 </div>
             @endif
         </div>
+    </div>
     </div>
 @endsection
 
@@ -733,9 +607,10 @@
             if (yearInput) {
                 yearInput.addEventListener('blur', function () {
                     const year = parseInt(this.value);
-                    if (this.value && (year < 1900 || year > new Date().getFullYear())) {
+                    const currentYear = @json(\Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->year);
+                    if (this.value && (year < 1900 || year > currentYear)) {
                         this.value = '';
-                        alert('Masukkan tahun yang valid antara 1900 dan ' + new Date().getFullYear());
+                        alert('Masukkan tahun yang valid antara 1900 dan ' + currentYear);
                     }
                 });
             }

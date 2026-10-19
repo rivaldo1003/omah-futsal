@@ -4,111 +4,306 @@
 
 @section('styles')
     <style>
-        /* ===== Create match page — design guidelines ===== */
+        .admin-match-create {
+            --match-ink: #111111;
+            --match-charcoal: #39393b;
+            --match-muted: #707072;
+            --match-cloud: #f5f5f5;
+            --match-border: #e5e5e5;
+            --match-border-strong: #cacacb;
+            --match-danger: #b42318;
+            max-width: 1440px;
+            margin-inline: auto;
+            color: var(--match-ink);
+        }
 
-        /* Page header */
-        .page-header {
+        .admin-match-create .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 28px;
         }
 
-        .page-header h1 {
-            font-size: 24px;
+        .admin-match-create .page-header h1 {
+            margin: 0 0 8px;
+            color: var(--match-ink);
+            font-size: clamp(26px, 3vw, 32px);
             font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin: 0 0 4px;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
         }
 
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .admin-match-create .page-subtitle {
             margin: 0;
+            color: var(--match-muted);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
-            font-size: 14px;
-            font-weight: 500;
+        .admin-match-create .btn-back,
+        .admin-match-create .match-actions .btn,
+        .admin-match-create .empty-action {
+            min-height: 48px;
             display: inline-flex;
+            justify-content: center;
             align-items: center;
             gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* Form card */
-        .form-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .form-card .card-header {
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 16px;
-        }
-
-        .form-card .card-header h5 {
+            padding: 12px 24px;
+            border: 0;
+            border-radius: 30px;
             font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
+            font-weight: 500;
+            line-height: 1.4;
+            text-decoration: none;
+            transition: background-color .16s ease, color .16s ease;
         }
 
-        .form-card .card-body {
+        .admin-match-create .btn-back,
+        .admin-match-create .match-actions .btn-outline-secondary {
+            background: var(--match-cloud);
+            color: var(--match-ink);
+        }
+
+        .admin-match-create .btn-back:hover,
+        .admin-match-create .match-actions .btn-outline-secondary:hover {
+            background: #eaeaec;
+            color: var(--match-ink);
+        }
+
+        .admin-match-create .form-card {
+            overflow: hidden;
+            border: 1px solid var(--match-border);
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: none;
+        }
+
+        .admin-match-create .form-card .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--match-border);
+            background: #ffffff;
+        }
+
+        .admin-match-create .form-card .card-header h5 {
+            margin: 0;
+            color: var(--match-ink);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .admin-match-create .form-card .card-body {
             padding: 24px;
         }
 
-        /* Form sections & fields */
-        .form-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 0 0 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
+        .admin-match-create .tournament-picker {
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--match-border);
         }
 
-        .form-label {
+        .admin-match-create .form-section-title {
+            margin: 0 0 18px;
+            padding: 0 0 10px;
+            border-bottom: 1px solid var(--match-border);
+            color: var(--match-ink);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.45;
+        }
+
+        .admin-match-create .form-label {
+            margin-bottom: 7px;
+            color: var(--match-charcoal);
             font-size: 14px;
             font-weight: 500;
-            color: var(--text-primary);
         }
 
-        .required {
-            color: #c01c28;
+        .admin-match-create .required {
+            color: var(--match-danger);
         }
 
-        /* Read-only display field (league) */
-        .field-readonly {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 8px 12px;
+        .admin-match-create .form-control,
+        .admin-match-create .form-select,
+        .admin-match-create .field-readonly {
+            min-height: 44px;
+            border: 1px solid var(--match-border-strong);
+            border-radius: 8px;
+            color: var(--match-ink);
             font-size: 14px;
-            color: var(--text-primary);
+        }
+
+        .admin-match-create .form-control,
+        .admin-match-create .form-select {
+            background-color: #ffffff;
+        }
+
+        .admin-match-create textarea.form-control {
+            min-height: 84px;
+            resize: vertical;
+        }
+
+        .admin-match-create .form-control:focus,
+        .admin-match-create .form-select:focus {
+            border-color: var(--match-ink);
+            box-shadow: 0 0 0 3px var(--match-cloud);
+        }
+
+        .admin-match-create .field-readonly {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            background: var(--match-cloud);
+            color: var(--match-charcoal);
             cursor: not-allowed;
+        }
+
+        .admin-match-create .form-text {
+            margin-top: 7px;
+            color: var(--match-muted);
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .admin-match-create .tournament-summary,
+        .admin-match-create #teamGroupInfo {
+            padding: 14px 16px;
+            border: 1px solid var(--match-border);
+            border-radius: 8px;
+            background: var(--match-cloud);
+            color: var(--match-charcoal);
+            line-height: 1.6;
+        }
+
+        .admin-match-create .tournament-summary small {
+            display: block;
+            margin-top: 5px;
+            color: var(--match-muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        .admin-match-create .alert-danger {
+            border: 1px solid #f0c9c5;
+            border-radius: 8px;
+        }
+
+        .admin-match-create .match-divider {
+            margin-top: 28px !important;
+            padding-top: 24px !important;
+            border-color: var(--match-border) !important;
+        }
+
+        .admin-match-create .match-actions {
+            margin-top: 28px !important;
+            padding-top: 20px !important;
+            border-color: var(--match-border) !important;
+        }
+
+        .admin-match-create .match-actions .btn-primary,
+        .admin-match-create .empty-action {
+            background: var(--match-ink);
+            color: #ffffff;
+        }
+
+        .admin-match-create .match-actions .btn-primary:hover,
+        .admin-match-create .empty-action:hover {
+            background: #39393b;
+            color: #ffffff;
+        }
+
+        .admin-match-create .empty-state {
+            padding: 40px 24px !important;
+            color: var(--match-charcoal);
+        }
+
+        .admin-match-create .empty-state > i {
+            color: var(--match-muted) !important;
+            font-size: 28px;
+        }
+
+        .admin-match-create .empty-state h3,
+        .admin-match-create .empty-state h4 {
+            color: var(--match-ink);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .admin-match-create .tips-panel {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            padding: 18px 20px;
+            border: 1px solid var(--match-border);
+            border-radius: 8px;
+            background: #ffffff;
+            color: var(--match-charcoal);
+        }
+
+        .admin-match-create .tips-panel > i {
+            margin-top: 2px;
+            color: var(--match-muted);
+        }
+
+        .admin-match-create .tips-panel strong {
+            color: var(--match-ink);
+        }
+
+        .admin-match-create .tips-panel ul {
+            padding-left: 18px;
+            color: var(--match-muted);
+            font-size: 13px;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 767.98px) {
+            .admin-match-create .page-header {
+                align-items: flex-start;
+                margin-bottom: 22px;
+            }
+
+            .admin-match-create .page-header h1 {
+                font-size: 26px;
+            }
+
+            .admin-match-create .form-card .card-header {
+                padding: 16px 18px;
+            }
+
+            .admin-match-create .form-card .card-body {
+                padding: 18px;
+            }
+
+            .admin-match-create .match-actions {
+                align-items: stretch !important;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .admin-match-create .page-header {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 14px;
+            }
+
+            .admin-match-create .btn-back {
+                align-self: flex-start;
+            }
+
+            .admin-match-create .match-actions {
+                flex-direction: column-reverse;
+            }
+
+            .admin-match-create .match-actions .btn {
+                width: 100%;
+            }
         }
     </style>
 @endsection
 
 @section('content')
+    <main class="admin-match-create">
     <div class="page-header">
         <div>
             <h1>Buat Pertandingan Baru</h1>
@@ -138,7 +333,7 @@
             @endif
 
             <!-- Form pilih turnamen (GET, auto-submit) -->
-            <form method="GET" action="{{ route('admin.matches.create') }}" class="mb-4">
+            <form method="GET" action="{{ route('admin.matches.create') }}" class="tournament-picker">
                 <div class="form-section-title">Pilih Turnamen <span class="required">*</span></div>
 
                 <select class="form-select @error('tournament_id') is-invalid @enderror"
@@ -168,7 +363,7 @@
                             : (json_decode($selectedTournament->settings, true) ?? []);
                         $tournamentType = $selectedTournament->type;
                     @endphp
-                    <div class="alert alert-success mt-3 mb-0">
+                    <div class="tournament-summary mt-3 mb-0">
                         <i class="bi bi-info-circle me-1"></i>
                         <strong>{{ $selectedTournament->name }}</strong> dipilih.
                         <br>
@@ -330,7 +525,7 @@
                             </div>
                         </div>
 
-                        <div class="row g-4 mt-0 pt-4 border-top">
+                        <div class="row g-4 mt-0 pt-4 border-top match-divider">
                             <!-- Kolom kiri: pengaturan pertandingan -->
                             <div class="col-md-6">
                                 <div class="form-section-title">Pengaturan Pertandingan</div>
@@ -565,7 +760,7 @@
                                         @if($tournamentType === 'league')
                                             Ini pertandingan matchday ke berapa (biarkan 1 jika tidak yakin).
                                         @elseif($tournamentType === 'knockout')
-                                            Sistem bracket otomatis mengatur putaran — biarkan nilai default kecuali Anda yakin.
+                                            Sistem bracket otomatis mengatur putaran. Biarkan nilai default kecuali Anda yakin.
                                         @else
                                             Matchday ke berapa dalam grup (biarkan 1 jika tidak yakin).
                                         @endif
@@ -585,7 +780,7 @@
                         </div>
 
                         <!-- Aksi form -->
-                        <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                        <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top match-actions">
                             <a href="{{ route('admin.matches.index') }}" class="btn btn-outline-secondary">Batal</a>
                             <button type="submit" class="btn btn-primary">
                                 <i class="bi bi-check-circle me-1"></i> Buat Pertandingan
@@ -597,7 +792,7 @@
                             <i class="bi bi-people display-4"></i>
                             <h4 class="mt-3">Belum Ada Tim di Turnamen Ini</h4>
                             <p class="text-muted">Tambahkan tim ke turnamen terlebih dahulu sebelum membuat pertandingan.</p>
-                            <a href="{{ route('admin.tournaments.teams', $tournamentId) }}" class="btn btn-primary mt-3">
+                            <a href="{{ route('admin.tournaments.teams', $tournamentId) }}" class="empty-action mt-3">
                                 <i class="bi bi-plus-circle"></i> Tambah Tim ke Turnamen
                             </a>
                         </div>
@@ -605,7 +800,7 @@
                 </form>
             @else
                 <!-- Belum ada turnamen dipilih -->
-                <div class="text-center py-5">
+                <div class="text-center py-5 empty-state">
                     <i class="bi bi-trophy display-4 text-muted"></i>
                     <h3 class="mt-3">Pilih Turnamen Terlebih Dahulu</h3>
                     <p class="text-muted">Silakan pilih turnamen dari dropdown di atas untuk membuat pertandingan.</p>
@@ -616,7 +811,7 @@
 
     <!-- Tips -->
     @if($tournamentId && $teams->count() > 0)
-        <div class="alert alert-info mt-4">
+        <div class="tips-panel">
             <i class="bi bi-lightbulb me-1"></i>
             <div>
                 <strong>Tips untuk {{ $selectedTournament->name }} ({{ ucfirst(str_replace('_', ' ', $tournamentType)) }}):</strong>
@@ -628,7 +823,7 @@
                         <li>Grup akan terpilih otomatis berdasarkan tim yang dipilih</li>
                     @elseif($tournamentType === 'league')
                         <li>League menggunakan tipe ronde "League Match" (otomatis)</li>
-                        <li>Tidak perlu pembagian grup — single round-robin</li>
+                        <li>Tidak perlu pembagian grup. Format menggunakan single round-robin.</li>
                         <li>Semua tim saling bertanding satu kali</li>
                         <li>Hanya satu tabel klasemen untuk semua tim</li>
                         <li>Tipe ronde dan stage otomatis diisi "League"</li>
@@ -643,6 +838,7 @@
             </div>
         </div>
     @endif
+    </main>
 @endsection
 
 @section('scripts')
@@ -727,7 +923,7 @@
                         teamGroupMessage.innerHTML = `
                             <span class="text-success">
                                 <i class="bi bi-info-circle"></i>
-                                Format league — tidak perlu pembagian grup.
+                                Format league: tidak perlu pembagian grup.
                             </span>
                             <br>
                             <small>Semua tim bertanding dalam format single round-robin.</small>
@@ -736,7 +932,7 @@
                         teamGroupMessage.innerHTML = `
                             <span class="text-success">
                                 <i class="bi bi-info-circle"></i>
-                                Format knockout — tidak perlu pembagian grup.
+                                Format knockout: tidak perlu pembagian grup.
                             </span>
                             <br>
                             <small>Bracket eliminasi langsung.</small>
@@ -896,9 +1092,7 @@
             // ===== Tanggal default: hari ini jika belum diisi =====
             const matchDateInput = document.getElementById('match_date');
             if (matchDateInput && !matchDateInput.value) {
-                const today = new Date();
-                const formattedDate = today.toISOString().split('T')[0];
-                matchDateInput.value = formattedDate;
+                matchDateInput.value = @json(\Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->toDateString());
             }
         });
     </script>

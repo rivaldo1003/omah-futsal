@@ -109,7 +109,7 @@
             </p>
             <p class="mb-0">
                 <i class="bi bi-clock me-2"></i>
-                <strong>Time:</strong> {{ now()->format('Y-m-d H:i:s') }}
+                <strong>Time:</strong> {{ now(\App\Support\BusinessTime::TIMEZONE)->format('Y-m-d H:i:s') }} WIB
             </p>
         </div>
     </div>

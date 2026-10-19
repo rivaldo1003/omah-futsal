@@ -124,8 +124,9 @@
                                     <input type="datetime-local"
                                         class="form-control @error('published_at') is-invalid @enderror"
                                         id="published_at" name="published_at"
-                                        value="{{ old('published_at', $article->published_at ? $article->published_at->format('Y-m-d\TH:i') : now()->format('Y-m-d\TH:i')) }}"
+                                        value="{{ old('published_at', $article->published_at ? $article->published_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('Y-m-d\TH:i') : now(\App\Support\BusinessTime::TIMEZONE)->format('Y-m-d\TH:i')) }}"
                                         required>
+                                    <div class="form-text">Waktu menggunakan WIB.</div>
                                     @error('published_at')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror

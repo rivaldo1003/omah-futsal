@@ -88,7 +88,7 @@
                                         @if($match->youtube_uploaded_at)
                                             <li class="mb-1">
                                                 <strong class="text-dark">Added:</strong>
-                                                {{ $match->youtube_uploaded_at->format('d M Y H:i') }}
+                                                {{ $match->youtube_uploaded_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y H:i') }} WIB
                                             </li>
                                         @endif
                                     </ul>

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\NewsArticle;
+use App\Support\BusinessTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 
 class NewsArticleController extends Controller
@@ -126,11 +128,17 @@ class NewsArticleController extends Controller
         'content' => 'required|string',
         'source' => 'nullable|string|max:100',
         'source_url' => 'nullable|url|max:255',
-        'published_at' => 'required|date',
+        'published_at' => ['required', 'date_format:Y-m-d\\TH:i'],
         'is_active' => 'boolean',
         'is_featured' => 'boolean',
         'image' => 'nullable|image|max:2048',
     ]);
+
+    $validated['published_at'] = CarbonImmutable::createFromFormat(
+        'Y-m-d\\TH:i',
+        $validated['published_at'],
+        BusinessTime::TIMEZONE,
+    )->utc();
     
     // Debug: Cek apakah file ada
     if ($request->hasFile('image')) {
@@ -180,12 +188,18 @@ class NewsArticleController extends Controller
             'content' => 'required|string',
             'source' => 'nullable|string|max:100',
             'source_url' => 'nullable|url|max:255',
-            'published_at' => 'required|date',
+            'published_at' => ['required', 'date_format:Y-m-d\\TH:i'],
             'is_active' => 'boolean',
             'is_featured' => 'boolean',
             'image' => 'nullable|image|max:2048',
             'remove_image' => 'boolean',
         ]);
+
+        $validated['published_at'] = CarbonImmutable::createFromFormat(
+            'Y-m-d\\TH:i',
+            $validated['published_at'],
+            BusinessTime::TIMEZONE,
+        )->utc();
         
         if ($request->has('remove_image') && $request->remove_image) {
             if ($article->image_url && file_exists(public_path($article->image_url))) {

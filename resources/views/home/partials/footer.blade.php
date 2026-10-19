@@ -41,7 +41,7 @@
         </div>
 
         <div class="footer-bottom">
-            <span>&copy; {{ date('Y') }} OFS Futsal Center. All rights reserved.</span>
+            <span>&copy; {{ now(\App\Support\BusinessTime::TIMEZONE)->year }} OFS Futsal Center. All rights reserved.</span>
             <span class="text-secondary">Designed with precision & simplicity</span>
         </div>
     </div>

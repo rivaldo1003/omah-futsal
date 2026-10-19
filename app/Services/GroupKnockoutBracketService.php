@@ -105,8 +105,8 @@ class GroupKnockoutBracketService
             $settings['draw_status'] = KnockoutDrawService::DRAW_COMPLETED;
             $settings['draw_bracket_size'] = $size;
             $settings['draw_bracket_capacity'] = $size;
-            $settings['draw_created_at'] = now()->toDateTimeString();
-            $settings['draw_completed_at'] = now()->toDateTimeString();
+            $settings['draw_created_at'] = now()->toIso8601String();
+            $settings['draw_completed_at'] = now()->toIso8601String();
             $lockedTournament->settings = $settings;
             $lockedTournament->save();
 

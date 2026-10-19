@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Player;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Support\BusinessTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -78,7 +80,7 @@ class TeamController extends Controller
             'primary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
             'secondary_color' => 'nullable|string|max:7|regex:/^#[0-9A-F]{6}$/i',
             'status' => 'required|in:active,inactive,pending',
-            'founded_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1900|max:' . CarbonImmutable::today(BusinessTime::TIMEZONE)->year,
             'home_venue' => 'nullable|string|max:255',
             'phone' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
@@ -258,7 +260,7 @@ class TeamController extends Controller
             'short_name' => 'nullable|string|max:10',
             'description' => 'nullable|string',
             'status' => 'required|in:active,inactive,pending',
-            'founded_year' => 'nullable|integer|min:1900|max:' . date('Y'),
+            'founded_year' => 'nullable|integer|min:1900|max:' . CarbonImmutable::today(BusinessTime::TIMEZONE)->year,
             'logo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg,webp|max:2048',
             'coach_name' => 'nullable|string|max:255',
             'coach_phone' => 'nullable|string|max:20',

@@ -604,7 +604,7 @@
 
             // ===== Tanggal minimal: pertandingan yang sudah lewat tetap bisa diedit =====
             const currentMatchDateString = '{{ $match->match_date ? $match->match_date->format("Y-m-d") : "" }}';
-            const today = new Date().toISOString().split('T')[0];
+            const today = @json(\Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->toDateString());
 
             if (currentMatchDateString >= today) {
                 matchDateInput.setAttribute('min', today);

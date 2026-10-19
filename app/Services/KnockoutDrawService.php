@@ -216,7 +216,7 @@ class KnockoutDrawService
             $settings['draw_status'] = self::DRAW_DRAWING;
             $settings['draw_bracket_size'] = $size;
             $settings['draw_bracket_capacity'] = $this->configuredBracketCapacity($tournament);
-            $settings['draw_created_at'] = now()->toDateTimeString();
+            $settings['draw_created_at'] = now()->toIso8601String();
             unset($settings['draw_completed_at']);
             $tournament->settings = $settings;
             $tournament->save();
@@ -450,7 +450,7 @@ class KnockoutDrawService
     {
         $settings = $tournament->settings ?? [];
         $settings['draw_status'] = self::DRAW_COMPLETED;
-        $settings['draw_completed_at'] = now()->toDateTimeString();
+        $settings['draw_completed_at'] = now()->toIso8601String();
         $tournament->settings = $settings;
         $tournament->save();
 

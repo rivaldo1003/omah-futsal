@@ -1,24 +1,21 @@
 <style>
-    :root {
-        --sidebar-bg: #18181B;
-        --sidebar-border: #2A2A2E;
-        --sidebar-text: #9A9AA0;
-        --sidebar-text-active: #F2F2F3;
-        --sidebar-hover-bg: rgba(255, 255, 255, 0.05);
-        --accent: #1a5fb4;
-        --danger: #c01c28;
-    }
-
     .sidebar {
+        --sidebar-bg: #ffffff;
+        --sidebar-border: #e5e5e5;
+        --sidebar-ink: #111111;
+        --sidebar-charcoal: #39393b;
+        --sidebar-mute: #707072;
+        --sidebar-soft: #f5f5f5;
         width: 250px;
         height: 100vh;
+        height: 100dvh;
         background: var(--sidebar-bg);
-        color: var(--sidebar-text);
+        color: var(--sidebar-ink);
         position: fixed;
         top: 0;
         left: 0;
         z-index: 1030;
-        transition: transform 0.2s ease;
+        transition: transform 0.22s ease;
         display: flex;
         flex-direction: column;
         border-right: 1px solid var(--sidebar-border);
@@ -35,7 +32,7 @@
     }
 
     .sidebar-header {
-        padding: 20px 16px;
+        padding: 18px 18px;
         border-bottom: 1px solid var(--sidebar-border);
         flex-shrink: 0;
     }
@@ -60,20 +57,21 @@
 
     .logo-main {
         font-size: 1rem;
-        font-weight: 600;
-        color: var(--sidebar-text-active);
+        font-weight: 700;
+        color: var(--sidebar-ink);
+        letter-spacing: -0.02em;
     }
 
     .logo-sub {
         font-size: 0.75rem;
-        color: var(--sidebar-text);
+        color: var(--sidebar-mute);
         margin-top: 2px;
     }
 
     .sidebar-content {
         flex: 1;
         overflow-y: auto;
-        padding: 12px 10px;
+        padding: 12px 12px 20px;
     }
 
     .nav {
@@ -81,17 +79,17 @@
     }
 
     .nav-link {
-        color: var(--sidebar-text);
+        color: var(--sidebar-charcoal);
+        min-height: 40px;
         padding: 8px 12px;
-        border-radius: 6px;
+        border-radius: 999px;
         margin-bottom: 2px;
         font-weight: 500;
         font-size: 0.875rem;
+        line-height: 1.35;
         transition: background-color 0.15s ease, color 0.15s ease;
         display: flex;
         align-items: center;
-        outline: none !important;
-        box-shadow: none !important;
     }
 
     .nav-link i {
@@ -102,45 +100,55 @@
     }
 
     .nav-link:hover {
-        background-color: var(--sidebar-hover-bg);
-        color: var(--sidebar-text-active);
+        background-color: var(--sidebar-soft);
+        color: var(--sidebar-ink);
     }
 
     .nav-link.active {
-        color: var(--sidebar-text-active);
-        background-color: var(--sidebar-hover-bg);
+        color: #ffffff;
+        background-color: var(--sidebar-ink);
         font-weight: 600;
-        box-shadow: inset 2px 0 0 var(--accent);
     }
 
     .nav-divider {
-        font-size: 0.75rem;
-        font-weight: 500;
-        color: var(--sidebar-text);
-        padding: 16px 12px 6px;
-        opacity: 0.8;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        line-height: 1.4;
+        letter-spacing: 0.045em;
+        text-transform: uppercase;
+        color: var(--sidebar-mute);
+        padding: 18px 12px 7px;
     }
 
     .news-count-badge {
-        background: rgba(255, 255, 255, 0.08);
-        color: var(--sidebar-text);
-        font-size: 0.75rem;
+        background: var(--sidebar-soft);
+        color: var(--sidebar-mute);
+        font-size: 0.6875rem;
         font-weight: 500;
-        padding: 1px 8px;
-        border-radius: 6px;
+        line-height: 1.5;
+        padding: 2px 9px;
+        border-radius: 999px;
         margin-left: auto;
+        white-space: nowrap;
+    }
+
+    .nav-link.active .news-count-badge {
+        background: rgba(255, 255, 255, 0.16);
+        color: #ffffff;
     }
 
     .nav-link.utility-link {
         font-size: 0.8125rem;
+        min-height: 36px;
         padding: 6px 12px;
-        color: var(--sidebar-text);
+        color: var(--sidebar-mute);
     }
 
     .user-profile-section {
-        padding: 12px 15px;
+        padding: 14px 14px 16px;
         border-top: 1px solid var(--sidebar-border);
         flex-shrink: 0;
+        background: var(--sidebar-bg);
     }
 
     .user-info {
@@ -150,10 +158,10 @@
     }
 
     .user-avatar {
-        width: 32px;
-        height: 32px;
-        border-radius: 6px;
-        background: var(--accent);
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: var(--sidebar-ink);
         color: #fff;
         display: flex;
         align-items: center;
@@ -170,8 +178,8 @@
     }
 
     .user-name {
-        font-weight: 500;
-        color: var(--sidebar-text-active);
+        font-weight: 600;
+        color: var(--sidebar-ink);
         font-size: 0.875rem;
         white-space: nowrap;
         overflow: hidden;
@@ -180,31 +188,29 @@
 
     .user-role {
         font-size: 0.75rem;
-        color: var(--sidebar-text);
+        color: var(--sidebar-mute);
         margin-top: 1px;
     }
 
     .btn-logout {
         width: 100%;
         text-align: left;
-        color: var(--sidebar-text);
-        background: transparent;
+        color: var(--sidebar-charcoal);
+        background: #ffffff;
         border: 1px solid var(--sidebar-border);
-        padding: 8px 12px;
-        border-radius: 6px;
+        padding: 8px 14px;
+        border-radius: 999px;
         transition: background-color 0.15s ease, color 0.15s ease;
         font-weight: 500;
         font-size: 0.8125rem;
-        outline: none !important;
-        box-shadow: none !important;
         display: flex;
         align-items: center;
     }
 
     .btn-logout:hover {
-        background: rgba(192, 28, 40, 0.12);
-        color: #e5484d;
-        border-color: rgba(192, 28, 40, 0.3);
+        background: var(--sidebar-soft);
+        color: var(--sidebar-ink);
+        border-color: #cacacb;
     }
 
     .btn-logout i {
@@ -216,18 +222,23 @@
         top: 15px;
         left: 15px;
         z-index: 1031;
-        background: var(--sidebar-bg);
-        color: var(--sidebar-text-active);
-        border: 1px solid var(--sidebar-border);
-        padding: 8px 10px;
-        border-radius: 6px;
+        background: #ffffff;
+        color: #111111;
+        border: 1px solid #e5e5e5;
+        width: 42px;
+        height: 42px;
+        padding: 0;
+        border-radius: 50%;
         font-size: 1rem;
         display: none;
+        align-items: center;
+        justify-content: center;
+        line-height: 1;
     }
 
     @media (max-width: 991.98px) {
         .sidebar-toggle {
-            display: block;
+            display: flex;
         }
     }
 
@@ -240,15 +251,23 @@
     }
 
     .sidebar-content::-webkit-scrollbar-thumb {
-        background: var(--sidebar-border);
-        border-radius: 2px;
+        background: #cacacb;
+        border-radius: 999px;
+    }
+
+    .sidebar .nav-link:focus-visible,
+    .sidebar .btn-logout:focus-visible,
+    .sidebar-toggle:focus-visible {
+        outline: 2px solid #111111;
+        outline-offset: 3px;
     }
 
     @media (prefers-reduced-motion: reduce) {
-
-        *,
-        *::before,
-        *::after {
+        .sidebar,
+        .sidebar *,
+        .sidebar-toggle,
+        .sidebar-toggle * {
+            scroll-behavior: auto !important;
             transition: none !important;
             animation: none !important;
         }
@@ -267,82 +286,97 @@
     </div>
 
     <div class="sidebar-content">
-        <nav class="nav flex-column">
+        <nav class="nav flex-column" aria-label="Navigasi admin">
             {{-- DASHBOARD --}}
             <a class="nav-link {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}"
                 href="{{ route('admin.dashboard') }}">
                 <i class="bi bi-speedometer2"></i> Dashboard
             </a>
 
-            <div class="nav-divider">Content management</div>
+            <div class="nav-divider">Konten</div>
 
             {{-- NEWS MANAGEMENT --}}
             <a class="nav-link {{ request()->routeIs('admin.news.*') ? 'active' : '' }}"
                 href="{{ route('admin.news.index') }}">
-                <i class="bi bi-newspaper"></i> News
+                <i class="bi bi-newspaper"></i> Berita
                 @php
-                $totalNews = \App\Models\NewsArticle::count();
-                $unpublishedNews = \App\Models\NewsArticle::where('is_active', false)->count();
+                    $totalNews = \App\Models\NewsArticle::count();
+                    $unpublishedNews = \App\Models\NewsArticle::where('is_active', false)->count();
                 @endphp
                 <span class="news-count-badge">
                     {{ $totalNews }}@if($unpublishedNews > 0)
-                    <span style="opacity: 0.7;">({{ $unpublishedNews }} draft)</span>
+                        <span style="opacity: 0.7;">({{ $unpublishedNews }} draf)</span>
                     @endif
                 </span>
             </a>
 
-            <div class="nav-divider">Tournament</div>
+            <div class="nav-divider">Turnamen</div>
 
             {{-- TOURNAMENTS --}}
             <a class="nav-link {{ request()->routeIs('admin.tournaments.*') ? 'active' : '' }}"
                 href="{{ route('admin.tournaments.index') }}">
-                <i class="bi bi-trophy"></i> Tournaments
+                <i class="bi bi-trophy"></i> Turnamen
             </a>
 
             {{-- MATCHES --}}
             <a class="nav-link {{ request()->routeIs('admin.matches.*') ? 'active' : '' }}"
                 href="{{ route('admin.matches.index') }}">
-                <i class="bi bi-calendar2-event"></i> Matches
+                <i class="bi bi-calendar2-event"></i> Pertandingan
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.index') }}">
+                <i class="bi bi-calendar-check"></i> Booking lapangan
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.*') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.reports.daily') }}">
+                <i class="bi bi-clipboard-data"></i> Laporan operasional
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-rentals.settings', 'admin.court-rentals.items.*') ? 'active' : '' }}"
+                href="{{ route('admin.court-rentals.settings') }}">
+                <i class="bi bi-box-seam"></i> Katalog perlengkapan
             </a>
 
             {{-- STANDINGS --}}
             <a class="nav-link {{ request()->routeIs('admin.standings.*') ? 'active' : '' }}"
                 href="{{ route('admin.standings.index') }}">
-                <i class="bi bi-bar-chart-line"></i> Standings
+                <i class="bi bi-bar-chart-line"></i> Klasemen
             </a>
 
-            <div class="nav-divider">Team & players</div>
+            <div class="nav-divider">Tim & pemain</div>
 
             {{-- TEAMS --}}
             <a class="nav-link {{ request()->routeIs('admin.teams.*') ? 'active' : '' }}"
                 href="{{ route('admin.teams.index') }}">
-                <i class="bi bi-people"></i> Teams
+                <i class="bi bi-people"></i> Tim
             </a>
 
             {{-- PLAYERS --}}
             <a class="nav-link {{ request()->routeIs('admin.players.*') ? 'active' : '' }}"
                 href="{{ route('admin.players.index') }}">
-                <i class="bi bi-person-badge"></i> Players
+                <i class="bi bi-person-badge"></i> Pemain
             </a>
 
-            <div class="nav-divider">Configuration</div>
+            <div class="nav-divider">Pengaturan situs</div>
 
             {{-- HIGHLIGHTS --}}
             <a class="nav-link {{ request()->routeIs('highlights.*') ? 'active' : '' }}"
                 href="{{ route('highlights.index') }}">
-                <i class="bi bi-play-circle"></i> Highlights
+                <i class="bi bi-play-circle"></i> Sorotan
             </a>
 
             {{-- HERO SETTINGS --}}
             <a class="nav-link {{ request()->routeIs('admin.hero-settings.*') ? 'active' : '' }}"
                 href="{{ route('admin.hero-settings.index') }}">
-                <i class="bi bi-image"></i> Hero settings
+                <i class="bi bi-image"></i> Banner beranda
             </a>
         </nav>
 
         {{-- Quick actions --}}
-        <nav class="nav flex-column mt-2">
-            <div class="nav-divider">Quick actions</div>
+        <nav class="nav flex-column mt-2" aria-label="Pintasan">
+            <div class="nav-divider">Pintasan</div>
 
             <a class="nav-link utility-link" href="{{ route('admin.news.create') }}">
                 <i class="bi bi-plus-circle me-2"></i> Buat artikel baru
@@ -378,7 +412,7 @@
     </div>
 </div>
 
-<button class="sidebar-toggle d-lg-none" id="sidebarToggle" aria-label="Toggle sidebar">
+<button class="sidebar-toggle d-lg-none" id="sidebarToggle" type="button" aria-label="Buka atau tutup navigasi" aria-controls="sidebar" aria-expanded="false">
     <i class="bi bi-list"></i>
 </button>
 
@@ -388,9 +422,15 @@
         const toggleButton = document.getElementById('sidebarToggle');
 
         if (toggleButton && sidebar) {
+            const closeSidebar = function () {
+                sidebar.classList.remove('open');
+                toggleButton.setAttribute('aria-expanded', 'false');
+            };
+
             toggleButton.addEventListener('click', function (e) {
                 e.stopPropagation();
                 sidebar.classList.toggle('open');
+                toggleButton.setAttribute('aria-expanded', sidebar.classList.contains('open') ? 'true' : 'false');
             });
 
             // Tutup sidebar saat klik di luar (mobile)
@@ -399,8 +439,15 @@
                     const inside = sidebar.contains(event.target);
                     const onToggle = toggleButton.contains(event.target);
                     if (!inside && !onToggle) {
-                        sidebar.classList.remove('open');
+                        closeSidebar();
                     }
+                }
+            });
+
+            document.addEventListener('keydown', function (event) {
+                if (event.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                    toggleButton.focus();
                 }
             });
 
@@ -408,7 +455,7 @@
             sidebar.querySelectorAll('.nav-link').forEach(function (link) {
                 link.addEventListener('click', function () {
                     if (window.innerWidth < 992) {
-                        sidebar.classList.remove('open');
+                        closeSidebar();
                     }
                 });
             });

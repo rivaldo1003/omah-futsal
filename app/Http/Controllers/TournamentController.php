@@ -6,6 +6,8 @@ use App\Models\Game;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Support\BusinessTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -815,12 +817,17 @@ class TournamentController extends Controller
         $tournaments = $query->paginate(10)->withQueryString();
 
         // Stats for dashboard
+        $todayStartUtc = CarbonImmutable::today(BusinessTime::TIMEZONE)->utc();
+        $tomorrowStartUtc = CarbonImmutable::tomorrow(BusinessTime::TIMEZONE)->utc();
         $stats = [
             'total' => Tournament::count(),
             'upcoming' => Tournament::where('status', 'upcoming')->count(),
             'ongoing' => Tournament::where('status', 'ongoing')->count(),
             'completed' => Tournament::where('status', 'completed')->count(),
-            'today' => Tournament::whereDate('created_at', today())->count(),
+            'today' => Tournament::query()
+                ->where('created_at', '>=', $todayStartUtc)
+                ->where('created_at', '<', $tomorrowStartUtc)
+                ->count(),
         ];
 
         // Turnamen aktif (belum completed/cancelled) — dipakai untuk disable tombol create.

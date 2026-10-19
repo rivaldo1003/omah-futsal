@@ -4,198 +4,16 @@
 
 @section('styles')
 <style>
-/* Header */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.page-header h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.2;
-    margin: 0 0 4px;
-}
-
-.page-subtitle {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin: 0;
-}
-
-.btn-back {
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text-primary);
-    border-radius: 6px;
-    height: 40px;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-back:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
-/* Cards */
-.form-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.form-card .card-header {
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-}
-
-.form-card .card-header h5 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.form-card .card-body {
-    padding: 24px;
-}
-
-/* Form sections & fields */
-.form-section-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 0 0 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-}
-
-.form-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.required {
-    color: #c01c28;
-}
-
-.x-small {
-    font-size: 12px;
-}
-
-.form-control,
-.form-select {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(192, 28, 40, 0.1);
-}
-
-.form-text {
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-
-.form-check-input:checked {
-    background-color: var(--accent);
-    border-color: var(--accent);
-}
-
-.form-check-input:disabled + .form-check-label {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-.form-control-color {
-    width: 40px;
-    padding: 4px;
-}
-
-/* Logo preview */
-#logoPreview,
-#logoPreviewCard {
-    overflow: hidden;
-}
-
-#logoPreview img,
-#logoPreviewCard img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    border-radius: 6px;
-}
-
-/* Selection boxes */
-.selection-box {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    padding: 8px;
-    background: var(--surface);
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-/* Actions */
-.btn-submit {
-    background: var(--accent);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-submit:hover {
-    background: var(--accent-hover, #a51822);
-    color: white;
-}
-
-/* Current info */
-.current-info-item {
-    font-size: 13px;
-}
-
-.current-info-item .label {
-    color: var(--text-secondary);
-}
-
-.current-info-item .value {
-    color: var(--text-primary);
-    font-weight: 500;
-}
+    @include('admin.teams.partials.team-form-styles')
 </style>
 @endsection
 
 @section('content')
+<div class="admin-team-form-page">
 <div class="page-header">
     <div>
-        <h1>Edit tim: {{ $team->name }}</h1>
-        <p class="page-subtitle">Perbarui informasi tim</p>
+        <h1>Edit Tim</h1>
+        <p class="page-subtitle">Perbarui identitas, kontak, dan keanggotaan {{ $team->name }}.</p>
     </div>
     <a href="{{ route('admin.teams.show', $team) }}" class="btn-back">
         <i class="bi bi-arrow-left"></i> Kembali ke detail
@@ -237,7 +55,7 @@
                             <input type="file"
                                 class="form-control @error('logo') is-invalid @enderror"
                                 id="logo" name="logo" accept="image/*">
-                            <button type="button" class="btn-back" id="clearLogoBtn">
+                            <button type="button" class="btn-back" id="clearLogoBtn" aria-label="Hapus pilihan logo" title="Hapus pilihan logo">
                                 <i class="bi bi-x"></i>
                             </button>
                         </div>
@@ -276,7 +94,7 @@
                     <div class="form-section-title" style="margin-top: 24px;">Informasi pelatih</div>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="head_coach" class="form-label">Head coach</label>
+                            <label for="head_coach" class="form-label">Pelatih kepala</label>
                             <input type="text"
                                 class="form-control @error('head_coach') is-invalid @enderror"
                                 id="head_coach" name="head_coach" value="{{ old('head_coach', $team->head_coach) }}">
@@ -286,7 +104,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="assistant_coach" class="form-label">Assistant coach</label>
+                            <label for="assistant_coach" class="form-label">Asisten pelatih</label>
                             <input type="text"
                                 class="form-control @error('assistant_coach') is-invalid @enderror"
                                 id="assistant_coach" name="assistant_coach" value="{{ old('assistant_coach', $team->assistant_coach) }}">
@@ -296,7 +114,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="goalkeeper_coach" class="form-label">Goalkeeper coach</label>
+                            <label for="goalkeeper_coach" class="form-label">Pelatih kiper</label>
                             <input type="text"
                                 class="form-control @error('goalkeeper_coach') is-invalid @enderror"
                                 id="goalkeeper_coach" name="goalkeeper_coach" value="{{ old('goalkeeper_coach', $team->goalkeeper_coach) }}">
@@ -306,7 +124,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="kitman" class="form-label">Kitman</label>
+                            <label for="kitman" class="form-label">Manajer perlengkapan</label>
                             <input type="text"
                                 class="form-control @error('kitman') is-invalid @enderror"
                                 id="kitman" name="kitman" value="{{ old('kitman', $team->kitman) }}">
@@ -316,7 +134,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="coach_phone" class="form-label">Telepon coach</label>
+                            <label for="coach_phone" class="form-label">Telepon pelatih</label>
                             <input type="text"
                                 class="form-control @error('coach_phone') is-invalid @enderror"
                                 id="coach_phone" name="coach_phone" value="{{ old('coach_phone', $team->coach_phone) }}">
@@ -326,7 +144,7 @@
                         </div>
 
                         <div class="col-md-6">
-                            <label for="coach_email" class="form-label">Email coach</label>
+                            <label for="coach_email" class="form-label">Email pelatih</label>
                             <input type="email"
                                 class="form-control @error('coach_email') is-invalid @enderror"
                                 id="coach_email" name="coach_email" value="{{ old('coach_email', $team->coach_email) }}">
@@ -394,10 +212,10 @@
                         </div>
                     </div>
 
-                    <div class="form-section-title" style="margin-top: 24px;">Venue & lainnya</div>
+                    <div class="form-section-title" style="margin-top: 24px;">Informasi tambahan</div>
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label for="home_venue" class="form-label">Home venue</label>
+                            <label for="home_venue" class="form-label">Lapangan kandang</label>
                             <input type="text"
                                 class="form-control @error('home_venue') is-invalid @enderror"
                                 id="home_venue" name="home_venue" value="{{ old('home_venue', $team->home_venue) }}">
@@ -411,7 +229,7 @@
                             <input type="number"
                                 class="form-control @error('founded_year') is-invalid @enderror"
                                 id="founded_year" name="founded_year" value="{{ old('founded_year', $team->founded_year) }}"
-                                min="1900" max="{{ date('Y') }}">
+                                min="1900" max="{{ \Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->year }}">
                             @error('founded_year')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -434,7 +252,7 @@
                                 name="status" required>
                                 <option value="">Pilih status</option>
                                 <option value="active" {{ old('status', $team->status) == 'active' ? 'selected' : '' }}>Aktif</option>
-                                <option value="pending" {{ old('status', $team->status) == 'pending' ? 'selected' : '' }}>Pending</option>
+                                <option value="pending" {{ old('status', $team->status) == 'pending' ? 'selected' : '' }}>Menunggu</option>
                                 <option value="inactive" {{ old('status', $team->status) == 'inactive' ? 'selected' : '' }}>Nonaktif</option>
                             </select>
                             @error('status')
@@ -521,7 +339,7 @@
                                     <button type="button" class="btn-xs btn-back ms-1" id="deselectAllTournaments">Tidak ada</button>
                                 </div>
                             </div>
-                            <div class="selection-box">
+                            <div class="selection-box selection-tournament">
                                 @foreach($tournaments as $tournament)
                                     <div class="form-check mb-1">
                                         <input class="form-check-input" type="checkbox"
@@ -540,7 +358,7 @@
                     @endif
 
                     <!-- Aksi form -->
-                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
+                    <div class="team-form-actions d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
                         <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal"
                             data-bs-target="#deleteModal">
                             <i class="bi bi-trash me-1"></i> Hapus tim
@@ -588,7 +406,7 @@
                 <div class="row g-2">
                     <div class="col-6 current-info-item">
                         <div class="label">Status</div>
-                        <div class="value">{{ ucfirst($team->status) }}</div>
+                        <div class="value">{{ ['active' => 'Aktif', 'pending' => 'Menunggu', 'inactive' => 'Nonaktif'][$team->status] ?? ucfirst($team->status) }}</div>
                     </div>
                     <div class="col-6 current-info-item">
                         <div class="label">Pemain</div>
@@ -600,7 +418,7 @@
                     </div>
                     <div class="col-6 current-info-item">
                         <div class="label">Dibuat</div>
-                        <div class="value">{{ $team->created_at->format('d M Y') }}</div>
+                        <div class="value">{{ $team->created_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y') }}</div>
                     </div>
                 </div>
             </div>
@@ -609,7 +427,7 @@
         <!-- Preview logo -->
         <div class="form-card">
             <div class="card-header">
-                <h5>Preview logo</h5>
+                <h5>Pratinjau logo</h5>
             </div>
             <div class="card-body text-center">
                 <div id="logoPreviewCard"
@@ -636,7 +454,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">Hapus tim</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
             </div>
             <div class="modal-body small">
                 <p class="mb-2">Hapus <strong>{{ $team->name }}</strong>?</p>
@@ -659,6 +477,7 @@
         </div>
     </div>
 </div>
+    </div>
 @endsection
 
 @section('scripts')
@@ -798,9 +617,10 @@ document.addEventListener('DOMContentLoaded', function () {
     if (yearInput) {
         yearInput.addEventListener('blur', function () {
             const year = parseInt(this.value);
-            if (this.value && (year < 1900 || year > new Date().getFullYear())) {
+            const currentYear = @json(\Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->year);
+            if (this.value && (year < 1900 || year > currentYear)) {
                 this.value = '{{ old('founded_year', $team->founded_year) }}';
-                alert('Masukkan tahun yang valid antara 1900 dan ' + new Date().getFullYear());
+                alert('Masukkan tahun yang valid antara 1900 dan ' + currentYear);
             }
         });
     }

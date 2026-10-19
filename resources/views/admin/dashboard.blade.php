@@ -4,612 +4,653 @@
 
 @section('styles')
     <style>
-        :root {
-            --bg: #FFFFFF;
-            --surface: #F7F7F8;
-            --border: #E5E5E7;
-            --text-primary: #111113;
-            --text-secondary: #6B6B70;
-            --accent: #1a5fb4;
-            --accent-hover: #164e95;
-            --success: #1E7A46;
-            --success-bg: #F0F9F4;
-            --warning: #B45309;
-            --warning-bg: #FDF6EC;
-            --danger: #c01c28;
-            --danger-bg: #FDF2F3;
-            --muted-bg: #F0F0F2;
+        .admin-dashboard {
+            --dashboard-ink: #111111;
+            --dashboard-charcoal: #39393b;
+            --dashboard-muted: #707072;
+            --dashboard-line: #cacacb;
+            --dashboard-line-soft: #e5e5e5;
+            --dashboard-cloud: #f5f5f5;
+            --dashboard-canvas: #ffffff;
+            --dashboard-success: #007d48;
+            --dashboard-warning: #8a5200;
+            max-width: 1440px;
+            margin: 0 auto;
+            color: var(--dashboard-ink);
+            font-size: 16px;
+            line-height: 1.5;
         }
 
-        .dashboard-header {
-            margin-bottom: 24px;
+        .admin-dashboard .dashboard-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 12px 24px;
+            margin-bottom: 32px;
         }
 
-        .dashboard-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--text-primary);
+        .admin-dashboard .dashboard-header h1 {
+            margin: 0 0 8px;
+            color: var(--dashboard-ink);
+            font-size: clamp(1.75rem, 2.5vw, 2rem);
+            font-weight: 500;
             line-height: 1.2;
-            margin: 0 0 4px;
         }
 
-        .dashboard-header p {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .admin-dashboard .dashboard-header p {
+            max-width: 68ch;
             margin: 0;
+            color: var(--dashboard-muted);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        /* ===== Stat cards — simple & compact ===== */
-        .stats-grid {
+        .admin-dashboard .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .stat-card {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px 16px;
-        }
-
-        /* Ikon kecil dengan tint warna kategori */
-        .stat-icon {
-            width: 36px;
-            height: 36px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-bottom: 40px;
+            overflow: hidden;
+            border: 1px solid var(--dashboard-line-soft);
             border-radius: 8px;
+            background: var(--dashboard-canvas);
+        }
+
+        .admin-dashboard .stat-card {
             display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            min-width: 0;
+            padding: 18px 20px;
+            border-right: 1px solid var(--dashboard-line-soft);
+        }
+
+        .admin-dashboard .stat-card:last-child {
+            border-right: 0;
+        }
+
+        .admin-dashboard .stat-icon {
+            display: inline-flex;
             align-items: center;
             justify-content: center;
+            flex: 0 0 20px;
+            width: 20px;
+            height: 24px;
+            color: var(--dashboard-muted);
             font-size: 16px;
-            flex-shrink: 0;
-            background: var(--stat-bg, var(--surface));
-            color: var(--stat-color, var(--accent));
         }
 
-        .stat-info {
+        .admin-dashboard .stat-info {
+            display: grid;
+            gap: 4px;
             min-width: 0;
         }
 
-        .stat-title {
-            font-size: 12px;
-            color: var(--text-secondary);
-            line-height: 1.3;
-        }
-
-        .stat-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-        }
-
-        /* Varian warna per kategori */
-        .stat-card.stat-teams {
-            --stat-color: var(--accent);
-            --stat-bg: rgba(26, 95, 180, 0.08);
-        }
-
-        .stat-card.stat-players {
-            --stat-color: #7C3AED;
-            --stat-bg: rgba(124, 58, 237, 0.08);
-        }
-
-        .stat-card.stat-matches {
-            --stat-color: var(--warning);
-            --stat-bg: var(--warning-bg);
-        }
-
-        .stat-card.stat-completed {
-            --stat-color: var(--success);
-            --stat-bg: var(--success-bg);
-        }
-
-        /* ===== Section cards ===== */
-        .section-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-            margin-bottom: 24px;
-        }
-
-        .card-header {
-            background: var(--surface);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 16px;
-        }
-
-        .card-header h5 {
-            margin: 0;
-            font-weight: 600;
+        .admin-dashboard .stat-title {
+            color: var(--dashboard-muted);
             font-size: 14px;
-            color: var(--text-primary);
+            line-height: 1.35;
         }
 
-        .card-body {
-            padding: 16px;
+        .admin-dashboard .stat-value {
+            color: var(--dashboard-ink);
+            font-size: 28px;
+            font-variant-numeric: tabular-nums;
+            font-weight: 500;
+            line-height: 1.15;
         }
 
-        /* Recent matches */
-        .match-item {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
+        .admin-dashboard .dashboard-columns {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 24px;
+            margin-bottom: 40px;
         }
 
-        .match-item:last-of-type {
-            border-bottom: none;
-            padding-bottom: 0;
+        .admin-dashboard .section-card {
+            min-width: 0;
+            margin: 0;
+            padding: 0 20px 20px;
+            border: 1px solid var(--dashboard-line-soft);
+            border-radius: 8px;
+            background: var(--dashboard-canvas);
         }
 
-        .match-teams {
-            display: flex;
+        .admin-dashboard .card-header {
+            padding: 16px 0 12px;
+            border-bottom: 1px solid var(--dashboard-line-soft);
+            background: transparent;
+        }
+
+        .admin-dashboard .card-header h2 {
+            margin: 0;
+            color: var(--dashboard-ink);
+            font-size: 22px;
+            font-weight: 500;
+            line-height: 1.25;
+        }
+
+        .admin-dashboard .card-body {
+            padding: 0;
+        }
+
+        .admin-dashboard .match-item,
+        .admin-dashboard .activity-item {
+            padding: 16px 0;
+            border-bottom: 1px solid var(--dashboard-line-soft);
+        }
+
+        .admin-dashboard .match-item:last-of-type,
+        .admin-dashboard .activity-item:last-child {
+            border-bottom: 0;
+        }
+
+        .admin-dashboard .match-teams {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
             align-items: center;
-            justify-content: center;
-            gap: 16px;
-            margin-bottom: 8px;
+            gap: 12px;
+            margin-bottom: 9px;
         }
 
-        .team-info {
+        .admin-dashboard .team-info {
             display: flex;
             align-items: center;
             gap: 8px;
+            min-width: 0;
         }
 
-        .team-logo-small {
-            width: 28px;
-            height: 28px;
-            border-radius: 6px;
+        .admin-dashboard .team-info:last-child {
+            justify-content: flex-end;
+        }
+
+        .admin-dashboard .team-logo-small,
+        .admin-dashboard .activity-logo {
+            display: grid;
+            flex: 0 0 32px;
+            width: 32px;
+            height: 32px;
             overflow: hidden;
-            flex-shrink: 0;
-            background: var(--muted-bg);
+            place-items: center;
+            background: var(--dashboard-cloud);
         }
 
-        .team-logo-small img {
+        .admin-dashboard .team-logo-small img,
+        .admin-dashboard .activity-logo img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
 
-        .logo-initial {
+        .admin-dashboard .logo-initial {
+            display: grid;
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--text-secondary);
-            font-weight: 600;
+            place-items: center;
+            background: var(--dashboard-cloud);
+            color: var(--dashboard-charcoal);
             font-size: 12px;
-            background: var(--muted-bg);
+            font-weight: 500;
         }
 
-        .team-name {
-            font-weight: 500;
-            color: var(--text-primary);
-            font-size: 14px;
-            max-width: 120px;
+        .admin-dashboard .team-name {
+            max-width: 180px;
             overflow: hidden;
+            color: var(--dashboard-ink);
+            font-size: 14px;
+            font-weight: 500;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
 
-        .team-name.home {
+        .admin-dashboard .team-name.home {
             text-align: right;
         }
 
-        .match-score {
+        .admin-dashboard .match-score {
+            min-width: 56px;
+            color: var(--dashboard-ink);
+            font-size: 15px;
+            font-variant-numeric: tabular-nums;
             font-weight: 600;
-            color: var(--text-primary);
-            font-size: 14px;
             text-align: center;
-            min-width: 60px;
         }
 
-        .match-meta {
+        .admin-dashboard .match-score--pending {
+            color: var(--dashboard-muted);
+            font-weight: 500;
+        }
+
+        .admin-dashboard .match-meta {
             display: flex;
-            justify-content: space-between;
+            flex-wrap: wrap;
             align-items: center;
+            justify-content: space-between;
+            gap: 8px 16px;
         }
 
-        .match-date {
-            font-size: 12px;
-            color: var(--text-secondary);
+        .admin-dashboard .match-date,
+        .admin-dashboard .activity-info {
+            color: var(--dashboard-muted);
+            font-size: 13px;
+            line-height: 1.4;
         }
 
-        .status-badge {
-            font-size: 12px;
-            padding: 2px 8px;
-            border-radius: 6px;
+        .admin-dashboard .status-badge {
+            padding: 0;
+            color: var(--dashboard-muted);
+            font-size: 13px;
+            font-weight: 500;
+            line-height: 1.4;
         }
 
-        .status-upcoming {
-            background: var(--muted-bg);
-            color: var(--text-secondary);
+        .admin-dashboard .status-ongoing {
+            color: var(--dashboard-warning);
         }
 
-        .status-ongoing {
-            background: var(--warning-bg);
-            color: var(--warning);
+        .admin-dashboard .status-completed {
+            color: var(--dashboard-success);
         }
 
-        .status-completed {
-            background: var(--success-bg);
-            color: var(--success);
-        }
-
-        /* Activity list */
-        .activity-list {
+        .admin-dashboard .activity-list {
             margin: 0;
             padding: 0;
             list-style: none;
         }
 
-        .activity-item {
-            padding: 12px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .activity-item:last-child {
-            border-bottom: none;
-            padding-bottom: 0;
-        }
-
-        .activity-content {
+        .admin-dashboard .activity-content {
             display: flex;
             align-items: center;
             gap: 12px;
+            min-width: 0;
         }
 
-        .activity-logo {
-            width: 32px;
-            height: 32px;
-            border-radius: 6px;
+        .admin-dashboard .activity-details {
+            min-width: 0;
+        }
+
+        .admin-dashboard .activity-name {
             overflow: hidden;
-            flex-shrink: 0;
-            background: var(--muted-bg);
-        }
-
-        .activity-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .activity-name {
-            font-weight: 500;
-            color: var(--text-primary);
-            font-size: 14px;
-        }
-
-        .activity-info {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Links & buttons */
-        .view-all {
-            display: block;
-            text-align: center;
-            padding: 12px;
-            border-top: 1px solid var(--border);
-            color: var(--accent);
+            color: var(--dashboard-ink);
             font-size: 14px;
             font-weight: 500;
-            text-decoration: none;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
-        .view-all:hover {
-            background: var(--surface);
-            color: var(--accent-hover);
-        }
-
-        .empty-state {
-            padding: 32px 16px;
-            text-align: center;
-        }
-
-        .empty-state-icon {
-            font-size: 24px;
-            color: var(--border);
-            margin-bottom: 12px;
-        }
-
-        .empty-state-text {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
-
-        .btn-small {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 8px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            font-weight: 500;
-            text-decoration: none;
+        .admin-dashboard .view-all {
             display: inline-flex;
             align-items: center;
-            gap: 4px;
-        }
-
-        .btn-small:hover {
-            background: var(--accent-hover);
-            color: #fff;
-        }
-
-        .btn-outline {
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            background: var(--bg);
-            border-radius: 6px;
+            gap: 7px;
+            min-height: 44px;
+            margin-top: 8px;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            background: var(--dashboard-cloud);
+            color: var(--dashboard-ink);
             font-size: 14px;
             font-weight: 500;
+            text-decoration: none;
+            transition: background-color 150ms ease-out;
         }
 
-        .btn-outline:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: var(--surface);
+        .admin-dashboard .view-all:hover,
+        .admin-dashboard .dashboard-action--secondary:hover {
+            background: #e5e5e5;
+            color: var(--dashboard-ink);
         }
 
-        .dashboard-columns {
+        .admin-dashboard .empty-state {
+            padding: 18px 0 22px;
+            text-align: left;
+        }
+
+        .admin-dashboard .empty-state-icon {
+            display: none;
+        }
+
+        .admin-dashboard .empty-state-text {
+            margin: 0 0 14px;
+            color: var(--dashboard-muted);
+            font-size: 15px;
+        }
+
+        .admin-dashboard .dashboard-actions-section {
+            margin-bottom: 24px;
+        }
+
+        .admin-dashboard .dashboard-actions-section .card-body {
+            padding-top: 16px;
+        }
+
+        .admin-dashboard .dashboard-action-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .admin-dashboard .dashboard-activity-actions {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            margin-top: 16px;
+        }
+
+        .admin-dashboard .dashboard-action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            min-height: 48px;
+            padding: 10px 16px;
+            border: 1px solid transparent;
+            border-radius: 9999px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-align: center;
+            text-decoration: none;
+            transition: background-color 150ms ease-out, color 150ms ease-out;
+        }
+
+        .admin-dashboard .dashboard-action--primary {
+            background: var(--dashboard-ink);
+            color: #ffffff;
+        }
+
+        .admin-dashboard .dashboard-action--primary:hover {
+            background: var(--dashboard-charcoal);
+            color: #ffffff;
+        }
+
+        .admin-dashboard .dashboard-action--secondary {
+            background: var(--dashboard-cloud);
+            color: var(--dashboard-ink);
+        }
+
+        .admin-dashboard :is(a, button):focus-visible {
+            outline: 2px solid var(--dashboard-ink);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 1000px) {
+            .admin-dashboard .dashboard-columns {
+                gap: 20px;
+            }
+
+            .admin-dashboard .dashboard-action-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
         }
 
         @media (max-width: 768px) {
-            .stats-grid {
-                grid-template-columns: 1fr 1fr;
+            .admin-dashboard .stats-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
-            .dashboard-columns {
-                grid-template-columns: 1fr;
+            .admin-dashboard .stat-card:nth-child(2) {
+                border-right: 0;
             }
 
-            .match-teams {
-                flex-direction: column;
-                gap: 8px;
+            .admin-dashboard .stat-card:nth-child(-n + 2) {
+                border-bottom: 1px solid var(--dashboard-line-soft);
             }
 
-            .team-info {
-                width: 100%;
-                justify-content: center;
-            }
-
-            .match-score {
-                order: -1;
+            .admin-dashboard .dashboard-columns {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 32px;
             }
         }
 
-        @media (max-width: 576px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
+        @media (max-width: 480px) {
+            .admin-dashboard .dashboard-header {
+                margin-bottom: 24px;
+            }
+
+            .admin-dashboard .stats-grid {
+                grid-template-columns: minmax(0, 1fr);
+                margin-bottom: 32px;
+            }
+
+            .admin-dashboard .stat-card {
+                padding: 14px 8px;
+                border-right: 0;
+                border-bottom: 1px solid var(--dashboard-line-soft);
+            }
+
+            .admin-dashboard .stat-card:nth-child(2) {
+                border-bottom: 1px solid var(--dashboard-line-soft);
+            }
+
+            .admin-dashboard .stat-card:last-child {
+                border-bottom: 0;
+            }
+
+            .admin-dashboard .stat-value {
+                font-size: 25px;
+            }
+
+            .admin-dashboard .match-teams {
+                gap: 7px;
+            }
+
+            .admin-dashboard .team-info {
+                gap: 6px;
+            }
+
+            .admin-dashboard .team-logo-small {
+                flex-basis: 28px;
+                width: 28px;
+                height: 28px;
+            }
+
+            .admin-dashboard .team-name {
+                font-size: 13px;
+            }
+
+            .admin-dashboard .match-score {
+                min-width: 42px;
+                font-size: 14px;
+            }
+
+            .admin-dashboard .dashboard-action-grid {
+                grid-template-columns: minmax(0, 1fr);
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
-
-            *,
-            *::before,
-            *::after {
-                transition: none !important;
-                animation: none !important;
+            .admin-dashboard .view-all,
+            .admin-dashboard .dashboard-action {
+                transition: none;
             }
         }
     </style>
 @endsection
 
 @section('content')
-    <div class="dashboard-header">
-        <h1>Dashboard</h1>
-        <p>Selamat datang kembali, {{ auth()->user()->name ?? 'Administrator' }}. Hari ini {{ now()->translatedFormat('d F Y') }}.</p>
-    </div>
-
-    <!-- Statistik -->
-    <div class="stats-grid">
-        <div class="stat-card stat-teams">
-            <div class="stat-icon"><i class="bi bi-shield-shaded"></i></div>
-            <div class="stat-info">
-                <div class="stat-title">Tim aktif</div>
-                <div class="stat-value">{{ $totalTeams }}</div>
+    <main class="admin-dashboard">
+        <header class="dashboard-header">
+            <div>
+                <h1>Dashboard</h1>
+                <p>Selamat datang kembali, {{ auth()->user()->name ?? 'Administrator' }}. Hari ini
+                    {{ now(\App\Support\BusinessTime::TIMEZONE)->translatedFormat('d F Y') }}.</p>
             </div>
-        </div>
+        </header>
 
-        <div class="stat-card stat-players">
-            <div class="stat-icon"><i class="bi bi-person-arms-up"></i></div>
-            <div class="stat-info">
-                <div class="stat-title">Total pemain</div>
-                <div class="stat-value">{{ $totalPlayers }}</div>
+        <section class="stats-grid" aria-label="Ringkasan sistem">
+            <div class="stat-card stat-teams">
+                <div class="stat-icon" aria-hidden="true"><i class="bi bi-shield-shaded"></i></div>
+                <div class="stat-info">
+                    <div class="stat-title">Tim aktif</div>
+                    <div class="stat-value">{{ $totalTeams }}</div>
+                </div>
             </div>
-        </div>
 
-        <div class="stat-card stat-matches">
-            <div class="stat-icon"><i class="bi bi-stopwatch"></i></div>
-            <div class="stat-info">
-                <div class="stat-title">Total pertandingan</div>
-                <div class="stat-value">{{ $totalMatches }}</div>
+            <div class="stat-card stat-players">
+                <div class="stat-icon" aria-hidden="true"><i class="bi bi-person-arms-up"></i></div>
+                <div class="stat-info">
+                    <div class="stat-title">Total pemain</div>
+                    <div class="stat-value">{{ $totalPlayers }}</div>
+                </div>
             </div>
-        </div>
 
-        <div class="stat-card stat-completed">
-            <div class="stat-icon"><i class="bi bi-award"></i></div>
-            <div class="stat-info">
-                <div class="stat-title">Selesai</div>
-                <div class="stat-value">{{ $completedMatches }}</div>
+            <div class="stat-card stat-matches">
+                <div class="stat-icon" aria-hidden="true"><i class="bi bi-stopwatch"></i></div>
+                <div class="stat-info">
+                    <div class="stat-title">Total pertandingan</div>
+                    <div class="stat-value">{{ $totalMatches }}</div>
+                </div>
             </div>
-        </div>
-    </div>
 
-    <div class="dashboard-columns">
-        <!-- Pertandingan terbaru -->
-        <div class="section-card">
-            <div class="card-header">
-                <h5>Pertandingan terbaru</h5>
+            <div class="stat-card stat-completed">
+                <div class="stat-icon" aria-hidden="true"><i class="bi bi-award"></i></div>
+                <div class="stat-info">
+                    <div class="stat-title">Selesai</div>
+                    <div class="stat-value">{{ $completedMatches }}</div>
+                </div>
             </div>
-            <div class="card-body">
-                @if($recentMatches->count() > 0)
-                    @foreach($recentMatches as $match)
-                        <div class="match-item">
-                            <div class="match-teams">
-                                <div class="team-info">
-                                    <div class="team-logo-small">
-                                        @include('partials.team-logo', ['team' => $match->homeTeam])
+        </section>
+
+        <div class="dashboard-columns">
+            <section class="section-card" aria-labelledby="recent-matches-heading">
+                <div class="card-header">
+                    <h2 id="recent-matches-heading">Pertandingan terbaru</h2>
+                </div>
+                <div class="card-body">
+                    @if($recentMatches->count() > 0)
+                        @foreach($recentMatches as $match)
+                            <article class="match-item">
+                                <div class="match-teams">
+                                    <div class="team-info">
+                                        <div class="team-logo-small">
+                                            @include('partials.team-logo', ['team' => $match->homeTeam])
+                                        </div>
+                                        <div class="team-name home">{{ $match->homeTeam->name ?? 'Belum ditentukan' }}</div>
                                     </div>
-                                    <div class="team-name home">
-                                        {{ $match->homeTeam->name ?? 'Belum ditentukan' }}
+
+                                    @if($match->status === 'completed' && $match->home_score !== null && $match->away_score !== null)
+                                        <div class="match-score">{{ $match->home_score }} – {{ $match->away_score }}</div>
+                                    @else
+                                        <div class="match-score match-score--pending">vs</div>
+                                    @endif
+
+                                    <div class="team-info">
+                                        <div class="team-name away">{{ $match->awayTeam->name ?? 'Belum ditentukan' }}</div>
+                                        <div class="team-logo-small">
+                                            @include('partials.team-logo', ['team' => $match->awayTeam])
+                                        </div>
                                     </div>
                                 </div>
 
-                                @if($match->status === 'completed' && $match->home_score !== null && $match->away_score !== null)
-                                    <div class="match-score">
-                                        {{ $match->home_score }} – {{ $match->away_score }}
+                                <div class="match-meta">
+                                    <div class="match-date">
+                                        {{ \Carbon\Carbon::parse($match->match_date)->translatedFormat('d M') }}@if($match->time_start),
+                                        {{ $match->time_start }}@endif
                                     </div>
-                                @else
-                                    <div class="match-score" style="color: var(--text-secondary);">vs</div>
-                                @endif
+                                    <span class="status-badge status-{{ $match->status }}">{{ ucfirst($match->status) }}</span>
+                                </div>
+                            </article>
+                        @endforeach
+                        <a href="{{ route('admin.matches.index') }}" class="view-all">
+                            Lihat semua pertandingan <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                        </a>
+                    @else
+                        <div class="empty-state">
+                            <p class="empty-state-text">Belum ada pertandingan yang dijadwalkan.</p>
+                            <a href="{{ route('admin.matches.create') }}" class="dashboard-action dashboard-action--primary">
+                                Jadwalkan pertandingan
+                            </a>
+                        </div>
+                    @endif
+                </div>
+            </section>
 
-                                <div class="team-info">
-                                    <div class="team-name away">
-                                        {{ $match->awayTeam->name ?? 'Belum ditentukan' }}
+            <section class="section-card" aria-labelledby="recent-activity-heading">
+                <div class="card-header">
+                    <h2 id="recent-activity-heading">Aktivitas terbaru</h2>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list">
+                        @php
+                            $latestTeams = \App\Models\Team::latest()->take(3)->get();
+                            $latestPlayers = \App\Models\Player::latest()->take(3)->get();
+                        @endphp
+
+                        @foreach($latestTeams as $team)
+                            <div class="activity-item">
+                                <div class="activity-content">
+                                    <div class="activity-logo">
+                                        @include('partials.team-logo', ['team' => $team])
                                     </div>
-                                    <div class="team-logo-small">
-                                        @include('partials.team-logo', ['team' => $match->awayTeam])
+                                    <div class="activity-details">
+                                        <div class="activity-name">{{ $team->name }}</div>
+                                        <div class="activity-info">
+                                            Tim baru, {{ $team->created_at->diffForHumans() }}, {{ $team->players_count ?? 0 }} pemain
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                        @endforeach
 
-                            <div class="match-meta">
-                                <div class="match-date">
-                                    {{ \Carbon\Carbon::parse($match->match_date)->translatedFormat('d M') }}@if($match->time_start), {{ $match->time_start }}@endif
+                        @foreach($latestPlayers as $player)
+                            <div class="activity-item">
+                                <div class="activity-content">
+                                    <div class="activity-logo">
+                                        <div class="logo-initial">
+                                            @php
+                                                $nameParts = explode(' ', $player->name);
+                                                $initials = count($nameParts) >= 2
+                                                    ? strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1))
+                                                    : strtoupper(substr($player->name, 0, 2));
+                                            @endphp
+                                            {{ $initials }}
+                                        </div>
+                                    </div>
+                                    <div class="activity-details">
+                                        <div class="activity-name">{{ $player->name }}</div>
+                                        <div class="activity-info">
+                                            @if($player->team)
+                                                Pemain baru, {{ $player->team->name }}
+                                            @else
+                                                Pemain baru, tanpa tim
+                                            @endif
+                                        </div>
+                                    </div>
                                 </div>
-                                <span class="status-badge status-{{ $match->status }}">
-                                    {{ ucfirst($match->status) }}
-                                </span>
                             </div>
-                        </div>
-                    @endforeach
-                    <a href="{{ route('admin.matches.index') }}" class="view-all">
-                        Lihat semua pertandingan
-                    </a>
-                @else
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="bi bi-calendar-x"></i>
-                        </div>
-                        <p class="empty-state-text">Belum ada pertandingan yang dijadwalkan.</p>
-                        <a href="{{ route('admin.matches.create') }}" class="btn-small">
-                            Jadwalkan pertandingan
+                        @endforeach
+                    </div>
+
+                    <div class="dashboard-action-grid dashboard-activity-actions">
+                        <a href="{{ route('admin.teams.index') }}" class="dashboard-action dashboard-action--secondary">
+                            <i class="bi bi-people" aria-hidden="true"></i> Lihat tim
+                        </a>
+                        <a href="{{ route('admin.players.index') }}" class="dashboard-action dashboard-action--secondary">
+                            <i class="bi bi-person" aria-hidden="true"></i> Lihat pemain
                         </a>
                     </div>
-                @endif
-            </div>
+                </div>
+            </section>
         </div>
 
-        <!-- Aktivitas terbaru -->
-        <div class="section-card">
+        <section class="section-card dashboard-actions-section" aria-labelledby="quick-actions-heading">
             <div class="card-header">
-                <h5>Aktivitas terbaru</h5>
+                <h2 id="quick-actions-heading">Aksi cepat</h2>
             </div>
             <div class="card-body">
-                <div class="activity-list">
-                    @php
-                        $latestTeams = \App\Models\Team::latest()->take(3)->get();
-                        $latestPlayers = \App\Models\Player::latest()->take(3)->get();
-                    @endphp
-
-                    @foreach($latestTeams as $team)
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <div class="activity-logo">
-                                    @include('partials.team-logo', ['team' => $team])
-                                </div>
-                                <div class="activity-details">
-                                    <div class="activity-name">{{ $team->name }}</div>
-                                    <div class="activity-info">
-                                        Tim baru, {{ $team->created_at->diffForHumans() }}, {{ $team->players_count ?? 0 }} pemain
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-
-                    @foreach($latestPlayers as $player)
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <div class="activity-logo">
-                                    <div class="logo-initial">
-                                        @php
-                                            $nameParts = explode(' ', $player->name);
-                                            $initials = count($nameParts) >= 2
-                                                ? strtoupper(substr($nameParts[0], 0, 1) . substr($nameParts[1], 0, 1))
-                                                : strtoupper(substr($player->name, 0, 2));
-                                        @endphp
-                                        {{ $initials }}
-                                    </div>
-                                </div>
-                                <div class="activity-details">
-                                    <div class="activity-name">{{ $player->name }}</div>
-                                    <div class="activity-info">
-                                        @if($player->team)
-                                            Pemain baru, {{ $player->team->name }}
-                                        @else
-                                            Pemain baru, tanpa tim
-                                        @endif
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-
-                <div class="mt-3 d-flex gap-2">
-                    <a href="{{ route('admin.teams.index') }}" class="btn btn-outline btn-sm">
-                        Lihat tim
+                <nav class="dashboard-action-grid" aria-label="Aksi cepat">
+                    <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="dashboard-action dashboard-action--primary">
+                        <i class="bi bi-trophy" aria-hidden="true"></i> Buat turnamen
                     </a>
-                    <a href="{{ route('admin.players.index') }}" class="btn btn-outline btn-sm">
-                        Lihat pemain
+                    <a href="{{ route('admin.teams.create') }}" class="dashboard-action dashboard-action--secondary">
+                        <i class="bi bi-people" aria-hidden="true"></i> Buat tim
                     </a>
-                </div>
+                    <a href="{{ route('admin.players.create') }}" class="dashboard-action dashboard-action--secondary">
+                        <i class="bi bi-person-plus" aria-hidden="true"></i> Buat pemain
+                    </a>
+                    <a href="{{ route('admin.matches.create') }}" class="dashboard-action dashboard-action--secondary">
+                        <i class="bi bi-calendar-plus" aria-hidden="true"></i> Buat pertandingan
+                    </a>
+                </nav>
             </div>
-        </div>
-    </div>
-
-    <!-- Aksi cepat -->
-    <div class="section-card">
-        <div class="card-header">
-            <h5>Aksi cepat</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-2">
-                <div class="col-md-3 col-sm-6">
-                    <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}"
-                        class="btn btn-outline w-100">
-                        <i class="bi bi-trophy me-1"></i> Buat turnamen
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{{ route('admin.teams.create') }}" class="btn btn-outline w-100">
-                        <i class="bi bi-people me-1"></i> Buat tim
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{{ route('admin.players.create') }}" class="btn btn-outline w-100">
-                        <i class="bi bi-person-plus me-1"></i> Buat pemain
-                    </a>
-                </div>
-                <div class="col-md-3 col-sm-6">
-                    <a href="{{ route('admin.matches.create') }}" class="btn btn-outline w-100">
-                        <i class="bi bi-calendar-plus me-1"></i> Buat pertandingan
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
+        </section>
+    </main>
 @endsection

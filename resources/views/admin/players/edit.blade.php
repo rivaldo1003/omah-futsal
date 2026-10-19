@@ -4,161 +4,16 @@
 
 @section('styles')
 <style>
-/* Header */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-bottom: 24px;
-}
-
-.page-header h1 {
-    font-size: 20px;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.2;
-    margin: 0 0 4px;
-}
-
-.page-subtitle {
-    color: var(--text-secondary);
-    font-size: 14px;
-    margin: 0;
-}
-
-.btn-back {
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text-primary);
-    border-radius: 6px;
-    height: 40px;
-    padding: 0 16px;
-    font-size: 14px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    text-decoration: none;
-    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-.btn-back:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-}
-
-/* Cards */
-.form-card {
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.form-card .card-header {
-    background: var(--bg);
-    border-bottom: 1px solid var(--border);
-    padding: 12px 16px;
-}
-
-.form-card .card-header h5 {
-    font-size: 14px;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin: 0;
-}
-
-.form-card .card-body {
-    padding: 24px;
-}
-
-/* Form sections & fields */
-.form-section-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin: 0 0 16px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid var(--border);
-}
-
-.form-label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.required {
-    color: #c01c28;
-}
-
-.form-control,
-.form-select {
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 14px;
-}
-
-.form-control:focus,
-.form-select:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(192, 28, 40, 0.1);
-}
-
-.form-text {
-    color: var(--text-secondary);
-    font-size: 13px;
-}
-
-.form-check-input:checked {
-    background-color: var(--accent);
-    border-color: var(--accent);
-}
-
-/* Photo preview */
-.player-photo-preview {
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: var(--surface);
-}
-
-.player-photo-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.player-photo-fallback-edit {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--surface);
-    color: var(--text-secondary);
-    font-size: 36px;
-    font-weight: 600;
-}
-
-/* Alert */
-.alert {
-    border-radius: 6px;
-    padding: 12px 16px;
-    font-size: 14px;
-    margin-bottom: 16px;
-    border: none;
-}
-</style>
+        @include('admin.players.partials.admin-styles')
+    </style>
 @endsection
 
 @section('content')
+<div class="admin-player-page">
 <div class="page-header">
     <div>
-        <h1>Edit pemain: {{ $player->name }}</h1>
-        <p class="page-subtitle">Perbarui informasi pemain</p>
+        <h1>Edit Pemain</h1>
+        <p class="page-subtitle">Perbarui data untuk {{ $player->name }}.</p>
     </div>
     <a href="{{ route('admin.players.show', $player) }}" class="btn-back">
         <i class="bi bi-arrow-left"></i> Kembali ke detail
@@ -168,13 +23,15 @@
 @if ($errors->any())
     <div class="alert alert-danger alert-dismissible fade show" role="alert">
         <i class="bi bi-exclamation-triangle me-2"></i>
-        <strong>Perbaiki kesalahan berikut:</strong>
-        <ul class="mb-0 mt-2">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert"></button>
+        <div class="alert-content">
+            <strong>Perbaiki kesalahan berikut:</strong>
+            <ul class="mb-0 mt-2">
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+        <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Tutup"></button>
     </div>
 @endif
 
@@ -190,8 +47,7 @@
             </div>
             <div class="card-body">
                 <div class="text-center mb-3">
-                    <div class="player-photo-preview mx-auto rounded"
-                        style="width: 150px; height: 150px;" id="photoPreview">
+                    <div class="player-photo-preview mx-auto rounded" id="photoPreview">
                         @php
                             $playerPhoto = $player->photo ?? null;
                             $nameParts = explode(' ', $player->name);
@@ -319,7 +175,7 @@
                             <input type="date" class="form-control @error('birth_date') is-invalid @enderror"
                                 id="birth_date" name="birth_date"
                                 value="{{ old('birth_date', $player->birth_date?->format('Y-m-d')) }}"
-                                max="{{ now()->format('Y-m-d') }}">
+                                max="{{ \Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->toDateString() }}">
                             @error('birth_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -352,7 +208,7 @@
                     </div>
 
                     <!-- Aksi form -->
-                    <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                    <div class="player-form-actions d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
                         <a href="{{ route('admin.players.show', $player) }}" class="btn btn-outline-secondary">Batal</a>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-lg me-1"></i> Simpan perubahan
@@ -363,6 +219,7 @@
     </div>
 </div>
 </form>
+    </div>
 @endsection
 
 @section('scripts')

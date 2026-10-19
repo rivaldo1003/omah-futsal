@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Support\BusinessTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -314,14 +316,16 @@ class Tournament extends Model
     public function scopeUpcoming($query)
     {
         return $query->where('status', 'upcoming')
-            ->where('start_date', '>=', now());
+            ->whereDate('start_date', '>=', CarbonImmutable::today(BusinessTime::TIMEZONE)->toDateString());
     }
 
     public function scopeOngoing($query)
     {
+        $today = CarbonImmutable::today(BusinessTime::TIMEZONE)->toDateString();
+
         return $query->where('status', 'ongoing')
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now());
+            ->whereDate('start_date', '<=', $today)
+            ->whereDate('end_date', '>=', $today);
     }
 
     public function scopeCompleted($query)

@@ -275,14 +275,14 @@
                 <div class="fmvs-um-body">
                     <div class="fmvs-h2h-selects">
                         <div class="fmvs-h2h-field">
-                            <input type="text" class="fmvs-h2h-search" id="h2hSearch1"
-                                placeholder="Cari pemain pertama..." autocomplete="off" aria-label="Cari pemain pertama">
+                            <input type="text" class="fmvs-h2h-search" id="h2hSearch1" placeholder="Cari pemain pertama..."
+                                autocomplete="off" aria-label="Cari pemain pertama">
                             <select id="h2hSelect1" aria-label="Pemain pertama"></select>
                         </div>
                         <span class="fmvs-h2h-vs">VS</span>
                         <div class="fmvs-h2h-field">
-                            <input type="text" class="fmvs-h2h-search" id="h2hSearch2"
-                                placeholder="Cari pemain kedua..." autocomplete="off" aria-label="Cari pemain kedua">
+                            <input type="text" class="fmvs-h2h-search" id="h2hSearch2" placeholder="Cari pemain kedua..."
+                                autocomplete="off" aria-label="Cari pemain kedua">
                             <select id="h2hSelect2" aria-label="Pemain kedua"></select>
                         </div>
                     </div>
@@ -294,8 +294,8 @@
 
     <style>
         /* =============================================================
-       ULTRA BROADCAST STYLES (v3.0) - DARK FUTURISTIC
-       ============================================================= */
+           ULTRA BROADCAST STYLES (v3.0) - DARK FUTURISTIC
+           ============================================================= */
 
         :root {
             --u-bg: #05070a;
@@ -1637,14 +1637,14 @@
                 const max = Math.max(...items.map(i => i.val), 1);
 
                 breakdownEl.innerHTML = items.map(i => `
-                <div class="fmvs-bd-row">
-                    <span class="fmvs-bd-lbl">${i.lbl}</span>
-                    <div class="fmvs-bd-bar">
-                        <div class="fmvs-bd-fill ${i.cls}" style="width:${Math.round((i.val / max) * 100)}%"></div>
+                    <div class="fmvs-bd-row">
+                        <span class="fmvs-bd-lbl">${i.lbl}</span>
+                        <div class="fmvs-bd-bar">
+                            <div class="fmvs-bd-fill ${i.cls}" style="width:${Math.round((i.val / max) * 100)}%"></div>
+                        </div>
+                        <span class="fmvs-bd-val">${i.val}</span>
                     </div>
-                    <span class="fmvs-bd-val">${i.val}</span>
-                </div>
-            `).join('');
+                `).join('');
             }
 
             // Active Player Update
@@ -1772,32 +1772,32 @@
                 const avatarOf = (p) => `<img class="fmvs-h2h-avatar" src="${photoOf(p)}" alt="${p.name}" onerror="this.onerror=null; this.src='${H2H_PLACEHOLDER}';">`;
 
                 const header = `
-                <div class="fmvs-h2h-headrow">
-                    <div class="fmvs-h2h-side">
-                        ${avatarOf(p1)}
-                        <div class="fmvs-h2h-id">
-                            <strong>${p1.name}</strong>
-                            <span>${teamOf(p1)}</span>
+                    <div class="fmvs-h2h-headrow">
+                        <div class="fmvs-h2h-side">
+                            ${avatarOf(p1)}
+                            <div class="fmvs-h2h-id">
+                                <strong>${p1.name}</strong>
+                                <span>${teamOf(p1)}</span>
+                            </div>
+                        </div>
+                        <div class="fmvs-h2h-midlabel">VS</div>
+                        <div class="fmvs-h2h-side fmvs-h2h-side--right">
+                            <div class="fmvs-h2h-id">
+                                <strong>${p2.name}</strong>
+                                <span>${teamOf(p2)}</span>
+                            </div>
+                            ${avatarOf(p2)}
                         </div>
                     </div>
-                    <div class="fmvs-h2h-midlabel">VS</div>
-                    <div class="fmvs-h2h-side fmvs-h2h-side--right">
-                        <div class="fmvs-h2h-id">
-                            <strong>${p2.name}</strong>
-                            <span>${teamOf(p2)}</span>
-                        </div>
-                        ${avatarOf(p2)}
-                    </div>
-                </div>
-            `;
+                `;
 
                 rows.innerHTML = header + list.map(m => `
-                <div class="fmvs-h2h-row">
-                    <div class="${m.rawA > m.rawB ? 'win' : ''}">${m.a}</div>
-                    <div class="fmvs-h2h-metlbl">${m.name}</div>
-                    <div class="${m.rawB > m.rawA ? 'win' : ''}">${m.b}</div>
-                </div>
-            `).join('');
+                    <div class="fmvs-h2h-row">
+                        <div class="${m.rawA > m.rawB ? 'win' : ''}">${m.a}</div>
+                        <div class="fmvs-h2h-metlbl">${m.name}</div>
+                        <div class="${m.rawB > m.rawA ? 'win' : ''}">${m.b}</div>
+                    </div>
+                `).join('');
             }
 
             const optLabel = (p) => p.name + ((p.team && String(p.team).trim()) ? ' — ' + p.team : '');

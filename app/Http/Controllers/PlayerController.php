@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Player;
 use App\Models\Team;
+use App\Support\BusinessTime;
+use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Storage;
 
@@ -57,7 +59,7 @@ class PlayerController extends Controller
             'team_id' => 'nullable|exists:teams,id',
             'jersey_number' => 'nullable|integer|min:1|max:99',
             'position' => 'nullable|string|max:50',
-            'birth_date' => 'nullable|date|before_or_equal:today',
+            'birth_date' => ['nullable', 'date', 'before_or_equal:'.CarbonImmutable::today(BusinessTime::TIMEZONE)->toDateString()],
             'birth_place' => 'nullable|string|max:100',
             'market_value' => 'nullable|integer|min:0',
             'goals' => 'integer|min:0',
@@ -138,7 +140,7 @@ class PlayerController extends Controller
             'jersey_number' => 'nullable|integer|min:1|max:99',
             'team_id' => 'nullable|exists:teams,id',
             'position' => 'nullable|string|max:50',
-            'birth_date' => 'nullable|date|before_or_equal:today',
+            'birth_date' => ['nullable', 'date', 'before_or_equal:'.CarbonImmutable::today(BusinessTime::TIMEZONE)->toDateString()],
             'birth_place' => 'nullable|string|max:100',
             'market_value' => 'nullable|integer|min:0',
             'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:5000',

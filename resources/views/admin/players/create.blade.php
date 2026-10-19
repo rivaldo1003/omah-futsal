@@ -309,7 +309,7 @@
                             <label for="birth_date" class="form-label">Tanggal Lahir</label>
                             <input type="date" class="form-control @error('birth_date') is-invalid @enderror"
                                 id="birth_date" name="birth_date" value="{{ old('birth_date') }}"
-                                max="{{ now()->format('Y-m-d') }}">
+                                max="{{ \Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->toDateString() }}">
                             @error('birth_date')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

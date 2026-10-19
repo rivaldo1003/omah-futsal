@@ -25,7 +25,7 @@
             <p class="news-featured-excerpt">{{ Str::limit($featured->excerpt, 130) }}</p>
 
             <div class="news-featured-meta">
-                <span><i class="bi bi-calendar me-1"></i>{{ $featured->published_at->format('d M Y') }}</span>
+                <span><i class="bi bi-calendar me-1"></i>{{ $featured->published_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y') }}</span>
                 <span><i class="bi bi-eye me-1"></i>{{ number_format($featured->views_count) }} views</span>
             </div>
 

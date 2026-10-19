@@ -499,7 +499,7 @@
     <!-- Footer -->
     <footer class="page-footer">
         <div class="container">
-            <p class="mb-0">&copy; {{ date('Y') }} OFS Futsal Center. All rights reserved.</p>
+            <p class="mb-0">&copy; {{ now(\App\Support\BusinessTime::TIMEZONE)->year }} OFS Futsal Center. All rights reserved.</p>
         </div>
     </footer>
 

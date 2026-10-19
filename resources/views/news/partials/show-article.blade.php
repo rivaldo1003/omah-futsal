@@ -20,7 +20,7 @@
     <div class="article-meta-row">
         <span class="article-meta-item">
             <i class="bi bi-calendar"></i>
-            {{ $article->published_at->format('d M Y') }}
+            {{ $article->published_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y') }}
         </span>
 
         @if($article->author)

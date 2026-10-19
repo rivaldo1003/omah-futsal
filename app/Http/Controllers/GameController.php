@@ -9,6 +9,7 @@ use App\Models\Player;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -1466,7 +1467,8 @@ class GameController extends Controller
                     'watch_url' => $match->youtube_watch_url,
                     'thumbnail_url' => $match->youtube_thumbnail_url,
                     'duration' => $match->youtube_duration_formatted,
-                    'uploaded_at' => $match->youtube_uploaded_at->format('Y-m-d H:i:s'),
+                    'uploaded_at' => $match->youtube_uploaded_at->toIso8601String(),
+                    'uploaded_at_label' => $match->youtube_uploaded_at->timezone(BusinessTime::TIMEZONE)->format('Y-m-d H:i:s').' WIB',
                 ],
             ]);
 
@@ -1602,7 +1604,10 @@ class GameController extends Controller
                 'watch_url' => $match->youtube_watch_url,
                 'thumbnail_url' => $match->youtube_thumbnail_url,
                 'duration' => $match->youtube_duration_formatted,
-                'uploaded_at' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->format('Y-m-d H:i:s') : null,
+                'uploaded_at' => $match->youtube_uploaded_at?->toIso8601String(),
+                'uploaded_at_label' => $match->youtube_uploaded_at
+                    ? $match->youtube_uploaded_at->timezone(BusinessTime::TIMEZONE)->format('Y-m-d H:i:s').' WIB'
+                    : null,
                 'uploaded_relative' => $match->youtube_uploaded_at ? $match->youtube_uploaded_at->diffForHumans() : null,
                 'match_info' => [
                     'id' => $match->id,
@@ -2731,7 +2736,7 @@ class GameController extends Controller
     public function getTodayMatches(Request $request)
     {
         $query = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'tournament'])
-            ->whereDate('match_date', today())
+            ->whereDate('match_date', Carbon::today(BusinessTime::TIMEZONE)->toDateString())
             ->orderBy('time_start');
 
         if ($request->tournament_id) {

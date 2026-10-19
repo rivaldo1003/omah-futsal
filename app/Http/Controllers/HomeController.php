@@ -8,6 +8,7 @@ use App\Models\Player;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Support\BusinessTime;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -68,7 +69,7 @@ class HomeController extends Controller
             $todayMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'events.player'])
                 ->where('round_type', 'friendly')
                 ->whereIn('status', ['ongoing', 'upcoming'])
-                ->whereDate('match_date', Carbon::today())
+                ->whereDate('match_date', Carbon::today(BusinessTime::TIMEZONE)->toDateString())
                 ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
                 ->orderBy('time_start')
                 ->get();
@@ -76,7 +77,7 @@ class HomeController extends Controller
             $upcomingMatches = Game::publiclyVisible()->with(['homeTeam', 'awayTeam'])
                 ->where('round_type', 'friendly')
                 ->where('status', 'upcoming')
-                ->whereDate('match_date', '>=', Carbon::today())
+                ->whereDate('match_date', '>=', Carbon::today(BusinessTime::TIMEZONE)->toDateString())
                 ->orderBy('match_date')
                 ->orderBy('time_start')
                 ->limit(5)
@@ -148,7 +149,7 @@ class HomeController extends Controller
                     ->orWhere('round_type', 'friendly');
             })
             ->whereIn('status', ['ongoing', 'upcoming'])
-            ->whereDate('match_date', Carbon::today())
+            ->whereDate('match_date', Carbon::today(BusinessTime::TIMEZONE)->toDateString())
             ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
             ->orderBy('time_start', 'asc')
             ->get();
@@ -160,7 +161,7 @@ class HomeController extends Controller
                     ->orWhere('round_type', 'friendly');
             })
             ->where('status', 'upcoming')
-            ->whereDate('match_date', '>=', Carbon::today())
+            ->whereDate('match_date', '>=', Carbon::today(BusinessTime::TIMEZONE)->toDateString())
             ->orderBy('match_date')
             ->orderBy('time_start')
             ->limit(5)
@@ -345,8 +346,8 @@ class HomeController extends Controller
         // Calculate days left for active tournament
         $daysLeft = 0;
         if ($activeTournament && $activeTournament->end_date) {
-            $endDate = Carbon::parse($activeTournament->end_date);
-            $daysLeft = max(0, Carbon::now()->diffInDays($endDate, false));
+            $endDate = Carbon::parse($activeTournament->end_date, BusinessTime::TIMEZONE)->startOfDay();
+            $daysLeft = max(0, (int) Carbon::today(BusinessTime::TIMEZONE)->diffInDays($endDate, false));
         }
 
         // PERUBAHAN: Highlights hanya dari tournament aktif

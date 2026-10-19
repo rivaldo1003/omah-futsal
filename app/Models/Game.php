@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Services\CourtMatchScheduleGuard;
+use App\Support\BusinessTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -48,6 +50,33 @@ class Game extends Model
     ];
 
     protected array $cleanSheetPlayerIdsBeforeDelete = [];
+
+    public function save(array $options = [])
+    {
+        $scheduleChanged = !$this->exists || $this->isDirty([
+            'match_date',
+            'time_start',
+            'time_end',
+            'venue',
+        ]);
+
+        if ($this->exists && !$scheduleChanged) {
+            $scheduleChanged = ($this->isDirty('is_cancelled') && !(bool) $this->is_cancelled)
+                || ($this->isDirty('status')
+                    && $this->status !== 'postponed'
+                    && $this->getOriginal('status') === 'postponed');
+        }
+
+        if (!$scheduleChanged) {
+            return parent::save($options);
+        }
+
+        return DB::transaction(function () use ($options) {
+            app(CourtMatchScheduleGuard::class)->assertAvailable($this);
+
+            return parent::save($options);
+        }, 3);
+    }
 
     public function scopePubliclyVisible($query)
     {
@@ -562,7 +591,7 @@ class Game extends Model
             return null;
         }
 
-        return $this->youtube_uploaded_at->format('d M Y H:i');
+        return $this->youtube_uploaded_at->timezone(BusinessTime::TIMEZONE)->format('d M Y H:i').' WIB';
     }
 
     /**

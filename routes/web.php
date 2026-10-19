@@ -1,9 +1,16 @@
 <?php
 
 use App\Http\Controllers\Admin\HeroSettingController;
+use App\Http\Controllers\Admin\CourtBookingController as AdminCourtBookingController;
+use App\Http\Controllers\Admin\CourtBookingRentalAdditionController as AdminCourtBookingRentalAdditionController;
+use App\Http\Controllers\Admin\CourtRentalCatalogController as AdminCourtRentalCatalogController;
+use App\Http\Controllers\Admin\CourtRentalOrderController as AdminCourtRentalOrderController;
+use App\Http\Controllers\Admin\CourtWalkInOrderController as AdminCourtWalkInOrderController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\MatchApiController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\CourtBookingController;
+use App\Http\Controllers\CourtRentalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchEventController;
 use App\Http\Controllers\NewsArticleController;
@@ -22,6 +29,28 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/about', [HomeController::class, 'about'])->name('about');
 Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
+
+// Public court availability and manual-payment booking flow
+Route::get('/booking', [CourtBookingController::class, 'index'])->name('booking.index');
+Route::post('/booking', [CourtBookingController::class, 'store'])->middleware('throttle:10,1')->name('booking.store');
+Route::get('/booking/{token}', [CourtBookingController::class, 'show'])->whereUuid('token')->name('booking.show');
+Route::get('/booking/{token}/status', [CourtBookingController::class, 'status'])
+    ->whereUuid('token')->middleware('throttle:60,1')->name('booking.status');
+Route::post('/booking/{token}/payment-proof', [CourtBookingController::class, 'submitPaymentProof'])
+    ->whereUuid('token')->middleware('throttle:5,1')->name('booking.payment-proof');
+Route::post('/booking/{token}/rental-additions/{addition}/payment-proof', [CourtBookingController::class, 'submitRentalAdditionProof'])
+    ->whereUuid('token')->middleware('throttle:5,1')->name('booking.rental-additions.payment-proof');
+
+// Equipment can only be ordered as an add-on to a court booking.
+Route::get('/sewa-perlengkapan', fn () => redirect()->route('booking.index')->with(
+    'info', 'Perlengkapan hanya dapat disewa sebagai tambahan pada booking lapangan.'
+));
+// Keep access to already-created standalone orders for their existing customers.
+Route::get('/sewa-perlengkapan/{token}/status', [CourtRentalController::class, 'status'])
+    ->whereUuid('token')->middleware('throttle:60,1')->name('rental.status');
+Route::get('/sewa-perlengkapan/{token}', [CourtRentalController::class, 'show'])->whereUuid('token')->name('rental.show');
+Route::post('/sewa-perlengkapan/{token}/payment-proof', [CourtRentalController::class, 'submitPaymentProof'])
+    ->whereUuid('token')->middleware('throttle:5,1')->name('rental.payment-proof');
 
 // / News
 Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index');
@@ -199,6 +228,50 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::put('tournaments/{tournament}/settings', [TournamentController::class, 'updateSettings'])->name('tournaments.update-settings');
 
     // ========== MATCHES MANAGEMENT ==========
+    Route::prefix('court-bookings')->name('court-bookings.')->group(function () {
+        Route::get('/', [AdminCourtBookingController::class, 'index'])->name('index');
+        Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
+        Route::put('/reports/daily/revenue', [AdminCourtBookingController::class, 'updateDailyRevenue'])->name('reports.daily-revenue.update');
+        Route::get('/manual/create', [AdminCourtWalkInOrderController::class, 'createBooking'])->name('manual.create');
+        Route::post('/manual', [AdminCourtWalkInOrderController::class, 'storeBooking'])->name('manual.store');
+        Route::get('/settings', [AdminCourtBookingController::class, 'settings'])->name('settings');
+        Route::post('/settings/payment', [AdminCourtBookingController::class, 'updatePaymentSettings'])->name('settings.payment');
+        Route::post('/courts', [AdminCourtBookingController::class, 'storeCourt'])->name('courts.store');
+        Route::put('/courts/{court}', [AdminCourtBookingController::class, 'updateCourt'])->name('courts.update');
+        Route::get('/{booking}/proof', [AdminCourtBookingController::class, 'proof'])->name('proof');
+        Route::get('/{booking}/proof/preview', [AdminCourtBookingController::class, 'proofPreview'])->name('proof.preview');
+        Route::get('/{booking}/proof/download', [AdminCourtBookingController::class, 'downloadProof'])->name('proof.download');
+        Route::post('/{booking}/confirm', [AdminCourtBookingController::class, 'confirm'])->name('confirm');
+        Route::post('/{booking}/reject', [AdminCourtBookingController::class, 'reject'])->name('reject');
+        Route::post('/{booking}/cancel', [AdminCourtBookingController::class, 'cancel'])->name('cancel');
+        Route::put('/{booking}/team', [AdminCourtBookingController::class, 'updateTeamName'])->name('team.update');
+        Route::post('/{booking}/payments', [AdminCourtBookingController::class, 'recordPayment'])->name('payments.store');
+        Route::post('/{booking}/rentals/pickup', [AdminCourtBookingController::class, 'markRentalPickedUp'])->name('rentals.pickup');
+        Route::post('/{booking}/rentals/return', [AdminCourtBookingController::class, 'markRentalReturned'])->name('rentals.return');
+        Route::get('/{booking}/rental-additions/create', [AdminCourtBookingRentalAdditionController::class, 'create'])->name('rental-additions.create');
+        Route::post('/{booking}/rental-additions', [AdminCourtBookingRentalAdditionController::class, 'store'])->name('rental-additions.store');
+        Route::post('/{booking}/rental-additions/{addition}/confirm', [AdminCourtBookingRentalAdditionController::class, 'confirm'])->name('rental-additions.confirm');
+        Route::post('/{booking}/rental-additions/{addition}/reject', [AdminCourtBookingRentalAdditionController::class, 'reject'])->name('rental-additions.reject');
+        Route::post('/{booking}/rental-additions/{addition}/cancel', [AdminCourtBookingRentalAdditionController::class, 'cancel'])->name('rental-additions.cancel');
+        Route::get('/{booking}/rental-additions/{addition}/proof', [AdminCourtBookingRentalAdditionController::class, 'proofPreview'])->name('rental-additions.proof');
+        Route::get('/{booking}/rental-additions/{addition}/proof/download', [AdminCourtBookingRentalAdditionController::class, 'downloadProof'])->name('rental-additions.proof.download');
+    });
+
+    Route::prefix('court-rentals')->name('court-rentals.')->group(function () {
+        Route::get('/', [AdminCourtRentalOrderController::class, 'index'])->name('index');
+        Route::get('/settings', [AdminCourtRentalCatalogController::class, 'index'])->name('settings');
+        Route::post('/items', [AdminCourtRentalCatalogController::class, 'store'])->name('items.store');
+        Route::put('/items/{rentalItem}', [AdminCourtRentalCatalogController::class, 'update'])->name('items.update');
+        Route::get('/{order}/proof', [AdminCourtRentalOrderController::class, 'proof'])->name('proof');
+        Route::get('/{order}/proof/preview', [AdminCourtRentalOrderController::class, 'proofPreview'])->name('proof.preview');
+        Route::get('/{order}/proof/download', [AdminCourtRentalOrderController::class, 'downloadProof'])->name('proof.download');
+        Route::post('/{order}/confirm', [AdminCourtRentalOrderController::class, 'confirm'])->name('confirm');
+        Route::post('/{order}/reject', [AdminCourtRentalOrderController::class, 'reject'])->name('reject');
+        Route::post('/{order}/cancel', [AdminCourtRentalOrderController::class, 'cancel'])->name('cancel');
+        Route::post('/{order}/pickup', [AdminCourtRentalOrderController::class, 'markPickedUp'])->name('pickup');
+        Route::post('/{order}/return', [AdminCourtRentalOrderController::class, 'markReturned'])->name('return');
+    });
+
     Route::resource('matches', GameController::class);
 
     // Bulk delete matches (multiple select) -> admin.matches.bulk-destroy

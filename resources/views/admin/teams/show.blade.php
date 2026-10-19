@@ -575,7 +575,7 @@
                     </tr>
                     <tr>
                         <td>Terdaftar</td>
-                        <td>{{ $team->created_at->format('d M Y') }}</td>
+                        <td>{{ $team->created_at->timezone(\App\Support\BusinessTime::TIMEZONE)->format('d M Y') }}</td>
                     </tr>
                 </table>
 

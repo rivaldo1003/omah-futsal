@@ -74,10 +74,17 @@
     }
 
     // Fungsi untuk format date
+    function parseDateOnly(dateString) {
+        const [year, month, day] = dateString.split('-').map(Number);
+        return new Date(Date.UTC(year, month - 1, day));
+    }
+
     function formatDate(dateString) {
         if (!dateString) return '-- -- ----';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+        const date = parseDateOnly(dateString);
+        return new Intl.DateTimeFormat('en-US', {
+            day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'
+        }).format(date);
     }
 
     // Fungsi untuk show error
@@ -331,8 +338,8 @@
         $('#previewTournamentType').text(typeNames[type] || '--');
 
         if (startDate && endDate) {
-            const start = new Date(startDate);
-            const end = new Date(endDate);
+            const start = parseDateOnly(startDate);
+            const end = parseDateOnly(endDate);
             const duration = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
 
             $('#previewDurationDays').text(duration + ' hari');
