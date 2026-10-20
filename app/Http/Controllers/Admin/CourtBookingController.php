@@ -91,36 +91,37 @@ class CourtBookingController extends Controller
             'confirmed' => CourtBooking::where('status', CourtBooking::STATUS_CONFIRMED)->count(),
         ];
 
-        $bookingIncome = DB::table('court_booking_payments as payment')
-            ->join('court_bookings as booking', 'booking.id', '=', 'payment.court_booking_id')
-            ->where('payment.status', CourtBookingPayment::STATUS_CONFIRMED)
-            ->sum('payment.verified_amount');
-        $standaloneRentalIncome = CourtRentalOrder::query()
+        return view('admin.court-bookings.index', compact(
+            'bookings',
+            'counts',
+            'filters',
+            'todayReportDate',
+            'todayConfirmedCount',
+            'todayConfirmedMinutes',
+            'todayReceivedPayments',
+        ));
+    }
+
+    public function revenueReport()
+    {
+        $this->ensureAdmin();
+
+        $bookingIncome = (float) CourtBookingPayment::query()
+            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+            ->sum('verified_amount');
+        $standaloneRentalIncome = (float) CourtRentalOrder::query()
             ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
             ->sum('amount');
-        $bookingAdditionIncome = CourtBookingRentalAddition::query()
+        $bookingAdditionIncome = (float) CourtBookingRentalAddition::query()
             ->join('court_bookings as booking', 'booking.id', '=', 'court_booking_rental_additions.court_booking_id')
             ->where('court_booking_rental_additions.status', CourtBookingRentalAddition::STATUS_CONFIRMED)
             ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
             ->sum('court_booking_rental_additions.amount');
         $allTimeParkingIncome = (float) CourtDailyRevenue::query()->sum('parking_income');
         $allTimeShopIncome = (float) CourtDailyRevenue::query()->sum('shop_income');
-        $totalIncome = (float) $bookingIncome + (float) $standaloneRentalIncome + (float) $bookingAdditionIncome + $allTimeParkingIncome + $allTimeShopIncome;
-        $bookingRentalIncome = DB::table('court_booking_rental_lines as line')
-            ->join('court_bookings as booking', 'booking.id', '=', 'line.court_booking_id')
-            ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
-            ->sum('line.line_total');
-        $standaloneRentalLineIncome = DB::table('court_rental_order_lines as line')
-            ->join('court_rental_orders as rental_order', 'rental_order.id', '=', 'line.court_rental_order_id')
-            ->where('rental_order.status', CourtRentalOrder::STATUS_CONFIRMED)
-            ->sum('line.line_total');
-        $additionRentalLineIncome = DB::table('court_booking_rental_addition_lines as line')
-            ->join('court_booking_rental_additions as addition', 'addition.id', '=', 'line.court_booking_rental_addition_id')
-            ->join('court_bookings as booking', 'booking.id', '=', 'addition.court_booking_id')
-            ->where('addition.status', CourtBookingRentalAddition::STATUS_CONFIRMED)
-            ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
-            ->sum('line.line_total');
-        $rentalIncome = (float) $bookingRentalIncome + (float) $standaloneRentalLineIncome + (float) $additionRentalLineIncome;
+        $otherRentalIncome = $standaloneRentalIncome + $bookingAdditionIncome;
+        $totalIncome = $bookingIncome + $otherRentalIncome + $allTimeParkingIncome + $allTimeShopIncome;
+
         $bookingRentalIncomeByItem = DB::table('court_booking_rental_lines as line')
             ->join('court_bookings as booking', 'booking.id', '=', 'line.court_booking_id')
             ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
@@ -162,9 +163,6 @@ class CourtBookingController extends Controller
             ])
             ->sortByDesc('income')
             ->values();
-        // Booking payments can cover both court time and rental items, so keep this
-        // figure intact instead of allocating a partial payment to a product category.
-        $courtIncome = (float) $bookingIncome;
 
         $chartEnd = CarbonImmutable::now(CourtBooking::TIMEZONE)->endOfMonth();
         $chartStart = $chartEnd->startOfMonth()->subMonths(11);
@@ -228,23 +226,18 @@ class CourtBookingController extends Controller
                 ->implode(', ')
             : null;
 
-        return view('admin.court-bookings.index', compact(
-            'bookings',
-            'counts',
-            'filters',
+        return view('admin.court-bookings.revenue', compact(
             'totalIncome',
-            'courtIncome',
-            'rentalIncome',
+            'bookingIncome',
+            'otherRentalIncome',
+            'allTimeParkingIncome',
+            'allTimeShopIncome',
             'rentalIncomeByItem',
             'monthlyBookingChart',
             'maximumMonthlyBookings',
             'busiestMonths',
             'chartStart',
             'chartEnd',
-            'todayReportDate',
-            'todayConfirmedCount',
-            'todayConfirmedMinutes',
-            'todayReceivedPayments',
         ));
     }
 

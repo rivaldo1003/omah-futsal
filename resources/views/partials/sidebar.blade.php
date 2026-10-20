@@ -333,14 +333,19 @@
                 <i class="bi bi-calendar2-event"></i> Pertandingan
             </a>
 
-            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index') ? 'active' : '' }}"
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index', 'admin.court-bookings.manual.*') ? 'active' : '' }}"
                 href="{{ route('admin.court-bookings.index') }}">
                 <i class="bi bi-calendar-check"></i> Booking lapangan
             </a>
 
-            <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.*') ? 'active' : '' }}"
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.daily*') ? 'active' : '' }}"
                 href="{{ route('admin.court-bookings.reports.daily') }}">
                 <i class="bi bi-clipboard-data"></i> Laporan operasional
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.revenue') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.revenue') }}">
+                <i class="bi bi-cash-stack"></i> Laporan pemasukan
             </a>
 
             <a class="nav-link {{ request()->routeIs('admin.court-rentals.settings', 'admin.court-rentals.items.*') ? 'active' : '' }}"

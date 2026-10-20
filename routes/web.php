@@ -230,6 +230,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // ========== MATCHES MANAGEMENT ==========
     Route::prefix('court-bookings')->name('court-bookings.')->group(function () {
         Route::get('/', [AdminCourtBookingController::class, 'index'])->name('index');
+        Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
         Route::put('/reports/daily/revenue', [AdminCourtBookingController::class, 'updateDailyRevenue'])->name('reports.daily-revenue.update');
         Route::get('/manual/create', [AdminCourtWalkInOrderController::class, 'createBooking'])->name('manual.create');

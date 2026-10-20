@@ -166,67 +166,6 @@
             line-height: 1.5;
         }
 
-        .booking-income-overview {
-            display: grid;
-            grid-template-columns: minmax(300px, 1.25fr) repeat(2, minmax(220px, 1fr));
-            margin-bottom: 24px !important;
-            overflow: hidden;
-            background: var(--booking-canvas);
-        }
-
-        .booking-income-primary,
-        .booking-income-breakdown {
-            min-width: 0;
-            padding: 24px;
-        }
-
-        .booking-income-primary {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
-
-        .booking-income-breakdown {
-            border-left: 1px solid var(--booking-line-soft);
-        }
-
-        .booking-metric-label {
-            display: block;
-            margin-bottom: 8px;
-            color: var(--booking-muted);
-            font-size: 13px;
-            font-weight: 500;
-            line-height: 1.4;
-            letter-spacing: .02em;
-            text-transform: uppercase;
-        }
-
-        .booking-income-total {
-            color: var(--booking-ink);
-            font-size: clamp(28px, 2.8vw, 38px);
-            font-weight: 500;
-            line-height: 1.15;
-            font-variant-numeric: tabular-nums;
-            white-space: nowrap;
-        }
-
-        .booking-income-value {
-            color: var(--booking-ink);
-            font-size: 23px;
-            font-weight: 500;
-            line-height: 1.25;
-            font-variant-numeric: tabular-nums;
-            white-space: nowrap;
-        }
-
-        .booking-metric-note {
-            display: block;
-            margin-top: 8px;
-            color: var(--booking-muted);
-            font-size: 14px;
-            line-height: 1.45;
-        }
-
         .booking-status-strip {
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -794,89 +733,6 @@
             white-space: nowrap;
         }
 
-        .booking-chart-frame {
-            position: relative;
-            height: 310px;
-        }
-
-        .booking-chart-canvas {
-            width: 100% !important;
-            height: 100% !important;
-            outline: none;
-        }
-
-        .booking-chart-canvas:focus-visible {
-            outline: 3px solid rgba(17, 17, 17, .2);
-            outline-offset: 3px;
-        }
-
-        .booking-chart-readout {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, auto));
-            justify-content: start;
-            gap: 8px 40px;
-            margin-top: 16px;
-            padding-top: 16px;
-            border-top: 1px solid var(--booking-line-soft);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .booking-chart-readout-label {
-            display: block;
-            color: var(--booking-muted);
-            font-size: 14px;
-        }
-
-        .booking-chart-readout-value {
-            display: block;
-            color: var(--booking-ink);
-            font-weight: 500;
-        }
-
-        .booking-chart-readout-value.is-updating {
-            animation: booking-chart-value-in 180ms ease-out both;
-        }
-
-        @keyframes booking-chart-value-in {
-            from {
-                opacity: .55;
-                transform: translateY(2px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .booking-chart-highlight {
-            min-width: 180px;
-            padding-left: 20px;
-            border-left: 1px solid var(--booking-line-soft);
-            line-height: 1.4;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .booking-chart-highlight-label {
-            margin-bottom: 4px;
-            color: var(--booking-muted);
-            font-size: 14px;
-        }
-
-        .booking-chart-details summary {
-            width: fit-content;
-            color: var(--booking-ink);
-            cursor: pointer;
-            font-weight: 500;
-            text-decoration: underline;
-            text-underline-offset: 3px;
-        }
-
-        .booking-chart-details summary:focus-visible {
-            outline: 3px solid rgba(17, 17, 17, .2);
-            outline-offset: 3px;
-        }
-
         .booking-admin-page details>summary.btn {
             list-style: none;
             cursor: pointer;
@@ -1084,15 +940,6 @@
         }
 
         @media (max-width: 1199.98px) {
-            .booking-income-overview {
-                grid-template-columns: minmax(240px, 1fr) repeat(2, minmax(180px, .85fr));
-            }
-
-            .booking-income-primary,
-            .booking-income-breakdown {
-                padding: 20px;
-            }
-
             .booking-report-summary {
                 grid-template-columns: 1fr 2fr;
             }
@@ -1118,20 +965,6 @@
                 margin-top: 20px;
             }
 
-            .booking-income-overview {
-                grid-template-columns: 1fr 1fr;
-                margin-bottom: 24px !important;
-            }
-
-            .booking-income-primary {
-                grid-column: 1 / -1;
-            }
-
-            .booking-income-breakdown {
-                border-top: 1px solid var(--booking-line-soft);
-                border-left: 0;
-            }
-
             .booking-status-strip {
                 grid-template-columns: 1fr;
                 margin-bottom: 24px;
@@ -1149,12 +982,6 @@
 
             .booking-report-summary>a {
                 grid-column: auto;
-            }
-
-            .booking-chart-highlight {
-                padding: 12px 0 0;
-                border-top: 1px solid var(--booking-line-soft);
-                border-left: 0;
             }
 
             .booking-filter-grid {
@@ -1175,30 +1002,8 @@
                 white-space: normal;
             }
 
-            .booking-income-overview {
-                grid-template-columns: 1fr;
-            }
-
-            .booking-income-primary {
-                grid-column: auto;
-            }
-
-            .booking-income-breakdown {
-                border-top: 1px solid var(--booking-line-soft);
-                border-left: 0;
-            }
-
-            .booking-income-total {
-                font-size: 30px;
-                white-space: normal;
-            }
-
             .booking-filter-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .booking-chart-frame {
-                height: 250px;
             }
 
             .booking-payment-modal .modal-dialog {
@@ -1232,15 +1037,6 @@
             .booking-payment-fact+.booking-payment-fact {
                 border-top: 1px solid var(--booking-line-soft);
                 border-left: 0;
-            }
-
-            .booking-chart-readout {
-                grid-template-columns: 1fr 1fr;
-                gap: 12px 20px;
-            }
-
-            .booking-chart-readout>div:last-child {
-                grid-column: 1 / -1;
             }
 
             .booking-admin-page .card-header,
@@ -1286,6 +1082,9 @@
                     class="btn btn-outline-primary">
                     <i class="bi bi-box-arrow-up-right" aria-hidden="true"></i>Halaman publik
                 </a>
+                <a href="{{ route('admin.court-bookings.revenue') }}" class="btn btn-outline-primary">
+                    <i class="bi bi-cash-stack" aria-hidden="true"></i>Laporan pemasukan
+                </a>
                 <a href="{{ route('admin.court-rentals.settings') }}" class="btn btn-outline-primary">
                     <i class="bi bi-box-seam" aria-hidden="true"></i>Katalog perlengkapan
                 </a>
@@ -1301,25 +1100,6 @@
         @if($errors->any())
             <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
         @endif
-
-        <section class="card booking-income-overview" aria-label="Ringkasan pemasukan">
-            <div class="booking-income-primary">
-                <span class="booking-metric-label">Total pemasukan tercatat</span>
-                <strong class="booking-income-total">Rp {{ number_format((float) $totalIncome, 0, ',', '.') }}</strong>
-                <span class="booking-metric-note">Pembayaran terverifikasi, perlengkapan, serta pemasukan parkir dan toko
-                    yang dicatat terpisah; belum dikurangi refund</span>
-            </div>
-            <div class="booking-income-breakdown">
-                <span class="booking-metric-label">Pembayaran booking diterima</span>
-                <strong class="booking-income-value">Rp {{ number_format((float) $courtIncome, 0, ',', '.') }}</strong>
-                <span class="booking-metric-note">Mencakup tagihan lapangan dan perlengkapan awal</span>
-            </div>
-            <div class="booking-income-breakdown">
-                <span class="booking-metric-label">Nilai perlengkapan</span>
-                <strong class="booking-income-value">Rp {{ number_format((float) $rentalIncome, 0, ',', '.') }}</strong>
-                <span class="booking-metric-note">Rincian nilai barang; pembayaran tercatat pada total</span>
-            </div>
-        </section>
 
         <section class="booking-status-strip" aria-label="Ringkasan status booking">
             <div class="booking-status-item">
@@ -1367,139 +1147,6 @@
                 </a>
             </div>
         </section>
-
-        <section class="card mb-4" aria-labelledby="rentalIncomeTitle">
-            <div class="card-header">
-                <h5 id="rentalIncomeTitle">Nilai perlengkapan</h5>
-                <p class="text-secondary mb-0">Nilai barang dari perlengkapan awal, tambahan booking, dan pesanan mandiri
-                    yang sudah dikonfirmasi. Nilai ini merupakan rincian transaksi, bukan tambahan di luar pembayaran
-                    booking.</p>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-sm align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th scope="col">Perlengkapan</th>
-                            <th scope="col" class="text-end">Jumlah disewa</th>
-                            <th scope="col" class="text-end">Nilai transaksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($rentalIncomeByItem as $itemIncome)
-                            <tr>
-                                <th scope="row" class="fw-normal">{{ $itemIncome->name }}</th>
-                                <td class="text-end">{{ number_format((int) $itemIncome->quantity) }}</td>
-                                <td class="text-end booking-money">Rp
-                                    {{ number_format((float) $itemIncome->income, 0, ',', '.') }}
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="text-center text-secondary py-3">Belum ada transaksi perlengkapan yang
-                                    terkonfirmasi.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </section>
-
-        <section class="card mb-4" aria-labelledby="bookingActivityTitle">
-            <div class="card-header d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <div>
-                    <h5 id="bookingActivityTitle">Aktivitas transaksi per bulan</h5>
-                    <p class="text-secondary mb-0">12 bulan terakhir
-                        ({{ $chartStart->format('m/Y') }}–{{ $chartEnd->format('m/Y') }}), dikelompokkan menurut tanggal
-                        sewa.
-                        Booking lapangan dihitung dari pembayaran yang sudah diverifikasi; nilai tambahan perlengkapan dan
-                        pesanan mandiri berasal dari transaksi terkonfirmasi.</p>
-                </div>
-                @if($busiestMonths)
-                    <div class="booking-chart-highlight">
-                        <div class="booking-chart-highlight-label">Puncak periode</div>
-                        <div class="fw-semibold">{{ $busiestMonths }} <span class="text-secondary">·
-                                {{ number_format($maximumMonthlyBookings) }} transaksi</span></div>
-                    </div>
-                @endif
-            </div>
-            <div class="card-body">
-                @if($maximumMonthlyBookings > 0)
-                    @php
-                        $chartMonths = collect($monthlyBookingChart)->values();
-                        $activeIndex = (int) $chartMonths->search(fn($month) => (int) $month['booking_count'] === (int) $maximumMonthlyBookings);
-                        $activeMonth = $chartMonths[$activeIndex];
-                        $chartPayload = $chartMonths->map(fn($month) => [
-                            'label' => $month['label'],
-                            'year' => (string) $month['year'],
-                            'booking_count' => (int) $month['booking_count'],
-                            'booking_value' => (float) $month['booking_value'],
-                        ])->all();
-                    @endphp
-                    <figure class="mb-0" data-booking-chart aria-labelledby="bookingActivityTitle">
-                        <figcaption id="bookingChartInstructions" class="visually-hidden">
-                            Grafik jumlah transaksi terkonfirmasi per bulan. Arahkan kursor ke batang atau gunakan tombol panah
-                            setelah fokus pada grafik untuk melihat nilai. Rincian lengkap juga tersedia pada tabel di bawah.
-                        </figcaption>
-                        <div class="booking-chart-frame">
-                            <canvas class="booking-chart-canvas" data-booking-chart-canvas role="img" tabindex="0"
-                                aria-describedby="bookingChartInstructions"
-                                aria-label="Grafik transaksi terkonfirmasi selama 12 bulan. Bulan teramai {{ $busiestMonths }} dengan {{ number_format($maximumMonthlyBookings) }} transaksi.">
-                                Grafik transaksi terkonfirmasi selama 12 bulan. Bulan teramai {{ $busiestMonths }} dengan
-                                {{ number_format($maximumMonthlyBookings) }} transaksi.
-                            </canvas>
-                        </div>
-                        <script type="application/json" data-booking-chart-data>@json($chartPayload)</script>
-                        <div class="booking-chart-readout" aria-live="polite" aria-atomic="true">
-                            <div>
-                                <span class="booking-chart-readout-label">Bulan dipilih</span>
-                                <span class="booking-chart-readout-value" data-chart-readout="label">{{ $activeMonth['label'] }}
-                                    {{ $activeMonth['year'] }}</span>
-                            </div>
-                            <div>
-                                <span class="booking-chart-readout-label">Transaksi terkonfirmasi</span>
-                                <span class="booking-chart-readout-value"
-                                    data-chart-readout="count">{{ number_format((int) $activeMonth['booking_count']) }}</span>
-                            </div>
-                            <div>
-                                <span class="booking-chart-readout-label">Pembayaran tercatat</span>
-                                <span class="booking-chart-readout-value" data-chart-readout="value">Rp
-                                    {{ number_format($activeMonth['booking_value'], 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                    </figure>
-                @else
-                    <p class="text-secondary mb-0">Belum ada booking terkonfirmasi dalam 12 bulan terakhir.</p>
-                @endif
-
-                <details class="booking-chart-details mt-3">
-                    <summary>Lihat jumlah booking dan nilai per bulan</summary>
-                    <div class="table-responsive mt-3">
-                        <table class="table table-sm align-middle mb-0">
-                            <thead>
-                                <tr>
-                                    <th scope="col">Bulan</th>
-                                    <th scope="col" class="text-end">Transaksi terkonfirmasi</th>
-                                    <th scope="col" class="text-end">Pembayaran tercatat</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach($monthlyBookingChart as $month)
-                                    <tr>
-                                        <th scope="row" class="fw-normal">{{ $month['label'] }} {{ $month['year'] }}</th>
-                                        <td class="text-end">{{ number_format($month['booking_count']) }}</td>
-                                        <td class="text-end">Rp {{ number_format($month['booking_value'], 0, ',', '.') }}</td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </details>
-            </div>
-        </section>
-
-        @push('scripts')
-            @vite('resources/js/admin/court-bookings-chart.js')
-        @endpush
 
         @push('scripts')
             <script>
