@@ -217,6 +217,15 @@
         margin-right: 8px;
     }
 
+    .app-version {
+        margin-top: 9px;
+        color: var(--sidebar-mute);
+        font-size: 0.6875rem;
+        line-height: 1.4;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+    }
+
     .sidebar-toggle {
         position: fixed;
         top: 15px;
@@ -409,6 +418,8 @@
                 <i class="bi bi-box-arrow-right"></i> Keluar
             </button>
         </form>
+
+        <div class="app-version">Versi aplikasi {{ config('app.version', 'v1.1.0') }}</div>
     </div>
 </div>
 
