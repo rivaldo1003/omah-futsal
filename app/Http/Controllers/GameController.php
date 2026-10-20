@@ -12,6 +12,7 @@ use App\Models\Tournament;
 use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -720,6 +721,13 @@ class GameController extends Controller
         }
 
         $isFriendly = is_null($match->tournament_id) || $match->round_type === 'friendly';
+        $hasBracketSlots = !$isFriendly && DB::table('knockout_slots')
+            ->where('match_id', $match->id)
+            ->exists();
+        $isManagedThirdPlace = !$isFriendly
+            && $match->round_type === 'third_place'
+            && (bool) $match->tournament?->knockout_third_place;
+        $isBracketManaged = $hasBracketSlots || $isManagedThirdPlace;
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])->get();
         $teams = $isFriendly
             ? Team::orderBy('name')->get()
@@ -749,7 +757,8 @@ class GameController extends Controller
             'groupOptions',
             'roundTypes',
             'statusOptions',
-            'isFriendly'
+            'isFriendly',
+            'isBracketManaged'
         ));
     }
 
@@ -808,6 +817,76 @@ class GameController extends Controller
                     ->with('error', 'Error updating friendly match: ' . $e->getMessage())
                     ->withInput();
             }
+        }
+
+        // Bracket participants and results are managed by knockout progression.
+        // Keep the fixture editable for scheduling, including while either side is TBA.
+        $hasBracketSlots = DB::table('knockout_slots')
+            ->where('match_id', $match->id)
+            ->exists();
+        $isManagedThirdPlace = $match->round_type === 'third_place'
+            && (bool) $match->tournament?->knockout_third_place;
+        $isBracketManaged = $hasBracketSlots || $isManagedThirdPlace;
+
+        if ($isBracketManaged) {
+            $schedule = $request->validate([
+                'match_date' => ['required', 'date'],
+                'time_start' => ['required', 'date_format:H:i,H:i:s'],
+                'time_end' => ['required', 'date_format:H:i,H:i:s'],
+                'venue' => ['nullable', 'string', 'max:255'],
+                'notes' => ['nullable', 'string'],
+            ]);
+
+            $schedule['time_start'] = substr($schedule['time_start'], 0, 5);
+            $schedule['time_end'] = substr($schedule['time_end'], 0, 5);
+
+            if ($schedule['time_end'] <= $schedule['time_start']) {
+                throw ValidationException::withMessages([
+                    'time_end' => 'Waktu selesai harus setelah waktu mulai.',
+                ]);
+            }
+
+            DB::transaction(function () use ($match, $schedule) {
+                $lockedMatch = Game::query()
+                    ->whereKey($match->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+
+                $linkedSlots = DB::table('knockout_slots')
+                    ->where('match_id', $lockedMatch->id)
+                    ->lockForUpdate()
+                    ->get(['id']);
+                $lockedTournament = $lockedMatch->tournament()
+                    ->lockForUpdate()
+                    ->first();
+                $isActiveThirdPlace = $lockedMatch->round_type === 'third_place'
+                    && (bool) $lockedTournament?->knockout_third_place;
+
+                if ($linkedSlots->isEmpty() && !$isActiveThirdPlace) {
+                    throw ValidationException::withMessages([
+                        'match_date' => 'Fixture sudah tidak terhubung ke bracket. Muat ulang halaman sebelum mengubah jadwal.',
+                    ]);
+                }
+
+                $hasStarted = in_array($lockedMatch->status, ['ongoing', 'completed'], true)
+                    || (int) ($lockedMatch->home_score ?? 0) !== 0
+                    || (int) ($lockedMatch->away_score ?? 0) !== 0
+                    || $lockedMatch->et_score !== null
+                    || $lockedMatch->penalty_score !== null
+                    || $lockedMatch->events()->exists();
+
+                if ($hasStarted) {
+                    throw ValidationException::withMessages([
+                        'match_date' => 'Jadwal hanya dapat diubah sebelum pertandingan dimulai atau memiliki hasil/event.',
+                    ]);
+                }
+
+                // Whitelist schedule fields so bracket teams, status, and scores stay intact.
+                $lockedMatch->update($schedule);
+            });
+
+            return redirect()->route('admin.matches.index')
+                ->with('success', 'Jadwal pertandingan bracket berhasil diperbarui. Peserta tetap mengikuti progres bracket.');
         }
 
         // Cari tournament terlebih dahulu

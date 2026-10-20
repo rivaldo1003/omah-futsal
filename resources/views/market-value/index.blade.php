@@ -14,19 +14,21 @@
 
     <style>
         :root {
-            --mv-bg: #05070a;
-            --mv-surface: #0a0f18;
-            --mv-card: #111827;
-            --mv-border: #1f293d;
-            --mv-accent: #00ff87;
-            --mv-cyan: #00e5ff;
-            --mv-pink: #ff0055;
-            --mv-muted: #64748b;
+            --mv-bg: #ffffff;
+            --mv-surface: #f5f5f5;
+            --mv-card: #ffffff;
+            --mv-border: #e5e5e5;
+            --mv-accent: #111111;
+            --mv-success: #007d48;
+            --mv-cyan: #1151ff;
+            --mv-pink: #4b4b4d;
+            --mv-text: #111111;
+            --mv-muted: #707072;
         }
 
         body {
             background: var(--mv-bg);
-            color: #fff;
+            color: var(--mv-text);
             font-family: system-ui, -apple-system, sans-serif;
         }
 
@@ -47,9 +49,19 @@
             color: var(--mv-muted);
         }
 
-        .mv-breadcrumb a { color: var(--mv-muted); text-decoration: none; }
-        .mv-breadcrumb a:hover { color: var(--mv-accent); }
-        .mv-breadcrumb .active { color: #fff; font-weight: 600; }
+        .mv-breadcrumb a {
+            color: var(--mv-muted);
+            text-decoration: none;
+        }
+
+        .mv-breadcrumb a:hover {
+            color: var(--mv-accent);
+        }
+
+        .mv-breadcrumb .active {
+            color: var(--mv-text);
+            font-weight: 600;
+        }
 
         .mv-header {
             display: flex;
@@ -68,14 +80,24 @@
             letter-spacing: -0.03em;
             margin: 0;
             line-height: 1;
-            text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
+            text-shadow: 0 0 20px rgba(17, 17, 17, 0.35);
         }
 
-        .mv-title span { color: var(--mv-accent); }
+        .mv-title span {
+            color: var(--mv-accent);
+        }
 
-        .mv-desc { color: var(--mv-muted); margin: 8px 0 0; font-size: 0.9rem; }
+        .mv-desc {
+            color: var(--mv-muted);
+            margin: 8px 0 0;
+            font-size: 0.9rem;
+        }
 
-        .mv-stats { display: flex; gap: 12px; flex-wrap: wrap; }
+        .mv-stats {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
 
         .mv-stat-card {
             background: var(--mv-surface);
@@ -86,9 +108,23 @@
             min-width: 140px;
         }
 
-        .mv-sc-label { display: block; font-size: 9px; font-weight: 800; color: var(--mv-muted); letter-spacing: 1.5px; }
-        .mv-sc-val { font-size: 1.2rem; font-weight: 900; font-style: italic; }
-        .mv-stat-card--highlight .mv-sc-val { color: var(--mv-accent); }
+        .mv-sc-label {
+            display: block;
+            font-size: 9px;
+            font-weight: 800;
+            color: var(--mv-muted);
+            letter-spacing: 1.5px;
+        }
+
+        .mv-sc-val {
+            font-size: 1.2rem;
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        .mv-stat-card--highlight .mv-sc-val {
+            color: var(--mv-accent);
+        }
 
         /* Filter toolbar */
         .mv-filter-card {
@@ -115,22 +151,26 @@
             padding: 8px 12px;
         }
 
-        .mv-search-wrap i { color: var(--mv-muted); }
+        .mv-search-wrap i {
+            color: var(--mv-muted);
+        }
 
         .mv-search-wrap input {
             background: transparent;
             border: none;
             outline: none;
-            color: #fff;
+            color: var(--mv-text);
             width: 100%;
             font-size: 0.9rem;
         }
 
-        .mv-search-wrap input::placeholder { color: var(--mv-muted); }
+        .mv-search-wrap input::placeholder {
+            color: var(--mv-muted);
+        }
 
         .mv-filter-card select {
             background: var(--mv-card);
-            color: #fff;
+            color: var(--mv-text);
             border: 1px solid var(--mv-border);
             border-radius: 8px;
             padding: 8px 12px;
@@ -139,11 +179,14 @@
             cursor: pointer;
         }
 
-        .mv-filter-card select:focus { outline: none; border-color: var(--mv-accent); }
+        .mv-filter-card select:focus {
+            outline: none;
+            border-color: var(--mv-accent);
+        }
 
         .mv-btn-filter {
             background: var(--mv-accent);
-            color: #000;
+            color: #ffffff;
             border: none;
             border-radius: 8px;
             padding: 8px 18px;
@@ -156,10 +199,16 @@
             text-decoration: none;
         }
 
-        .mv-btn-filter:hover { background: #00db74; }
+        .mv-btn-filter:hover {
+            background: #39393b;
+        }
 
         /* Player rows */
-        .mv-list { display: flex; flex-direction: column; gap: 10px; }
+        .mv-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
 
         .mv-row {
             display: grid;
@@ -174,7 +223,10 @@
             min-width: 0;
         }
 
-        .mv-row:hover { border-color: rgba(0, 255, 135, 0.4); background: var(--mv-card); }
+        .mv-row:hover {
+            border-color: rgba(17, 17, 17, 0.4);
+            background: var(--mv-card);
+        }
 
         .mv-rank {
             font-size: 1.1rem;
@@ -183,9 +235,17 @@
             color: var(--mv-muted);
         }
 
-        .mv-row:nth-child(1) .mv-rank { color: var(--mv-accent); }
-        .mv-row:nth-child(2) .mv-rank { color: var(--mv-cyan); }
-        .mv-row:nth-child(3) .mv-rank { color: var(--mv-pink); }
+        .mv-row:nth-child(1) .mv-rank {
+            color: var(--mv-success);
+        }
+
+        .mv-row:nth-child(2) .mv-rank {
+            color: var(--mv-cyan);
+        }
+
+        .mv-row:nth-child(3) .mv-rank {
+            color: var(--mv-pink);
+        }
 
         .mv-avatar {
             width: 48px;
@@ -197,16 +257,34 @@
             flex-shrink: 0;
         }
 
-        .mv-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .mv-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-        .mv-player-info { min-width: 0; }
-        .mv-player-name { font-weight: 800; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .mv-player-meta { font-size: 0.75rem; color: var(--mv-muted); font-weight: 600; }
+        .mv-player-info {
+            min-width: 0;
+        }
+
+        .mv-player-name {
+            font-weight: 800;
+            font-size: 0.95rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .mv-player-meta {
+            font-size: 0.75rem;
+            color: var(--mv-muted);
+            font-weight: 600;
+        }
 
         .mv-pos-badge {
             display: inline-block;
             background: var(--mv-accent);
-            color: #000;
+            color: #ffffff;
             font-size: 9px;
             font-weight: 900;
             font-style: italic;
@@ -215,12 +293,34 @@
             margin-right: 6px;
         }
 
-        .mv-stat { text-align: center; }
-        .mv-stat-val { display: block; font-size: 1rem; font-weight: 900; }
-        .mv-stat-lbl { font-size: 8px; font-weight: 800; color: var(--mv-muted); letter-spacing: 1px; }
+        .mv-stat {
+            text-align: center;
+        }
 
-        .mv-value-cell { text-align: right; min-width: 0; }
-        .mv-value-amount { font-size: 1.05rem; font-weight: 900; font-style: italic; color: var(--mv-accent); }
+        .mv-stat-val {
+            display: block;
+            font-size: 1rem;
+            font-weight: 900;
+        }
+
+        .mv-stat-lbl {
+            font-size: 8px;
+            font-weight: 800;
+            color: var(--mv-muted);
+            letter-spacing: 1px;
+        }
+
+        .mv-value-cell {
+            text-align: right;
+            min-width: 0;
+        }
+
+        .mv-value-amount {
+            font-size: 1.05rem;
+            font-weight: 900;
+            font-style: italic;
+            color: var(--mv-accent);
+        }
 
         .mv-value-bar {
             height: 5px;
@@ -231,7 +331,11 @@
             margin-top: 5px;
         }
 
-        .mv-value-fill { height: 100%; background: var(--mv-accent); border-radius: 3px; }
+        .mv-value-fill {
+            height: 100%;
+            background: var(--mv-accent);
+            border-radius: 3px;
+        }
 
         .mv-empty {
             text-align: center;
@@ -242,23 +346,55 @@
             color: var(--mv-muted);
         }
 
-        .mv-empty i { font-size: 40px; display: block; margin-bottom: 12px; color: var(--mv-border); }
+        .mv-empty i {
+            font-size: 40px;
+            display: block;
+            margin-bottom: 12px;
+            color: var(--mv-border);
+        }
 
         /* ===== Mobile / small screens ===== */
         @media (max-width: 900px) {
-            .mv-page { padding: 20px 12px 40px; }
+            .mv-page {
+                padding: 20px 12px 40px;
+            }
 
-            .mv-title { font-size: 1.5rem; }
-            .mv-desc { font-size: 0.8rem; }
+            .mv-title {
+                font-size: 1.5rem;
+            }
 
-            .mv-stat-card { min-width: 0; flex: 1 1 45%; text-align: left; }
-            .mv-sc-val { font-size: 1rem; }
+            .mv-desc {
+                font-size: 0.8rem;
+            }
+
+            .mv-stat-card {
+                min-width: 0;
+                flex: 1 1 45%;
+                text-align: left;
+            }
+
+            .mv-sc-val {
+                font-size: 1rem;
+            }
 
             /* Filter toolbar stacks vertically, full width */
-            .mv-filter-card { flex-direction: column; align-items: stretch; }
-            .mv-search-wrap { min-width: 0; width: 100%; }
-            .mv-filter-card select { width: 100%; }
-            .mv-btn-filter { justify-content: center; }
+            .mv-filter-card {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .mv-search-wrap {
+                min-width: 0;
+                width: 100%;
+            }
+
+            .mv-filter-card select {
+                width: 100%;
+            }
+
+            .mv-btn-filter {
+                justify-content: center;
+            }
 
             /* Row: 2-line compact card, stats stay visible as inline chips */
             .mv-row {
@@ -271,11 +407,28 @@
                 padding: 10px 12px;
             }
 
-            .mv-rank { grid-area: rank; font-size: 0.9rem; }
-            .mv-avatar { grid-area: avatar; width: 44px; height: 44px; }
-            .mv-player-info { grid-area: info; }
-            .mv-player-name { font-size: 0.85rem; }
-            .mv-player-meta { font-size: 0.68rem; }
+            .mv-rank {
+                grid-area: rank;
+                font-size: 0.9rem;
+            }
+
+            .mv-avatar {
+                grid-area: avatar;
+                width: 44px;
+                height: 44px;
+            }
+
+            .mv-player-info {
+                grid-area: info;
+            }
+
+            .mv-player-name {
+                font-size: 0.85rem;
+            }
+
+            .mv-player-meta {
+                font-size: 0.68rem;
+            }
 
             /* Stats: horizontal chips under the player name (no longer hidden) */
             .mv-stat {
@@ -287,19 +440,48 @@
                 text-align: left;
             }
 
-            .mv-stat-val { font-size: 0.8rem; display: inline; }
-            .mv-stat-lbl { font-size: 7px; letter-spacing: 0.5px; }
+            .mv-stat-val {
+                font-size: 0.8rem;
+                display: inline;
+            }
 
-            .mv-value-cell { grid-area: value; }
-            .mv-value-amount { font-size: 0.85rem; }
-            .mv-value-bar { width: 70px; margin-top: 4px; margin-left: auto; }
+            .mv-stat-lbl {
+                font-size: 7px;
+                letter-spacing: 0.5px;
+            }
+
+            .mv-value-cell {
+                grid-area: value;
+            }
+
+            .mv-value-amount {
+                font-size: 0.85rem;
+            }
+
+            .mv-value-bar {
+                width: 70px;
+                margin-top: 4px;
+                margin-left: auto;
+            }
         }
 
         @media (max-width: 400px) {
-            .mv-row { grid-template-columns: 22px 38px 1fr auto; }
-            .mv-avatar { width: 38px; height: 38px; }
-            .mv-stat { gap: 10px; }
-            .mv-value-bar { width: 56px; }
+            .mv-row {
+                grid-template-columns: 22px 38px 1fr auto;
+            }
+
+            .mv-avatar {
+                width: 38px;
+                height: 38px;
+            }
+
+            .mv-stat {
+                gap: 10px;
+            }
+
+            .mv-value-bar {
+                width: 56px;
+            }
         }
     </style>
 </head>
@@ -325,7 +507,8 @@
                 </div>
                 <div class="mv-stat-card mv-stat-card--highlight">
                     <span class="mv-sc-label">TOTAL PORTFOLIO VALUE</span>
-                    <span class="mv-sc-val">{{ \App\Models\Player::formatMarketValue($totalValuation) ?? 'Rp 0' }}</span>
+                    <span
+                        class="mv-sc-val">{{ \App\Models\Player::formatMarketValue($totalValuation) ?? 'Rp 0' }}</span>
                 </div>
             </div>
         </header>
@@ -334,7 +517,8 @@
         <form method="GET" action="{{ route('market-value.index') }}" class="mv-filter-card">
             <div class="mv-search-wrap">
                 <i class="bi bi-search"></i>
-                <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama pemain atau tim..." autocomplete="off">
+                <input type="text" name="search" value="{{ $search }}" placeholder="Cari nama pemain atau tim..."
+                    autocomplete="off">
             </div>
 
             <select name="position">
@@ -357,7 +541,8 @@
             </button>
 
             @if($search || ($position && $position !== 'all') || $sort !== 'value_desc')
-                <a href="{{ route('market-value.index') }}" class="mv-btn-filter" style="background: var(--mv-card); color: #fff; border: 1px solid var(--mv-border);">
+                <a href="{{ route('market-value.index') }}" class="mv-btn-filter"
+                    style="background: var(--mv-card); color: var(--mv-text); border: 1px solid var(--mv-border);">
                     <i class="bi bi-arrow-clockwise"></i> Reset
                 </a>
             @endif
@@ -376,8 +561,8 @@
 
                         <div class="mv-avatar">
                             <img src="{{ $photoUrl ?? asset('assets/img/player-placeholder-new.png') }}"
-                                 onerror="this.onerror=null; this.src='{{ asset('assets/img/player-placeholder-new.png') }}'"
-                                 alt="{{ $player->name }}" loading="lazy">
+                                onerror="this.onerror=null; this.src='{{ asset('assets/img/player-placeholder-new.png') }}'"
+                                alt="{{ $player->name }}" loading="lazy">
                         </div>
 
                         <div class="mv-player-info">
@@ -390,9 +575,12 @@
                         </div>
 
                         <div class="mv-stat">
-                            <span><span class="mv-stat-val">{{ (int) ($player->goals ?? 0) }}</span> <span class="mv-stat-lbl">GOALS</span></span>
-                            <span><span class="mv-stat-val">{{ (int) ($player->assists ?? 0) }}</span> <span class="mv-stat-lbl">ASSISTS</span></span>
-                            <span><span class="mv-stat-val">{{ (int) $player->appearances_count }}</span> <span class="mv-stat-lbl">MATCHES</span></span>
+                            <span><span class="mv-stat-val">{{ (int) ($player->goals ?? 0) }}</span> <span
+                                    class="mv-stat-lbl">GOALS</span></span>
+                            <span><span class="mv-stat-val">{{ (int) ($player->assists ?? 0) }}</span> <span
+                                    class="mv-stat-lbl">ASSISTS</span></span>
+                            <span><span class="mv-stat-val">{{ (int) $player->appearances_count }}</span> <span
+                                    class="mv-stat-lbl">MATCHES</span></span>
                         </div>
 
                         <div class="mv-value-cell">
@@ -407,7 +595,7 @@
         @else
             <div class="mv-empty">
                 <i class="bi bi-people"></i>
-                <h5 style="color:#fff; font-weight:800;">Tidak ada pemain ditemukan</h5>
+                <h5 style="color:var(--mv-text); font-weight:800;">Tidak ada pemain ditemukan</h5>
                 <p class="mb-0">Coba ubah kata kunci pencarian atau filter posisi.</p>
             </div>
         @endif

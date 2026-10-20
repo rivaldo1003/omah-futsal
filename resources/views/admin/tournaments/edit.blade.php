@@ -6,153 +6,230 @@
 
 @section('styles')
     <style>
-        :root {
-            --primary: var(--text-primary);
-            --secondary: var(--text-secondary);
-            --bg-main: var(--surface);
-            --bg-card: var(--bg);
-            --border-color: var(--border);
-            --shadow-sm: none;
-            --shadow-md: none;
-            --transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-            --success-light: #F0F9F4;
-            --success-dark: #1E7A46;
-            --warning-light: #FDF6EC;
-            --warning-dark: #B45309;
-            --danger-light: #FDF2F3;
-            --danger-dark: #c01c28;
+        .admin-tournament-edit {
+            --edit-ink: #111111;
+            --edit-charcoal: #39393b;
+            --edit-muted: #707072;
+            --edit-cloud: #f5f5f5;
+            --edit-border: #e5e5e5;
+            --edit-border-strong: #cacacb;
+            --edit-success: #007d48;
+            --edit-danger: #b42318;
+            --primary: var(--edit-ink);
+            --secondary: var(--edit-muted);
+            max-width: 1440px;
+            margin-inline: auto;
+            color: var(--edit-ink);
         }
 
-        /* Page header */
-        .page-header {
+        .admin-tournament-edit .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-end;
             flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 20px;
+            margin-bottom: 28px;
         }
 
-        .page-header h1 {
-            font-size: 24px;
+        .admin-tournament-edit .page-header h1 {
+            font-size: clamp(26px, 3vw, 32px);
             font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin: 0 0 4px;
+            color: var(--edit-ink);
+            letter-spacing: -0.035em;
+            line-height: 1.15;
+            margin: 0 0 8px;
         }
 
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .admin-tournament-edit .page-subtitle {
+            color: var(--edit-muted);
+            font-size: 15px;
             margin: 0;
+            line-height: 1.5;
         }
 
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
+        .admin-tournament-edit .btn-back {
+            min-height: 44px;
+            padding: 10px 20px;
+            border: 0;
+            border-radius: 30px;
+            background: var(--edit-cloud);
+            color: var(--edit-ink);
             font-size: 14px;
             font-weight: 500;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
+            transition: background-color .15s ease;
         }
 
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+        .admin-tournament-edit .btn-back:hover {
+            background: #eaeaec;
+            color: var(--edit-ink);
         }
 
-        /* Main Card */
-        .main-card {
-            background: var(--bg-card);
-            border-radius: 0.75rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--border-color);
-            margin-bottom: 30px;
+        .admin-tournament-edit .main-card {
+            margin-bottom: 28px;
             overflow: hidden;
+            border: 1px solid var(--edit-border);
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: none;
         }
 
-        .main-card .card-header {
-            background-color: var(--bg-card);
-            border-bottom: 1px solid var(--border-color);
-            padding: 1.25rem 1.5rem;
-            color: var(--primary);
+        .admin-tournament-edit .main-card > .card-header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--edit-border);
+            background: #ffffff;
+            color: var(--edit-ink);
+            font-size: 16px;
             font-weight: 600;
         }
 
-        .main-card .card-body {
-            padding: 1.5rem;
-        }
-
-        /* Form Styles */
-        .form-label {
-            color: var(--primary);
+        .admin-tournament-edit .main-card .card-header h5 {
+            margin: 0;
+            font-size: 16px;
             font-weight: 600;
-            margin-bottom: 8px;
         }
 
-        .form-control,
-        .form-select {
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 10px 15px;
-            color: var(--primary);
-            transition: var(--transition);
+        .admin-tournament-edit .main-card .card-body {
+            padding: 24px;
         }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: var(--accent);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        .admin-tournament-edit .main-card .card-body > form > .row > .col-md-12.mb-4 {
+            margin-bottom: 24px !important;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--edit-border);
         }
 
-        .form-text {
-            color: var(--secondary);
-            font-size: 0.875rem;
+        .admin-tournament-edit .main-card .card-body > form > .row > .col-md-12.mb-4:last-child {
+            border-bottom: 0;
+            padding-bottom: 0;
         }
 
-        /* Checkbox Styling */
-        .form-check-input:checked {
-            background-color: var(--accent);
-            border-color: var(--accent);
-        }
-
-        /* Button Styles */
-        .btn-primary {
-            background-color: var(--accent);
-            border-color: var(--accent);
-            padding: 10px 25px;
-            border-radius: 0.5rem;
+        .admin-tournament-edit .main-card .card-body > form > .row > .col-md-12 > h6 {
+            margin-bottom: 18px !important;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--edit-border);
+            color: var(--edit-ink) !important;
+            font-size: 16px;
             font-weight: 600;
-            transition: var(--transition);
+            line-height: 1.45;
         }
 
-        .btn-primary:hover {
-            opacity: 0.9;
+        .admin-tournament-edit .form-label {
+            margin-bottom: 7px;
+            color: var(--edit-charcoal);
+            font-size: 14px;
+            font-weight: 500;
         }
 
-        .btn-outline-secondary {
-            border: 1px solid var(--border-color);
-            color: var(--secondary);
-            padding: 10px 25px;
-            border-radius: 0.5rem;
-            font-weight: 600;
-            transition: var(--transition);
+        .admin-tournament-edit .form-control,
+        .admin-tournament-edit .form-select {
+            min-height: 46px;
+            padding: 10px 14px;
+            border: 1px solid var(--edit-border-strong);
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: var(--edit-ink);
+            box-shadow: none;
+            transition: border-color .15s ease, background-color .15s ease;
         }
 
-        .btn-outline-secondary:hover {
-            background-color: var(--bg-main);
-            border-color: var(--secondary);
-            color: var(--primary);
+        .admin-tournament-edit textarea.form-control {
+            min-height: 104px;
+            resize: vertical;
         }
 
-        /* Tie-breakers */
-        .tie-preset {
+        .admin-tournament-edit .form-control:focus,
+        .admin-tournament-edit .form-select:focus {
+            border: 2px solid var(--edit-ink);
+            padding: 9px 13px;
+            box-shadow: none;
+            outline: none;
+        }
+
+        .admin-tournament-edit .form-control.is-invalid,
+        .admin-tournament-edit .form-select.is-invalid {
+            border-color: var(--edit-danger);
+        }
+
+        .admin-tournament-edit .form-text {
+            margin-top: 6px;
+            color: var(--edit-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .admin-tournament-edit .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin-top: .15em;
+            border-color: var(--edit-border-strong);
+            box-shadow: none;
+        }
+
+        .admin-tournament-edit .form-check-input:checked {
+            border-color: var(--edit-ink);
+            background-color: var(--edit-ink);
+        }
+
+        .admin-tournament-edit .form-check-input:focus {
+            border-color: var(--edit-ink);
+            box-shadow: none;
+        }
+
+        .admin-tournament-edit :focus-visible:not(.form-control):not(.form-select):not(.form-check-input) {
+            outline: 2px solid var(--edit-ink);
+            outline-offset: 2px;
+        }
+
+        .admin-tournament-edit .form-check-label {
+            color: var(--edit-charcoal);
+            line-height: 1.45;
+        }
+
+        .admin-tournament-edit .btn-primary,
+        .admin-tournament-edit .btn-outline-secondary {
+            min-height: 48px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+            text-decoration: none;
+            box-shadow: none;
+            transition: background-color .15s ease, color .15s ease;
+        }
+
+        .admin-tournament-edit .btn-primary {
+            background: var(--edit-ink);
+            color: #ffffff;
+        }
+
+        .admin-tournament-edit .btn-primary:hover,
+        .admin-tournament-edit .btn-primary:focus {
+            background: #303032;
+            color: #ffffff;
+        }
+
+        .admin-tournament-edit .btn-outline-secondary {
+            background: var(--edit-cloud);
+            color: var(--edit-ink);
+        }
+
+        .admin-tournament-edit .btn-outline-secondary:hover,
+        .admin-tournament-edit .btn-outline-secondary:focus {
+            background: #eaeaec;
+            color: var(--edit-ink);
+        }
+
+        .admin-tournament-edit .tie-preset {
             display: flex;
             flex-wrap: wrap;
             align-items: center;
@@ -160,133 +237,256 @@
             margin-bottom: 16px;
         }
 
-        .btn-preset {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-secondary);
-            border-radius: 6px;
-            padding: 4px 12px;
+        .admin-tournament-edit .btn-preset {
+            min-height: 38px;
+            padding: 8px 13px;
+            border: 1px solid var(--edit-border-strong);
+            border-radius: 30px;
+            background: #ffffff;
+            color: var(--edit-charcoal);
             font-size: 13px;
             font-weight: 500;
+            transition: background-color .15s ease, color .15s ease, border-color .15s ease;
         }
 
-        .btn-preset:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+        .admin-tournament-edit .btn-preset:hover,
+        .admin-tournament-edit .btn-preset.active {
+            border-color: var(--edit-ink);
+            background: var(--edit-cloud);
+            color: var(--edit-ink);
         }
 
-        .btn-preset.active {
-            border-color: var(--accent);
-            color: var(--accent);
-            background: rgba(26, 95, 180, 0.05);
+        .admin-tournament-edit #tie-breakers-container,
+        .admin-tournament-edit #tie-breakers-container-other {
+            display: grid;
+            gap: 8px;
         }
 
-        /* Team Selection */
-        .team-selection-container {
-            max-height: 300px;
+        .admin-tournament-edit .tie-breaker-item,
+        .admin-tournament-edit .tie-breaker-item-other {
+            min-height: 46px;
+            margin: 0 !important;
+        }
+
+        .admin-tournament-edit .tie-breaker-item .input-group-text,
+        .admin-tournament-edit .tie-breaker-item-other .input-group-text {
+            min-width: 48px;
+            justify-content: center;
+            border-color: var(--edit-border);
+            background: var(--edit-cloud) !important;
+            color: var(--edit-muted) !important;
+        }
+
+        .admin-tournament-edit .tie-breaker-item .form-select,
+        .admin-tournament-edit .tie-breaker-item-other .form-select {
+            min-width: 0;
+        }
+
+        .admin-tournament-edit .remove-rule,
+        .admin-tournament-edit .remove-rule-other {
+            min-width: 46px;
+            border-color: var(--edit-border-strong);
+            color: var(--edit-danger);
+        }
+
+        .admin-tournament-edit .remove-rule:hover,
+        .admin-tournament-edit .remove-rule-other:hover {
+            border-color: var(--edit-danger);
+            background: #fff5f4;
+            color: var(--edit-danger);
+        }
+
+        .admin-tournament-edit #add-rule,
+        .admin-tournament-edit #add-rule-other {
+            min-height: 42px;
+            padding: 9px 16px;
+            border: 1px solid var(--edit-border-strong);
+            border-radius: 30px;
+            background: #ffffff;
+            color: var(--edit-ink);
+        }
+
+        .admin-tournament-edit #add-rule:hover,
+        .admin-tournament-edit #add-rule-other:hover {
+            background: var(--edit-cloud);
+        }
+
+        .admin-tournament-edit .team-selection-container {
+            max-height: 340px;
             overflow-y: auto;
-            border: 1px solid var(--border-color);
-            border-radius: 0.5rem;
-            padding: 15px;
-            background-color: var(--bg-main);
+            padding: 4px 16px;
+            border: 1px solid var(--edit-border);
+            border-radius: 8px;
+            background: #ffffff;
         }
 
-        .team-item {
+        .admin-tournament-edit .team-item {
             display: flex;
             align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-            transition: var(--transition);
+            gap: 12px;
+            min-height: 62px;
+            padding: 10px 4px;
+            border-bottom: 1px solid var(--edit-border);
+            transition: background-color .15s ease;
         }
 
-        .team-item:last-child {
-            border-bottom: none;
+        .admin-tournament-edit .team-item:last-child {
+            border-bottom: 0;
         }
 
-        .team-item:hover {
-            background-color: rgba(59, 130, 246, 0.05);
+        .admin-tournament-edit .team-item:hover {
+            background: var(--edit-cloud);
         }
 
-        .team-checkbox {
-            margin-right: 12px;
+        .admin-tournament-edit .team-checkbox {
+            flex: 0 0 auto;
+            margin-right: 0;
         }
 
-        .team-info {
-            flex-grow: 1;
+        .admin-tournament-edit .team-info {
+            min-width: 0;
         }
 
-        .team-name {
-            font-weight: 500;
-            color: var(--primary);
+        .admin-tournament-edit .team-name {
             margin-bottom: 2px;
+            color: var(--edit-ink);
+            font-weight: 600;
         }
 
-        /* Alerts */
-        .alert {
-            border: none;
-            border-radius: 0.5rem;
-            padding: 15px 20px;
-            margin-bottom: 25px;
-            box-shadow: var(--shadow-sm);
+        .admin-tournament-edit .group-assignment-container {
+            flex: 0 0 auto;
+        }
+
+        .admin-tournament-edit .group-select {
+            min-width: 132px !important;
+        }
+
+        .admin-tournament-edit .alert {
             display: flex;
             align-items: flex-start;
-            gap: 15px;
+            gap: 12px;
+            padding: 14px 18px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            box-shadow: none;
         }
 
-        .alert i {
-            font-size: 1.3rem;
-            flex-shrink: 0;
-            margin-top: 2px;
+        .admin-tournament-edit .alert-success {
+            border-color: #c9e7d8;
+            background: #f0f8f4;
+            color: #075c39;
         }
 
-        .alert-success {
-            background-color: var(--success-light);
-            border-left: 4px solid var(--success-dark);
-            color: var(--success-dark);
+        .admin-tournament-edit .alert-danger {
+            border-color: #f0cbc7;
+            background: #fff5f4;
+            color: #8f1d17;
         }
 
-        .alert-danger {
-            background-color: var(--danger-light);
-            border-left: 4px solid var(--danger-dark);
-            color: var(--danger-dark);
-        }
-
-        /* Loading Overlay */
-        .loading-overlay {
+        .admin-tournament-edit .loading-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(255, 255, 255, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            inset: 0;
             z-index: 9999;
             display: none;
+            align-items: center;
+            justify-content: center;
+            background: rgba(17, 17, 17, .18);
+        }
+
+        .admin-tournament-edit .loading-overlay > .text-center {
+            min-width: 220px;
+            padding: 24px;
+            border: 1px solid var(--edit-border);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .admin-tournament-edit .loading-overlay p {
+            margin-bottom: 0;
+            color: var(--edit-ink) !important;
+            font-weight: 500 !important;
+        }
+
+        .admin-tournament-edit .spinner-border {
+            color: var(--edit-ink) !important;
+        }
+
+        .admin-tournament-edit .form-actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding-top: 4px;
         }
 
         @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
+            .admin-tournament-edit .page-header {
                 align-items: flex-start;
-                gap: 15px;
             }
 
-            .main-card .card-body {
-                padding: 1rem;
+            .admin-tournament-edit .main-card .card-header {
+                padding: 16px 18px;
             }
 
-            .btn-primary,
-            .btn-outline-secondary {
+            .admin-tournament-edit .main-card .card-body {
+                padding: 18px;
+            }
+
+            .admin-tournament-edit .form-actions {
+                align-items: stretch;
+                flex-direction: column-reverse;
+            }
+
+            .admin-tournament-edit .form-actions > div {
+                display: grid;
+                gap: 8px;
+            }
+
+            .admin-tournament-edit .form-actions .btn {
                 width: 100%;
-                margin-bottom: 10px;
+                margin: 0 !important;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .admin-tournament-edit .team-item {
+                align-items: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .admin-tournament-edit .team-info {
+                flex: 1 1 calc(100% - 42px);
+            }
+
+            .admin-tournament-edit .group-assignment-container {
+                flex: 1 1 100%;
+                padding-left: 30px;
+            }
+
+            .admin-tournament-edit .group-select {
+                width: 100% !important;
+            }
+
+            .admin-tournament-edit .tie-breaker-item .btn,
+            .admin-tournament-edit .tie-breaker-item-other .btn {
+                min-width: 42px;
+                padding-inline: 10px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .admin-tournament-edit *,
+            .admin-tournament-edit *::before,
+            .admin-tournament-edit *::after {
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
             }
         }
     </style>
 @endsection
 
 @section('content')
+    <main class="admin-tournament-edit">
     <div class="page-header">
         <div>
             <h1>Edit Turnamen</h1>
@@ -840,7 +1040,7 @@
                 </div>
 
                 <!-- Form Actions -->
-                <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="form-actions mt-4">
                     <div>
                         <a href="{{ route('admin.tournaments.show', $tournament) }}" class="btn btn-outline-secondary me-2">
                             <i class="bi bi-eye me-2"></i>Lihat Detail
@@ -868,6 +1068,7 @@
             <p class="mt-3" style="color: var(--primary); font-weight: 500;">Menyimpan Turnamen...</p>
         </div>
     </div>
+    </main>
 @endsection
 
 @section('scripts')

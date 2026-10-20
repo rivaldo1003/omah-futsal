@@ -5,48 +5,49 @@
        ========================================================================== */
     :root {
         /* ==========================================================================
-           ULTRA ANALYTICS ENGINE v3.0 — CORE TOKENS
-           Adheres to ultra_analytics_engine_v3_0_design_system.md
+           OFS PUBLIC HOME — LIGHT THEME TOKENS
+           Neutral surfaces with semantic match-state accents
            ========================================================================== */
-        --v3-bg: #020408;
-        --v3-surface: #070c14;
-        --v3-card: #0d1524;
-        --v3-border: #18263e;
-        --v3-border-glow: rgba(0, 255, 135, 0.4);
-        --v3-neon-green: #00ff87;
-        --v3-neon-blue: #00e5ff;
-        --v3-neon-pink: #ff0055;
-        --v3-neon-yellow: #ffb700;
-        --v3-text-main: #ffffff;
-        --v3-text-sub: #8da1b9;
-        --v3-text-muted: #4e6178;
+        --v3-bg: #f5f5f5;
+        --v3-surface: #ffffff;
+        --v3-card: #f5f5f5;
+        --v3-border: #e5e5e5;
+        --v3-border-glow: #007d48;
+        --v3-neon-green: #007d48;
+        --v3-neon-blue: #1151ff;
+        --v3-neon-pink: #b42318;
+        --v3-neon-yellow: #805600;
+        --v3-text-main: #111111;
+        --v3-text-sub: #39393b;
+        --v3-text-muted: #707072;
+        --v3-font-sans: "Helvetica Neue", Helvetica, sans-serif;
         --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
 
-        /* Legacy token bridge (mapped to v3.0 palette) */
-        --bg-page: var(--v3-bg);
-        --surface: var(--v3-surface);
-        --surface-subtle: var(--v3-card);
-        --surface-hover: #101a2c;
-        --border-color: var(--v3-border);
-        --border-focus: var(--v3-neon-green);
+        /* Theme bridge for existing public-home components */
+        --bg-page: #f5f5f5;
+        --surface: #ffffff;
+        --surface-subtle: #f5f5f5;
+        --surface-hover: #eeeeee;
+        --border-color: #e5e5e5;
+        --border-focus: #111111;
 
         /* Typography */
         --text-primary: var(--v3-text-main);
         --text-secondary: var(--v3-text-sub);
         --text-muted: var(--v3-text-muted);
 
-        /* Primary Accent (Neon Green) */
-        --accent: var(--v3-neon-green);
-        --accent-hover: #00cc6a;
-        --accent-subtle: rgba(0, 255, 135, 0.08);
+        /* Primary Accent (Ink) */
+        --accent: #111111;
+        --accent-hover: #39393b;
+        --accent-subtle: #f0f0f0;
 
         /* Semantic Status Colors */
-        --success: var(--v3-neon-green);
-        --success-subtle: rgba(0, 255, 135, 0.1);
-        --warning: var(--v3-neon-yellow);
-        --warning-subtle: rgba(255, 183, 0, 0.1);
-        --danger: var(--v3-neon-pink);
-        --danger-subtle: rgba(255, 0, 85, 0.1);
+        --success: #007d48;
+        --success-subtle: #e8f3ed;
+        --warning: #805600;
+        --warning-subtle: #f7f1e3;
+        --danger: #b42318;
+        --danger-subtle: #f9e9e7;
 
         /* 4px Spacing Scale */
         --space-1: 4px;
@@ -62,16 +63,16 @@
         --radius-md: 8px;
         --radius-lg: 10px;
 
-        /* v3.0 Radii (design system tokens) */
+        /* Component radius tokens */
         --v3-radius-sm: 8px;
-        --v3-radius-md: 12px;
-        --v3-radius-lg: 20px;
+        --v3-radius-md: 8px;
+        --v3-radius-lg: 8px;
 
         /* Elevation — neutral, tight, smaller than the element casting it */
-        --v3-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
-        --v3-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.35);
-        --v3-shadow-pop: 0 8px 20px rgba(0, 0, 0, 0.35);
-        --v3-shadow-drawer: 6px 0 16px rgba(0, 0, 0, 0.28);
+        --v3-shadow-sm: none;
+        --v3-shadow-md: none;
+        --v3-shadow-pop: none;
+        --v3-shadow-drawer: none;
 
         /* Z-Index Scale */
         --z-base: 0;
@@ -90,13 +91,9 @@
 
     body {
         background-color: var(--bg-page);
-        background-image:
-            radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 255, 135, 0.06), transparent),
-            radial-gradient(ellipse 60% 40% at 90% 110%, rgba(0, 229, 255, 0.04), transparent);
-        background-attachment: fixed;
         color: var(--text-primary);
-        font-family: var(--v3-font-sans, system-ui), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-        font-size: 14px;
+        font-family: var(--v3-font-sans);
+        font-size: 16px;
         line-height: 1.5;
         margin: 0;
         padding: 0;
@@ -116,7 +113,7 @@
     /* Container constraints */
     .app-container {
         width: 100%;
-        max-width: 1240px;
+        max-width: 1440px;
         margin-left: auto;
         margin-right: auto;
         padding-left: var(--space-4);
@@ -141,8 +138,8 @@
        NAVBAR
        ========================================================================== */
     .app-navbar {
-        background-color: rgba(2, 4, 8, 0.92);
-        backdrop-filter: blur(8px);
+        background-color: rgba(255, 255, 255, 0.98);
+        backdrop-filter: none;
         border-bottom: 1px solid var(--border-color);
         position: sticky;
         top: 0;
@@ -194,9 +191,9 @@
         display: inline-flex;
         align-items: center;
         gap: 7px;
-        height: 36px;
+        min-height: 44px;
         padding: 0 var(--space-3);
-        font-size: 13px;
+        font-size: 14px;
         font-weight: 500;
         line-height: 1;
         white-space: nowrap;
@@ -235,9 +232,9 @@
         line-height: 1;
         white-space: nowrap;
         color: var(--accent);
-        border: 1px solid rgba(0, 255, 135, 0.3);
+        border: 1px solid var(--border-color);
         border-radius: var(--radius-sm);
-        background: rgba(0, 255, 135, 0.06);
+        background: var(--surface-subtle);
     }
 
     .nav-btn-admin:hover {
@@ -361,7 +358,7 @@
         display: inline-block;
         width: 1.25em;
         height: 1.25em;
-        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(255,255,255,0.6)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(17,17,17,0.75)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
         background-repeat: no-repeat;
         background-position: center;
         background-size: 100%;
@@ -394,7 +391,7 @@
         text-transform: uppercase;
         line-height: 1.15;
         letter-spacing: -0.03em;
-        text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
+        text-shadow: none;
         margin-bottom: var(--space-3);
     }
 
@@ -451,7 +448,7 @@
        ========================================================================== */
     .content-section {
         margin-top: var(--space-6);
-        margin-bottom: var(--space-6);
+        margin-bottom: var(--space-8);
     }
 
     .app-card {
@@ -460,7 +457,7 @@
         border-radius: var(--radius-md);
         margin-bottom: var(--space-5);
         overflow: hidden;
-        box-shadow: var(--v3-shadow-sm);
+        box-shadow: none;
     }
 
     .app-card-header {
@@ -581,16 +578,16 @@
         font-size: 13px;
         font-weight: 500;
         color: var(--text-primary);
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
+        background-color: var(--surface-subtle);
+        border: 1px solid transparent;
         border-radius: var(--radius-sm);
         cursor: pointer;
-        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
         text-decoration: none;
     }
 
     .btn-action-secondary:hover {
-        background-color: var(--surface-subtle);
+        background-color: var(--surface-hover);
         color: var(--text-primary);
         border-color: var(--border-focus);
     }
@@ -623,7 +620,7 @@
         font-size: 13px;
         font-weight: 500;
         line-height: 1.4;
-        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
         text-decoration: none;
         display: inline-flex;
         align-items: center;
@@ -883,7 +880,6 @@
     .tie-break-box {
         background-color: var(--surface-subtle);
         border: 1px solid var(--border-color);
-        border-left: 3px solid var(--accent);
         border-radius: var(--radius-sm);
         padding: var(--space-3);
         margin-top: var(--space-4);
@@ -915,12 +911,12 @@
         flex-direction: column;
         width: 100%;
         height: 100%;
-        transition: border-color 150ms ease, box-shadow 150ms ease;
+        transition: border-color 150ms ease;
     }
 
     .team-item-card:hover {
         border-color: var(--border-focus);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        box-shadow: none;
     }
 
     /* Top identity row: Logo + Name/Coach on Left, Status Badge on Right */
@@ -1311,7 +1307,7 @@
     .highlight-thumb-wrap {
         position: relative;
         height: 160px;
-        background-color: #0f172a;
+        background-color: var(--surface-subtle);
         cursor: pointer;
         overflow: hidden;
     }
@@ -1456,7 +1452,7 @@
     .modal-content {
         border: 1px solid var(--border-color);
         border-radius: var(--radius-lg);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        box-shadow: none;
         background-color: var(--surface);
     }
 
@@ -1504,7 +1500,7 @@
         text-align: center;
         cursor: pointer;
         background-color: var(--surface);
-        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+        transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
     }
 
     .player-modal-card:hover {
@@ -1665,8 +1661,8 @@
         height: 8px;
         background: var(--v3-neon-green);
         border-radius: 50%;
-        box-shadow: 0 0 12px var(--v3-neon-green);
-        animation: v3BeaconPulse 1.2s infinite alternate;
+        box-shadow: none;
+        animation: none;
         flex-shrink: 0;
     }
 
@@ -1680,7 +1676,7 @@
         font-style: italic;
         text-transform: uppercase;
         letter-spacing: -0.03em;
-        text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
+        text-shadow: none;
         color: var(--v3-text-main);
     }
 
@@ -1702,13 +1698,13 @@
     .team-item-card:hover,
     .highlight-card:hover {
         border-color: var(--v3-border-glow);
-        box-shadow: 0 0 24px rgba(0, 255, 135, 0.12);
+        box-shadow: none;
     }
 
     /* Live score chip — neon pink telemetry */
     .score-chip.live {
         border-color: rgba(255, 0, 85, 0.4);
-        box-shadow: 0 0 12px rgba(255, 0, 85, 0.25);
+        box-shadow: none;
     }
 
     /* Scrollbar — telemetry style */
@@ -1751,12 +1747,11 @@
     }
 
     #teamDetailsModal .btn-close {
-        filter: invert(1) grayscale(100%) brightness(200%);
+        filter: none;
     }
 
     #teamDetailsModal .player-squad-grid {
-        background-image: radial-gradient(var(--v3-border) 1px, transparent 1px);
-        background-size: 20px 20px;
+        background: var(--v3-card);
         border-radius: var(--v3-radius-md, 12px);
         padding: 12px;
     }
@@ -1771,12 +1766,12 @@
 
     #teamDetailsModal .player-modal-card:hover {
         border-color: var(--v3-border-glow);
-        box-shadow: 0 0 12px rgba(0, 255, 135, 0.15);
+        box-shadow: none;
     }
 
     #teamDetailsModal .player-modal-card.is-selected {
         border-color: var(--v3-neon-green);
-        box-shadow: 0 0 15px rgba(0, 255, 135, 0.25);
+        box-shadow: inset 0 0 0 1px var(--v3-neon-green);
     }
 
     #teamDetailsModal .player-modal-photo {
@@ -1827,5 +1822,143 @@
             transition-duration: 0.001ms !important;
             scroll-behavior: auto !important;
         }
+    }
+
+    /* Public home: neutral light surfaces, clear section rhythm, and no decorative depth. */
+    .home-content {
+        margin-top: 32px;
+        margin-bottom: 48px;
+    }
+
+    .home-content > .home-section + .home-section {
+        margin-top: 48px;
+    }
+
+    .home-section-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .home-section-stack > .app-card {
+        margin-bottom: 0;
+    }
+
+    .home-section .app-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .home-section .v3-home-standings > .app-card {
+        margin-bottom: 24px;
+    }
+
+    .home-section .v3-home-standings > .app-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .home-section > .v3-live-tournaments,
+    .home-section > .v3-completed-tournament {
+        margin-top: 0;
+    }
+
+    .home-page .app-card {
+        border-color: var(--border-color);
+        border-radius: 8px;
+        box-shadow: none;
+    }
+
+    .home-page .app-card-title,
+    .home-page .v3-title,
+    .home-page .v3-card-title {
+        font-style: normal;
+        text-transform: none;
+        letter-spacing: 0;
+        text-shadow: none;
+    }
+
+    .home-page .app-card-title,
+    .home-page .v3-card-title {
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .home-page .v3-home-standings > .app-card + .app-card {
+        margin-top: 24px;
+    }
+
+    .home-page .btn-action-primary,
+    .home-page .btn-action-secondary,
+    .home-page .nav-btn-admin,
+    .home-page .nav-btn-login,
+    .home-page .nav-btn-booking,
+    .home-page .hero-cta {
+        min-height: 44px;
+        border-radius: 9999px;
+    }
+
+    .home-page .btn-action-primary,
+    .home-page .nav-btn-login {
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .home-page .btn-action-primary:hover,
+    .home-page .nav-btn-login:hover,
+    .home-page .msb-btn-login:hover {
+        background: var(--accent-hover);
+        color: #ffffff;
+    }
+
+    .home-page .nav-btn-admin,
+    .home-page .msb-btn-admin {
+        border: 1px solid var(--border-color);
+        background: var(--surface-subtle);
+        color: var(--text-primary);
+    }
+
+    .home-page .msb-btn-login {
+        border-color: var(--accent);
+        background: var(--accent);
+        color: #ffffff;
+    }
+
+    .home-page .msb-btn-admin,
+    .home-page .msb-btn-login,
+    .home-page .msb-btn-logout {
+        min-height: 44px;
+        border-radius: 9999px;
+    }
+
+    .home-page .nav-dropdown-menu,
+    .home-page .mobile-sidebar {
+        background: var(--surface);
+        border-color: var(--border-color);
+        color: var(--text-primary);
+    }
+
+    .home-page .nav-dropdown-item,
+    .home-page .msb-link,
+    .home-page .msb-brand,
+    .home-page .msb-section-label {
+        color: var(--text-primary);
+    }
+
+    .home-page .nav-dropdown-item:hover,
+    .home-page .msb-link:hover {
+        background: var(--surface-subtle);
+        color: var(--text-primary);
+    }
+
+    .home-page a:focus-visible,
+    .home-page button:focus-visible,
+    .home-page [tabindex]:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    @media (max-width: 767.98px) {
+        .home-content { margin-top: 24px; }
+        .home-content > .home-section + .home-section { margin-top: 32px; }
+        .home-section-stack { gap: 20px; }
     }
 </style>

@@ -16,9 +16,9 @@
         .status-head { padding:22px 24px; border-bottom:1px solid var(--border-color); display:flex; justify-content:space-between; gap:16px; align-items:center; }
         .status-head h1 { font-size:22px; font-weight:800; margin:0 0 5px; }
         .status-code { color:var(--text-secondary); font:12px var(--v3-font-mono); }
-        .status-badge { border-radius:999px; padding:7px 11px; font-size:12px; font-weight:700; background:rgba(255,183,0,.12); color:#ffd15a; white-space:nowrap; }
-        .status-badge.success { background:rgba(0,255,135,.1); color:var(--v3-neon-green); }
-        .status-badge.danger { background:rgba(255,0,85,.1); color:#ff789f; }
+        .status-badge { border:1px solid #e6d7ae; border-radius:999px; padding:7px 11px; font-size:12px; font-weight:700; background:var(--warning-subtle); color:var(--warning); white-space:nowrap; }
+        .status-badge.success { border-color:#b7d7c4; background:var(--success-subtle); color:var(--success); }
+        .status-badge.danger { border-color:#e5c1bd; background:var(--danger-subtle); color:var(--danger); }
         .status-body { padding:24px; }
         .booking-details { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; margin-bottom:22px; }
         .detail-label { display:block; color:var(--text-muted); font-size:12px; margin-bottom:3px; }
@@ -34,7 +34,22 @@
         .booking-link-copy strong { display:block; font-size:14px; }
         .booking-link-copy span { display:block; margin-top:3px; color:var(--text-secondary); font-size:13px; line-height:1.45; }
         .booking-link-actions { display:flex; flex-wrap:wrap; gap:8px; flex-shrink:0; }
-        .booking-link-actions .btn { min-height:44px; }
+        .booking-link-actions .btn {
+            min-height: 44px;
+            border: 1px solid var(--border-color);
+            background: var(--surface);
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        .booking-link-actions .btn:hover {
+            border-color: var(--text-primary);
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+        .booking-link-actions .btn:focus-visible {
+            outline: 3px solid var(--border-focus);
+            outline-offset: 2px;
+        }
         .booking-link-feedback { display:block; min-height:18px; margin-top:4px; color:var(--v3-neon-green); font-size:13px; }
         @media(max-width:575.98px) { .status-head,.status-body { padding:18px; } .booking-details { grid-template-columns:1fr; gap:13px; } .status-head { align-items:flex-start; flex-direction:column; } }
         @media(max-width:575.98px) { .booking-link-panel { align-items:stretch; flex-direction:column; } .booking-link-actions { display:grid; grid-template-columns:1fr; } }
@@ -229,10 +244,10 @@
                         <span class="booking-link-feedback" id="bookingLinkFeedback" role="status" aria-live="polite"></span>
                     </div>
                     <div class="booking-link-actions">
-                        <button class="btn btn-outline-light" type="button" id="copyBookingLink" data-booking-url="{{ $bookingResumeUrl }}">
+                        <button class="btn" type="button" id="copyBookingLink" data-booking-url="{{ $bookingResumeUrl }}">
                             <i class="bi bi-link-45deg me-1" aria-hidden="true"></i>Salin tautan
                         </button>
-                        <a class="btn btn-outline-light" href="https://wa.me/?text={{ rawurlencode($bookingShareText) }}" target="_blank" rel="noopener noreferrer">
+                        <a class="btn" href="https://wa.me/?text={{ rawurlencode($bookingShareText) }}" target="_blank" rel="noopener noreferrer">
                             <i class="bi bi-whatsapp me-1" aria-hidden="true"></i>Bagikan via WhatsApp
                         </a>
                     </div>
@@ -283,8 +298,6 @@
                     <div class="status-note">Pembayaran belum dapat diverifikasi dan slot sudah dilepas. @if($booking->admin_note) Catatan admin: {{ $booking->admin_note }} @endif</div>
                 @elseif($booking->status === \App\Models\CourtBooking::STATUS_CANCELLED)
                     <div class="status-note">Booking ini telah dibatalkan. @if($booking->admin_note) Catatan: {{ $booking->admin_note }} @endif Silakan hubungi admin mengenai pengembalian dana bila diperlukan.</div>
-                @elseif($booking->status === \App\Models\CourtBooking::STATUS_EXPIRED)
-                    <div class="status-note">Batas waktu pembayaran telah berakhir dan slot sudah tersedia kembali. Silakan buat booking baru.</div>
                 @endif
             </div>
         </section>

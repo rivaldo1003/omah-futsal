@@ -1,35 +1,36 @@
-{{-- Single Group Standings Table — Ultra Analytics Engine v3.0
-     Receives: $group, $groupStandings, $selectedTournament --}}
-<div class="v3-standings-group">
+{{-- Group and league table. Receives: $group, $groupStandings, $selectedTournament. --}}
+<div class="v3-standings-group {{ $selectedTournament->type === 'league' ? 'is-league' : 'is-group' }}">
     <div class="standings-group-card h-100">
         {{-- Module Header (v3) --}}
         <div class="v3-sg-header">
             <div class="v3-sg-title-wrap">
-                <span class="v3-beacon"></span>
                 <h3 class="standings-group-title v3-sg-title">
                     <span class="standings-group-badge v3-sg-badge">{{ $selectedTournament->type === 'league' ? 'L' : 'G' }}</span>
-                    {{ $selectedTournament->type === 'league' ? 'KLASEMEN UTAMA' : 'GROUP ' . $group }}
+                    {{ $selectedTournament->type === 'league' ? 'League table' : 'Group ' . $group }}
                 </h3>
             </div>
             <span class="v3-sg-meta">
-                <span class="v3-sc-lbl">TEAMS</span>
+                <span class="v3-sc-lbl">Teams</span>
                 <span class="v3-sc-val">{{ count($groupStandings) }}</span>
             </span>
         </div>
 
         <div class="table-responsive">
             <table class="table standings-table v3-sg-table">
+                <caption class="visually-hidden">
+                    {{ $selectedTournament->type === 'league' ? 'League standings' : 'Group ' . $group . ' standings' }}
+                </caption>
                 <thead>
                     <tr>
-                        <th>#</th>
-                        <th>TEAM</th>
-                        <th>P</th>
-                        <th>W</th>
-                        <th>D</th>
-                        <th>L</th>
-                        <th>GD</th>
-                        <th>PTS</th>
-                        <th>FORM</th>
+                        <th scope="col" title="Position">#</th>
+                        <th scope="col">Team</th>
+                        <th scope="col" title="Played">P</th>
+                        <th scope="col" title="Won">W</th>
+                        <th scope="col" title="Drawn">D</th>
+                        <th scope="col" title="Lost">L</th>
+                        <th scope="col" title="Goal difference">GD</th>
+                        <th scope="col" title="Points">Pts</th>
+                        <th scope="col" title="Results in the last five matches">Form</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -69,8 +70,8 @@
                             // ── Recent form dots ──
                             $recentForm = isset($team->recent_form) ? $team->recent_form : [];
 
-                            // ── Rank emphasis (top 2 qualify) ──
-                            $isTop = $index < 2;
+                            // Highlight the league leader, or the top two group positions.
+                            $isTop = $selectedTournament->type === 'league' ? $index === 0 : $index < 2;
                         @endphp
 
                         <tr class="{{ $isTop ? 'v3-sg-row--top' : '' }}">
@@ -139,13 +140,13 @@
                                     @if(!empty($recentForm) && is_array($recentForm))
                                         @foreach(array_slice($recentForm, 0, 5) as $result)
                                             @if($result == 'W')
-                                                <span class="standings-form-dot standings-dot-win"></span>
+                                            <span class="standings-form-dot standings-dot-win" role="img" aria-label="Win" title="Win"></span>
                                             @elseif($result == 'D')
-                                                <span class="standings-form-dot standings-dot-draw"></span>
+                                            <span class="standings-form-dot standings-dot-draw" role="img" aria-label="Draw" title="Draw"></span>
                                             @elseif($result == 'L')
-                                                <span class="standings-form-dot standings-dot-loss"></span>
+                                            <span class="standings-form-dot standings-dot-loss" role="img" aria-label="Loss" title="Loss"></span>
                                             @else
-                                                <span class="standings-form-dot standings-dot-empty"></span>
+                                            <span class="standings-form-dot standings-dot-empty" role="img" aria-label="Result unavailable" title="Result unavailable"></span>
                                             @endif
                                         @endforeach
                                     @else
@@ -161,47 +162,39 @@
     </div>
 
     <style>
-        /* ==================================================================
-           ULTRA ANALYTICS ENGINE v3.0 — standings group module
-           Scoped tokens (fallback to spec values)
-           ================================================================== */
         .v3-standings-group {
-            --v3-bg: #020408;
-            --v3-surface: #070c14;
-            --v3-card: #0d1524;
-            --v3-border: #18263e;
-            --v3-border-glow: rgba(0, 255, 135, 0.4);
-            --v3-neon-green: #00ff87;
-            --v3-neon-blue: #00e5ff;
-            --v3-neon-pink: #ff0055;
-            --v3-neon-yellow: #ffb700;
-            --v3-text-main: #ffffff;
-            --v3-text-sub: #8da1b9;
-            --v3-text-muted: #4e6178;
-            --v3-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            --v3-radius-md: 12px;
-            --v3-radius-sm: 8px;
+            --table-ink: #111111;
+            --table-charcoal: #39393b;
+            --table-muted: #707072;
+            --table-border: #e5e5e5;
+            --table-cloud: #f5f5f5;
+            --table-success: #007d48;
+            --table-success-soft: #e8f3ed;
+            --table-danger: #b42318;
+            --table-danger-soft: #f9e9e7;
+            --table-warning: #805600;
+            color: var(--table-ink);
+            font-family: var(--v3-font-sans, "Helvetica Neue", Helvetica, sans-serif);
         }
 
         .v3-standings-group .standings-group-card {
-            background: linear-gradient(145deg, var(--v3-card), var(--v3-surface));
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-md);
+            height: 100%;
             overflow: hidden;
-            color: var(--v3-text-main);
-            font-family: var(--v3-font-sans);
+            color: var(--table-ink);
+            background: #ffffff;
+            border: 1px solid var(--table-border);
+            border-radius: 8px;
         }
 
-        /* Header */
         .v3-standings-group .v3-sg-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            gap: 12px;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--v3-border);
-            background: var(--v3-surface);
+            justify-content: space-between;
+            gap: 16px;
+            min-height: 68px;
+            padding: 16px 20px;
+            background: #ffffff;
+            border-bottom: 1px solid var(--table-border);
         }
 
         .v3-standings-group .v3-sg-title-wrap {
@@ -211,299 +204,291 @@
             min-width: 0;
         }
 
-        .v3-standings-group .v3-beacon {
-            width: 8px;
-            height: 8px;
-            background: var(--v3-neon-green);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--v3-neon-green);
-            animation: v3SgBeacon 1.2s infinite alternate;
-            flex-shrink: 0;
-        }
-
-        @keyframes v3SgBeacon {
-            from { opacity: 0.3; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1.2); }
-        }
-
         .v3-standings-group .v3-sg-title {
-            margin: 0;
-            font-size: 0.95rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -0.01em;
-            color: var(--v3-text-main);
             display: flex;
             align-items: center;
-            gap: 8px;
-            white-space: nowrap;
+            gap: 10px;
+            min-width: 0;
+            margin: 0;
             overflow: hidden;
+            color: var(--table-ink);
+            font-size: 16px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.25;
             text-overflow: ellipsis;
-            text-shadow: 0 0 18px rgba(0, 255, 135, 0.25);
+            white-space: nowrap;
         }
 
         .v3-standings-group .v3-sg-badge {
             display: inline-flex;
+            flex: 0 0 28px;
             align-items: center;
             justify-content: center;
-            width: 22px;
-            height: 22px;
-            border-radius: 4px;
-            background: var(--v3-neon-green);
-            color: #000;
-            font-size: 11px;
-            font-weight: 900;
-            font-style: normal;
+            width: 28px;
+            height: 28px;
+            color: #ffffff;
+            background: var(--table-ink);
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .v3-standings-group .v3-sg-meta {
             display: flex;
+            flex: 0 0 auto;
             flex-direction: column;
             align-items: flex-end;
+            gap: 1px;
             text-align: right;
         }
 
         .v3-standings-group .v3-sc-lbl {
-            font-size: 8px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--v3-text-muted);
+            color: var(--table-muted);
+            font-size: 11px;
+            font-weight: 500;
         }
 
         .v3-standings-group .v3-sc-val {
-            font-size: 1.1rem;
-            font-weight: 900;
-            font-style: italic;
-            color: var(--v3-neon-green);
+            color: var(--table-ink);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.2;
         }
 
-        /* Table — neutralize Bootstrap .table light vars */
+        .v3-standings-group .table-responsive {
+            scrollbar-color: #cacacb transparent;
+            scrollbar-width: thin;
+        }
+
         .v3-standings-group .v3-sg-table {
-            --bs-table-bg: transparent;
-            --bs-table-color: var(--v3-text-main);
-            --bs-table-border-color: var(--v3-border);
-            --bs-table-striped-bg: transparent;
-            --bs-table-striped-color: var(--v3-text-main);
-            --bs-table-active-bg: rgba(0, 255, 135, 0.06);
-            --bs-table-active-color: var(--v3-text-main);
-            --bs-table-hover-bg: rgba(0, 255, 135, 0.05);
-            --bs-table-hover-color: var(--v3-text-main);
-            margin: 0;
+            --bs-table-bg: #ffffff;
+            --bs-table-color: var(--table-ink);
+            --bs-table-border-color: var(--table-border);
+            --bs-table-striped-bg: #ffffff;
+            --bs-table-striped-color: var(--table-ink);
+            --bs-table-hover-bg: var(--table-cloud);
+            --bs-table-hover-color: var(--table-ink);
             width: 100%;
+            min-width: 630px;
+            margin: 0;
+            color: var(--table-ink);
+            background: #ffffff;
+            border-color: var(--table-border);
             font-size: 13px;
-            background: transparent !important;
-            color: var(--v3-text-main);
-            border-color: var(--v3-border);
         }
 
-        /* Force dark surfaces at every level (override any parent light bg) */
         .v3-standings-group .v3-sg-table > :not(caption) > * > * {
-            background-color: transparent !important;
-            color: var(--v3-text-sub);
+            color: var(--table-charcoal);
+            background-color: #ffffff;
             box-shadow: none;
         }
 
-        .v3-standings-group .v3-sg-table tbody tr {
-            background-color: transparent !important;
-        }
-
-        .v3-standings-group .v3-sg-table thead tr {
-            background-color: var(--v3-bg) !important;
-        }
-
         .v3-standings-group .v3-sg-table thead th {
-            background: var(--v3-bg);
-            color: var(--v3-text-muted);
-            font-weight: 800;
-            font-size: 10px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            border-bottom: 1px solid var(--v3-border);
-            padding: 10px 8px;
+            padding: 12px 10px;
+            color: var(--table-muted);
+            background: var(--table-cloud);
+            border-bottom: 1px solid var(--table-border);
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.035em;
             text-align: center;
             white-space: nowrap;
         }
 
-        .v3-standings-group .v3-sg-table thead th:first-child { text-align: center; }
-        .v3-standings-group .v3-sg-table thead th:nth-child(2) { text-align: left; }
-
-        .v3-standings-group .v3-sg-table tbody td {
-            padding: 10px 8px;
-            vertical-align: middle;
-            text-align: center;
-            border-bottom: 1px solid var(--v3-border);
-            color: var(--v3-text-sub);
+        .v3-standings-group .v3-sg-table thead th:first-child {
+            width: 52px;
         }
 
-        .v3-standings-group .v3-sg-table tbody td:nth-child(2) { text-align: left; }
+        .v3-standings-group .v3-sg-table thead th:nth-child(2) {
+            min-width: 190px;
+            text-align: left;
+        }
+
+        .v3-standings-group .v3-sg-table tbody td {
+            padding: 12px 10px;
+            color: var(--table-charcoal);
+            border-bottom: 1px solid var(--table-border);
+            text-align: center;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .v3-standings-group .v3-sg-table tbody td:nth-child(2) {
+            text-align: left;
+        }
 
         .v3-standings-group .v3-sg-table tbody tr {
             transition: background-color 150ms ease;
         }
 
-        .v3-standings-group .v3-sg-table tbody tr:hover {
-            background: rgba(0, 255, 135, 0.04);
+        .v3-standings-group .v3-sg-table tbody tr:hover > * {
+            background-color: var(--table-cloud);
         }
 
-        .v3-standings-group .v3-sg-table tbody tr:last-child td {
-            border-bottom: none;
+        .v3-standings-group .v3-sg-table tbody tr:last-child > * {
+            border-bottom: 0;
         }
 
-        /* Top-2 qualify accent */
-        .v3-standings-group .v3-sg-row--top td:first-child {
-            box-shadow: inset 3px 0 0 var(--v3-neon-green);
+        .v3-standings-group .v3-sg-row--top > td:first-child {
+            box-shadow: inset 3px 0 0 var(--table-success);
         }
 
-        /* Position */
         .v3-standings-group .v3-sg-pos {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 24px;
-            height: 24px;
-            border-radius: 4px;
-            font-weight: 900;
-            font-style: italic;
-            font-size: 11px;
-            color: var(--v3-text-sub);
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
+            width: 28px;
+            height: 28px;
+            color: var(--table-charcoal);
+            background: var(--table-cloud);
+            border: 1px solid var(--table-border);
+            border-radius: 50%;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .v3-standings-group .v3-sg-pos.is-top {
-            color: var(--v3-neon-green);
-            border-color: var(--v3-border-glow);
-            background: rgba(0, 255, 135, 0.08);
+            color: var(--table-success);
+            background: var(--table-success-soft);
+            border-color: transparent;
         }
 
-        /* Team info */
         .v3-standings-group .standings-team-info {
             display: flex;
             align-items: center;
-            gap: 10px;
-            min-width: 160px;
+            gap: 12px;
+            min-width: 190px;
         }
 
         .v3-standings-group .standings-team-logo {
-            width: 30px;
-            height: 30px;
-            border-radius: var(--v3-radius-sm);
             display: flex;
+            flex: 0 0 36px;
             align-items: center;
             justify-content: center;
+            width: 36px;
+            height: 36px;
             overflow: hidden;
-            flex-shrink: 0;
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
+            background: var(--table-cloud);
+            border: 1px solid var(--table-border);
+            border-radius: 50%;
         }
 
         .v3-standings-group .standings-team-logo img {
             width: 100%;
             height: 100%;
-            object-fit: cover;
+            object-fit: contain;
         }
 
         .v3-standings-group .standings-team-abbr {
-            font-weight: 800;
-            color: var(--v3-neon-green);
+            color: var(--table-muted);
             font-size: 10px;
+            font-weight: 600;
         }
 
         .v3-standings-group .v3-sg-name {
-            font-weight: 800;
-            color: var(--v3-text-main);
+            overflow: hidden;
+            color: var(--table-ink);
             font-size: 13px;
+            font-weight: 600;
             line-height: 1.3;
+            text-overflow: ellipsis;
         }
 
         .v3-standings-group .standings-team-meta {
-            font-size: 10px;
-            font-weight: 700;
-            color: var(--v3-text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-top: 2px;
+            color: var(--table-muted);
+            font-size: 11px;
+            font-weight: 400;
         }
 
-        /* Stat columns */
-        .v3-standings-group .standings-stat-played { font-weight: 800; color: var(--v3-text-main); }
-        .v3-standings-group .standings-stat-win { color: var(--v3-neon-green); font-weight: 800; }
-        .v3-standings-group .standings-stat-draw { color: var(--v3-text-sub); }
-        .v3-standings-group .standings-stat-loss { color: var(--v3-neon-pink); }
+        .v3-standings-group .standings-stat-played {
+            color: var(--table-ink);
+            font-weight: 600;
+        }
 
-        /* GD */
+        .v3-standings-group .standings-stat-win {
+            color: var(--table-success);
+            font-weight: 600;
+        }
+
+        .v3-standings-group .standings-stat-draw {
+            color: var(--table-charcoal);
+        }
+
+        .v3-standings-group .standings-stat-loss {
+            color: var(--table-danger);
+        }
+
         .v3-standings-group .standings-gd {
-            font-weight: 800;
-            font-size: 11px;
-            padding: 2px 7px;
-            border-radius: 4px;
             display: inline-block;
-            font-family: var(--v3-font-mono);
+            min-width: 36px;
+            padding: 3px 7px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
         }
 
         .v3-standings-group .standings-gd-positive {
-            background: rgba(0, 255, 135, 0.12);
-            color: var(--v3-neon-green);
+            color: var(--table-success);
+            background: var(--table-success-soft);
         }
 
         .v3-standings-group .standings-gd-negative {
-            background: rgba(255, 0, 85, 0.12);
-            color: var(--v3-neon-pink);
+            color: var(--table-danger);
+            background: var(--table-danger-soft);
         }
 
         .v3-standings-group .standings-gd-neutral {
-            background: var(--v3-bg);
-            color: var(--v3-text-sub);
-            border: 1px solid var(--v3-border);
+            color: var(--table-muted);
+            background: var(--table-cloud);
         }
 
-        /* Points */
         .v3-standings-group .v3-sg-pts {
-            background: rgba(0, 255, 135, 0.12);
-            color: var(--v3-neon-green);
-            font-weight: 900;
-            font-style: italic;
-            font-size: 13px;
-            padding: 2px 9px;
-            border-radius: 4px;
-            min-width: 36px;
-            text-align: center;
             display: inline-block;
-            border: 1px solid var(--v3-border-glow);
+            min-width: 36px;
+            padding: 4px 9px;
+            color: #ffffff;
+            background: var(--table-ink);
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 600;
+            text-align: center;
         }
 
-        /* Form dots */
         .v3-standings-group .standings-form {
             display: flex;
-            gap: 4px;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
+            gap: 5px;
+            min-width: 68px;
         }
 
         .v3-standings-group .standings-form-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
             display: inline-block;
-            box-shadow: 0 0 6px currentColor;
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
         }
 
-        .v3-standings-group .standings-dot-win { background: var(--v3-neon-green); color: var(--v3-neon-green); }
-        .v3-standings-group .standings-dot-draw { background: var(--v3-neon-yellow); color: var(--v3-neon-yellow); }
-        .v3-standings-group .standings-dot-loss { background: var(--v3-neon-pink); color: var(--v3-neon-pink); }
-        .v3-standings-group .standings-dot-empty { background: var(--v3-border); color: transparent; box-shadow: none; }
+        .v3-standings-group .standings-dot-win { background: var(--table-success); }
+        .v3-standings-group .standings-dot-draw { background: #b58212; }
+        .v3-standings-group .standings-dot-loss { background: var(--table-danger); }
+        .v3-standings-group .standings-dot-empty { background: #cacacb; }
 
-        /* Responsive */
         @media (max-width: 576px) {
             .v3-standings-group .v3-sg-header {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 8px;
+                min-height: 62px;
+                padding: 14px 16px;
             }
-            .v3-standings-group .v3-sg-meta { align-items: flex-start; text-align: left; }
-            .v3-standings-group .standings-team-info { min-width: auto; }
-            .v3-standings-group .v3-sg-name { font-size: 12px; }
+
+            .v3-standings-group .v3-sg-title {
+                font-size: 15px;
+            }
+
+            .v3-standings-group .standings-team-info {
+                min-width: 180px;
+            }
         }
     </style>
 </div>

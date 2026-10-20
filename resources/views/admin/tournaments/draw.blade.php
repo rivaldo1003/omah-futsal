@@ -1,45 +1,36 @@
 @extends('layouts.admin')
 
-@section('title', 'Tournament Draw — ' . $tournament->name)
+@section('title', 'Undian knockout: ' . $tournament->name)
 
 @section('styles')
     <!-- Canvas Confetti Library -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        /* =============================================================
-           ULTRA ANALYTICS ENGINE v3.0 — TOURNAMENT DRAW
-           ============================================================= */
-        /* v3 tokens shared by the stage and the fullscreen overlay
-           (the overlay is a sibling, so it needs the variables too). */
         .tdw-stage,
         .tdw-overlay {
-            --v3-bg: #020408;
-            --v3-surface: #070c14;
-            --v3-card: #0d1524;
-            --v3-border: #18263e;
-            --v3-border-glow: rgba(0, 255, 135, 0.4);
-            --v3-neon-green: #00ff87;
-            --v3-neon-blue: #00e5ff;
-            --v3-neon-pink: #ff0055;
-            --v3-neon-yellow: #ffb700;
-            --v3-text-main: #ffffff;
-            --v3-text-sub: #8da1b9;
-            --v3-text-muted: #4e6178;
-            --v3-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            --v3-radius-lg: 20px;
-            --v3-radius-md: 12px;
-            --v3-radius-sm: 8px;
+            --tdw-canvas: #f5f5f5;
+            --tdw-surface: #ffffff;
+            --tdw-soft: #f5f5f5;
+            --tdw-ink: #111111;
+            --tdw-body: #39393b;
+            --tdw-muted: #707072;
+            --tdw-rule: #e5e5e5;
+            --tdw-border: #cacacb;
+            --tdw-success: #007d48;
+            --tdw-success-soft: #edf7f1;
+            --tdw-info: #1151ff;
+            --tdw-danger: #d30005;
+            --tdw-radius: 8px;
+            --tdw-radius-control: 6px;
         }
 
         .tdw-stage {
-            background: var(--v3-bg);
-            color: var(--v3-text-main);
-            font-family: var(--v3-font-sans);
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-lg);
             padding: 24px;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--tdw-rule);
+            border-radius: var(--tdw-radius);
+            background: var(--tdw-surface);
+            color: var(--tdw-ink);
+            font-family: inherit;
         }
 
         .v3-hud {
@@ -48,571 +39,222 @@
             align-items: center;
             gap: 16px;
             flex-wrap: wrap;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--v3-border);
-            margin-bottom: 24px;
-            font-size: 11px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--v3-text-sub);
+            padding-bottom: 14px;
+            margin-bottom: 22px;
+            border-bottom: 1px solid var(--tdw-rule);
+            color: var(--tdw-muted);
+            font-size: 12px;
+            font-weight: 500;
         }
 
-        .v3-hud-left, .v3-hud-right { display: flex; align-items: center; gap: 10px; }
-        .v3-hud-sep { opacity: 0.5; }
-        .v3-hud-status { color: var(--v3-neon-green); }
-
-        .v3-beacon {
-            width: 8px;
-            height: 8px;
-            background: var(--v3-neon-green);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--v3-neon-green);
-            animation: v3BeaconPulse 1.2s infinite alternate;
-            flex-shrink: 0;
-        }
-
-        @keyframes v3BeaconPulse {
-            from { opacity: 0.3; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1.2); }
-        }
+        .v3-hud-left,
+        .v3-hud-right { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+        .v3-hud-sep { color: var(--tdw-border); }
+        .v3-hud-status { color: var(--tdw-ink); }
+        .v3-beacon,
+        .tdw-status .dot { width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: var(--tdw-success); }
 
         .tdw-head {
             display: flex;
             justify-content: space-between;
-            align-items: flex-end;
+            align-items: center;
             flex-wrap: wrap;
-            gap: 18px;
-            margin-bottom: 24px;
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
-        .tdw-title {
-            font-size: 2rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -0.03em;
-            line-height: 1;
-            margin: 0;
-            color: var(--v3-text-main);
-            text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
-        }
-
-        .tdw-title span { color: var(--v3-neon-green); }
-
-        .tdw-sub { color: var(--v3-text-sub); font-size: 0.85rem; margin: 8px 0 0; }
-
+        .tdw-title { margin: 0; color: var(--tdw-ink); font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+        .tdw-title span { color: inherit; }
+        .tdw-sub { margin: 5px 0 0; color: var(--tdw-muted); font-size: 14px; }
+        .tdw-back-link { display: inline-flex; align-items: center; gap: 6px; margin-bottom: 7px; color: var(--tdw-muted); font-size: 13px; text-decoration: none; }
+        .tdw-back-link:hover { color: var(--tdw-ink); }
+        .tdw-back-link:focus-visible { outline: 2px solid var(--tdw-ink); outline-offset: 2px; }
         .tdw-status {
             display: inline-flex;
             align-items: center;
-            gap: 10px;
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            padding: 8px 16px;
+            gap: 8px;
+            padding: 5px 10px;
+            border: 1px solid var(--tdw-rule);
             border-radius: 999px;
-            border: 1px solid var(--v3-border);
-            background: var(--v3-surface);
-            color: var(--v3-text-sub);
+            background: var(--tdw-soft);
+            color: var(--tdw-body);
+            font-size: 12px;
+            font-weight: 600;
         }
+        .tdw-status[data-state="DRAFT"] .dot,
+        .tdw-status[data-state="DRAWING"] .dot { background: var(--tdw-muted); }
+        .tdw-status[data-state="DRAW_COMPLETED"] .dot { background: var(--tdw-success); }
+        .tdw-status[data-state="IN_PROGRESS"] .dot { background: var(--tdw-info); }
 
-        .tdw-status .dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--v3-neon-green);
-            box-shadow: 0 0 12px var(--v3-neon-green);
-        }
-
-        .tdw-status[data-state="DRAFT"] .dot { background: var(--v3-text-muted); box-shadow: none; }
-        .tdw-status[data-state="DRAWING"] .dot { background: var(--v3-neon-yellow); box-shadow: 0 0 12px var(--v3-neon-yellow); }
-        .tdw-status[data-state="DRAW_COMPLETED"] .dot { background: var(--v3-neon-green); box-shadow: 0 0 12px var(--v3-neon-green); }
-        .tdw-status[data-state="IN_PROGRESS"] .dot { background: var(--v3-neon-blue); box-shadow: 0 0 12px var(--v3-neon-blue); }
-
-        .tdw-grid {
-            display: grid;
-            grid-template-columns: 360px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-
-        .tdw-panel {
-            background: var(--v3-surface);
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-md);
-            overflow: hidden;
-        }
-
+        .tdw-grid { display: grid; grid-template-columns: minmax(300px, 340px) minmax(0, 1fr); gap: 16px; align-items: start; }
+        .tdw-panel { overflow: hidden; border: 1px solid var(--tdw-rule); border-radius: var(--tdw-radius); background: var(--tdw-surface); }
         .tdw-panel + .tdw-panel { margin-top: 16px; }
-
         .tdw-panel-head {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 14px 18px;
-            border-bottom: 1px solid var(--v3-border);
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--v3-text-sub);
+            gap: 12px;
+            padding: 13px 16px;
+            border-bottom: 1px solid var(--tdw-rule);
+            color: var(--tdw-ink);
+            font-size: 14px;
+            font-weight: 600;
         }
-
-        .tdw-panel-head .count {
-            color: var(--v3-neon-green);
-            font-family: var(--v3-font-mono);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .tdw-panel-body { padding: 18px; }
+        .tdw-panel-head .count { color: var(--tdw-muted); font-variant-numeric: tabular-nums; }
+        .tdw-panel-body { padding: 16px; }
 
         .tdw-btn {
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            height: 38px;
-            padding: 0 16px;
-            border-radius: var(--v3-radius-sm);
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
+            padding: 8px 15px;
+            border: 1px solid var(--tdw-border);
+            border-radius: 999px;
+            background: var(--tdw-soft);
+            color: var(--tdw-ink);
+            font: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            line-height: 1.2;
             cursor: pointer;
-            border: 1px solid var(--v3-border);
-            background: var(--v3-card);
-            color: var(--v3-text-main);
-            transition: border-color 150ms ease, background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+            transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
         }
-
-        .tdw-btn:hover {
-            border-color: var(--v3-border-glow);
-            color: var(--v3-neon-green);
-            box-shadow: 0 0 16px rgba(0, 255, 135, 0.15);
-        }
-
-        .tdw-btn:disabled { opacity: 0.45; cursor: not-allowed; }
-
-        .tdw-btn--primary {
-            background: rgba(0, 255, 135, 0.12);
-            color: var(--v3-text-main);
-            border-color: var(--v3-neon-green);
-            box-shadow: 0 0 18px rgba(0, 255, 135, 0.25);
-        }
-        .tdw-btn--primary:hover {
-            background: rgba(0, 255, 135, 0.22);
-            color: var(--v3-text-main);
-            box-shadow: 0 0 26px rgba(0, 255, 135, 0.4);
-        }
-
-        .tdw-btn--danger { color: var(--v3-neon-pink); border-color: rgba(255, 0, 85, 0.35); }
-        .tdw-btn--danger:hover { background: rgba(255, 0, 85, 0.08); border-color: var(--v3-neon-pink); box-shadow: 0 0 16px rgba(255, 0, 85, 0.2); }
+        .tdw-btn:hover { border-color: var(--tdw-border); background: var(--tdw-rule); color: var(--tdw-ink); }
+        .tdw-btn:disabled { opacity: .5; cursor: not-allowed; }
+        .tdw-btn--primary,
+        .tdw-btn--primary:hover { border-color: var(--tdw-ink); background: var(--tdw-ink); color: #fff; }
+        .tdw-btn--danger,
+        .tdw-btn--danger:hover { border-color: #e5b6b8; background: #fff; color: var(--tdw-danger); }
+        .tdw-btn:focus-visible { outline: 2px solid var(--tdw-ink); outline-offset: 2px; }
 
         .tdw-team-scroll { max-height: 400px; overflow-y: auto; padding-right: 4px; }
         .tdw-team-scroll::-webkit-scrollbar { width: 6px; }
-        .tdw-team-scroll::-webkit-scrollbar-track { background: var(--v3-bg); }
-        .tdw-team-scroll::-webkit-scrollbar-thumb { background: var(--v3-border); border-radius: 4px; }
-
+        .tdw-team-scroll::-webkit-scrollbar-track { background: var(--tdw-surface); }
+        .tdw-team-scroll::-webkit-scrollbar-thumb { border-radius: 4px; background: var(--tdw-border); }
         .tdw-team {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
             gap: 10px;
             min-width: 0;
-            padding: 12px 14px;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            margin-bottom: 8px;
-            background: var(--v3-card);
-            transition: border-color 150ms ease, box-shadow 150ms ease, opacity 300ms ease, transform 300ms ease;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--tdw-rule);
+            background: var(--tdw-surface);
+            transition: background-color 150ms ease, opacity 200ms ease, transform 200ms ease;
         }
+        .tdw-team:last-child { border-bottom: 0; }
+        .tdw-team.is-drawing,
+        .tdw-team.is-manual-selected { padding-left: 10px; border-left: 3px solid var(--tdw-ink); background: var(--tdw-soft); }
+        .tdw-team.is-leaving { opacity: 0; transform: translateX(-12px); }
+        .tdw-team-name { overflow-wrap: anywhere; color: var(--tdw-ink); font-size: 14px; font-weight: 600; }
+        .tdw-team-meta { margin-top: 3px; color: var(--tdw-muted); font-size: 12px; }
+        .tdw-team-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 7px; width: 100%; min-width: 0; }
+        .tdw-team-actions .tdw-btn { min-height: 38px; padding: 7px 12px; font-size: 12px; white-space: nowrap; }
 
-        .tdw-team:hover { border-color: var(--v3-border-glow); }
-        .tdw-team.is-drawing { border-color: var(--v3-neon-green); box-shadow: 0 0 18px rgba(0, 255, 135, 0.25); }
-        .tdw-team.is-manual-selected { border-color: var(--v3-neon-blue); box-shadow: 0 0 16px rgba(0, 229, 255, 0.16); }
-        .tdw-team.is-leaving { opacity: 0; transform: translateX(-24px); }
-
-        .tdw-team-name { overflow-wrap: anywhere; font-weight: 700; font-size: 0.9rem; color: var(--v3-text-main); }
-        .tdw-team-meta { font-size: 11px; color: var(--v3-text-sub); margin-top: 2px; }
-        .tdw-team-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; width: 100%; min-width: 0; }
-        .tdw-team-actions .tdw-btn { max-width: 100%; height: 34px; padding: 0 10px; font-size: 9px; white-space: nowrap; }
-
-        .tdw-placed-list { display: grid; gap: 8px; max-height: 280px; overflow-y: auto; }
-        .tdw-placed-row {
-            display: grid;
-            grid-template-columns: minmax(0, 1fr) auto;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 10px;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            background: var(--v3-card);
-        }
+        .tdw-placed-list { display: grid; max-height: 280px; overflow-y: auto; }
+        .tdw-placed-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--tdw-rule); }
+        .tdw-placed-row:last-child { border-bottom: 0; }
         .tdw-placed-summary { display: flex; align-items: center; gap: 9px; min-width: 0; }
-        .tdw-placed-slot {
-            flex: 0 0 auto;
-            padding: 4px 7px;
-            border: 1px solid var(--v3-border);
-            border-radius: 6px;
-            color: var(--v3-neon-green);
-            font: 700 11px/1.2 var(--v3-font-mono);
-            font-variant-numeric: tabular-nums;
-        }
-        .tdw-placed-name { min-width: 0; overflow-wrap: anywhere; color: var(--v3-text-main); font-size: 14px; font-weight: 700; }
-        .tdw-placed-row .tdw-btn { min-height: 44px; padding: 0 10px; white-space: nowrap; }
-        .tdw-placement-lock { color: var(--v3-text-sub); font-size: 14px; text-align: right; }
-        .tdw-placement-help { margin: 0 0 12px; color: var(--v3-text-sub); font-size: 14px; line-height: 1.45; }
-
-        .tdw-manual-hint {
-            margin-bottom: 12px;
-            padding: 10px 12px;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            background: var(--v3-bg);
-            color: var(--v3-text-sub);
-            font-size: 11px;
-            line-height: 1.5;
-        }
-        .tdw-manual-hint.is-active { border-color: rgba(0, 229, 255, .4); color: var(--v3-text-main); }
-
-        .tdw-side.is-manual-target {
-            cursor: pointer;
-            outline: none;
-            background: rgba(0, 229, 255, .045);
-        }
-        .tdw-side.is-manual-target:hover,
-        .tdw-side.is-manual-target:focus-visible {
-            background: rgba(0, 229, 255, .13);
-            box-shadow: inset 0 0 0 1px rgba(0, 229, 255, .55);
-        }
-        .tdw-side.is-manual-target::after {
-            content: 'PILIH SLOT';
-            flex: 0 0 auto;
-            color: var(--v3-neon-blue);
-            font-size: 8px;
-            font-weight: 800;
-            letter-spacing: .5px;
-        }
+        .tdw-placed-slot { flex: 0 0 auto; padding: 4px 7px; border: 1px solid var(--tdw-rule); border-radius: 4px; color: var(--tdw-body); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .tdw-placed-name { min-width: 0; overflow-wrap: anywhere; color: var(--tdw-ink); font-size: 14px; font-weight: 600; }
+        .tdw-placed-row .tdw-btn { min-height: 40px; padding: 7px 12px; white-space: nowrap; }
+        .tdw-placement-lock { color: var(--tdw-muted); font-size: 13px; text-align: right; }
+        .tdw-placement-help { margin: 0 0 12px; color: var(--tdw-muted); font-size: 13px; line-height: 1.5; }
+        .tdw-manual-hint { margin-bottom: 12px; padding: 10px 12px; border: 1px solid var(--tdw-rule); border-radius: var(--tdw-radius-control); background: var(--tdw-soft); color: var(--tdw-body); font-size: 13px; line-height: 1.5; }
+        .tdw-manual-hint.is-active { border-color: var(--tdw-ink); color: var(--tdw-ink); }
 
         .tdw-slots { display: flex; flex-wrap: wrap; gap: 7px; }
+        .tdw-slot-num { min-width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; padding: 0 8px; border: 1px solid var(--tdw-rule); border-radius: var(--tdw-radius-control); background: #fff; color: var(--tdw-ink); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; transition: background-color 150ms ease, color 150ms ease; }
+        .tdw-slot-num.taken { border-color: transparent; background: var(--tdw-soft); color: var(--tdw-muted); text-decoration: line-through; }
+        .tdw-slot-num.just-taken { border-color: #b9dfcd; background: var(--tdw-success-soft); color: var(--tdw-success); }
 
-        .tdw-slot-num {
-            min-width: 34px;
-            height: 34px;
-            padding: 0 9px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--v3-radius-sm);
-            border: 1px solid var(--v3-border);
-            background: var(--v3-card);
-            font-size: 12px;
-            font-weight: 800;
-            font-family: var(--v3-font-mono);
-            font-variant-numeric: tabular-nums;
-            color: var(--v3-text-main);
-            transition: opacity 300ms ease, transform 300ms ease, background 300ms ease, color 300ms ease;
-        }
-
-        .tdw-slot-num.taken { opacity: 0.25; text-decoration: line-through; border-color: transparent; background: transparent; }
-
-        .tdw-slot-num.just-taken {
-            background: rgba(0, 255, 135, 0.15);
-            color: var(--v3-text-main);
-            border-color: var(--v3-neon-green);
-            transform: scale(1.25);
-            box-shadow: 0 0 22px var(--v3-neon-green);
-        }
-
-        .tdw-bracket-wrapper { overflow-x: auto; padding: 8px 0; }
+        .tdw-bracket-wrapper { overflow-x: auto; padding: 16px; border-radius: var(--tdw-radius); background: var(--tdw-canvas); }
         .tdw-bracket-wrapper::-webkit-scrollbar { height: 8px; }
-        .tdw-bracket-wrapper::-webkit-scrollbar-thumb { background: var(--v3-border); border-radius: 4px; }
-
-        .tdw-bracket { display: flex; gap: 44px; min-width: max-content; }
-
-        .tdw-round { display: flex; flex-direction: column; width: 240px; }
-
-        .tdw-round-title {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1.5px;
-            text-transform: uppercase;
-            color: var(--v3-neon-green);
-            margin-bottom: 18px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--v3-border);
-            border-left: 3px solid var(--v3-neon-green);
-            padding-left: 10px;
-        }
-
+        .tdw-bracket-wrapper::-webkit-scrollbar-thumb { border-radius: 4px; background: var(--tdw-border); }
+        .tdw-bracket { position: relative; isolation: isolate; display: flex; gap: 32px; min-width: max-content; }
+        .tdw-bracket-connections { position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+        .tdw-bracket .standings-bracket-connector-path,
+        .tdw-bracket .v3-bracket-connector-path { fill: none; stroke: var(--tdw-success); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: .72; }
+        .tdw-bracket .standings-bracket-connector-junction,
+        .tdw-bracket .v3-bracket-connector-junction { fill: var(--tdw-surface); stroke: var(--tdw-success); stroke-width: 1.75; }
+        .tdw-round { position: relative; z-index: 1; display: flex; flex-direction: column; width: 240px; }
+        .tdw-round-title { margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid var(--tdw-border); color: var(--tdw-ink); font-size: 13px; font-weight: 600; }
         .tdw-match-list { display: flex; flex-direction: column; justify-content: space-around; flex-grow: 1; }
+        .tdw-match { position: relative; margin: 10px 0; border: 1px solid var(--tdw-rule); border-radius: var(--tdw-radius-control); background: #fff; }
+        .tdw-match.is-final { border-color: var(--tdw-ink); }
+        .tdw-side { position: relative; min-height: 44px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; color: var(--tdw-ink); font-size: 13px; transition: background-color 150ms ease; }
+        .tdw-side + .tdw-side { border-top: 1px solid var(--tdw-rule); }
+        .tdw-side .seed { min-width: 28px; height: 22px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--tdw-rule); border-radius: 4px; background: var(--tdw-soft); color: var(--tdw-muted); font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .tdw-side .nm { flex: 1; overflow: hidden; color: var(--tdw-muted); font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+        .tdw-side .nm.filled { color: var(--tdw-ink); font-weight: 600; }
+        .tdw-side.is-manual-target { background: var(--tdw-soft); cursor: pointer; }
+        .tdw-side.is-manual-target:hover { outline: 1px solid var(--tdw-ink); outline-offset: -1px; background: #e5e5e5; }
+        .tdw-side.is-manual-target:focus-visible { outline: 2px solid var(--tdw-ink); outline-offset: -2px; }
+        .tdw-side.is-manual-target::after { flex: 0 0 auto; color: var(--tdw-ink); content: 'Pilih slot'; font-size: 10px; font-weight: 600; }
+        .tdw-pending { display: inline-flex; align-items: center; gap: 7px; max-width: 100%; padding: 4px 8px; border: 1px dashed var(--tdw-border); border-radius: 4px; color: var(--tdw-muted); font-size: 11px; line-height: 1.3; }
+        .tdw-pending::before { width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: var(--tdw-muted); content: ''; }
+        .tdw-side.slot-highlight { z-index: 1; background: var(--tdw-success-soft); }
+        .tdw-side.slot-highlight .seed { border-color: #b9dfcd; background: var(--tdw-success-soft); color: var(--tdw-success); }
 
-        .tdw-match {
-            position: relative;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            background: var(--v3-card);
-            box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
-            margin: 10px 0;
-            transition: border-color 150ms ease, box-shadow 150ms ease;
-        }
-
-        .tdw-match.is-final { border-color: var(--v3-border-glow); box-shadow: 0 0 22px rgba(0, 255, 135, 0.18); }
-
-        .tdw-round:not(:last-child) .tdw-match::after {
-            content: '';
-            position: absolute;
-            right: -22px;
-            top: 50%;
-            width: 22px;
-            height: 1px;
-            background: var(--v3-border);
-            z-index: 1;
-        }
-
-        .tdw-side {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 11px 13px;
-            font-size: 0.86rem;
-            min-height: 46px;
-            position: relative;
-            transition: background 300ms ease, box-shadow 300ms ease, transform 300ms ease;
-        }
-
-        .tdw-side + .tdw-side { border-top: 1px solid var(--v3-border); }
-
-        .tdw-side .seed {
-            font-size: 10px;
-            font-weight: 800;
-            color: var(--v3-text-sub);
-            font-family: var(--v3-font-mono);
-            min-width: 28px;
-            height: 22px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
-            border-radius: 6px;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .tdw-side .nm {
-            flex: 1;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            color: var(--v3-text-sub);
-            font-weight: 500;
-        }
-
-        .tdw-side .nm.filled { color: var(--v3-text-main); font-weight: 700; }
-
-        .tdw-pending {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            max-width: 100%;
-            padding: 4px 9px;
-            border: 1px solid rgba(0, 229, 255, 0.2);
-            border-radius: 999px;
-            background: rgba(0, 229, 255, 0.06);
-            color: var(--v3-text-sub);
-            font-size: 9px;
-            font-weight: 700;
-            letter-spacing: 0.08em;
-            line-height: 1.2;
-            text-transform: uppercase;
-        }
-
-        .tdw-pending::before {
-            content: '';
-            width: 5px;
-            height: 5px;
-            flex: 0 0 5px;
-            border-radius: 50%;
-            background: var(--v3-neon-blue);
-            box-shadow: 0 0 8px rgba(0, 229, 255, 0.6);
-        }
-
-        .tdw-side.slot-highlight {
-            background: rgba(0, 255, 135, 0.18);
-            box-shadow: 0 0 28px rgba(0, 255, 135, 0.55);
-            transform: scale(1.03);
-            z-index: 10;
-            border-radius: var(--v3-radius-sm);
-        }
-        .tdw-side.slot-highlight .seed {
-            background: rgba(0, 255, 135, 0.18);
-            color: var(--v3-text-main);
-            border-color: var(--v3-neon-green);
-            box-shadow: 0 0 12px rgba(0, 255, 135, 0.5);
-        }
-
-        .tdw-overlay {
-            position: fixed;
-            inset: 0;
-            z-index: 99999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            background: radial-gradient(circle at 50% 50%, rgba(13, 21, 36, 0.96) 0%, rgba(2, 4, 8, 0.99) 100%);
-            backdrop-filter: blur(20px);
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 400ms ease, visibility 400ms ease;
-            overflow: hidden;
-        }
-
+        .tdw-overlay { position: fixed; z-index: 1000; inset: 0; display: flex; align-items: center; justify-content: center; flex-direction: column; overflow: hidden; background: rgba(255, 255, 255, .98); opacity: 0; visibility: hidden; transition: opacity 250ms ease, visibility 250ms ease; }
         .tdw-overlay.is-open { opacity: 1; visibility: visible; }
-
-        .tdw-ov-ring {
-            position: absolute;
-            width: 500px;
-            height: 500px;
-            border-radius: 50%;
-            border: 1px solid var(--v3-neon-green);
-            opacity: 0.1;
-            animation: pulseRing 3s infinite linear;
-            pointer-events: none;
-        }
-
-        @keyframes pulseRing {
-            0% { transform: scale(0.5); opacity: 0.6; }
-            100% { transform: scale(2.2); opacity: 0; }
-        }
-
-        .tdw-ov-hud {
-            position: absolute;
-            top: 24px;
-            left: 0;
-            right: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 12px;
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--v3-text-sub);
-        }
-
-        .tdw-ov-stage { text-align: center; position: relative; z-index: 2; }
-
-        .tdw-ov-team {
-            font-size: 2rem;
-            font-weight: 900;
-            font-style: italic;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-            color: var(--v3-text-main);
-            margin-bottom: 22px;
-            text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
-            transform: translateY(20px);
-            opacity: 0;
-            transition: transform 400ms ease, opacity 400ms ease;
-        }
-
+        .tdw-ov-hud { position: absolute; top: 24px; left: 0; right: 0; display: flex; justify-content: center; align-items: center; gap: 10px; color: var(--tdw-muted); font-size: 12px; font-weight: 600; }
+        .tdw-ov-stage { position: relative; z-index: 2; text-align: center; }
+        .tdw-ov-team { max-width: calc(100vw - 40px); margin: 0 auto 18px; color: var(--tdw-ink); font-size: 24px; font-weight: 600; overflow-wrap: anywhere; transform: translateY(8px); opacity: 0; transition: transform 250ms ease, opacity 250ms ease; }
         .tdw-overlay.is-open .tdw-ov-team { transform: translateY(0); opacity: 1; }
-
-        .tdw-ov-box {
-            position: relative;
-            width: 240px;
-            height: 200px;
-            margin: 0 auto 22px;
-            background: var(--v3-surface);
-            border: 1px solid var(--v3-border-glow);
-            border-radius: var(--v3-radius-lg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 0 60px rgba(0, 255, 135, 0.2);
-            perspective: 1000px;
-        }
-
-        .tdw-ov-number {
-            font-size: 6.5rem;
-            line-height: 1;
-            font-weight: 900;
-            font-style: italic;
-            font-family: var(--v3-font-mono);
-            color: var(--v3-neon-green);
-            font-variant-numeric: tabular-nums;
-            text-shadow: 0 0 40px var(--v3-neon-green);
-            transition: transform 300ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .tdw-ov-number.is-rolling { animation: rollBlur 80ms infinite alternate; color: var(--v3-text-main); }
-        .tdw-ov-number.is-locked { transform: scale(1.2); color: var(--v3-neon-green); }
-
-        @keyframes rollBlur {
-            0% { transform: translateY(-8px) scale(0.95); filter: blur(3px); }
-            100% { transform: translateY(8px) scale(1.05); filter: blur(0px); }
-        }
-
-        .tdw-ov-caption {
-            font-size: 11px;
-            font-weight: 800;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-            color: var(--v3-text-sub);
-        }
-
-        .flying-badge {
-            position: fixed;
-            z-index: 100000;
-            background: var(--v3-surface);
-            color: var(--v3-text-main);
-            border: 1px solid var(--v3-neon-green);
-            font-weight: 900;
-            padding: 10px 20px;
-            border-radius: var(--v3-radius-sm);
-            box-shadow: 0 0 30px var(--v3-neon-green);
-            pointer-events: none;
-            transition: all 850ms cubic-bezier(0.19, 1, 0.22, 1);
-            font-size: 0.95rem;
-            letter-spacing: 0.5px;
-        }
+        .tdw-ov-box { width: 200px; height: 160px; display: flex; align-items: center; justify-content: center; margin: 0 auto 18px; border: 1px solid var(--tdw-rule); border-radius: var(--tdw-radius); background: var(--tdw-soft); }
+        .tdw-ov-number { color: var(--tdw-ink); font-size: 64px; font-weight: 600; line-height: 1; font-variant-numeric: tabular-nums; transition: color 160ms ease; }
+        .tdw-ov-number.is-rolling { animation: tdwNumberRoll 180ms infinite alternate; color: var(--tdw-body); }
+        .tdw-ov-number.is-locked { color: var(--tdw-success); }
+        @keyframes tdwNumberRoll { from { transform: translateY(-2px); } to { transform: translateY(2px); } }
+        .tdw-ov-caption { color: var(--tdw-muted); font-size: 13px; }
+        .flying-badge { position: fixed; z-index: 1001; padding: 10px 16px; border: 1px solid #111; border-radius: 6px; background: #fff; color: #111; font-size: 13px; font-weight: 600; pointer-events: none; transition: left 650ms ease-out, top 650ms ease-out, transform 650ms ease-out, opacity 650ms ease-out; }
 
         @media (max-width: 900px) {
+            .tdw-grid { grid-template-columns: minmax(0, 1fr); }
+            .tdw-bracket-wrapper { padding: 12px; }
+        }
+
+        @media (max-width: 600px) {
             .tdw-stage { padding: 16px; }
-            .tdw-grid { grid-template-columns: 1fr; }
-            .tdw-title { font-size: 1.6rem; }
-            .tdw-ov-team { font-size: 1.4rem; }
-            .tdw-ov-box { width: 180px; height: 140px; }
-            .tdw-ov-number { font-size: 4.5rem; }
+            .v3-hud { align-items: flex-start; font-size: 11px; }
+            .tdw-title { font-size: 21px; }
+            .tdw-panel-body { padding: 14px; }
+            .tdw-team-actions { justify-content: flex-start; }
+            .tdw-team-actions .tdw-btn { min-height: 44px; }
+            .tdw-placed-row { grid-template-columns: minmax(0, 1fr); }
+            .tdw-placed-row .tdw-btn { justify-self: start; }
+            .tdw-bracket { gap: 24px; }
+            .tdw-round { width: 220px; }
+            .tdw-ov-team { font-size: 20px; }
+            .tdw-ov-box { width: 160px; height: 130px; }
+            .tdw-ov-number { font-size: 52px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .tdw-stage *, .tdw-overlay * {
-                animation: none !important;
-                transition: none !important;
-            }
+            .tdw-stage *, .tdw-overlay * { animation: none !important; transition: none !important; }
         }
     </style>
 @endsection
 
 @section('content')
     <div class="tdw-stage">
-        {{-- Top Telemetry HUD --}}
+        {{-- Ringkasan undian --}}
         <div class="v3-hud">
             <div class="v3-hud-left">
                 <span class="v3-beacon"></span>
-                <span>ULTRA ANALYTICS ENGINE v3.0</span>
+                <span>OFS Futsal Center</span>
                 <span class="v3-hud-sep">/</span>
-                <span class="v3-hud-status">DRAW SYSTEM ONLINE</span>
+                <span class="v3-hud-status">Undian knockout</span>
             </div>
             <div class="v3-hud-right">
-                <span>{{ $teamCount }} TIM</span>
+                <span>{{ $teamCount }} tim</span>
                 <span class="v3-hud-sep">/</span>
                 @if($bracketCapacity > $bracketSize)
-                    <span>KAPASITAS {{ $bracketCapacity }} / BAGAN AKTUAL {{ $bracketSize }} SLOT</span>
+                    <span>Kapasitas {{ $bracketCapacity }} / bagan {{ $bracketSize }} slot</span>
                 @else
-                    <span>BRACKET {{ $bracketSize }} SLOT</span>
+                    <span>Bagan {{ $bracketSize }} slot</span>
                 @endif
                 @if($byeCount > 0)
                     <span class="v3-hud-sep">/</span>
@@ -624,26 +266,29 @@
         {{-- Module header --}}
         <div class="tdw-head">
             <div>
-                <h1 class="tdw-title">TOURNAMENT <span>DRAW STAGE</span></h1>
+                <a class="tdw-back-link" href="{{ route('admin.tournaments.show', $tournament) }}">
+                    <i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke detail turnamen
+                </a>
+                <h1 class="tdw-title">Undian Knockout</h1>
                 <p class="tdw-sub">{{ $tournament->name }}</p>
             </div>
             <div class="tdw-status" data-state="{{ $status }}">
                 <span class="dot"></span>
-                <span id="drawStatusLabel">{{ $status }}</span>
+                <span id="drawStatusLabel">{{ ['DRAFT' => 'Belum dimulai', 'DRAWING' => 'Sedang mengundi', 'DRAW_COMPLETED' => 'Undian selesai', 'IN_PROGRESS' => 'Turnamen berjalan'][$status] ?? 'Status turnamen' }}</span>
             </div>
         </div>
 
         @if(session('success'))
-            <div class="tdw-panel" style="margin-bottom:16px; border-color: var(--v3-border-glow);">
-                <div class="tdw-panel-body" style="color:var(--v3-neon-green);">
+            <div class="tdw-panel" style="margin-bottom:16px; border-color: var(--tdw-border);">
+                <div class="tdw-panel-body" style="color:var(--tdw-success);">
                     <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
                 </div>
             </div>
         @endif
 
         @if(session('error'))
-            <div class="tdw-panel" role="alert" style="margin-bottom:16px; border-color: rgba(255, 0, 85, .55);">
-                <div class="tdw-panel-body" style="color:#ff7b9d;">
+            <div class="tdw-panel" role="alert" style="margin-bottom:16px; border-color: #e5b6b8;">
+                <div class="tdw-panel-body" style="color: var(--tdw-danger);">
                     <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
                 </div>
             </div>
@@ -653,14 +298,14 @@
             {{-- LEFT column --}}
             <div>
                 <div class="tdw-panel">
-                    <div class="tdw-panel-head">Controls</div>
+                    <div class="tdw-panel-head">Aksi undian</div>
                     <div class="tdw-panel-body">
                         <div style="display:flex; flex-wrap:wrap; gap:8px;">
                             @if(!$hasBracket && !$hasKnockoutFixtures && !$hasDrawHistory && $teamCount >= 2)
                                 <form method="POST" action="{{ route('admin.tournaments.draw.build', $tournament) }}">
                                     @csrf
                                     <button class="tdw-btn tdw-btn--primary" type="submit">
-                                        <i class="bi bi-diagram-3"></i> Generate Bracket
+                                        <i class="bi bi-diagram-3"></i> Buat bagan
                                     </button>
                                 </form>
                             @endif
@@ -669,7 +314,7 @@
                                 <form method="POST" action="{{ route('admin.tournaments.draw.all', $tournament) }}">
                                     @csrf
                                     <button class="tdw-btn" type="submit">
-                                        <i class="bi bi-shuffle"></i> Undi Otomatis Sisa
+                                        <i class="bi bi-shuffle"></i> Undi acak tim tersisa
                                     </button>
                                 </form>
                             @endif
@@ -678,7 +323,7 @@
                                 <form method="POST" action="{{ route('admin.tournaments.draw.generate-matches', $tournament) }}">
                                     @csrf
                                     <button class="tdw-btn tdw-btn--primary" type="submit" title="Buat match untuk seluruh babak bracket">
-                                        <i class="bi bi-calendar2-check"></i> Generate Semua Match
+                                        <i class="bi bi-calendar2-check"></i> Buat semua pertandingan
                                     </button>
                                 </form>
                             @endif
@@ -696,11 +341,11 @@
                         </div>
 
                         @if(!$hasBracket && !$hasKnockoutFixtures && !$hasDrawHistory && $teamCount < 2)
-                            <p class="mb-0 mt-3" style="color: var(--v3-text-sub);">
+                            <p class="mb-0 mt-3" style="color: var(--tdw-muted);">
                                 Daftarkan minimal 2 tim untuk membuat bracket dan memulai undian.
                             </p>
                         @elseif(!$hasBracket && ($hasKnockoutFixtures || $hasDrawHistory))
-                            <p class="mb-0 mt-3" style="color: var(--v3-text-sub);">
+                            <p class="mb-0 mt-3" style="color: var(--tdw-muted);">
                                 Data undian atau fixture lama ditemukan tanpa struktur bracket. Gunakan Reset untuk memulihkan;
                                 fixture yang sudah dimulai atau memiliki hasil/event akan membuat reset ditolak demi menjaga data.
                             </p>
@@ -728,7 +373,7 @@
                                     <div>
                                         <div class="tdw-team-name">{{ $team->name }}</div>
                                         <div class="tdw-team-meta">
-                                            <i class="bi bi-person-fill me-1"></i>{{ $team->coach_name ?: 'Club member' }}
+                                            <i class="bi bi-person-fill me-1"></i>{{ $team->coach_name ?: 'Pelatih belum diatur' }}
                                         </div>
                                     </div>
                                     @if($hasBracket)
@@ -749,8 +394,8 @@
                                     @endif
                                 </div>
                             @empty
-                                <div class="text-center py-4" style="color: var(--v3-text-sub);">
-                                    <i class="bi bi-check-all fs-3 d-block mb-2" style="color: var(--v3-neon-green);"></i>
+                                <div class="text-center py-4" style="color: var(--tdw-muted);">
+                                    <i class="bi bi-check-all fs-3 d-block mb-2" style="color: var(--tdw-success);"></i>
                                     Semua tim telah diundi.
                                 </div>
                             @endforelse
@@ -826,32 +471,35 @@
             {{-- RIGHT column: bracket --}}
             <div class="tdw-panel">
                 <div class="tdw-panel-head">
-                    <span>Knockout Bracket Visualizer</span>
-                    <span style="color: var(--v3-neon-green);">
-                        <i class="bi bi-broadcast me-1"></i>LIVE STAGE
+                    <span>Bagan pertandingan</span>
+                    <span style="color: var(--tdw-muted);">
+                        {{ $tournament->name }}
                     </span>
                 </div>
                 <div class="tdw-panel-body">
                     @if(!$hasBracket)
-                        <div class="text-center py-5" style="color: var(--v3-text-sub);">
-                            <i class="bi bi-diagram-3 fs-1 d-block mb-3" style="color: var(--v3-text-muted);"></i>
+                        <div class="text-center py-5" style="color: var(--tdw-muted);">
+                            <i class="bi bi-diagram-3 fs-1 d-block mb-3" style="color: var(--tdw-muted);"></i>
                             @if($hasKnockoutFixtures || $hasDrawHistory)
                                 Data undian lama ditemukan tanpa bracket. Gunakan Reset untuk memulihkan sebelum mengundi kembali.
                             @elseif($teamCount < 2)
                                 Bracket bisa dibuat setelah minimal 2 tim terdaftar.
                             @else
-                                Bracket belum dibuat. Klik <strong style="color: var(--v3-neon-green);">Generate Bracket</strong> untuk masuk ke mode undian.
+                                Bagan belum dibuat. Klik <strong style="color: var(--tdw-success);">Buat bagan</strong> untuk memulai undian.
                             @endif
                         </div>
                     @else
                         <div class="tdw-bracket-wrapper">
-                            <div class="tdw-bracket" id="bracketTree">
+                            <div class="tdw-bracket" id="bracketTree" data-bracket-connectors>
+                                <svg class="tdw-bracket-connections" aria-hidden="true" focusable="false"></svg>
                                 @foreach($tree as $round)
-                                    <div class="tdw-round">
+                                    <div class="tdw-round" data-bracket-round="{{ $round['round_number'] }}"
+                                        data-bracket-advances="{{ $loop->last ? 'false' : 'true' }}">
                                         <div class="tdw-round-title">{{ $round['label'] }}</div>
                                         <div class="tdw-match-list">
                                             @foreach($round['matches'] as $rm)
-                                                <div class="tdw-match {{ $rm['is_final'] ? 'is-final' : '' }}">
+                                                <div class="tdw-match {{ $rm['is_final'] ? 'is-final' : '' }}"
+                                                    data-bracket-match-index="{{ $rm['match_index'] }}">
                                                     @foreach(['home' => $rm['home'], 'away' => $rm['away']] as $side => $slot)
                                                         @php
                                                             $isBye = $slot && $slot->source === 'bye';
@@ -866,13 +514,13 @@
                                                             data-manual-slot="{{ $canManualPlace ? 'true' : 'false' }}"
                                                             @if($canManualPlace) role="button" tabindex="-1" aria-disabled="true" aria-label="Pilih slot {{ $slot->slot_number }} untuk tim" @endif>
                                                             <span class="seed">
-                                                                {{ $slot && $slot->slot_number ? '#' . $slot->slot_number : '–' }}
+                                                                {{ $slot && $slot->slot_number ? '#' . $slot->slot_number : 'Belum' }}
                                                             </span>
                                                             <span class="nm {{ $teamName ? 'filled' : '' }}">
                                                                 @if($teamName)
                                                                     {{ $teamName }}
                                                                 @elseif($isBye)
-                                                                    <em style="color: var(--v3-text-sub);">BYE</em>
+                                                                    <em style="color: var(--tdw-muted);">BYE</em>
                                                                 @else
                                                                     <span class="tdw-pending" aria-label="Slot menunggu diisi">Menunggu</span>
                                                                 @endif
@@ -896,17 +544,17 @@
     <div class="tdw-overlay" id="drawOverlay" aria-hidden="true">
         <div class="tdw-ov-hud">
             <span class="v3-beacon"></span>
-            <span>LIVE DRAW</span>
+            <span>Undian turnamen</span>
         </div>
-        <div class="tdw-ov-ring"></div>
         <div class="tdw-ov-stage">
-            <div class="tdw-ov-team" id="ovTeam">—</div>
+            <div class="tdw-ov-team" id="ovTeam">Tim dipilih</div>
             <div class="tdw-ov-box">
                 <div class="tdw-ov-number is-rolling" id="ovNumber">00</div>
             </div>
-            <div class="tdw-ov-caption" id="ovCaption">MENGUNDI POSISI SLOT…</div>
+            <div class="tdw-ov-caption" id="ovCaption">Memilih slot...</div>
         </div>
     </div>
+    @include('partials.bracket-connectors-script')
 @endsection
 
 @section('scripts')
@@ -920,12 +568,19 @@
             const slotCount = document.getElementById('slotCount');
             const statusLabel = document.getElementById('drawStatusLabel');
             const statusWrap = document.querySelector('.tdw-status');
+            const statusLabels = {
+                DRAFT: 'Belum dimulai',
+                DRAWING: 'Sedang mengundi',
+                DRAW_COMPLETED: 'Undian selesai',
+                IN_PROGRESS: 'Turnamen berjalan'
+            };
 
             const overlay = document.getElementById('drawOverlay');
             const ovTeam = document.getElementById('ovTeam');
             const ovNumber = document.getElementById('ovNumber');
             const ovCaption = document.getElementById('ovCaption');
             const manualHint = document.getElementById('manualPlacementHint');
+            const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
             const delay = (ms) => new Promise(r => setTimeout(r, ms));
             let busy = false;
@@ -943,6 +598,7 @@
             }
 
             function playTickSFX() {
+                if (prefersReducedMotion) return;
                 try {
                     initAudio();
                     const osc = audioCtx.createOscillator();
@@ -959,6 +615,7 @@
             }
 
             function playLockSFX() {
+                if (prefersReducedMotion) return;
                 try {
                     initAudio();
                     const osc = audioCtx.createOscillator();
@@ -976,6 +633,7 @@
             }
 
             function playFanfareSFX() {
+                if (prefersReducedMotion) return;
                 try {
                     initAudio();
                     const notes = [523.25, 659.25, 783.99, 1046.50];
@@ -998,7 +656,7 @@
                 ovTeam.textContent = teamName;
                 ovNumber.textContent = '00';
                 ovNumber.className = 'tdw-ov-number is-rolling';
-                ovCaption.textContent = 'MENGUNDI POSISI SLOT…';
+                ovCaption.textContent = 'Memilih slot...';
                 overlay.classList.add('is-open');
             }
 
@@ -1007,12 +665,12 @@
             }
 
             function triggerConfetti() {
-                if (typeof confetti === 'function') {
+                if (!prefersReducedMotion && typeof confetti === 'function') {
                     confetti({
                         particleCount: 100,
                         spread: 80,
                         origin: { y: 0.6 },
-                        colors: ['#00ff87', '#00e5ff', '#ffffff']
+                        colors: ['#111111', '#007d48', '#e5e5e5']
                     });
                 }
             }
@@ -1020,6 +678,18 @@
             function animateFlyToSlot(teamName, slotNumber) {
                 const targetSide = document.querySelector(`.tdw-side[data-slot="${slotNumber}"]`);
                 if (!targetSide) return;
+
+                if (prefersReducedMotion) {
+                    const nm = targetSide.querySelector('.nm');
+                    if (nm) {
+                        nm.classList.add('filled');
+                        nm.textContent = teamName;
+                    }
+                    targetSide.classList.add('slot-highlight');
+                    targetSide.scrollIntoView({ behavior: 'auto', block: 'center', inline: 'center' });
+                    setTimeout(() => targetSide.classList.remove('slot-highlight'), 800);
+                    return;
+                }
 
                 const flyer = document.createElement('div');
                 flyer.className = 'flying-badge';
@@ -1114,14 +784,14 @@
                 const row = document.querySelector(`.tdw-team[data-team-id="${teamId}"]`);
                 if (row) row.classList.add('is-drawing');
 
-                initAudio();
+                if (!prefersReducedMotion) initAudio();
                 openOverlay(teamName);
 
                 let rollTimer = null;
                 if (isManualPlacement) {
                     ovNumber.textContent = String(preferredSlotNumber).padStart(2, '0');
-                    ovCaption.textContent = `MEMERIKSA SLOT PILIHAN #${preferredSlotNumber}`;
-                } else {
+                    ovCaption.textContent = `Memeriksa slot pilihan #${preferredSlotNumber}`;
+                } else if (!prefersReducedMotion) {
                     rollTimer = setInterval(() => {
                         const n = Math.floor(Math.random() * bracketSize) + 1;
                         ovNumber.textContent = String(n).padStart(2, '0');
@@ -1149,14 +819,14 @@
                     data = { ok: false, message: e.message };
                 }
 
-                const DRAW_DURATION = isManualPlacement ? 700 : 5000;
+                const DRAW_DURATION = prefersReducedMotion ? 0 : (isManualPlacement ? 700 : 5000);
                 const elapsed = performance.now() - startedAt;
                 if (elapsed < DRAW_DURATION) await delay(DRAW_DURATION - elapsed);
 
                 if (rollTimer) clearInterval(rollTimer);
 
                 if (!data || !data.ok) {
-                    ovCaption.textContent = isManualPlacement ? 'GAGAL MENEMPATKAN TIM' : 'GAGAL DIUNDI';
+                    ovCaption.textContent = isManualPlacement ? 'Gagal menempatkan tim' : 'Undian gagal';
                     await delay(800);
                     closeOverlay();
                     if (row) row.classList.remove('is-drawing');
@@ -1172,14 +842,14 @@
                 ovNumber.className = 'tdw-ov-number is-locked';
                 ovNumber.textContent = String(slotNumber).padStart(2, '0');
                 ovCaption.textContent = isManualPlacement
-                    ? `DITEMPATKAN MANUAL DI SLOT #${slotNumber}`
-                    : `TERKUNCI DI SLOT #${slotNumber}`;
+                    ? `Ditempatkan manual di slot #${slotNumber}`
+                    : `Tim mendapat slot #${slotNumber}`;
 
                 triggerConfetti();
-                await delay(1300);
+                await delay(prefersReducedMotion ? 0 : 1300);
 
                 closeOverlay();
-                await delay(300);
+                await delay(prefersReducedMotion ? 0 : 300);
 
                 animateFlyToSlot(data.team.name, slotNumber);
                 updateCounters(slotNumber);
@@ -1191,7 +861,7 @@
                 }
 
                 if (data.status) {
-                    statusLabel.textContent = data.status;
+                    statusLabel.textContent = statusLabels[data.status] || 'Status turnamen';
                     statusWrap.setAttribute('data-state', data.status);
                 }
 

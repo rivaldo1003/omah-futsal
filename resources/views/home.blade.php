@@ -16,7 +16,7 @@
     @include('home.partials.styles')
 </head>
 
-<body>
+<body class="home-page">
     <!-- Top Navigation Bar -->
     @include('home.partials.navbar')
 
@@ -24,54 +24,54 @@
     @include('home.partials.hero')
 
     <!-- Main Content Container -->
-    <main class="app-container content-section">
+    <main class="app-container content-section home-content" aria-label="Informasi OFS Futsal Center">
         @if($activeTournament)
-            <!-- Selected tournament standings or bracket lead the Home content at full width -->
-            <section class="w-100 mb-4" aria-label="Klasemen atau bracket turnamen berjalan">
+            <section class="home-section home-section--feature" aria-label="Klasemen atau bracket turnamen berjalan">
                 @include('home.partials.standings')
             </section>
         @endif
 
-        <!-- Today's Active / Live Matches (Full Width) -->
-        @include('home.partials.today-matches')
+        <section class="home-section" aria-label="Pertandingan hari ini">
+            @include('home.partials.today-matches')
+        </section>
 
-        <!-- Two-Column Primary Workspace Grid -->
-        <div class="row g-4">
-            <!-- Left Primary Column (8 Cols) -->
-            <div class="col-12 col-lg-8">
-                <!-- Upcoming Matches -->
-                @include('home.partials.upcoming-matches')
+        <section class="home-section home-section--columns" aria-label="Jadwal, hasil, dan statistik pertandingan">
+            <div class="row g-4">
+                <div class="col-12 col-lg-8">
+                    <div class="home-section-stack">
+                        @include('home.partials.upcoming-matches')
+                        @include('home.partials.recent-results')
+                    </div>
+                </div>
 
-                <!-- Recent Match Results -->
-                @include('home.partials.recent-results')
+                <aside class="col-12 col-lg-4">
+                    <div class="home-section-stack">
+                        @include('home.partials.top-scorers')
+                        @include('home.partials.highlights')
+                    </div>
+                </aside>
             </div>
+        </section>
 
-            <!-- Right Secondary Column (4 Cols) -->
-            <aside class="col-12 col-lg-4">
-                <!-- Top Scorers Leaderboard -->
-                @include('home.partials.top-scorers')
-
-                <!-- Match Highlights (YouTube) -->
-                @include('home.partials.highlights')
-            </aside>
-        </div>
-
-        <!-- Full-Width Teams Workspace Section -->
-        <section class="mt-4 pt-2">
-            <!-- Current or most recently completed tournament participants -->
+        <section class="home-section home-section-stack" aria-label="Informasi tim">
             @if($teamSectionTournament)
                 @include('home.partials.active-teams')
             @endif
 
-            <!-- All Registered Teams (Search, Sort, Quick View - Full Width) -->
             @include('home.partials.all-teams')
         </section>
 
-        <!-- Other Live Tournaments (multi-tournament) -->
-        @include('home.partials.live-tournaments')
+        @if(isset($liveTournaments) && $liveTournaments->count() > 1)
+            <section class="home-section" aria-label="Turnamen berjalan lainnya">
+                @include('home.partials.live-tournaments')
+            </section>
+        @endif
 
-        <!-- Latest completed tournament stays accessible as a public archive -->
-        @include('home.partials.completed-tournament')
+        @if(!empty($recentCompletedTournament))
+            <section class="home-section" aria-label="Turnamen terakhir selesai">
+                @include('home.partials.completed-tournament')
+            </section>
+        @endif
     </main>
 
     <!-- Footer -->

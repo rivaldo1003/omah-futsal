@@ -161,6 +161,16 @@ Depth in Nike's system comes entirely from photography, not from CSS effects:
 
 > **No hover states documented** per system policy. Each spec covers Default and Active/Pressed only; variants live as separate `components:` entries in the front matter.
 
+### OFS Player Market Value
+
+The homepage showcase and full `/market-value` directory retain the composition, typography, component shapes, visualizations, effects, and interactions from `ultra_analytics_engine_v3_0_design_system.md`. For these views, `DESIGN.md` changes the palette only; it does not replace the Ultra Analytics art direction with the retail layout above.
+
+- Map the outer background to `{colors.canvas}`, panels to `{colors.soft-cloud}`, inner cards to `{colors.canvas}`, and borders or chart grid lines to `{colors.hairline-soft}`.
+- Map primary text to `{colors.ink}` and secondary labels to `{colors.mute}`. Keep the Ultra Analytics type scale, uppercase labels, italic headings, spacing, radii, and component layout.
+- Replace the former neon green primary accent with `{colors.ink}` for primary controls, selected filters, tabs, and active borders. Use `{colors.success}` for positive comparison results, `{colors.info}` for the existing secondary comparison bars, and `{colors.sale}` for disciplinary or critical indicators.
+- Recolor existing glows, gradients, shadows, radar fills, and overlays with translucent variants of the palette above. Keep their original placement and effect; do not remove or redesign them as part of a color pass.
+- Keep the 3D player card, telemetry header, carousel, tab panels, head-to-head dialog, and existing motion and audio behavior. Color changes must not change markup, copy, calculations, or interactions.
+
 ### Buttons
 
 **`button-primary`** — the universal Nike CTA
@@ -194,7 +204,12 @@ Depth in Nike's system comes entirely from photography, not from CSS effects:
 **`search-pill`** + **`search-pill-focused`**
 
 - Default: background `{colors.soft-cloud}`, text `{colors.ink}`, type `{typography.body-md}`, rounded `{rounded.md}` (24px), padding `8px 16px`, height `40px`. Anchored to the right of the primary nav with a small magnifier icon.
-- Focused: background `{colors.canvas}`, 2px solid border `{colors.ink}`, with a 12px outer halo of `{colors.soft-cloud}` (the system's only "focus ring" effect). The pill shape stays `{rounded.md}` so the halo reads as a soft glove, not a hard outline.
+- Focused: background `{colors.canvas}` with one 2px solid border `{colors.ink}`. The border itself is the focus indicator; do not stack an outline, box-shadow, halo, or glow around it. Keep the pill shape `{rounded.md}`.
+
+**`form-control-focused`** — text inputs, selects, and textareas
+
+- Use one 2px `{colors.ink}` border on focus, with `box-shadow: none` and no additional outline. The thicker border must remain clearly visible for keyboard users.
+- Do not combine a focus border with a second dark outline or ring. Avoid black-on-black nested contours around every field.
 
 ### Cards & Containers
 

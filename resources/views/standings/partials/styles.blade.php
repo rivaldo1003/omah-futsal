@@ -5,65 +5,83 @@
        are inherited from the home styles included in the main entry file.
        ========================================================================== */
 
-    /* Page Header — clean surface card with accent left border, no gradient */
+    /* Page Header — restrained editorial heading with a clear tournament control */
     .standings-page-header {
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
-        border-left: 3px solid var(--accent);
-        border-radius: var(--radius-md);
-        padding: var(--space-4) var(--space-5);
-        margin-bottom: var(--space-5);
+        padding: 0 0 var(--space-5);
+        margin-bottom: var(--space-6);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        gap: var(--space-4);
+        gap: var(--space-5);
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .standings-page-heading {
+        min-width: 0;
+    }
+
+    .standings-page-eyebrow {
+        margin: 0 0 var(--space-1);
+        color: var(--text-muted);
+        font-size: 12px;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
     }
 
     .standings-page-header h1 {
-        font-size: 20px;
-        font-weight: 700;
+        font-size: clamp(24px, 3vw, 32px);
+        font-weight: 600;
+        letter-spacing: -0.035em;
         color: var(--text-primary);
         margin: 0;
-        display: flex;
-        align-items: center;
-        gap: var(--space-2);
-        line-height: 1.3;
-    }
-
-    .standings-page-header h1 i {
-        color: var(--accent);
-        font-size: 20px;
+        line-height: 1.15;
     }
 
     .standings-tournament-info {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--text-secondary);
-        margin-top: var(--space-1);
+        margin-top: var(--space-2);
     }
 
-    /* Tournament Selector — clean input style */
-    .standings-tournament-select {
-        background-color: var(--surface);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-sm);
-        padding: var(--space-2) var(--space-3);
-        color: var(--text-primary);
-        font-size: 13px;
+    /* Tournament Selector — neutral, accessible pill control */
+    .standings-tournament-control {
+        display: grid;
+        gap: var(--space-1);
+        min-width: min(280px, 42%);
+        margin: 0;
+    }
+
+    .standings-tournament-label {
+        color: var(--text-muted);
+        font-size: 12px;
         font-weight: 500;
-        min-width: 200px;
+    }
+
+    .standings-tournament-select {
+        width: 100%;
+        min-height: 44px;
+        background-color: var(--surface-subtle);
+        border: 1px solid var(--border-color);
+        border-radius: 9999px;
+        padding: 10px 16px;
+        color: var(--text-primary);
+        font-size: 14px;
+        font-weight: 500;
         cursor: pointer;
-        transition: border-color 150ms ease;
+        transition: border-color 150ms ease, background-color 150ms ease;
         appearance: auto;
     }
 
     .standings-tournament-select:hover {
-        border-color: var(--border-focus);
+        border-color: #cacacb;
+        background-color: #eeeeee;
     }
 
     .standings-tournament-select:focus {
         outline: none;
-        border-color: var(--accent);
-        box-shadow: 0 0 0 2px var(--accent-subtle);
+        border-color: var(--text-primary);
+        box-shadow: 0 0 0 2px rgba(17, 17, 17, 0.12);
     }
 
     /* Compact Stats Grid (preserved, commented-out in template) */
@@ -101,10 +119,21 @@
         flex-shrink: 0;
     }
 
-    .standings-stat-icon.icon-accent { background-color: var(--accent); }
-    .standings-stat-icon.icon-success { background-color: var(--success); }
-    .standings-stat-icon.icon-warning { background-color: var(--warning); }
-    .standings-stat-icon.icon-danger { background-color: var(--danger); }
+    .standings-stat-icon.icon-accent {
+        background-color: var(--accent);
+    }
+
+    .standings-stat-icon.icon-success {
+        background-color: var(--success);
+    }
+
+    .standings-stat-icon.icon-warning {
+        background-color: var(--warning);
+    }
+
+    .standings-stat-icon.icon-danger {
+        background-color: var(--danger);
+    }
 
     .standings-stat-value {
         font-size: 18px;
@@ -356,10 +385,21 @@
         display: inline-block;
     }
 
-    .standings-dot-win { background-color: var(--success); }
-    .standings-dot-draw { background-color: var(--warning); }
-    .standings-dot-loss { background-color: var(--danger); }
-    .standings-dot-empty { background-color: var(--border-color); }
+    .standings-dot-win {
+        background-color: var(--success);
+    }
+
+    .standings-dot-draw {
+        background-color: var(--warning);
+    }
+
+    .standings-dot-loss {
+        background-color: var(--danger);
+    }
+
+    .standings-dot-empty {
+        background-color: var(--border-color);
+    }
 
     /* ==========================================================================
        EMPTY STATE
@@ -465,7 +505,7 @@
         font-size: 18px;
     }
 
-    .standings-bracket-champion-emblem > i {
+    .standings-bracket-champion-emblem>i {
         animation: bracket-champion-trophy 700ms 160ms cubic-bezier(.2, .75, .25, 1) both;
     }
 
@@ -532,7 +572,7 @@
         animation: bracket-champion-copy 460ms 390ms ease-out both;
     }
 
-    .standings-bracket-champion-copy > strong {
+    .standings-bracket-champion-copy>strong {
         overflow: hidden;
         color: var(--text-primary);
         font-size: 19px;
@@ -545,71 +585,160 @@
     }
 
     @keyframes bracket-champion-arrive {
-        0% { opacity: 0; clip-path: inset(0 100% 0 0); transform: translateY(10px) scale(.985); }
-        68% { opacity: 1; clip-path: inset(0 0 0 0); }
-        100% { transform: translateY(0) scale(1); }
+        0% {
+            opacity: 0;
+            clip-path: inset(0 100% 0 0);
+            transform: translateY(10px) scale(.985);
+        }
+
+        68% {
+            opacity: 1;
+            clip-path: inset(0 0 0 0);
+        }
+
+        100% {
+            transform: translateY(0) scale(1);
+        }
     }
 
     @keyframes bracket-champion-sweep {
-        0% { opacity: 0; transform: translateX(0) skewX(-22deg); }
-        18% { opacity: .8; }
-        100% { opacity: 0; transform: translateX(760%) skewX(-22deg); }
+        0% {
+            opacity: 0;
+            transform: translateX(0) skewX(-22deg);
+        }
+
+        18% {
+            opacity: .8;
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateX(760%) skewX(-22deg);
+        }
     }
 
     @keyframes bracket-champion-confetti {
-        0% { opacity: 0; transform: translateY(-5px) rotate(0); }
-        14% { opacity: .9; }
-        100% { opacity: 0; transform: translateY(74px) rotate(110deg); }
+        0% {
+            opacity: 0;
+            transform: translateY(-5px) rotate(0);
+        }
+
+        14% {
+            opacity: .9;
+        }
+
+        100% {
+            opacity: 0;
+            transform: translateY(74px) rotate(110deg);
+        }
     }
 
     @keyframes bracket-champion-trophy {
-        0% { opacity: 0; transform: translateY(5px) rotate(-14deg) scale(.76); }
-        72% { opacity: 1; transform: translateY(-1px) rotate(3deg) scale(1.04); }
-        100% { transform: translateY(0) rotate(0) scale(1); }
+        0% {
+            opacity: 0;
+            transform: translateY(5px) rotate(-14deg) scale(.76);
+        }
+
+        72% {
+            opacity: 1;
+            transform: translateY(-1px) rotate(3deg) scale(1.04);
+        }
+
+        100% {
+            transform: translateY(0) rotate(0) scale(1);
+        }
     }
 
     @keyframes bracket-champion-ripple {
-        0% { opacity: .7; transform: scale(.72); }
-        100% { opacity: 0; transform: scale(1.4); }
+        0% {
+            opacity: .7;
+            transform: scale(.72);
+        }
+
+        100% {
+            opacity: 0;
+            transform: scale(1.4);
+        }
     }
 
     @keyframes bracket-champion-logo {
-        from { opacity: 0; transform: scale(.82) rotate(-8deg); }
-        to { opacity: 1; transform: scale(1) rotate(0); }
+        from {
+            opacity: 0;
+            transform: scale(.82) rotate(-8deg);
+        }
+
+        to {
+            opacity: 1;
+            transform: scale(1) rotate(0);
+        }
     }
 
     @keyframes bracket-champion-copy {
-        from { opacity: 0; transform: translateY(6px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(6px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     @keyframes bracket-champion-card {
-        0%, 100% { box-shadow: inset 3px 0 0 var(--success); }
-        42% { box-shadow: inset 3px 0 0 var(--success), 0 0 0 4px var(--success-subtle); }
+
+        0%,
+        100% {
+            box-shadow: inset 3px 0 0 var(--success);
+        }
+
+        42% {
+            box-shadow: inset 3px 0 0 var(--success), 0 0 0 4px var(--success-subtle);
+        }
     }
 
     @keyframes bracket-champion-row {
-        0% { background: transparent; }
-        52% { background: var(--success-subtle); }
-        100% { background: var(--success-subtle); }
+        0% {
+            background: transparent;
+        }
+
+        52% {
+            background: var(--success-subtle);
+        }
+
+        100% {
+            background: var(--success-subtle);
+        }
     }
 
     @keyframes bracket-champion-spark {
-        0% { opacity: 0; transform: scale(.4) rotate(-25deg); }
-        45% { opacity: 1; transform: scale(1.1) rotate(12deg); }
-        100% { opacity: .35; transform: scale(.8) rotate(0); }
+        0% {
+            opacity: 0;
+            transform: scale(.4) rotate(-25deg);
+        }
+
+        45% {
+            opacity: 1;
+            transform: scale(1.1) rotate(12deg);
+        }
+
+        100% {
+            opacity: .35;
+            transform: scale(.8) rotate(0);
+        }
     }
 
     @media (prefers-reduced-motion: reduce) {
+
         .standings-bracket-champion-banner,
         .standings-bracket-champion-banner::before,
         .standings-bracket-champion-banner::after,
         .standings-bracket-champion-emblem::before,
-        .standings-bracket-champion-emblem > i,
+        .standings-bracket-champion-emblem>i,
         .standings-bracket-champion-emblem::after,
         .standings-bracket-champion-logo,
         .standings-bracket-champion-label,
-        .standings-bracket-champion-copy > strong,
+        .standings-bracket-champion-copy>strong,
         .standings-bracket-match.is-champion-decided,
         .standings-bracket-team.is-champion {
             animation: none;
@@ -790,13 +919,13 @@
         object-fit: contain;
     }
 
-    .standings-bracket-identity > span:last-child {
+    .standings-bracket-identity>span:last-child {
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
 
-    .standings-bracket-team + .standings-bracket-team {
+    .standings-bracket-team+.standings-bracket-team {
         border-top: 1px solid var(--border-color);
     }
 
@@ -901,6 +1030,11 @@
             width: 100%;
         }
 
+        .standings-tournament-control {
+            width: 100%;
+            min-width: 0;
+        }
+
         .standings-stats-grid {
             grid-template-columns: repeat(2, 1fr);
         }
@@ -937,7 +1071,7 @@
             flex-basis: 42px;
         }
 
-        .standings-bracket-champion-copy > strong {
+        .standings-bracket-champion-copy>strong {
             font-size: 15px;
         }
 

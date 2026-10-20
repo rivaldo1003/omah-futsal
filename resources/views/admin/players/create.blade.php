@@ -1,235 +1,225 @@
 @extends('layouts.admin')
 
-@section('title', 'Buat Pemain Baru')
+@section('title', 'Tambah pemain')
 
 @section('styles')
     <style>
-        /* ===== Create player page — design guidelines ===== */
+        @include('admin.players.partials.admin-styles')
 
-        /* Page header */
-        .page-header {
+        .admin-player-form-page .form-card .card-header {
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .admin-player-form-page .form-card-context {
+            color: var(--player-muted);
+            font-size: 13px;
+        }
+
+        .admin-player-form-page .form-section-title {
+            margin-top: 28px;
+        }
+
+        .admin-player-form-page .form-card .card-body form > .form-section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        .admin-player-form-page .stats-input-group {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .admin-player-form-page .stat-input {
+            min-width: 0;
+        }
+
+        .admin-player-form-page .stat-label {
+            display: block;
+            margin-bottom: 7px;
+            color: var(--player-charcoal);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .admin-player-form-page .stat-input .form-control {
+            font-variant-numeric: tabular-nums;
+        }
+
+        .admin-player-form-page .photo-upload-container {
+            display: grid;
+            grid-template-columns: 72px minmax(0, 1fr) auto;
+            align-items: center;
             gap: 16px;
-            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid var(--player-line-soft);
+            border-radius: 8px;
+            background: var(--player-cloud);
+            transition: border-color 150ms ease-out, background-color 150ms ease-out;
         }
 
-        .page-header h1 {
-            font-size: 24px;
-            font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin: 0 0 4px;
+        .admin-player-form-page .photo-upload-container.dragover {
+            border-color: var(--player-ink);
+            background: #eeeeee;
         }
 
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .admin-player-form-page .photo-preview,
+        .admin-player-form-page .photo-placeholder {
+            width: 72px;
+            height: 72px;
             margin: 0;
+            border: 1px solid var(--player-line-soft);
+            border-radius: 50%;
         }
 
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
+        .admin-player-form-page .photo-preview {
+            display: none;
+            object-fit: cover;
+            background: var(--player-white);
+        }
+
+        .admin-player-form-page .photo-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--player-white);
+            color: var(--player-muted);
+            font-size: 28px;
+        }
+
+        .admin-player-form-page .photo-upload-text {
+            margin: 0 0 3px;
+            color: var(--player-ink);
             font-size: 14px;
             font-weight: 500;
+        }
+
+        .admin-player-form-page .photo-upload-hint {
+            color: var(--player-muted);
+            font-size: 12px;
+        }
+
+        .admin-player-form-page .photo-options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        .admin-player-form-page .photo-action-btn {
+            min-height: 44px;
             display: inline-flex;
             align-items: center;
-            gap: 8px;
-            text-decoration: none;
-        }
-
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* Form card */
-        .form-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .form-card .card-header {
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            padding: 12px 16px;
-        }
-
-        .form-card .card-header h5 {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-primary);
-            margin: 0;
-        }
-
-        .form-card .card-body {
-            padding: 24px;
-        }
-
-        /* Form sections & fields */
-        .form-section-title {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-secondary);
-            margin: 0 0 16px;
-            padding-bottom: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .form-label {
-            font-size: 14px;
+            justify-content: center;
+            gap: 7px;
+            padding: 9px 16px;
+            border: 1px solid transparent;
+            border-radius: 9999px;
+            background: var(--player-white);
+            color: var(--player-ink);
+            font: inherit;
+            font-size: 13px;
             font-weight: 500;
-            color: var(--text-primary);
-        }
-
-        .required {
-            color: #c01c28;
-        }
-
-        /* Stats input group */
-        .stats-input-group {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 16px;
-        }
-
-        .stat-input .form-control {
-            text-align: center;
-            font-weight: 600;
-        }
-
-        .stat-label {
-            font-size: 11px;
-            color: var(--text-secondary);
-            margin-top: 4px;
-            text-align: center;
-        }
-
-        /* Photo upload */
-        .photo-upload-container {
-            border: 2px dashed var(--border);
-            border-radius: 12px;
-            padding: 32px;
-            text-align: center;
-            background: var(--surface);
-            transition: border-color 0.15s ease, background-color 0.15s ease;
             cursor: pointer;
-            margin-bottom: 16px;
         }
 
-        .photo-upload-container:hover,
-        .photo-upload-container.dragover {
-            border-color: var(--accent);
-            background: rgba(26, 95, 180, 0.05);
+        .admin-player-form-page .photo-action-btn:hover {
+            background: #eeeeee;
         }
 
-        .photo-preview {
-            width: 150px;
-            height: 150px;
-            border-radius: 50%;
-            object-fit: cover;
-            margin: 0 auto 16px;
+        .admin-player-form-page .photo-action-remove {
+            color: var(--player-danger);
+        }
+
+        .admin-player-form-page .file-info {
             display: none;
-            border: 4px solid #fff;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .photo-placeholder {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            background: #F0F0F2;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin: 0 auto 16px;
-        }
-
-        .photo-upload-text {
-            color: var(--text-primary);
-            font-size: 14px;
-            margin-bottom: 4px;
-        }
-
-        .photo-upload-hint {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .file-info {
-            margin-top: 16px;
-            padding: 12px;
-            background: var(--surface);
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--player-line-soft);
             border-radius: 8px;
-            border: 1px solid var(--border);
-            font-size: 14px;
-            display: none;
+            background: var(--player-white);
+            font-size: 13px;
         }
 
-        .file-info.show {
-            display: block;
+        .admin-player-form-page .file-info.show {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 4px 12px;
         }
 
-        .file-info .file-name {
-            font-weight: 600;
-            color: var(--text-primary);
-            margin-bottom: 2px;
+        .admin-player-form-page .file-name {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            color: var(--player-ink);
+            font-weight: 500;
         }
 
-        .file-info .file-size {
-            color: var(--text-secondary);
+        .admin-player-form-page .file-size {
+            color: var(--player-muted);
             font-size: 12px;
         }
 
-        .photo-options {
-            display: flex;
-            gap: 8px;
-            margin-top: 16px;
-            justify-content: center;
+        .admin-player-form-page .form-control:focus,
+        .admin-player-form-page .form-select:focus,
+        .admin-player-form-page .form-control.is-invalid:focus,
+        .admin-player-form-page .form-select.is-invalid:focus {
+            border: 2px solid var(--player-ink);
+            outline: none;
+            box-shadow: none; /* taste-skill-ignore: keep field focus to a single border */
         }
 
-        @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .form-card .card-body {
-                padding: 16px;
-            }
-
-            .stats-input-group {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .photo-options {
-                flex-direction: column;
-                gap: 8px;
-            }
+        .admin-player-form-page .form-control.is-invalid:focus,
+        .admin-player-form-page .form-select.is-invalid:focus {
+            border-color: var(--player-danger);
         }
 
-        @media (max-width: 576px) {
-            .stats-input-group {
-                grid-template-columns: 1fr;
+        .admin-player-form-page :is(input, select, textarea):focus-visible {
+            outline: none;
+        }
+
+        .admin-player-form-page :is(a, button):focus-visible {
+            outline: 2px solid var(--player-ink);
+            outline-offset: 3px;
+        }
+
+        @media (max-width: 767.98px) {
+            .admin-player-form-page .form-card .card-header {
+                flex-wrap: wrap;
+            }
+
+            .admin-player-form-page .stats-input-group {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .admin-player-form-page .photo-upload-container {
+                grid-template-columns: 64px minmax(0, 1fr);
+                gap: 12px;
+                padding: 14px;
+            }
+
+            .admin-player-form-page .photo-preview,
+            .admin-player-form-page .photo-placeholder {
+                width: 64px;
+                height: 64px;
+            }
+
+            .admin-player-form-page .photo-options {
+                grid-column: 1 / -1;
+                justify-content: flex-start;
+            }
+
+            .admin-player-form-page .player-form-actions .btn {
+                flex: 1 1 140px;
             }
         }
 
         @media (prefers-reduced-motion: reduce) {
-
-            *,
-            *::before,
-            *::after {
+            .admin-player-form-page *,
+            .admin-player-form-page *::before,
+            .admin-player-form-page *::after {
                 transition: none !important;
                 animation: none !important;
             }
@@ -238,35 +228,37 @@
 @endsection
 
 @section('content')
+    <main class="admin-player-page admin-player-form-page">
     <div class="page-header">
         <div>
-            <h1>Buat Pemain Baru</h1>
+            <h1>Tambah pemain</h1>
             <p class="page-subtitle">Tambahkan pemain baru ke dalam sistem</p>
         </div>
         <a href="{{ route('admin.players.index') }}" class="btn-back">
-            <i class="bi bi-arrow-left"></i> Kembali
+            <i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke daftar pemain
         </a>
     </div>
 
     @if(session('error'))
         <div class="alert alert-danger alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Error!</strong> {{ session('error') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <i class="bi bi-exclamation-triangle me-2" aria-hidden="true"></i>
+            <strong>Terjadi kesalahan.</strong> {{ session('error') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show mb-4" role="alert">
-            <i class="bi bi-check-circle me-2"></i>
-            <strong>Sukses!</strong> {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <i class="bi bi-check-circle me-2" aria-hidden="true"></i>
+            <strong>Berhasil.</strong> {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
     @endif
 
     <div class="form-card">
         <div class="card-header">
-            <h5>Informasi Pemain</h5>
+            <h5>Informasi pemain</h5>
+            <span class="form-card-context">Kolom bertanda <span class="required">*</span> wajib diisi</span>
         </div>
 
         <div class="card-body">
@@ -274,24 +266,24 @@
                 @csrf
 
                 <!-- Informasi dasar -->
-                <div class="form-section-title">Informasi Dasar</div>
+                <div class="form-section-title">Informasi dasar</div>
 
                 <div class="row g-3">
                     <div class="col-md-8">
                         <div class="mb-3">
-                            <label for="name" class="form-label">Nama Lengkap <span class="required">*</span></label>
+                            <label for="name" class="form-label">Nama lengkap <span class="required" aria-hidden="true">*</span></label>
                             <input type="text" class="form-control @error('name') is-invalid @enderror" id="name"
                                 name="name" value="{{ old('name') }}" placeholder="Masukkan nama lengkap pemain" required>
                             @error('name')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">Masukkan nama lengkap pemain</div>
+                            <div class="form-text">Nama ini akan ditampilkan pada profil pemain.</div>
                         </div>
                     </div>
 
                     <div class="col-md-4">
                         <div class="mb-3">
-                            <label for="jersey_number" class="form-label">Nomor Punggung</label>
+                            <label for="jersey_number" class="form-label">Nomor punggung</label>
                             <input type="number" class="form-control @error('jersey_number') is-invalid @enderror"
                                 id="jersey_number" name="jersey_number" value="{{ old('jersey_number') }}"
                                 placeholder="contoh: 10" min="1" max="99">
@@ -306,7 +298,7 @@
                 <div class="row g-3 mb-0">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="birth_date" class="form-label">Tanggal Lahir</label>
+                            <label for="birth_date" class="form-label">Tanggal lahir</label>
                             <input type="date" class="form-control @error('birth_date') is-invalid @enderror"
                                 id="birth_date" name="birth_date" value="{{ old('birth_date') }}"
                                 max="{{ \Carbon\CarbonImmutable::today(\App\Support\BusinessTime::TIMEZONE)->toDateString() }}">
@@ -319,7 +311,7 @@
 
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="birth_place" class="form-label">Tempat Lahir</label>
+                            <label for="birth_place" class="form-label">Tempat lahir</label>
                             <input type="text" class="form-control @error('birth_place') is-invalid @enderror"
                                 id="birth_place" name="birth_place" value="{{ old('birth_place') }}"
                                 placeholder="contoh: Jombang" maxlength="100">
@@ -334,7 +326,7 @@
                 <div class="row g-3 mb-0">
                     <div class="col-md-6">
                         <div class="mb-3">
-                            <label for="market_value" class="form-label">Market Value (Nilai Pasar)</label>
+                            <label for="market_value" class="form-label">Nilai pasar pemain</label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
                                 <input type="number" class="form-control @error('market_value') is-invalid @enderror"
@@ -344,20 +336,19 @@
                             @error('market_value')
                                 <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
-                            <div class="form-text">Masukkan nominal penuh dalam Rupiah (opsional, contoh: 25000000 untuk 25 jt)</div>
+                            <div class="form-text">Nominal Rupiah penuh, misalnya 25000000 untuk Rp 25 juta.</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Tim & posisi -->
-                <div class="form-section-title" style="margin-top: 24px;">Tim & Posisi</div>
+                <div class="form-section-title">Tim & posisi</div>
 
                 <div class="row g-3 mb-0">
                     <div class="col-md-6">
                         <div class="mb-3">
                             <label for="team_id" class="form-label">Tim</label>
-                            <select class="form-select @error('team_id') is-invalid @enderror" id="team_id"
-                                name="team_id">
+                            <select class="form-select @error('team_id') is-invalid @enderror" id="team_id" name="team_id">
                                 <option value="">Pilih tim</option>
                                 @foreach($teams as $team)
                                     <option value="{{ $team->id }}" {{ old('team_id') == $team->id ? 'selected' : '' }}>
@@ -392,40 +383,40 @@
                 </div>
 
                 <!-- Statistik awal -->
-                <div class="form-section-title" style="margin-top: 24px;">Statistik Awal</div>
+                <div class="form-section-title">Statistik awal</div>
 
                 <div class="stats-input-group mb-0">
                     <div class="stat-input">
+                        <label class="stat-label" for="goals">Gol</label>
                         <input type="number" class="form-control @error('goals') is-invalid @enderror" id="goals"
                             name="goals" value="{{ old('goals', 0) }}" min="0">
-                        <div class="stat-label">Goals</div>
                         @error('goals')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="stat-input">
+                        <label class="stat-label" for="assists">Assist</label>
                         <input type="number" class="form-control @error('assists') is-invalid @enderror" id="assists"
                             name="assists" value="{{ old('assists', 0) }}" min="0">
-                        <div class="stat-label">Assists</div>
                         @error('assists')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="stat-input">
+                        <label class="stat-label" for="yellow_cards">Kartu kuning</label>
                         <input type="number" class="form-control @error('yellow_cards') is-invalid @enderror"
                             id="yellow_cards" name="yellow_cards" value="{{ old('yellow_cards', 0) }}" min="0">
-                        <div class="stat-label">Yellow Cards</div>
                         @error('yellow_cards')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
                     </div>
 
                     <div class="stat-input">
-                        <input type="number" class="form-control @error('red_cards') is-invalid @enderror"
-                            id="red_cards" name="red_cards" value="{{ old('red_cards', 0) }}" min="0">
-                        <div class="stat-label">Red Cards</div>
+                        <label class="stat-label" for="red_cards">Kartu merah</label>
+                        <input type="number" class="form-control @error('red_cards') is-invalid @enderror" id="red_cards"
+                            name="red_cards" value="{{ old('red_cards', 0) }}" min="0">
                         @error('red_cards')
                             <div class="invalid-feedback d-block">{{ $message }}</div>
                         @enderror
@@ -433,41 +424,37 @@
                 </div>
 
                 <!-- Foto pemain -->
-                <div class="form-section-title" style="margin-top: 24px;">Foto Pemain</div>
+                <div class="form-section-title">Foto pemain</div>
 
                 <div class="mb-0">
-                    <div class="photo-upload-container" id="photoUploadContainer"
-                        onclick="document.getElementById('photo').click()">
-                        <img id="photoPreview" class="photo-preview" alt="Preview">
+                    <div class="photo-upload-container" id="photoUploadContainer">
+                        <img id="photoPreview" class="photo-preview" alt="Pratinjau foto pemain">
                         <div id="photoPlaceholder" class="photo-placeholder">
-                            <i class="bi bi-person"></i>
+                            <i class="bi bi-person" aria-hidden="true"></i>
                         </div>
-                        <div class="photo-upload-text">
-                            Klik untuk upload atau drag and drop
+                        <div class="photo-upload-copy">
+                            <div class="photo-upload-text">Foto pemain</div>
+                            <div class="photo-upload-hint" id="photoUploadHint">Seret gambar ke sini atau pilih file JPG, PNG, GIF hingga 2 MB.</div>
                         </div>
-                        <div class="photo-upload-hint">
-                            PNG, JPG, JPEG hingga 2MB
+                        <div class="photo-options">
+                            <button type="button" class="photo-action-btn" onclick="document.getElementById('photo').click()">
+                                <i class="bi bi-upload" aria-hidden="true"></i> Pilih foto
+                            </button>
+                            <button type="button" class="photo-action-btn photo-action-remove" onclick="clearPhoto()"
+                                id="clearBtn" style="display: none;">
+                                <i class="bi bi-x-circle" aria-hidden="true"></i> Hapus foto
+                            </button>
                         </div>
                     </div>
 
-                    <div id="fileInfo" class="file-info">
+                    <div id="fileInfo" class="file-info" aria-live="polite">
                         <div class="file-name" id="fileName"></div>
                         <div class="file-size" id="fileSize"></div>
                     </div>
 
-                    <input type="file" id="photo" name="photo" class="d-none" accept="image/*"
-                        onchange="handleFileSelect(event)">
-
-                    <div class="photo-options">
-                        <button type="button" class="btn-back"
-                            onclick="document.getElementById('photo').click()">
-                            <i class="bi bi-upload"></i> Pilih File
-                        </button>
-                        <button type="button" class="btn-back" onclick="clearPhoto()"
-                            id="clearBtn" style="display: none;">
-                            <i class="bi bi-x-circle"></i> Hapus Foto
-                        </button>
-                    </div>
+                    <input type="file" id="photo" name="photo" class="d-none"
+                        accept=".jpg,.jpeg,.png,.gif,image/jpeg,image/png,image/gif"
+                        onchange="handleFileSelect(event)" aria-label="Pilih foto pemain" aria-describedby="photoUploadHint">
 
                     @error('photo')
                         <div class="invalid-feedback d-block">{{ $message }}</div>
@@ -476,15 +463,16 @@
                 </div>
 
                 <!-- Aksi form -->
-                <div class="d-flex justify-content-end align-items-center gap-2 mt-4 pt-3 border-top">
+                <div class="player-form-actions">
                     <a href="{{ route('admin.players.index') }}" class="btn btn-outline-secondary">Batal</a>
                     <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i> Buat Pemain
+                        <i class="bi bi-check-lg" aria-hidden="true"></i> Simpan pemain
                     </button>
                 </div>
             </form>
         </div>
     </div>
+    </main>
 @endsection
 
 @section('scripts')

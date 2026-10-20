@@ -38,8 +38,8 @@
             <div class="row g-4">
                 @foreach($groupedStandingsWithPosition as $group => $groupStandings)
                     @php
-                        // Jika liga, gunakan lebar penuh (col-12). Jika grup, gunakan col-xl-6 agar 2 kolom
-                        $columnClass = (isset($selectedTournament) && $selectedTournament->type === 'league') ? 'col-12' : 'col-xl-6';
+                        // League tables stay full width; group tables use two columns only when each remains readable.
+                        $columnClass = $selectedTournament->type === 'league' ? 'col-12' : 'col-xxl-6';
                     @endphp
                     <div class="{{ $columnClass }}">
                         @include('standings.partials.group-table', [

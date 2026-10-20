@@ -28,7 +28,7 @@
             align-items: flex-end;
             justify-content: space-between;
             gap: 18px 24px;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .admin-matches-page .page-header h1 {
@@ -37,6 +37,7 @@
             font-size: clamp(1.75rem, 2.5vw, 2rem);
             font-weight: 500;
             line-height: 1.2;
+            text-wrap: balance;
         }
 
         .admin-matches-page .page-subtitle {
@@ -48,7 +49,6 @@
 
         .admin-matches-page .header-tools,
         .admin-matches-page .search-box,
-        .admin-matches-page .filters-row,
         .admin-matches-page .action-buttons,
         .admin-matches-page .pagination-container,
         .admin-matches-page .pagination-controls,
@@ -60,7 +60,6 @@
 
         .admin-matches-page .header-tools,
         .admin-matches-page .search-box,
-        .admin-matches-page .filters-row,
         .admin-matches-page .action-buttons,
         .admin-matches-page .pagination-container,
         .admin-matches-page .pagination-controls,
@@ -70,7 +69,9 @@
 
         .admin-matches-page .search-box {
             position: relative;
-            width: min(250px, 100%);
+            width: 100%;
+            min-width: 0;
+            flex: 1 1 220px;
         }
 
         .admin-matches-page .search-icon {
@@ -115,16 +116,24 @@
             cursor: pointer;
         }
 
-        .admin-matches-page :is(a, button, input, select):focus-visible {
+        .admin-matches-page :is(a, button):focus-visible {
             outline: 2px solid var(--match-ink);
-            outline-offset: 3px;
+            outline-offset: 2px;
         }
 
         .admin-matches-page .search-input:focus,
         .admin-matches-page .filter-select:focus,
-        .admin-matches-page .score-input:focus {
+        .admin-matches-page .score-input:focus,
+        .admin-matches-page .form-control:focus,
+        .admin-matches-page .form-select:focus {
             border-color: var(--match-ink);
-            box-shadow: 0 0 0 3px var(--match-cloud);
+            box-shadow: none;
+        }
+
+        .admin-matches-page :is(input:not([type="checkbox"]):not([type="radio"]), select):focus-visible {
+            border: 2px solid var(--match-ink);
+            outline: none;
+            box-shadow: none;
         }
 
         .admin-matches-page .btn-create,
@@ -144,6 +153,8 @@
             line-height: 1.4;
             text-decoration: none;
             white-space: nowrap;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
         }
 
@@ -234,7 +245,30 @@
             line-height: 1.2;
         }
 
-        .admin-matches-page .filters-row { margin-bottom: 16px; }
+        .admin-matches-page .filters-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 1.45fr) repeat(3, minmax(145px, 1fr)) minmax(165px, 1fr) auto;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px solid var(--match-line-soft);
+            border-radius: 8px;
+            background: var(--match-white);
+        }
+
+        .admin-matches-page .filters-row .search-box { max-width: 320px; }
+
+        .admin-matches-page .filters-row .filter-select {
+            width: 100%;
+            min-width: 0;
+        }
+
+        .admin-matches-page .btn-reset {
+            background: var(--match-cloud);
+            color: var(--match-ink);
+            cursor: pointer;
+        }
 
         .admin-matches-page .bulk-bar {
             margin-bottom: 16px;
@@ -259,7 +293,11 @@
         }
 
         .admin-matches-page .main-card .card-header {
-            padding: 18px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--match-line-soft);
             background: var(--match-white);
         }
@@ -267,16 +305,26 @@
         .admin-matches-page .main-card .card-header h2 {
             margin: 0;
             color: var(--match-ink);
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 500;
             line-height: 1.25;
         }
 
-        .admin-matches-page .table-responsive { overflow-x: auto; }
+        .admin-matches-page .match-total {
+            flex: 0 0 auto;
+            color: var(--match-muted);
+            font-size: 14px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .admin-matches-page .table-responsive {
+            overflow-x: auto;
+            overscroll-behavior-x: contain;
+        }
 
         .admin-matches-page #matchesTable {
             width: 100%;
-            min-width: 1180px;
+            min-width: 1260px;
             margin: 0;
             border-collapse: collapse;
             color: var(--match-ink);
@@ -292,6 +340,13 @@
             white-space: nowrap;
         }
 
+        .admin-matches-page #matchesTable thead th:first-child,
+        .admin-matches-page #matchesTable tbody td:first-child {
+            width: 48px;
+            padding-inline: 14px 8px;
+            text-align: center;
+        }
+
         .admin-matches-page #matchesTable tbody td {
             padding: 14px;
             border-bottom: 1px solid var(--match-line-soft);
@@ -304,6 +359,12 @@
         .admin-matches-page #matchesTable tbody tr:last-child td { border-bottom: 0; }
 
         .admin-matches-page #matchesTable tbody tr:hover td { background: #fafafa; }
+
+        .admin-matches-page #matchesTable tbody .filter-empty-cell {
+            padding: 28px 20px;
+            color: var(--match-muted);
+            text-align: center;
+        }
 
         .admin-matches-page #matchesTable .match-checkbox,
         .admin-matches-page #matchesTable #selectAllMatches {
@@ -468,8 +529,10 @@
         }
 
         .admin-matches-page .action-buttons {
+            flex-wrap: nowrap;
             justify-content: flex-end;
-            gap: 5px;
+            gap: 4px;
+            min-width: max-content;
         }
 
         .admin-matches-page .action-buttons form { margin: 0; }
@@ -488,14 +551,17 @@
             font-size: 14px;
             line-height: 1.2;
             text-decoration: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
             transition: background-color 150ms ease-out, color 150ms ease-out;
         }
 
         .admin-matches-page .action-buttons .btn-small {
             width: 40px;
             height: 40px;
+            min-height: 40px;
             padding: 0;
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .admin-matches-page .btn-small:hover {
@@ -517,6 +583,37 @@
         .admin-matches-page .bulk-action-btn:disabled {
             opacity: .45;
             cursor: not-allowed;
+        }
+
+        .admin-matches-page #bulkDeleteBtn:not(:disabled) {
+            border-color: #f0cdca;
+            background: #fdf2f1;
+            color: var(--match-danger);
+        }
+
+        .admin-matches-page #bulkDeleteBtn:not(:disabled):hover {
+            border-color: #e7aaa4;
+            background: #fbe4e1;
+            color: var(--match-danger);
+        }
+
+        .admin-matches-page #bulkDeleteBtn:disabled {
+            border-color: var(--match-line-soft);
+            background: var(--match-cloud);
+            color: var(--match-muted);
+            opacity: 1;
+        }
+
+        .admin-matches-page #deleteAllTournamentBtn {
+            border-color: var(--match-danger);
+            background: var(--match-danger);
+            color: var(--match-white);
+        }
+
+        .admin-matches-page #deleteAllTournamentBtn:hover {
+            border-color: #780700;
+            background: #780700;
+            color: var(--match-white);
         }
 
         .admin-matches-page .pagination-container {
@@ -592,6 +689,7 @@
         }
 
         .admin-matches-page .modal-body { padding: 20px; }
+        .admin-matches-page .modal-body { overscroll-behavior: contain; }
 
         .admin-matches-page .modal-title {
             color: var(--match-ink);
@@ -635,6 +733,7 @@
             min-height: 42px;
             border-color: var(--match-line);
             border-radius: 8px;
+            background-color: var(--match-white);
             color: var(--match-ink);
         }
 
@@ -816,8 +915,12 @@
         }
 
         @media (max-width: 1100px) {
-            .admin-matches-page .page-header { align-items: stretch; }
+            .admin-matches-page .page-header { align-items: flex-start; }
             .admin-matches-page .header-tools { justify-content: flex-start; }
+            .admin-matches-page .filters-row {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            .admin-matches-page .filters-row .search-box { grid-column: span 2; max-width: none; }
         }
 
         @media (max-width: 900px) {
@@ -828,13 +931,19 @@
 
         @media (max-width: 640px) {
             .admin-matches-page .page-header { align-items: stretch; margin-bottom: 24px; }
-            .admin-matches-page .header-tools,
-            .admin-matches-page .search-box { width: 100%; }
+            .admin-matches-page .header-tools { width: 100%; }
             .admin-matches-page .header-tools { align-items: stretch; }
             .admin-matches-page .btn-create { flex: 1 1 auto; }
-            .admin-matches-page .filters-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .admin-matches-page .filters-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .admin-matches-page .filters-row .search-box { grid-column: 1 / -1; }
+            .admin-matches-page .filters-row .btn-reset { grid-column: 1 / -1; }
             .admin-matches-page .filter-select { width: 100%; min-width: 0; }
             .admin-matches-page .pagination-container { align-items: flex-start; }
+            .admin-matches-page .action-buttons .btn-small {
+                width: 44px;
+                height: 44px;
+                min-height: 44px;
+            }
             .admin-matches-page #scoreUpdateModal .modal-header,
             .admin-matches-page #scoreUpdateModal .modal-footer,
             .admin-matches-page #scoreUpdateModal .modal-body { padding: 14px; }
@@ -843,8 +952,11 @@
         @media (max-width: 480px) {
             .admin-matches-page .header-tools { display: grid; grid-template-columns: minmax(0, 1fr); }
             .admin-matches-page .filters-row { grid-template-columns: minmax(0, 1fr); }
+            .admin-matches-page .filters-row .search-box { grid-column: auto; }
+            .admin-matches-page .filters-row .btn-reset { grid-column: auto; }
             .admin-matches-page .stat-card { padding: 15px 14px; }
             .admin-matches-page .stat-value { font-size: 23px; }
+            .admin-matches-page .main-card .card-header { align-items: flex-start; padding: 14px 16px; }
             .admin-matches-page .score-modal-periods { grid-template-columns: 1fr; }
             .admin-matches-page .score-modal-main { padding: 12px; }
             .admin-matches-page .score-modal-matchup { gap: 6px; }
@@ -869,16 +981,11 @@
                 <p class="page-subtitle">Kelola dan jadwalkan pertandingan turnamen.</p>
             </div>
             <div class="header-tools">
-                <div class="search-box">
-                    <i class="bi bi-search search-icon" aria-hidden="true"></i>
-                    <input type="search" id="searchInput" placeholder="Cari nama tim"
-                        class="search-input" aria-label="Cari pertandingan berdasarkan nama tim">
-                </div>
-                <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Pertandingan persahabatan
-                </a>
                 <a href="{{ route('admin.matches.create') }}" class="btn-create">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat pertandingan
+                </a>
+                <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Pertandingan persahabatan
                 </a>
                 <button type="button" class="btn-create btn-generate" data-bs-toggle="modal" data-bs-target="#generateModal">
                     <i class="bi bi-magic" aria-hidden="true"></i> Jadwal otomatis
@@ -903,13 +1010,15 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title"><i class="bi bi-magic me-2"></i>Buat jadwal otomatis</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <form id="generateForm" action="" method="POST">
                     @csrf
                     <div class="modal-body">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Pilih turnamen <span class="text-danger">*</span></label>
+                            <label class="form-label fw-semibold" for="generateTournamentSelect">
+                                Pilih turnamen <span class="text-danger">*</span>
+                            </label>
                             <select class="form-select" id="generateTournamentSelect" required>
                                 <option value="">Pilih turnamen</option>
                                 @foreach($tournaments->whereIn('status', ['upcoming', 'ongoing']) as $tournament)
@@ -996,27 +1105,33 @@
     <!-- Ringkasan -->
     <section class="stats-grid" aria-label="Ringkasan pertandingan pada halaman ini">
         <div class="stat-card">
-            <div class="stat-title">Akan datang di halaman ini</div>
+            <div class="stat-title">Akan datang</div>
             <div class="stat-value">{{ $matches->where('status', 'upcoming')->where('is_cancelled', false)->count() }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">Berlangsung di halaman ini</div>
+            <div class="stat-title">Berlangsung</div>
             <div class="stat-value">{{ $matches->where('status', 'ongoing')->count() }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">Selesai di halaman ini</div>
+            <div class="stat-title">Selesai</div>
             <div class="stat-value">{{ $matches->where('status', 'completed')->count() }}</div>
         </div>
         <div class="stat-card">
-            <div class="stat-title">Jumlah di halaman ini</div>
+            <div class="stat-title">Total di halaman ini</div>
             <div class="stat-value">{{ $matches->count() }}</div>
         </div>
     </section>
 
     <!-- Filters -->
     <div class="filters-row" role="group" aria-label="Filter pertandingan">
+        <div class="search-box">
+            <i class="bi bi-search search-icon" aria-hidden="true"></i>
+            <input type="search" id="searchInput" name="search" autocomplete="off"
+                placeholder="Cari nama tim…" class="search-input"
+                aria-label="Cari pertandingan berdasarkan nama tim">
+        </div>
         <label class="visually-hidden" for="tournamentFilter">Filter turnamen</label>
-        <select id="tournamentFilter" class="filter-select">
+        <select id="tournamentFilter" name="tournament_id" class="filter-select">
             <option value="">Semua turnamen</option>
             @foreach($tournaments as $tournament)
                 <option value="{{ $tournament->id }}" {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
@@ -1026,7 +1141,7 @@
         </select>
 
         <label class="visually-hidden" for="statusFilter">Filter status</label>
-        <select id="statusFilter" class="filter-select">
+        <select id="statusFilter" name="status" class="filter-select">
             <option value="">Semua status</option>
             <option value="cancelled" {{ request('status') == 'cancelled' ? 'selected' : '' }}>Dibatalkan</option>
             <option value="upcoming" {{ request('status') == 'upcoming' ? 'selected' : '' }}>Akan datang</option>
@@ -1036,7 +1151,7 @@
         </select>
 
         <label class="visually-hidden" for="roundFilter">Filter babak</label>
-        <select id="roundFilter" class="filter-select">
+        <select id="roundFilter" name="round" class="filter-select">
             <option value="">Semua babak</option>
             <option value="group" {{ request('round') == 'group' ? 'selected' : '' }}>Fase grup</option>
             <option value="quarterfinal" {{ request('round') == 'quarterfinal' ? 'selected' : '' }}>Perempat final</option>
@@ -1046,7 +1161,8 @@
         </select>
 
         <label class="visually-hidden" for="dateFrom">Mulai tanggal</label>
-        <input type="date" id="dateFrom" class="filter-select" aria-label="Mulai tanggal" value="{{ request('date') }}">
+        <input type="date" id="dateFrom" name="date" class="filter-select"
+            aria-label="Tampilkan pertandingan mulai tanggal" value="{{ request('date') }}">
 
         <button type="button" class="btn-reset" id="resetFilters">
             <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset filter
@@ -1070,6 +1186,7 @@
     <div class="main-card">
         <div class="card-header">
             <h2>Daftar pertandingan</h2>
+            <span class="match-total" id="matchResultCount">{{ $matches->count() }} pertandingan</span>
         </div>
 
         <div class="card-body p-0">
@@ -1078,7 +1195,7 @@
                     <table class="table table-hover mb-0" id="matchesTable">
                         <thead>
                             <tr>
-                                <th style="width:36px;">
+                                <th scope="col" style="width:36px;">
                                     <input type="checkbox" id="selectAllMatches" title="Pilih semua" aria-label="Pilih semua pertandingan di halaman ini">
                                 </th>
                                 <th scope="col">Tanggal dan waktu</th>
@@ -1118,7 +1235,7 @@
                                     <td>
                                         <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
                                         <div class="match-time">
-                                            <i class="bi bi-clock me-1"></i>{{ $match->time_start }}
+                                            <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ $match->time_start }}
                                         </div>
                                     </td>
                                     <td>
@@ -1130,9 +1247,9 @@
                                                     @if($match->homeTeam && $match->homeTeam->logo)
                                                         @if(Storage::disk('public')->exists($match->homeTeam->logo))
                                                             <img src="{{ asset('storage/' . $match->homeTeam->logo) }}"
-                                                                alt="{{ $match->homeTeam->name }}">
+                                                                alt="" width="32" height="32" loading="lazy">
                                                         @elseif(filter_var($match->homeTeam->logo, FILTER_VALIDATE_URL))
-                                                            <img src="{{ $match->homeTeam->logo }}" alt="{{ $match->homeTeam->name }}">
+                                                            <img src="{{ $match->homeTeam->logo }}" alt="" width="32" height="32" loading="lazy">
                                                         @else
                                                             <div class="team-initial">
                                                                 {{ strtoupper(substr($match->homeTeam->name, 0, 1)) }}
@@ -1153,9 +1270,9 @@
                                                     @if($match->awayTeam && $match->awayTeam->logo)
                                                         @if(Storage::disk('public')->exists($match->awayTeam->logo))
                                                             <img src="{{ asset('storage/' . $match->awayTeam->logo) }}"
-                                                                alt="{{ $match->awayTeam->name }}">
+                                                                alt="" width="32" height="32" loading="lazy">
                                                         @elseif(filter_var($match->awayTeam->logo, FILTER_VALIDATE_URL))
-                                                            <img src="{{ $match->awayTeam->logo }}" alt="{{ $match->awayTeam->name }}">
+                                                            <img src="{{ $match->awayTeam->logo }}" alt="" width="32" height="32" loading="lazy">
                                                         @else
                                                             <div class="team-initial">
                                                                 {{ strtoupper(substr($match->awayTeam->name, 0, 1)) }}
@@ -1181,13 +1298,13 @@
                                                     <div class="extra-info-admin">
                                                         @if($match->et_score)
                                                             <small class="badge et-badge me-1" style="font-size: 11px;">
-                                                                <i class="bi bi-clock-history"></i> ET {{ $match->et_score }}
+                                        <i class="bi bi-clock-history" aria-hidden="true"></i> ET {{ $match->et_score }}
                                                             </small>
                                                         @endif
 
                                                         @if($match->is_penalty && $match->penalty_score)
                                                             <small class="badge pen-badge" style="font-size: 11px;">
-                                                                <i class="bi bi-flag"></i> Pen. {{ $match->penalty_score }}
+                                        <i class="bi bi-flag" aria-hidden="true"></i> Pen. {{ $match->penalty_score }}
                                                             </small>
                                                         @endif
                                                     </div>
@@ -1247,29 +1364,29 @@
                                                 <a href="{{ route('admin.tournaments.edit', $match->tournament_id) }}"
                                                     class="btn-small btn-edit" title="Atur kembali perebutan juara 3/4"
                                                     aria-label="Atur kembali perebutan juara 3/4">
-                                                    <i class="bi bi-toggles"></i>
+                                                    <i class="bi bi-toggles" aria-hidden="true"></i>
                                                 </a>
                                             @else
                                                 <a href="{{ route('admin.matches.edit', $match) }}" class="btn-small btn-edit"
                                                     title="Ubah pertandingan" aria-label="Ubah pertandingan">
-                                                    <i class="bi bi-pencil"></i>
+                                                    <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </a>
                                             @endif
                                             @unless($match->is_cancelled)
                                                 <a href="{{ route('admin.matches.events.index', $match) }}" class="btn-small btn-events"
                                                     title="Event pertandingan" aria-label="Kelola event pertandingan">
-                                                    <i class="bi bi-activity"></i>
+                                                    <i class="bi bi-activity" aria-hidden="true"></i>
                                                 </a>
                                                 <a href="{{ route('admin.matches.lineup', $match) }}" class="btn-small btn-lineup"
                                                     title="Kelola susunan pemain" aria-label="Kelola susunan pemain">
-                                                    <i class="bi bi-people-fill"></i>
+                                                    <i class="bi bi-people-fill" aria-hidden="true"></i>
                                                 </a>
                                             @endunless
                                             @if($match->is_cancelled)
                                                 <button type="button" class="btn-small btn-score"
                                                     title="Aktifkan lagi dari pengaturan turnamen"
                                                     aria-label="Pertandingan dibatalkan, ubah pengaturan turnamen untuk mengaktifkan" disabled>
-                                                    <i class="bi bi-lock-fill"></i>
+                                                    <i class="bi bi-lock-fill" aria-hidden="true"></i>
                                                 </button>
                                             @else
                                                 <button type="button" class="btn-small btn-score update-score-btn" title="Perbarui skor"
@@ -1283,14 +1400,14 @@
                                                     data-is-penalty="{{ $match->is_penalty ? '1' : '0' }}"
                                                     data-penalty-score="{{ $match->penalty_score ?? '' }}"
                                                     data-update-url="{{ route('admin.matches.update-score', $match) }}">
-                                                    <i class="bi bi-bar-chart"></i>
+                                                    <i class="bi bi-bar-chart" aria-hidden="true"></i>
                                                 </button>
                                             @endif
                                             @if($isDrawManagedKnockoutMatch)
                                                 <button type="button" class="btn-small btn-delete" disabled
                                                     title="Fixture bracket draw tidak dapat dihapus satu per satu. Gunakan Update Score atau Reset Draw."
                                                     aria-label="Pertandingan bagian bracket draw tidak dapat dihapus satu per satu">
-                                                    <i class="bi bi-trash"></i>
+                                                    <i class="bi bi-trash" aria-hidden="true"></i>
                                                 </button>
                                             @else
                                                 <form action="{{ route('admin.matches.destroy', $match) }}" method="POST"
@@ -1300,7 +1417,7 @@
                                                     <button type="submit" class="btn-small btn-delete"
                                                         onclick="return confirm('Hapus pertandingan ini?')" title="Hapus pertandingan"
                                                         aria-label="Hapus pertandingan {{ $match->homeTeam->name ?? 'Belum ditentukan' }} melawan {{ $match->awayTeam->name ?? 'Belum ditentukan' }}">
-                                                        <i class="bi bi-trash"></i>
+                                                        <i class="bi bi-trash" aria-hidden="true"></i>
                                                     </button>
                                                 </form>
                                             @endif
@@ -1313,13 +1430,18 @@
                                                     data-match-teams="{{ ($match->homeTeam->name ?? 'Home') . ' vs ' . ($match->awayTeam->name ?? 'Away') }}"
                                                     data-has-highlight="{{ $match->youtube_id ? 'true' : 'false' }}"
                                                     data-youtube-id="{{ $match->youtube_id }}">
-                                                    <i class="bi bi-youtube"></i>
+                                                    <i class="bi bi-youtube" aria-hidden="true"></i>
                                                 </button>
                                             @endif
                                         </div>
                                     </td>
                                 </tr>
                             @endforeach
+                            <tr id="filterEmptyRow" hidden>
+                                <td colspan="7" class="filter-empty-cell">
+                                    Tidak ada pertandingan pada halaman ini yang sesuai dengan filter. Ubah atau reset filter.
+                                </td>
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -1360,7 +1482,7 @@
 
                                     for ($i = $start; $i <= $end; $i++) {
                                         if ($i == $current) {
-                                            echo '<span class="page-link active">' .
+                                    echo '<span class="page-link active" aria-current="page">' .
                                                 $i . '</span>';
                                         } else {
                                             echo '<a href="' . $matches->url($i) . '" class="page-link">' . $i .
@@ -1370,7 +1492,7 @@
 
                                     if ($end < $last) {
                                         if ($end < $last - 1) {
-                                            echo '<span class="page-link disabled">...</span>';
+                                            echo '<span class="page-link disabled" aria-hidden="true">…</span>';
                                         }
                                         echo '<a href="' . $matches->url($last) . '" class="page-link">' . $last . '</a>';
                                     }
@@ -1415,7 +1537,7 @@
                     <h5 class="modal-title">
                         <i class="bi bi-youtube text-danger"></i> YouTube Highlight
                     </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <form id="youtubeHighlightForm">
                     @csrf
@@ -1453,11 +1575,11 @@
                                 <label for="youtube_url" class="form-label fw-bold">YouTube
                                     URL *</label>
                                 <input type="url" name="youtube_url" id="youtube_url" class="form-control"
-                                    placeholder="https://www.youtube.com/watch?v=..." required>
+                                    placeholder="https://www.youtube.com/watch?v=VIDEO_ID…" required>
                                 <div class="form-text">
                                     <i class="bi bi-info-circle"></i>
-                                    Supported formats: youtube.com/watch?v=...,
-                                    youtu.be/..., youtube.com/embed/...
+                                    Format yang didukung: youtube.com/watch?v=VIDEO_ID, youtu.be/VIDEO_ID,
+                                    dan youtube.com/embed/VIDEO_ID.
                                 </div>
                             </div>
 
@@ -1506,7 +1628,7 @@
                                 Pertandingan dan pilih kiper yang kebobolan. Event gol juga menambah skor; skor manual saja
                                 tidak cukup untuk atribusi kiper.</p>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                     </div>
                     <div class="modal-body">
                         <section class="score-modal-main" aria-labelledby="regularScoreLabel">
@@ -1689,7 +1811,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Unggah cuplikan pertandingan</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-4">
@@ -1780,7 +1902,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Match Highlight</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
                 <div class="modal-body">
                     <div class="text-center mb-3">
@@ -1878,6 +2000,9 @@
         const resetFilters = document.getElementById('resetFilters');
         const searchInput = document.getElementById('searchInput');
         const matchRows = document.querySelectorAll('.match-row');
+        const filterEmptyRow = document.getElementById('filterEmptyRow');
+        const matchResultCount = document.getElementById('matchResultCount');
+        const matchCountFormatter = new Intl.NumberFormat('id-ID');
 
         // Function to filter matches
         function filterMatches() {
@@ -1886,6 +2011,7 @@
             const round = roundFilter.value;
             const date = dateFrom.value;
             const search = searchInput.value.toLowerCase();
+            let visibleMatches = 0;
 
             matchRows.forEach(row => {
                 const rowTournament = row.dataset.tournament;
@@ -1906,7 +2032,13 @@
                 if (search && !homeTeam.includes(search) && !awayTeam.includes(search)) show = false;
 
                 row.style.display = show ? '' : 'none';
+                if (show) visibleMatches += 1;
             });
+
+            if (filterEmptyRow) filterEmptyRow.hidden = visibleMatches > 0;
+            if (matchResultCount) {
+                matchResultCount.textContent = `${matchCountFormatter.format(visibleMatches)} pertandingan`;
+            }
         }
 
         // Function to apply URL filters
@@ -2287,7 +2419,7 @@
                                     statusDiv.innerHTML = `
                                                                                                             <div class="alert alert-success alert-dismissible fade show" role="alert">
                                                                                                                 <i class="bi bi-check-circle"></i> ${response.message || 'Upload successful!'}
-                                                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
                                                                                                             </div>
                                                                                                         `;
                                     statusDiv.classList.remove('d-none');
@@ -2343,7 +2475,7 @@
                     statusDiv.innerHTML = `
                                                                                             <div class="alert alert-danger alert-dismissible fade show" role="alert">
                                                                                                 <i class="bi bi-exclamation-triangle"></i> ${message}
-                                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
                                                                                             </div>
                                                                                         `;
                     statusDiv.classList.remove('d-none');
@@ -2365,10 +2497,10 @@
 
                 // Clear previous content
                 if (playerContainer) playerContainer.innerHTML =
-                    '<div class="text-center p-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Loading highlight...</p></div>';
-                if (infoSize) infoSize.textContent = 'Loading...';
-                if (infoDuration) infoDuration.textContent = 'Loading...';
-                if (infoUploaded) infoUploaded.textContent = 'Loading...';
+                    '<div class="text-center p-4"><div class="spinner-border text-primary" role="status" aria-label="Memuat cuplikan"></div><p class="mt-2">Memuat cuplikan…</p></div>';
+                if (infoSize) infoSize.textContent = 'Memuat…';
+                if (infoDuration) infoDuration.textContent = 'Memuat…';
+                if (infoUploaded) infoUploaded.textContent = 'Memuat…';
                 if (downloadBtn) downloadBtn.href = '#';
                 if (deleteBtn) deleteBtn.dataset.matchId = matchId;
 
@@ -2585,10 +2717,10 @@
             currentVideoContainer.innerHTML = `
                                                                                     <div class="text-center p-4">
                                                                                         <div class="spinner-border text-primary" role="status"></div>
-                                                                                        <p class="mt-2">Loading highlight...</p>
+                                                                                        <p class="mt-2">Memuat cuplikan…</p>
                                                                                     </div>
                                                                                 `;
-            currentVideoInfo.textContent = 'Loading...';
+            currentVideoInfo.textContent = 'Memuat…';
 
             // Coba load dari data yang sudah ada di tombol
             const youtubeBtn = document.querySelector(`.youtube-highlight-btn[data-match-id="${matchId}"]`);
@@ -2795,7 +2927,7 @@
 
                 // Show loading state
                 const originalText = this.innerHTML;
-                this.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Deleting...';
+                this.innerHTML = '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> Menghapus…';
                 this.disabled = true;
 
                 fetch(`/admin/matches/${matchId}/youtube-highlight`, {
@@ -3148,7 +3280,7 @@
                     type === 'danger' ? 'bi-exclamation-triangle' :
                         'bi-info-circle'}"></i> 
                                                                                         ${message}
-                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                                                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
                                                                                     </div>
                                                                                 `;
             statusDiv.classList.remove('d-none');

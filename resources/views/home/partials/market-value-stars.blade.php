@@ -298,15 +298,18 @@
            ============================================================= */
 
         :root {
-            --u-bg: #05070a;
-            --u-surface: #0a0f18;
-            --u-card: #111827;
-            --u-border: #1f293d;
-            --u-accent: #00ff87;
-            /* Neo Green */
-            --u-accent-cyan: #00e5ff;
-            --u-text: #ffffff;
-            --u-muted: #64748b;
+            --u-bg: #ffffff;
+            --u-surface: #f5f5f5;
+            --u-card: #ffffff;
+            --u-border: #e5e5e5;
+            --u-accent: #111111;
+            --u-accent-cyan: #1151ff;
+            --u-accent-pink: #d30005;
+            --u-success: #007d48;
+            --u-text: #111111;
+            --u-muted: #707072;
+            --u-shadow: rgba(17, 17, 17, 0.4);
+            --u-shadow-strong: rgba(17, 17, 17, 0.8);
             --u-font: system-ui, -apple-system, sans-serif;
         }
 
@@ -319,7 +322,7 @@
             color: var(--u-text);
             position: relative;
             overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
+            box-shadow: 0 30px 60px var(--u-shadow-strong);
             scroll-margin-top: 80px;
         }
 
@@ -346,7 +349,7 @@
             display: flex;
             align-items: center;
             gap: 8px;
-            color: var(--u-accent);
+            color: var(--u-success);
             letter-spacing: 1px;
         }
 
@@ -354,8 +357,8 @@
             width: 10px;
             height: 10px;
             border-radius: 50%;
-            background: var(--u-accent);
-            box-shadow: 0 0 12px var(--u-accent);
+            background: var(--u-success);
+            box-shadow: 0 0 12px var(--u-success);
             animation: uPulse 1.8s infinite;
         }
 
@@ -368,7 +371,7 @@
             50% {
                 transform: scale(1.2);
                 opacity: 1;
-                box-shadow: 0 0 20px var(--u-accent);
+                box-shadow: 0 0 20px var(--u-success);
             }
 
             100% {
@@ -382,7 +385,7 @@
             -webkit-appearance: none;
             -moz-appearance: none;
             background-color: var(--u-surface);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23707072' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
             background-position: right 7px center;
             background-size: 12px 12px;
@@ -421,12 +424,12 @@
 
         .fmvs-btn-action {
             background: var(--u-accent);
-            color: #000;
+            color: #ffffff;
             border-color: var(--u-accent);
         }
 
         .fmvs-btn-action:hover {
-            background: #00db74;
+            background: #39393b;
             transform: translateY(-1px);
         }
 
@@ -514,7 +517,7 @@
             transform: translate(-50%, -50%);
             width: 300px;
             height: 300px;
-            background: radial-gradient(circle, rgba(0, 255, 135, 0.15) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(0, 125, 72, 0.15) 0%, transparent 70%);
             transition: opacity 500ms ease;
         }
 
@@ -533,7 +536,7 @@
             font-size: 200px;
             font-weight: 900;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.02);
+            color: rgba(17, 17, 17, 0.04);
             line-height: 1;
             user-select: none;
         }
@@ -550,11 +553,11 @@
         .fmvs-3d-card {
             width: 280px;
             height: 380px;
-            background: linear-gradient(145deg, #182232, #0d131d);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg, #ffffff, #f5f5f5);
+            border: 1px solid rgba(17, 17, 17, 0.1);
             border-radius: 16px;
             position: relative;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 20px 40px var(--u-shadow);
             transform-style: preserve-3d;
             transition: transform 150ms ease-out;
             display: flex;
@@ -566,7 +569,7 @@
         .fmvs-card-glare {
             position: absolute;
             inset: 0;
-            background: linear-gradient(125deg, rgba(255, 255, 255, 0.15) 0%, transparent 60%);
+            background: linear-gradient(125deg, rgba(17, 17, 17, 0.05) 0%, transparent 60%);
             pointer-events: none;
         }
 
@@ -575,7 +578,7 @@
             top: 16px;
             left: 16px;
             background: var(--u-accent);
-            color: #000;
+            color: #ffffff;
             font-weight: 900;
             font-style: italic;
             padding: 4px 10px;
@@ -590,13 +593,13 @@
             font-size: 2rem;
             font-weight: 900;
             font-style: italic;
-            color: rgba(255, 255, 255, 0.2);
+            color: rgba(17, 17, 17, 0.2);
         }
 
         .fmvs-3d-card img {
             height: 320px;
             object-fit: contain;
-            filter: drop-shadow(0 15px 20px rgba(0, 0, 0, 0.8));
+            filter: drop-shadow(0 15px 20px var(--u-shadow-strong));
             transform: translateZ(30px);
             transition: transform 200ms ease;
         }
@@ -736,7 +739,7 @@
         }
 
         .fmvs-bd-fill--bad {
-            background: #ff0055;
+            background: var(--u-accent-pink);
         }
 
         .fmvs-bd-val {
@@ -764,7 +767,7 @@
             display: block;
             font-size: 1.5rem;
             font-weight: 900;
-            color: #fff;
+            color: var(--u-text);
         }
 
         .fmvs-mb-lbl {
@@ -813,7 +816,7 @@
         .fmvs-rail-header input {
             background: var(--u-surface);
             border: 1px solid var(--u-border);
-            color: #fff;
+            color: var(--u-text);
             padding: 6px 12px;
             border-radius: 6px;
             font-size: 0.85rem;
@@ -838,7 +841,7 @@
 
         .fmvs-pos-pills button.is-active {
             background: var(--u-accent);
-            color: #000;
+            color: #ffffff;
             border-color: var(--u-accent);
         }
 
@@ -873,7 +876,7 @@
         .fmvs-u-card.is-active {
             border-color: var(--u-accent);
             background: var(--u-card);
-            box-shadow: 0 0 15px rgba(0, 255, 135, 0.2);
+            box-shadow: 0 0 15px rgba(17, 17, 17, 0.2);
         }
 
         .fmvs-uc-rank {
@@ -930,7 +933,7 @@
         .fmvs-um-backdrop {
             position: absolute;
             inset: 0;
-            background: rgba(0, 0, 0, 0.85);
+            background: rgba(17, 17, 17, 0.85);
             backdrop-filter: blur(10px);
         }
 
@@ -966,7 +969,7 @@
         .fmvs-um-header button {
             background: none;
             border: none;
-            color: #fff;
+            color: var(--u-text);
             font-size: 1.5rem;
             cursor: pointer;
         }
@@ -989,7 +992,7 @@
 
         .fmvs-h2h-search {
             background: var(--u-card);
-            color: #fff;
+            color: var(--u-text);
             border: 1px solid var(--u-border);
             border-radius: 6px;
             padding: 7px 10px;
@@ -1018,7 +1021,7 @@
             background-repeat: no-repeat;
             background-position: right 10px center;
             background-size: 14px 14px;
-            color: #fff;
+            color: var(--u-text);
             border: 1px solid var(--u-border);
             padding: 8px 32px 8px 12px;
             border-radius: 6px;
@@ -1062,7 +1065,7 @@
         }
 
         .fmvs-h2h-row .win {
-            color: var(--u-accent);
+            color: var(--u-success);
         }
 
         /* H2H comparison header (player + team) */
@@ -1120,7 +1123,7 @@
         .fmvs-h2h-side span {
             font-size: 10px;
             font-weight: 800;
-            color: var(--u-accent);
+            color: var(--u-success);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -1567,7 +1570,7 @@
                 radarCtx.clearRect(0, 0, cssW, cssH);
 
                 // Web grid rings
-                radarCtx.strokeStyle = '#1f293d';
+                radarCtx.strokeStyle = '#e5e5e5';
                 radarCtx.lineWidth = 1;
                 for (let l = 1; l <= 3; l++) {
                     radarCtx.beginPath();
@@ -1583,7 +1586,7 @@
                 }
 
                 // Spoke lines
-                radarCtx.strokeStyle = '#1f293d';
+                radarCtx.strokeStyle = '#e5e5e5';
                 for (let i = 0; i < num; i++) {
                     const a = (Math.PI * 2 / num) * i - Math.PI / 2;
                     radarCtx.beginPath();
@@ -1603,15 +1606,15 @@
                     i === 0 ? radarCtx.moveTo(x, y) : radarCtx.lineTo(x, y);
                 }
                 radarCtx.closePath();
-                radarCtx.fillStyle = 'rgba(0, 255, 135, 0.25)';
+                radarCtx.fillStyle = 'rgba(0, 125, 72, 0.25)';
                 radarCtx.fill();
-                radarCtx.strokeStyle = '#00ff87';
+                radarCtx.strokeStyle = '#007d48';
                 radarCtx.lineWidth = 2;
                 radarCtx.stroke();
 
                 // Labels
                 const fontSize = Math.max(8, Math.round(cssW / 22));
-                radarCtx.fillStyle = '#64748b';
+                radarCtx.fillStyle = '#707072';
                 radarCtx.font = `${fontSize}px sans-serif`;
                 radarCtx.textAlign = 'center';
                 for (let i = 0; i < num; i++) {

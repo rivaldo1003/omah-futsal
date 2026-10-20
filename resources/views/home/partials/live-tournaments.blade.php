@@ -1,32 +1,18 @@
-{{-- Ultra Analytics Engine v3.0 — Live Tournaments Telemetry --}}
+{{-- Other live tournaments --}}
 <div class="v3-live-tournaments">
     @if(isset($liveTournaments) && $liveTournaments->count() > 1)
-        {{-- Telemetry HUD --}}
-        <div class="v3-hud">
-            <div class="v3-hud-left">
-                <span class="v3-beacon"></span>
-                <span class="v3-hud-tag">NEURAL TOURNAMENT TELEMETRY</span>
-                <span class="v3-hud-sep">/</span>
-                <span class="v3-hud-status">STATUS: {{ $liveTournaments->count() }} LIVE</span>
-            </div>
-            <div class="v3-hud-right">
-                <span class="v3-hud-tag">OFS FUTSAL CENTER</span>
-            </div>
-        </div>
-
-        {{-- Module Header --}}
         <header class="v3-lt-header">
             <div>
-                <h2 class="v3-title">TOURNAMENT <span>MATRIX</span></h2>
-                <p class="v3-lt-desc">Turnamen berjalan &middot; telemetri liga aktif</p>
+                <h2 class="v3-title">Turnamen berjalan</h2>
+                <p class="v3-lt-desc">Jadwal dan status kompetisi yang sedang aktif.</p>
             </div>
             <div class="v3-lt-stats">
                 <div class="v3-stat-card">
-                    <span class="v3-sc-lbl">LIVE EVENTS</span>
+                    <span class="v3-sc-lbl">Turnamen</span>
                     <span class="v3-sc-val">{{ $liveTournaments->count() }}</span>
                 </div>
                 <div class="v3-stat-card v3-stat-card--highlight">
-                    <span class="v3-sc-lbl">FEATURED</span>
+                    <span class="v3-sc-lbl">Pilihan utama</span>
                     <span class="v3-sc-val">{{ $liveTournaments->where('is_featured', true)->count() }}</span>
                 </div>
             </div>
@@ -40,8 +26,6 @@
                     $logoUrl = ($lt->logo && Storage::disk('public')->exists($lt->logo)) ? Storage::url($lt->logo) : null;
                 @endphp
                 <article class="v3-lt-card {{ $isActive ? 'is-active' : '' }}">
-                    <span class="v3-lt-index">#{{ sprintf('%02d', $loop->iteration) }}</span>
-
                     <div class="v3-lt-card-top">
                         <div class="v3-lt-logo">
                             @if($logoUrl)
@@ -52,12 +36,12 @@
                         </div>
                         <div class="v3-lt-badges">
                             @if($lt->status === 'ongoing')
-                                <span class="v3-lt-status v3-lt-status--ongoing"><span class="v3-lt-dot"></span>ONGOING</span>
+                                <span class="v3-lt-status v3-lt-status--ongoing"><span class="v3-lt-dot"></span>Berjalan</span>
                             @else
-                                <span class="v3-lt-status v3-lt-status--upcoming">UPCOMING</span>
+                                <span class="v3-lt-status v3-lt-status--upcoming">Akan datang</span>
                             @endif
                             @if($isActive)
-                                <span class="v3-lt-featured">★ FEATURED</span>
+                                <span class="v3-lt-featured"><i class="bi bi-star-fill" aria-hidden="true"></i> Pilihan utama</span>
                             @endif
                         </div>
                     </div>
@@ -66,11 +50,11 @@
 
                     <div class="v3-lt-meta-grid">
                         <div class="v3-lt-meta-box">
-                            <span class="v3-sc-lbl">FORMAT</span>
+                            <span class="v3-sc-lbl">Format</span>
                             <span class="v3-lt-meta-val">{{ $lt->type_label }}</span>
                         </div>
                         <div class="v3-lt-meta-box">
-                            <span class="v3-sc-lbl">TEAMS</span>
+                            <span class="v3-sc-lbl">Tim</span>
                             <span class="v3-lt-meta-val">{{ $lt->teams_count }}</span>
                         </div>
                     </div>
@@ -86,87 +70,37 @@
 
     <style>
         /* ==================================================================
-           ULTRA ANALYTICS ENGINE v3.0 — live tournament telemetry module
-           Scoped tokens (fallback to spec values)
+           Public light theme for the live tournament list
            ================================================================== */
         .v3-live-tournaments {
-            --v3-bg: #020408;
-            --v3-surface: #070c14;
-            --v3-card: #0d1524;
-            --v3-border: #18263e;
-            --v3-border-glow: rgba(0, 255, 135, 0.4);
-            --v3-neon-green: #00ff87;
-            --v3-neon-blue: #00e5ff;
-            --v3-neon-pink: #ff0055;
-            --v3-neon-yellow: #ffb700;
-            --v3-text-main: #ffffff;
-            --v3-text-sub: #8da1b9;
-            --v3-text-muted: #4e6178;
-            --v3-font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            --v3-bg: var(--bg-page);
+            --v3-surface: var(--surface);
+            --v3-card: var(--surface-subtle);
+            --v3-border: var(--border-color);
+            --v3-border-glow: var(--success);
+            --v3-neon-green: var(--success);
+            --v3-neon-blue: #1151ff;
+            --v3-neon-pink: #b42318;
+            --v3-neon-yellow: #805600;
+            --v3-text-main: var(--text-primary);
+            --v3-text-sub: var(--text-secondary);
+            --v3-text-muted: var(--text-muted);
+            --v3-font-sans: "Helvetica Neue", Helvetica, sans-serif;
             --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
-            --v3-radius-lg: 20px;
-            --v3-radius-md: 12px;
+            --v3-radius-lg: 8px;
+            --v3-radius-md: 8px;
             --v3-radius-sm: 8px;
 
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-lg);
-            padding: 24px;
-            margin-top: 24px;
+            background: transparent;
+            border: 0;
+            border-radius: 0;
+            padding: 0;
+            margin-top: 0;
             font-family: var(--v3-font-sans);
             color: var(--v3-text-main);
             position: relative;
-            overflow: hidden;
-            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.8);
-        }
-
-        /* Telemetry HUD */
-        .v3-live-tournaments .v3-hud {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding-bottom: 16px;
-            border-bottom: 1px solid var(--v3-border);
-            margin-bottom: 20px;
-            font-size: 11px;
-            font-weight: 800;
-        }
-
-        .v3-live-tournaments .v3-hud-left,
-        .v3-live-tournaments .v3-hud-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .v3-live-tournaments .v3-beacon {
-            width: 8px;
-            height: 8px;
-            background: var(--v3-neon-green);
-            border-radius: 50%;
-            box-shadow: 0 0 12px var(--v3-neon-green);
-            animation: v3BeaconPulse 1.2s infinite alternate;
-        }
-
-        @keyframes v3BeaconPulse {
-            from { opacity: 0.3; transform: scale(0.8); }
-            to { opacity: 1; transform: scale(1.2); }
-        }
-
-        .v3-live-tournaments .v3-hud-tag {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--v3-text-muted);
-        }
-
-        .v3-live-tournaments .v3-hud-sep { color: var(--v3-border); }
-        .v3-live-tournaments .v3-hud-status {
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: 1px;
-            color: var(--v3-neon-green);
+            overflow: visible;
+            box-shadow: none;
         }
 
         /* Header */
@@ -180,17 +114,13 @@
         }
 
         .v3-live-tournaments .v3-title {
-            font-size: 1.9rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -0.03em;
+            font-size: 1.75rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
             margin: 0;
-            line-height: 1;
-            text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
+            line-height: 1.2;
+            text-shadow: none;
         }
-
-        .v3-live-tournaments .v3-title span { color: var(--v3-neon-green); }
 
         .v3-live-tournaments .v3-lt-desc {
             color: var(--v3-text-sub);
@@ -198,29 +128,30 @@
             font-size: 0.85rem;
         }
 
-        .v3-live-tournaments .v3-lt-stats { display: flex; gap: 12px; }
+        .v3-live-tournaments .v3-lt-stats { display: flex; gap: 24px; }
 
         .v3-live-tournaments .v3-stat-card {
-            background: var(--v3-surface);
-            border: 1px solid var(--v3-border);
-            padding: 10px 16px;
-            border-radius: var(--v3-radius-sm);
+            display: grid;
+            gap: 2px;
+            padding: 0;
+            border: 0;
+            background: transparent;
             text-align: right;
         }
 
         .v3-live-tournaments .v3-sc-lbl {
             display: block;
-            font-size: 9px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: none;
+            letter-spacing: 0;
             color: var(--v3-text-muted);
         }
 
         .v3-live-tournaments .v3-sc-val {
-            font-size: 1.2rem;
-            font-weight: 900;
-            font-style: italic;
+            font-size: 18px;
+            font-weight: 700;
+            font-style: normal;
             color: var(--v3-text-main);
         }
 
@@ -236,37 +167,24 @@
 
         /* Card */
         .v3-live-tournaments .v3-lt-card {
-            position: relative;
-            background: linear-gradient(145deg, var(--v3-card), var(--v3-surface));
+            background: var(--v3-surface);
             border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-md);
+            border-radius: var(--v3-radius-sm);
             padding: 16px;
             display: flex;
             flex-direction: column;
             gap: 12px;
             overflow: hidden;
-            transition: transform 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+            transition: border-color 150ms ease;
         }
 
         .v3-live-tournaments .v3-lt-card:hover {
-            transform: translateY(-3px);
             border-color: var(--v3-border-glow);
         }
 
         .v3-live-tournaments .v3-lt-card.is-active {
             border-color: var(--v3-neon-green);
-            box-shadow: 0 0 24px rgba(0, 255, 135, 0.18), inset 0 0 0 1px rgba(0, 255, 135, 0.15);
-        }
-
-        .v3-live-tournaments .v3-lt-index {
-            position: absolute;
-            top: 6px;
-            right: 10px;
-            font-size: 12px;
-            font-weight: 900;
-            font-style: italic;
-            color: var(--v3-text-muted);
-            opacity: 0.5;
+            box-shadow: none;
         }
 
         .v3-live-tournaments .v3-lt-card-top {
@@ -307,18 +225,18 @@
             display: inline-flex;
             align-items: center;
             gap: 5px;
-            font-size: 9px;
+            font-size: 11px;
             font-weight: 800;
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            letter-spacing: 0;
+            text-transform: none;
             padding: 3px 8px;
-            border-radius: 4px;
+            border-radius: 9999px;
         }
 
         .v3-live-tournaments .v3-lt-status--ongoing {
             color: var(--v3-neon-green);
             border: 1px solid var(--v3-border-glow);
-            background: rgba(0, 255, 135, 0.08);
+            background: var(--success-subtle);
         }
 
         .v3-live-tournaments .v3-lt-status--upcoming {
@@ -332,26 +250,24 @@
             height: 6px;
             border-radius: 50%;
             background: var(--v3-neon-green);
-            box-shadow: 0 0 8px var(--v3-neon-green);
-            animation: v3BeaconPulse 1.2s infinite alternate;
+            box-shadow: none;
+            animation: none;
         }
 
         .v3-live-tournaments .v3-lt-featured {
-            font-size: 9px;
-            font-weight: 900;
-            font-style: italic;
-            letter-spacing: 0.5px;
-            color: var(--v3-neon-yellow);
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--v3-neon-green);
         }
 
         .v3-live-tournaments .v3-lt-name {
-            font-size: 1rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -0.01em;
+            font-size: 18px;
+            font-weight: 700;
+            font-style: normal;
+            text-transform: none;
+            letter-spacing: 0;
             margin: 0;
-            line-height: 1.15;
+            line-height: 1.25;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -361,20 +277,19 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 8px;
+            border-top: 1px solid var(--v3-border);
+            padding-top: 12px;
         }
 
         .v3-live-tournaments .v3-lt-meta-box {
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            padding: 8px 10px;
+            min-width: 0;
         }
 
         .v3-live-tournaments .v3-lt-meta-val {
             display: block;
             margin-top: 2px;
-            font-size: 0.85rem;
-            font-weight: 800;
+            font-size: 14px;
+            font-weight: 600;
             color: var(--v3-text-main);
         }
 
@@ -382,21 +297,19 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            font-size: 11px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 500;
             color: var(--v3-text-sub);
-            font-family: var(--v3-font-mono);
+            font-family: var(--v3-font-sans);
         }
 
         /* Responsive */
         @media (max-width: 900px) {
-            .v3-live-tournaments { padding: 16px; }
             .v3-live-tournaments .v3-lt-header { flex-direction: column; align-items: flex-start; }
             .v3-live-tournaments .v3-title { font-size: 1.5rem; }
         }
 
         @media (max-width: 600px) {
-            .v3-live-tournaments .v3-hud { flex-direction: column; align-items: flex-start; gap: 8px; }
             .v3-live-tournaments .v3-lt-grid { grid-template-columns: 1fr; }
             .v3-live-tournaments .v3-title { font-size: 1.25rem; }
         }

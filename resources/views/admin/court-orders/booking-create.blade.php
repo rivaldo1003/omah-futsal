@@ -96,9 +96,6 @@
 
         .walk-in-admin-page .btn:focus-visible,
         .walk-in-admin-page a:focus-visible,
-        .walk-in-admin-page input:focus-visible,
-        .walk-in-admin-page select:focus-visible,
-        .walk-in-admin-page textarea:focus-visible,
         .walk-in-admin-page summary:focus-visible {
             outline: 2px solid var(--walk-in-ink);
             outline-offset: 3px;
@@ -157,8 +154,9 @@
 
         .walk-in-admin-page .form-control:focus,
         .walk-in-admin-page .form-select:focus {
-            border-color: var(--walk-in-ink);
-            box-shadow: 0 0 0 3px rgba(17, 17, 17, .1);
+            border: 2px solid var(--walk-in-ink);
+            box-shadow: none;
+            outline: none;
         }
 
         .walk-in-admin-page .form-check-input {
@@ -254,6 +252,11 @@
             background: #9e9ea0;
         }
 
+        .walk-in-legend-mark.instant {
+            border: 2px solid var(--walk-in-success);
+            background: var(--walk-in-white);
+        }
+
         .walk-in-slot-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -280,6 +283,20 @@
             cursor: pointer;
         }
 
+        .walk-in-slot.is-available {
+            transition: background-color 150ms ease-out, border-color 150ms ease-out;
+        }
+
+        .walk-in-slot.is-available.is-instant {
+            border-color: var(--walk-in-success);
+            background: #f0f8f4;
+        }
+
+        .walk-in-slot.is-available.is-instant .walk-in-slot-time,
+        .walk-in-slot.is-available.is-instant .walk-in-slot-copy {
+            color: var(--walk-in-success);
+        }
+
         .walk-in-slot-time {
             color: inherit;
             font-size: 16px;
@@ -293,22 +310,31 @@
             line-height: 1.35;
         }
 
-        .walk-in-slot.is-available:hover,
-        .walk-in-slot.is-available:focus-visible {
-            border-color: var(--walk-in-ink);
+        .walk-in-slot.is-available:hover:not(.is-selected) {
+            border-color: var(--walk-in-charcoal);
             background: var(--walk-in-cloud);
+        }
+
+        .walk-in-slot.is-available:focus-visible {
             outline: 2px solid var(--walk-in-ink);
             outline-offset: 2px;
         }
 
-        .walk-in-slot.is-selected {
-            border-color: var(--walk-in-ink);
-            background: var(--walk-in-ink);
-            color: #ffffff;
+        .walk-in-slot.is-selected,
+        .walk-in-slot.is-selected:hover,
+        .walk-in-slot.is-selected:focus-visible {
+            border: 2px solid var(--walk-in-success);
+            background: var(--walk-in-success);
+            color: var(--walk-in-white);
         }
 
         .walk-in-slot.is-selected .walk-in-slot-copy {
-            color: #ffffff;
+            color: var(--walk-in-white);
+            font-weight: 600;
+        }
+
+        .walk-in-slot.is-selected .walk-in-slot-time {
+            font-weight: 700;
         }
 
         .walk-in-slot.is-pending {
@@ -560,7 +586,8 @@
                         <option value="">Pilih lapangan</option>
                         @foreach($courts as $court)
                             <option value="{{ $court->id }}" @selected((int) $selectedCourtId === (int) $court->id)>
-                                {{ $court->name }}</option>
+                                {{ $court->name }}
+                            </option>
                         @endforeach
                     </select>
                 </div>
@@ -598,10 +625,12 @@
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Sudah terisi atau
                     terjadwal</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu sudah lewat</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang · tarif penuh satu slot</span>
             </div>
 
             <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Status jadwal
-                pertandingan dan booking aktif ditampilkan langsung di bawah.</p>
+                pertandingan dan booking aktif ditampilkan langsung di bawah. Untuk slot yang sedang berjalan, admin dapat
+                memilih mulai sekarang jika masih tersisa sedikitnya 30 menit; tarifnya tetap tarif penuh satu slot.</p>
             <div class="walk-in-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
                 @php
                     $slotStatusLabels = [
@@ -618,15 +647,28 @@
                     ];
                 @endphp
                 @foreach($courtSlots as $slot)
-                @php($isSelectedSlot = $selectedRange && $slot['start'] >= $selectedRange['start'] && $slot['end'] <= $selectedRange['end'])
-                @if($slot['status'] === 'available')
-                    <button type="button" class="walk-in-slot is-available{{ $isSelectedSlot ? ' is-selected' : '' }}"
-                        data-start="{{ $slot['start'] }}" data-end="{{ $slot['end'] }}"
-                        data-starts-at="{{ $slot['starts_at'] }}" data-amount="{{ $slot['amount'] }}"
+                @php
+                    $instantRange = $slot['instant_range'] ?? null;
+                    $isSelectedSlot = $selectedRange && ($instantRange
+                        ? $selectedRange['value'] === $instantRange['value']
+                        : (!($selectedRange['is_instant'] ?? false) && $slot['start'] >= $selectedRange['start'] && $slot['end'] <= $selectedRange['end']));
+                @endphp
+                @if($slot['status'] === 'available' || $instantRange)
+                    <button type="button" class="walk-in-slot is-available{{ $instantRange ? ' is-instant' : '' }}{{ $isSelectedSlot ? ' is-selected' : '' }}"
+                        data-start="{{ $instantRange['start'] ?? $slot['start'] }}" data-end="{{ $slot['end'] }}"
+                        data-starts-at="{{ $instantRange['starts_at'] ?? $slot['starts_at'] }}"
+                        data-amount="{{ $instantRange['amount'] ?? $slot['amount'] }}"
+                        data-range-value="{{ $instantRange['value'] ?? ($slot['start'].'|'.$slot['end']) }}"
+                        data-instant="{{ $instantRange ? 'true' : 'false' }}"
+                        @if($instantRange)
+                            data-slot-minutes="{{ $instantRange['slot_minutes'] }}"
+                            data-ends-at="{{ $instantRange['ends_at'] }}"
+                            data-last-start-at="{{ $instantRange['last_start_at'] }}"
+                        @endif
                         aria-pressed="{{ $isSelectedSlot ? 'true' : 'false' }}">
-                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
-                        <span class="walk-in-slot-copy">Rp {{ number_format($slot['amount'], 0, ',', '.') }} ·
-                            {{ $isSelectedSlot ? 'Dipilih' : 'Pilih slot' }}</span>
+                        <span class="walk-in-slot-time">{{ $instantRange ? 'Mulai sekarang · sampai '.$slot['end'] : $slot['start'].'–'.$slot['end'] }}</span>
+                        <span class="walk-in-slot-copy">Rp {{ number_format($instantRange['amount'] ?? $slot['amount'], 0, ',', '.') }} ·
+                            {{ $instantRange ? 'Tarif penuh '.$instantRange['slot_minutes'].' menit' : ($isSelectedSlot ? 'Dipilih' : 'Pilih slot') }}</span>
                     </button>
                 @else
                     <button type="button" class="walk-in-slot is-{{ $slot['status'] }}" disabled
@@ -642,9 +684,9 @@
             <div class="walk-in-selection" aria-live="polite">
                 <div class="walk-in-selection-summary">
                     <strong
-                        id="walkInSelectionSummary">{{ $selectedRange ? $selectedRange['start'] . '–' . $selectedRange['end'] : 'Belum ada slot dipilih' }}</strong>
+                        id="walkInSelectionSummary">{{ $selectedRange ? (($selectedRange['is_instant'] ?? false) ? 'Mulai sekarang · sampai '.$selectedRange['end'] : $selectedRange['start'] . '–' . $selectedRange['end']) : 'Belum ada slot dipilih' }}</strong>
                     <span id="walkInSelectionDetails"
-                        class="small text-secondary">{{ $selectedRange ? $selectedRange['duration_label'] . ' · Rp ' . number_format($selectedRange['amount'], 0, ',', '.') : 'Pilih slot yang tersedia untuk melanjutkan.' }}</span>
+                        class="small text-secondary">{{ $selectedRange ? $selectedRange['duration_label'] . (($selectedRange['is_instant'] ?? false) ? ' aktual · tarif penuh '.$selectedRange['slot_minutes'].' menit · ' : ' · ') . 'Rp ' . number_format($selectedRange['amount'], 0, ',', '.') : 'Pilih slot yang tersedia untuk melanjutkan.' }}</span>
                 </div>
                 <button class="btn btn-outline-secondary" type="submit" id="walkInContinue" @disabled(!$selectedRange)>
                     <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>Lanjut ke data pelanggan
@@ -679,7 +721,11 @@
             <div class="walk-in-booking-context">
                 <div><strong>{{ $selectedCourt->name }}</strong> ·
                     {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} ·
-                    {{ $selectedRange['start'] }}–{{ $selectedRange['end'] }} ({{ $selectedRange['duration_label'] }})
+                    @if($selectedRange['is_instant'] ?? false)
+                        Mulai sekarang sampai {{ $selectedRange['end'] }} · {{ $selectedRange['duration_label'] }} aktual · tarif penuh {{ $selectedRange['slot_minutes'] }} menit
+                    @else
+                        {{ $selectedRange['start'] }}–{{ $selectedRange['end'] }} ({{ $selectedRange['duration_label'] }})
+                    @endif
                 </div>
                 <span class="walk-in-booking-context-total">Sewa lapangan: <strong>Rp
                         {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong></span>
@@ -713,7 +759,7 @@
                                 maxlength="255" autocomplete="email" value="{{ old('customer_email') }}">
                         </div>
                         <div class="col-12 col-md-5">
-                            <label class="form-label" for="walkInPayment">Pembayaran yang sudah diterima</label>
+                            <label class="form-label" for="walkInPayment">Metode pembayaran</label>
                             <select class="form-select" id="walkInPayment" name="payment_method" required>
                                 <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Tunai</option>
                                 <option value="bank_transfer" @selected(old('payment_method') === 'bank_transfer')>
@@ -722,20 +768,36 @@
                             </select>
                         </div>
                         <div class="col-12 col-md-7">
+                            <label class="form-label" for="walkInAmountReceivedDisplay">Nominal yang diterima sekarang</label>
+                            <div class="input-group">
+                                <span class="input-group-text">Rp</span>
+                                <input class="form-control" id="walkInAmountReceivedDisplay" type="text"
+                                    inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16"
+                                    value="{{ old('amount_received') !== null ? number_format((float) old('amount_received'), 0, ',', '.') : '' }}"
+                                    placeholder="Contoh: 150.000" data-rupiah-input required
+                                    aria-describedby="walkInAmountReceivedHelp">
+                                <input type="hidden" id="walkInAmountReceived" name="amount_received"
+                                    value="{{ old('amount_received', '') }}" data-rupiah-value>
+                            </div>
+                            <div class="form-text" id="walkInAmountReceivedHelp">
+                                Masukkan jumlah yang benar-benar diterima. Pembayaran sebagian akan dicatat sebagai DP.
+                            </div>
+                            <div class="small mt-1" aria-live="polite">
+                                Sisa setelah pembayaran ini: <strong id="walkInBalance">Masukkan nominal pembayaran</strong>
+                            </div>
+                            <div class="text-danger small mt-1" id="walkInAmountReceivedError" role="alert" @if(!$errors->has('amount_received')) hidden @endif>
+                                {{ $errors->first('amount_received') }}
+                            </div>
+                        </div>
+                        <div class="col-12">
                             <label class="form-label" for="walkInReference">Nomor referensi pembayaran <span
                                     class="text-secondary">(opsional)</span></label>
                             <input class="form-control" id="walkInReference" name="payment_reference" maxlength="100"
                                 value="{{ old('payment_reference') }}">
                         </div>
                     </div>
-                    <div class="form-text mt-3">Booking langsung terkonfirmasi setelah disimpan. Pastikan pembayaran
-                        sudah diterima sesuai total transaksi.</div>
-                    <div class="form-check mt-3">
-                        <input class="form-check-input" type="checkbox" id="walkInPaymentReceived"
-                            name="payment_received" value="1" @checked(old('payment_received')) required>
-                        <label class="form-check-label" for="walkInPaymentReceived">Saya sudah menerima dan mencocokkan
-                            pembayaran sebesar total transaksi.</label>
-                    </div>
+                    <div class="form-text mt-3">Booking langsung terkonfirmasi setelah pembayaran yang dicatat diterima.
+                        Sisa tagihan dapat dicatat kemudian dari daftar booking.</div>
                 </div>
             </section>
 
@@ -783,7 +845,7 @@
 
             <section class="walk-in-total mb-4" aria-labelledby="walkInSummaryTitle">
                 <div>
-                    <h2 id="walkInSummaryTitle">Total yang diterima</h2><span class="small text-secondary">Lapangan dan
+                    <h2 id="walkInSummaryTitle">Total tagihan</h2><span class="small text-secondary">Lapangan dan
                         perlengkapan yang dipilih</span>
                 </div>
                 <strong id="walkInTotal" data-court-amount="{{ $selectedRange['amount'] }}">Rp
@@ -800,7 +862,7 @@
             <div class="walk-in-form-actions">
                 <a class="btn btn-outline-secondary" href="{{ route('admin.court-bookings.index') }}">Batal</a>
                 <button class="btn btn-primary" type="submit"><i class="bi bi-check2-circle"
-                        aria-hidden="true"></i>Simpan booking lunas</button>
+                        aria-hidden="true"></i>Simpan booking</button>
             </div>
         </form>
     </div>
@@ -825,9 +887,11 @@
             const formatter = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
             const amountLabel = (amount) => `Rp ${formatter.format(Number(amount) || 0)}`;
             const rangeParts = currentRange.split('|');
-            let selectedSlots = rangeParts.length === 2 && rangeParts[0] && rangeParts[1]
-                ? slots.filter((slot) => slot.dataset.start >= rangeParts[0] && slot.dataset.end <= rangeParts[1])
-                : [];
+            let selectedSlots = currentRange.startsWith('now|')
+                ? slots.filter((slot) => slot.dataset.rangeValue === currentRange)
+                : (rangeParts.length === 2 && rangeParts[0] && rangeParts[1]
+                    ? slots.filter((slot) => slot.dataset.instant !== 'true' && slot.dataset.start >= rangeParts[0] && slot.dataset.end <= rangeParts[1])
+                    : []);
 
             const timeToMinutes = (value) => {
                 const [hours, minutes] = value.split(':').map(Number);
@@ -840,6 +904,9 @@
                 return remaining ? `${hours} jam ${remaining} menit` : `${hours} jam`;
             };
 
+            const instantExpired = (slot) => slot?.dataset.instant === 'true'
+                && Date.parse(slot.dataset.lastStartAt) < Date.now();
+
             const updateSelection = (notice = '') => {
                 const selected = new Set(selectedSlots);
                 let amount = 0;
@@ -850,9 +917,9 @@
                     slot.classList.toggle('is-selected', isSelected);
                     slot.setAttribute('aria-pressed', isSelected ? 'true' : 'false');
                     const slotAmount = Number(slot.dataset.amount || 0);
-                    slot.querySelector('.walk-in-slot-copy').textContent = isSelected
-                        ? `${amountLabel(slotAmount)} · Dipilih`
-                        : `${amountLabel(slotAmount)} · Pilih slot`;
+                    slot.querySelector('.walk-in-slot-copy').textContent = slot.dataset.instant === 'true'
+                        ? `${amountLabel(slotAmount)} · ${isSelected ? 'Dipilih' : `Tarif penuh ${slot.dataset.slotMinutes} menit`}`
+                        : (isSelected ? `${amountLabel(slotAmount)} · Dipilih` : `${amountLabel(slotAmount)} · Pilih slot`);
 
                     if (isSelected) {
                         amount += slotAmount;
@@ -862,20 +929,46 @@
 
                 const first = selectedSlots[0];
                 const last = selectedSlots[selectedSlots.length - 1];
-                rangeInput.value = first && last ? `${first.dataset.start}|${last.dataset.end}` : '';
-                continueButton.disabled = selectedSlots.length === 0;
-                summary.textContent = first && last ? `${first.dataset.start}–${last.dataset.end}` : 'Belum ada slot dipilih';
-                details.textContent = first && last
-                    ? `${selectedSlots.length} slot · ${durationLabel(duration)} · ${amountLabel(amount)}`
-                    : 'Pilih slot yang tersedia untuk melanjutkan.';
-                message.textContent = notice;
+                const instant = selectedSlots.length === 1 && first?.dataset.instant === 'true';
+                const instantIsExpired = instant && instantExpired(first);
+                rangeInput.value = instant
+                    ? first.dataset.rangeValue
+                    : (first && last ? `${first.dataset.start}|${last.dataset.end}` : '');
+                continueButton.disabled = selectedSlots.length === 0 || instantIsExpired;
+                summary.textContent = instant
+                    ? (instantIsExpired ? 'Batas mulai sekarang sudah lewat' : `Mulai sekarang · sampai ${first.dataset.end}`)
+                    : (first && last ? `${first.dataset.start}–${last.dataset.end}` : 'Belum ada slot dipilih');
+                if (instant && !instantIsExpired) {
+                    const endsAt = Date.parse(first.dataset.endsAt);
+                    const remaining = Math.max(0, Math.floor((endsAt - Date.now()) / 60000));
+                    details.textContent = `Sisa ${durationLabel(remaining)} · tarif penuh ${first.dataset.slotMinutes} menit · ${amountLabel(amount)}`;
+                } else {
+                    details.textContent = instantIsExpired
+                        ? 'Muat ulang jadwal untuk melihat slot yang masih dapat dipesan.'
+                        : (first && last
+                            ? `${selectedSlots.length} slot · ${durationLabel(duration)} · ${amountLabel(amount)}`
+                            : 'Pilih slot yang tersedia untuk melanjutkan.');
+                }
+                message.textContent = notice || (instantIsExpired ? 'Batas pemesanan slot ini telah lewat.' : '');
 
                 if (bookingDetails) {
                     bookingDetails.hidden = rangeInput.value !== currentRange;
+                    const saveButton = bookingDetails.querySelector('button[type="submit"]');
+                    if (saveButton && instant) saveButton.disabled = instantIsExpired;
                 }
             };
 
             const selectSlot = (slot) => {
+                if (slot.dataset.instant === 'true') {
+                    selectedSlots = selectedSlots.includes(slot) ? [] : [slot];
+                    updateSelection(selectedSlots.length ? 'Tarif mulai-sekarang dihitung penuh untuk satu slot.' : 'Pilihan booking dihapus.');
+                    return;
+                }
+
+                if (selectedSlots.some((selectedSlot) => selectedSlot.dataset.instant === 'true')) {
+                    selectedSlots = [];
+                }
+
                 const selectedIndex = selectedSlots.indexOf(slot);
                 if (selectedIndex !== -1) {
                     if (selectedSlots.length === 1) {
@@ -916,17 +1009,25 @@
                 const now = Date.now();
                 let selectionChanged = false;
                 slots.forEach((slot) => {
-                    if (!slot.disabled && Date.parse(slot.dataset.startsAt) <= now) {
+                    const disableAt = slot.dataset.instant === 'true'
+                        ? Date.parse(slot.dataset.lastStartAt)
+                        : Date.parse(slot.dataset.startsAt);
+                    if (!slot.disabled && disableAt < now) {
                         slot.disabled = true;
                         slot.classList.remove('is-available', 'is-selected');
                         slot.classList.add('is-past');
                         slot.setAttribute('aria-pressed', 'false');
-                        slot.querySelector('.walk-in-slot-copy').textContent = 'Waktu sudah lewat';
+                        slot.querySelector('.walk-in-slot-copy').textContent = slot.dataset.instant === 'true'
+                            ? 'Batas pemesanan lewat'
+                            : 'Waktu sudah lewat';
                         selectionChanged ||= selectedSlots.includes(slot);
-                        selectedSlots = selectedSlots.filter((selectedSlot) => selectedSlot !== slot);
+                        if (slot.dataset.instant !== 'true') {
+                            selectedSlots = selectedSlots.filter((selectedSlot) => selectedSlot !== slot);
+                        }
                     }
                 });
                 if (selectionChanged) updateSelection('Slot yang waktunya sudah mulai tidak dapat dipilih.');
+                else if (selectedSlots.some((slot) => slot.dataset.instant === 'true')) updateSelection();
             };
 
             disableStartedSlots();
@@ -936,9 +1037,33 @@
         (() => {
             const form = document.getElementById('walkInBookingForm');
             const total = document.getElementById('walkInTotal');
-            if (!form || !total) return;
+            const amountDisplay = document.getElementById('walkInAmountReceivedDisplay');
+            const amountValue = document.getElementById('walkInAmountReceived');
+            const balance = document.getElementById('walkInBalance');
+            const amountError = document.getElementById('walkInAmountReceivedError');
+            if (!form || !total || !amountDisplay || !amountValue || !balance || !amountError) return;
 
             const money = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+            const formatThousands = (digits) => digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+            let totalAmount = Number(total.dataset.courtAmount || 0);
+
+            const updateBalance = () => {
+                const received = Number(amountValue.value || 0);
+                balance.classList.toggle('text-danger', received > totalAmount);
+                balance.textContent = !received
+                    ? 'Masukkan nominal pembayaran'
+                    : received > totalAmount
+                        ? `Melebihi total tagihan Rp ${money.format(totalAmount)}`
+                        : `Rp ${money.format(Math.max(0, totalAmount - received))}`;
+            };
+
+            const syncReceivedAmount = () => {
+                const digits = amountDisplay.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                amountDisplay.value = formatThousands(digits);
+                amountValue.value = digits;
+                updateBalance();
+            };
+
             const updateTotal = () => {
                 const rentalTotal = [...form.querySelectorAll('.walk-in-rental-quantity')].reduce((sum, input) => {
                     const maximum = Number(input.max || 0);
@@ -946,10 +1071,37 @@
                     input.value = String(quantity);
                     return sum + quantity * Number(input.dataset.price || 0);
                 }, 0);
-                total.textContent = `Rp ${money.format(Number(total.dataset.courtAmount || 0) + rentalTotal)}`;
+                totalAmount = Number(total.dataset.courtAmount || 0) + rentalTotal;
+                total.textContent = `Rp ${money.format(totalAmount)}`;
+                updateBalance();
             };
 
+            amountDisplay.addEventListener('input', () => {
+                amountDisplay.setCustomValidity('');
+                amountError.hidden = true;
+                syncReceivedAmount();
+            });
+            amountDisplay.addEventListener('blur', syncReceivedAmount);
+            form.addEventListener('submit', (event) => {
+                syncReceivedAmount();
+                const received = Number(amountValue.value || 0);
+                const error = !received
+                    ? 'Masukkan nominal pembayaran yang sudah diterima.'
+                    : received > totalAmount
+                        ? `Nominal tidak boleh melebihi total tagihan Rp ${money.format(totalAmount)}.`
+                        : '';
+
+                amountDisplay.setCustomValidity(error);
+                amountError.textContent = error;
+                amountError.hidden = !error;
+
+                if (error) {
+                    event.preventDefault();
+                    amountDisplay.reportValidity();
+                }
+            });
             form.querySelectorAll('.walk-in-rental-quantity').forEach((input) => input.addEventListener('input', updateTotal));
+            syncReceivedAmount();
             updateTotal();
         })();
     </script>

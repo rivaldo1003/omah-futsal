@@ -23,27 +23,32 @@
         }
 
         .admin-tournaments-page .page-header {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
             justify-content: space-between;
-            gap: 18px 24px;
-            margin-bottom: 28px;
+            column-gap: 24px;
+            row-gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .admin-tournaments-page .page-header > div:first-child {
+            min-width: 0;
         }
 
         .admin-tournaments-page .page-header h1 {
-            margin: 0 0 8px;
+            margin: 0 0 6px;
             color: var(--tournament-ink);
-            font-size: clamp(1.75rem, 2.5vw, 2rem);
-            font-weight: 500;
+            font-size: clamp(1.5rem, 2vw, 1.75rem);
+            font-weight: 600;
             line-height: 1.2;
         }
 
         .admin-tournaments-page .page-subtitle {
-            max-width: 66ch;
+            max-width: 58ch;
             margin: 0;
             color: var(--tournament-muted);
-            font-size: 15px;
+            font-size: 14px;
         }
 
         .admin-tournaments-page .header-actions,
@@ -63,15 +68,24 @@
             gap: 8px;
         }
 
+        .admin-tournaments-page .header-tools {
+            flex: 0 0 auto;
+            flex-wrap: nowrap;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
         .admin-tournaments-page .search-box {
             position: relative;
-            width: min(260px, 100%);
+            width: 100%;
+            flex: 1 1 auto;
+            min-width: 0;
         }
 
         .admin-tournaments-page .search-icon {
             position: absolute;
             top: 50%;
-            left: 16px;
+            left: 14px;
             color: var(--tournament-muted);
             font-size: 14px;
             pointer-events: none;
@@ -80,10 +94,11 @@
 
         .admin-tournaments-page .search-input,
         .admin-tournaments-page .filter-select {
-            min-height: 44px;
+            box-sizing: border-box;
+            height: 40px;
             border: 1px solid var(--tournament-line);
             border-radius: 24px;
-            background-color: var(--tournament-white);
+            background-color: var(--tournament-cloud);
             color: var(--tournament-ink);
             font: inherit;
             font-size: 14px;
@@ -92,47 +107,50 @@
 
         .admin-tournaments-page .search-input {
             width: 100%;
-            padding: 9px 16px 9px 42px;
+            padding: 8px 14px 8px 38px;
             background: var(--tournament-cloud);
         }
 
         .admin-tournaments-page .filter-select {
-            min-width: 150px;
-            padding: 8px 38px 8px 16px;
+            width: 100%;
+            min-width: 0;
+            padding: 7px 34px 7px 12px;
         }
 
         .admin-tournaments-page select.filter-select {
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 16px center;
+            background-position: right 12px center;
             background-size: 14px 14px;
             cursor: pointer;
         }
 
-        .admin-tournaments-page :is(a, button, input, select):focus-visible {
+        .admin-tournaments-page :is(a, button):focus-visible {
             outline: 2px solid var(--tournament-ink);
             outline-offset: 3px;
         }
 
         .admin-tournaments-page .search-input:focus,
         .admin-tournaments-page .filter-select:focus {
-            border-color: var(--tournament-ink);
-            box-shadow: 0 0 0 3px var(--tournament-cloud);
+            border: 2px solid var(--tournament-ink);
+            background-color: var(--tournament-white);
+            box-shadow: none; /* taste-skill-ignore: remove Bootstrap's extra focus ring */
+            outline: none;
         }
 
         .admin-tournaments-page .btn-create,
         .admin-tournaments-page .btn-reset,
         .admin-tournaments-page .pagination-btn,
         .admin-tournaments-page .pagination-pages .page-link {
-            min-height: 44px;
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 8px;
-            padding: 9px 18px;
+            padding: 8px 16px;
             border: 1px solid transparent;
-            border-radius: 9999px;
+            border-radius: 30px;
             font-size: 14px;
             font-weight: 500;
             line-height: 1.4;
@@ -142,9 +160,21 @@
         }
 
         .admin-tournaments-page .btn-create {
+            flex: 0 0 auto;
+            height: 48px;
+            min-height: 48px;
+            box-sizing: border-box;
+            padding: 0 24px;
             border-color: var(--tournament-ink);
+            border-radius: 30px;
             background: var(--tournament-ink);
             color: var(--tournament-white);
+        }
+
+        .admin-tournaments-page .btn-reset,
+        .admin-tournaments-page .pagination-btn,
+        .admin-tournaments-page .pagination-pages .page-link {
+            border-radius: 30px;
         }
 
         .admin-tournaments-page .btn-create:hover {
@@ -216,13 +246,13 @@
         .admin-tournaments-page .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
 
         .admin-tournaments-page .stat-card {
             min-width: 0;
-            padding: 18px 20px;
+            padding: 14px 18px;
             border-right: 1px solid var(--tournament-line-soft);
         }
 
@@ -232,14 +262,14 @@
 
         .admin-tournaments-page .stat-title {
             color: var(--tournament-muted);
-            font-size: 14px;
+            font-size: 13px;
             line-height: 1.4;
         }
 
         .admin-tournaments-page .stat-value {
             margin-top: 4px;
             color: var(--tournament-ink);
-            font-size: 26px;
+            font-size: 24px;
             font-variant-numeric: tabular-nums;
             font-weight: 500;
             line-height: 1.2;
@@ -258,17 +288,16 @@
         }
 
         .admin-tournaments-page .main-card {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             overflow: hidden;
         }
 
         .admin-tournaments-page .card-header {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: 14px 20px;
-            padding: 18px 20px;
+            gap: 12px 20px;
+            padding: 16px 20px;
             border-bottom: 1px solid var(--tournament-line-soft);
             background: var(--tournament-white);
         }
@@ -276,12 +305,19 @@
         .admin-tournaments-page .card-header h2 {
             margin: 0;
             color: var(--tournament-ink);
-            font-size: 22px;
-            font-weight: 500;
+            font-size: 18px;
+            font-weight: 600;
             line-height: 1.25;
         }
 
         .admin-tournaments-page .filters-row {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(140px, .72fr) minmax(165px, .85fr) minmax(165px, .85fr) auto;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--tournament-line-soft);
+            background: var(--tournament-white);
             margin: 0;
         }
 
@@ -300,15 +336,15 @@
         .admin-tournaments-page #tournamentsTable thead th {
             padding: 12px 16px;
             border-bottom: 1px solid var(--tournament-line-soft);
-            background: var(--tournament-cloud);
+            background: var(--tournament-white);
             color: var(--tournament-muted);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             white-space: nowrap;
         }
 
         .admin-tournaments-page #tournamentsTable tbody td {
-            padding: 14px 16px;
+            padding: 12px 14px;
             border-bottom: 1px solid var(--tournament-line-soft);
             background: var(--tournament-white);
             font-size: 14px;
@@ -325,7 +361,7 @@
 
         .admin-tournaments-page .tournament-name {
             color: var(--tournament-ink);
-            font-size: 15px;
+            font-size: 14px;
             font-weight: 500;
             line-height: 1.4;
         }
@@ -333,7 +369,7 @@
         .admin-tournaments-page .tournament-location {
             margin-top: 3px;
             color: var(--tournament-muted);
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .admin-tournaments-page .date-info,
@@ -345,6 +381,7 @@
 
         .admin-tournaments-page .count-info {
             font-weight: 500;
+            text-align: right;
         }
 
         .admin-tournaments-page .count-info small {
@@ -358,7 +395,7 @@
         .admin-tournaments-page .type-badge,
         .admin-tournaments-page .featured-badge,
         .admin-tournaments-page .status-badge {
-            min-height: 30px;
+            min-height: 28px;
             display: inline-flex;
             align-items: center;
             gap: 6px;
@@ -366,7 +403,7 @@
             border: 1px solid var(--tournament-line-soft);
             border-radius: 9999px;
             color: var(--tournament-charcoal);
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             line-height: 1.3;
             white-space: nowrap;
@@ -416,7 +453,7 @@
             align-items: center;
             justify-content: center;
             padding: 0;
-            border: 1px solid transparent;
+            border: 1px solid var(--tournament-line-soft);
             border-radius: 9999px;
             background: var(--tournament-cloud);
             color: var(--tournament-ink);
@@ -508,6 +545,23 @@
         }
 
         @media (max-width: 900px) {
+            .admin-tournaments-page .page-header {
+                grid-template-columns: minmax(0, 1fr);
+                align-items: start;
+            }
+
+            .admin-tournaments-page .header-tools {
+                justify-content: flex-start;
+            }
+
+            .admin-tournaments-page .filters-row {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .admin-tournaments-page .filters-row .search-box {
+                grid-column: 1 / -1;
+            }
+
             .admin-tournaments-page .stats-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
@@ -524,31 +578,111 @@
         @media (max-width: 640px) {
             .admin-tournaments-page .page-header {
                 align-items: stretch;
-                margin-bottom: 24px;
+                margin-bottom: 20px;
             }
 
-            .admin-tournaments-page .header-tools,
-            .admin-tournaments-page .search-box {
+            .admin-tournaments-page .header-tools {
                 width: 100%;
             }
 
             .admin-tournaments-page .btn-create {
-                flex: 1;
+                width: 100%;
             }
 
             .admin-tournaments-page .card-header {
-                align-items: stretch;
-                padding: 16px;
+                padding: 14px 16px;
             }
 
             .admin-tournaments-page .filters-row {
-                display: grid;
-                grid-template-columns: repeat(2, minmax(0, 1fr));
+                padding: 12px 16px;
             }
 
-            .admin-tournaments-page .filter-select {
-                width: 100%;
+            .admin-tournaments-page .table-responsive {
+                overflow: visible;
+            }
+
+            .admin-tournaments-page #tournamentsTable {
+                display: block;
                 min-width: 0;
+            }
+
+            .admin-tournaments-page #tournamentsTable thead {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody {
+                display: grid;
+                gap: 10px;
+                padding: 12px 16px;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody tr {
+                display: block;
+                overflow: hidden;
+                border: 1px solid var(--tournament-line-soft);
+                border-radius: 8px;
+                background: var(--tournament-white);
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td {
+                display: grid;
+                grid-template-columns: minmax(78px, .38fr) minmax(0, 1fr);
+                align-items: center;
+                gap: 12px;
+                padding: 10px 12px;
+                border-bottom: 1px solid var(--tournament-line-soft);
+                text-align: left !important;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td::before {
+                content: attr(data-label);
+                color: var(--tournament-muted);
+                font-size: 12px;
+                font-weight: 500;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"] {
+                grid-template-rows: auto auto;
+                row-gap: 2px;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"]::before {
+                grid-row: 1 / span 2;
+                align-self: start;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"] .tournament-name,
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"] .tournament-location {
+                grid-column: 2;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"] .tournament-name {
+                grid-row: 1;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td[data-label="Turnamen"] .tournament-location {
+                grid-row: 2;
+                margin-top: 0;
+            }
+
+            .admin-tournaments-page #tournamentsTable tbody td:last-child {
+                border-bottom: 0;
+            }
+
+            .admin-tournaments-page .action-buttons {
+                justify-content: flex-start;
+            }
+
+            .admin-tournaments-page .count-info {
+                text-align: left;
             }
 
             .admin-tournaments-page .pagination-container {
@@ -557,15 +691,12 @@
         }
 
         @media (max-width: 420px) {
-            .admin-tournaments-page .header-tools {
-                align-items: stretch !important;
-                flex-direction: column;
+            .admin-tournaments-page .filters-row {
+                grid-template-columns: minmax(0, 1fr);
             }
 
-            .admin-tournaments-page .header-actions,
-            .admin-tournaments-page .filters-row {
-                display: grid;
-                grid-template-columns: minmax(0, 1fr);
+            .admin-tournaments-page .filters-row .search-box {
+                grid-column: auto;
             }
 
             .admin-tournaments-page .stat-card {
@@ -601,11 +732,6 @@
                 <p class="page-subtitle">Kelola jadwal, format, dan peserta turnamen.</p>
             </div>
             <div class="header-tools">
-                <div class="search-box">
-                    <i class="bi bi-search search-icon" aria-hidden="true"></i>
-                    <input type="search" id="searchInput" placeholder="Cari nama atau lokasi"
-                        class="search-input" aria-label="Cari turnamen berdasarkan nama atau lokasi">
-                </div>
                 @if($activeTournament)
                     <span class="btn-create is-disabled" aria-disabled="true"
                         title="Masih ada turnamen aktif: {{ $activeTournament->name }}">
@@ -676,7 +802,14 @@
         <section class="main-card" aria-labelledby="tournament-list-title">
             <div class="card-header">
                 <h2 id="tournament-list-title">Daftar turnamen</h2>
-                <div class="filters-row" role="group" aria-label="Filter turnamen">
+            </div>
+            <div class="filters-row" role="group" aria-label="Filter turnamen">
+                <div class="search-box">
+                    <i class="bi bi-search search-icon" aria-hidden="true"></i>
+                    <input type="search" id="searchInput" placeholder="Cari nama atau lokasi"
+                        class="search-input" aria-label="Cari turnamen berdasarkan nama atau lokasi">
+                </div>
+
                     <label class="visually-hidden" for="statusFilter">Filter status</label>
                     <select id="statusFilter" class="filter-select">
                         <option value="">Semua status</option>
@@ -700,7 +833,6 @@
                     <button type="button" class="btn-reset" id="resetFilters">
                         <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Reset
                     </button>
-                </div>
             </div>
 
             @if($tournaments->count() > 0)
@@ -712,7 +844,7 @@
                                 <th scope="col">Format</th>
                                 <th scope="col">Tanggal</th>
                                 <th scope="col">Status</th>
-                                <th scope="col">Tim</th>
+                                <th scope="col" class="text-end">Tim</th>
                                 <th scope="col" class="text-end">Tindakan</th>
                             </tr>
                         </thead>
@@ -723,7 +855,7 @@
                                     data-date="{{ $tournament->start_date->format('Y-m-d') }}"
                                     data-name="{{ strtolower($tournament->name) }}"
                                     data-location="{{ strtolower($tournament->location) }}">
-                                    <td>
+                                    <td data-label="Turnamen">
                                         <div class="tournament-name">
                                             {{ $tournament->name }}
                                             @if($tournament->is_featured)
@@ -736,7 +868,7 @@
                                             <i class="bi bi-geo-alt" aria-hidden="true"></i> {{ $tournament->location }}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Format">
                                         @if($tournament->type == 'group_knockout')
                                             <span class="type-badge">Grup + knockout</span>
                                         @elseif($tournament->type == 'league')
@@ -745,13 +877,13 @@
                                             <span class="type-badge">Knockout</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td data-label="Tanggal">
                                         <div class="date-info">
                                             {{ $tournament->start_date->format('d M Y') }} sampai
                                             {{ $tournament->end_date->format('d M Y') }}
                                         </div>
                                     </td>
-                                    <td>
+                                    <td data-label="Status">
                                         @if($tournament->status == 'upcoming')
                                             <span class="status-badge status-upcoming">Akan datang</span>
                                         @elseif($tournament->status == 'ongoing')
@@ -762,7 +894,7 @@
                                             <span class="status-badge status-cancelled">Dibatalkan</span>
                                         @endif
                                     </td>
-                                    <td>
+                                    <td class="text-end" data-label="Tim">
                                         <div class="count-info">
                                             {{ $tournament->teams->count() }}
                                             @if($tournament->type == 'group_knockout' && $tournament->groups_count)
@@ -770,7 +902,7 @@
                                             @endif
                                         </div>
                                     </td>
-                                    <td class="text-end">
+                                    <td class="text-end" data-label="Tindakan">
                                         <div class="action-buttons">
                                             <form action="{{ route('admin.tournaments.feature', $tournament) }}" method="POST">
                                                 @csrf

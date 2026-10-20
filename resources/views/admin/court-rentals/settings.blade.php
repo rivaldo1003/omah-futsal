@@ -4,43 +4,75 @@
 
 @section('styles')
     <style>
-        .rental-catalog-page {
+        .rental-catalog-page,
+        .catalog-edit-modal {
             --catalog-ink: #111111;
             --catalog-charcoal: #39393b;
             --catalog-muted: #707072;
             --catalog-border: #cacacb;
             --catalog-border-soft: #e5e5e5;
             --catalog-cloud: #f5f5f5;
+            --catalog-canvas: #ffffff;
             --catalog-green: #007d48;
+        }
+
+        .rental-catalog-page {
+            max-width: 1440px;
+            margin: 0 auto;
             color: var(--catalog-ink);
+            font-size: 16px;
+            line-height: 1.5;
         }
 
         .rental-catalog-page .card {
+            overflow: hidden;
             border: 1px solid var(--catalog-border-soft);
-            border-radius: 0;
+            border-radius: 8px;
+            background: var(--catalog-canvas);
             box-shadow: none;
         }
 
         .rental-catalog-page .card-header {
-            padding: 16px 20px;
-            background: #ffffff;
+            padding: 18px 24px;
+            background: var(--catalog-canvas);
             border-bottom-color: var(--catalog-border-soft);
         }
 
         .rental-catalog-page .card-body {
-            padding: 20px;
+            padding: 24px;
         }
 
-        .rental-catalog-page h1 {
+        .catalog-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 18px 24px;
+            margin-bottom: 24px;
+        }
+
+        .catalog-page-heading h1 {
+            margin: 0 0 8px;
             color: var(--catalog-ink);
-            font-size: clamp(1.5rem, 2vw, 2rem);
-            letter-spacing: -0.025em;
+            font-size: clamp(1.75rem, 2.5vw, 2rem);
+            font-weight: 500;
+            line-height: 1.2;
+            text-wrap: balance;
+        }
+
+        .catalog-page-heading p {
+            max-width: 65ch;
+            margin: 0;
+            color: var(--catalog-muted);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
         .rental-catalog-page h2 {
             color: var(--catalog-ink);
-            font-size: 1rem;
-            font-weight: 600;
+            font-size: 18px;
+            font-weight: 500;
+            line-height: 1.3;
         }
 
         .rental-catalog-page .text-secondary,
@@ -60,31 +92,46 @@
         }
 
         .rental-catalog-page .form-control,
-        .rental-catalog-page .form-select {
+        .rental-catalog-page .form-select,
+        .catalog-edit-modal .form-control,
+        .catalog-edit-modal .form-select {
             min-height: 44px;
             border-color: var(--catalog-border);
-            border-radius: 24px;
+            border-radius: 8px;
             color: var(--catalog-ink);
             background-color: #ffffff;
+            font-size: 14px;
+            box-shadow: none;
         }
 
         .rental-catalog-page .form-control:focus,
-        .rental-catalog-page .form-select:focus {
-            border-color: var(--catalog-ink);
-            box-shadow: 0 0 0 3px var(--catalog-cloud);
+        .rental-catalog-page .form-select:focus,
+        .catalog-edit-modal .form-control:focus,
+        .catalog-edit-modal .form-select:focus {
+            border: 2px solid var(--catalog-ink);
+            box-shadow: none;
+            outline: none;
         }
 
-        .rental-catalog-page .form-check-input:checked {
+        .catalog-list-toolbar .form-control,
+        .catalog-list-toolbar .form-select {
+            border-radius: 24px;
+        }
+
+        .rental-catalog-page .form-check-input:checked,
+        .catalog-edit-modal .form-check-input:checked {
             background-color: var(--catalog-ink);
             border-color: var(--catalog-ink);
         }
 
-        .rental-catalog-page .form-check-input:focus {
+        .rental-catalog-page .form-check-input:focus,
+        .catalog-edit-modal .form-check-input:focus {
             border-color: var(--catalog-ink);
-            box-shadow: 0 0 0 3px var(--catalog-cloud);
+            box-shadow: none;
         }
 
-        .rental-catalog-page .btn {
+        .rental-catalog-page .btn,
+        .catalog-edit-modal .btn {
             min-height: 44px;
             padding: 9px 20px;
             border-radius: 999px;
@@ -93,35 +140,54 @@
             transition: background-color .15s ease, color .15s ease, border-color .15s ease;
         }
 
-        .rental-catalog-page .btn-primary {
+        .rental-catalog-page .btn-primary,
+        .catalog-edit-modal .btn-primary {
             border-color: var(--catalog-ink);
             background: var(--catalog-ink);
             color: #ffffff;
         }
 
-        .rental-catalog-page .btn-primary:hover {
+        .rental-catalog-page .btn-primary:hover,
+        .catalog-edit-modal .btn-primary:hover {
             border-color: var(--catalog-charcoal);
             background: var(--catalog-charcoal);
             color: #ffffff;
         }
 
         .rental-catalog-page .btn-outline-primary,
-        .rental-catalog-page .btn-outline-secondary {
-            border-color: var(--catalog-border);
-            background: #ffffff;
-            color: var(--catalog-ink);
-        }
-
-        .rental-catalog-page .btn-outline-primary:hover,
-        .rental-catalog-page .btn-outline-secondary:hover {
-            border-color: var(--catalog-ink);
+        .rental-catalog-page .btn-outline-secondary,
+        .catalog-edit-modal .btn-outline-secondary {
+            border-color: transparent;
             background: var(--catalog-cloud);
             color: var(--catalog-ink);
         }
 
-        .rental-catalog-page :is(a, button, summary, input, select):focus-visible {
+        .rental-catalog-page .btn-outline-primary:hover,
+        .rental-catalog-page .btn-outline-secondary:hover,
+        .catalog-edit-modal .btn-outline-secondary:hover {
+            border-color: transparent;
+            background: #e5e5e5;
+            color: var(--catalog-ink);
+        }
+
+        .rental-catalog-page :is(a, button, summary):focus-visible,
+        .catalog-edit-modal :is(a, button, summary):focus-visible {
             outline: 2px solid var(--catalog-ink);
-            outline-offset: 3px;
+            outline-offset: 2px;
+        }
+
+        .rental-catalog-page :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible,
+        .catalog-edit-modal :is(input:not([type="checkbox"]):not([type="radio"]), select, textarea):focus-visible {
+            border: 2px solid var(--catalog-ink);
+            box-shadow: none;
+            outline: none;
+        }
+
+        .rental-catalog-page .form-check-input:focus-visible,
+        .catalog-edit-modal .form-check-input:focus-visible {
+            outline: 2px solid var(--catalog-ink);
+            outline-offset: 2px;
+            box-shadow: none;
         }
 
         .catalog-intro {
@@ -129,8 +195,10 @@
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 24px;
-            padding: 0 0 18px;
-            border-bottom: 1px solid var(--catalog-border-soft);
+            padding: 16px 18px;
+            border: 1px solid var(--catalog-border-soft);
+            border-radius: 8px;
+            background: var(--catalog-cloud);
             color: var(--catalog-charcoal);
         }
 
@@ -171,19 +239,33 @@
             border-top: 1px solid var(--catalog-border-soft);
         }
 
+        .catalog-form-footer .btn-primary {
+            min-height: 48px;
+            padding-inline: 24px;
+        }
+
+        .catalog-list-header {
+            display: grid;
+            grid-template-columns: minmax(220px, 1fr) minmax(400px, 520px);
+            align-items: center;
+            gap: 24px;
+        }
+
+        .catalog-list-heading {
+            min-width: 0;
+        }
+
         .catalog-list-toolbar {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(170px, 220px);
             align-items: end;
-            gap: .75rem;
+            gap: 12px;
+            width: 100%;
         }
 
-        .catalog-search {
-            flex: 1 1 260px;
-        }
-
+        .catalog-search,
         .catalog-filter {
-            flex: 0 1 220px;
+            min-width: 0;
         }
 
         .catalog-list-meta {
@@ -203,10 +285,10 @@
 
         .catalog-item-main {
             display: grid;
-            grid-template-columns: minmax(0, 1fr) auto auto;
+            grid-template-columns: minmax(0, 1fr) minmax(170px, 230px) 92px;
             align-items: center;
-            gap: 16px;
-            padding: 16px 8px;
+            gap: 20px;
+            padding: 16px 12px;
         }
 
         .catalog-item-name {
@@ -222,6 +304,7 @@
             color: var(--catalog-muted);
             font-size: .8125rem;
             font-variant-numeric: tabular-nums;
+            line-height: 1.5;
         }
 
         .catalog-item-status {
@@ -234,6 +317,7 @@
             background: var(--catalog-cloud);
             font-size: .75rem;
             font-weight: 600;
+            justify-self: start;
         }
 
         .catalog-item-status.is-available {
@@ -250,48 +334,62 @@
             color: var(--catalog-muted);
         }
 
-        .catalog-item-edit summary {
+        .catalog-item-edit-trigger {
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: .4rem;
-            min-height: 40px;
-            padding: 8px 14px;
-            border: 1px solid var(--catalog-border);
-            border-radius: 999px;
+            width: 92px;
+            min-height: 42px;
+            justify-self: end;
+        }
+
+        .catalog-edit-modal .modal-dialog {
+            max-width: 760px;
+        }
+
+        .catalog-edit-modal .modal-content {
+            overflow: hidden;
+            border: 1px solid var(--catalog-border-soft);
+            border-radius: 8px;
             background: #ffffff;
+            box-shadow: none;
+        }
+
+        .catalog-edit-modal form {
+            display: flex;
+            min-height: 0;
+            flex-direction: column;
+        }
+
+        .catalog-edit-modal .modal-header,
+        .catalog-edit-modal .modal-footer {
+            padding: 18px 24px;
+            border-color: var(--catalog-border-soft);
+        }
+
+        .catalog-edit-modal .modal-body {
+            min-height: 0;
+            padding: 24px;
+        }
+
+        .catalog-edit-modal .modal-title {
             color: var(--catalog-ink);
-            cursor: pointer;
-            font-size: .8125rem;
+            font-size: 20px;
             font-weight: 500;
-            list-style: none;
-            white-space: nowrap;
-            transition: background-color .15s ease, border-color .15s ease;
         }
 
-        .catalog-item-edit summary::-webkit-details-marker {
-            display: none;
+        .catalog-edit-modal .btn-close {
+            box-shadow: none;
         }
 
-        .catalog-item-edit summary:hover {
-            border-color: var(--catalog-ink);
-            background: var(--catalog-cloud);
+        .catalog-edit-modal :is(a, button):focus-visible {
+            outline: 2px solid var(--catalog-ink);
+            outline-offset: 2px;
         }
 
-        .catalog-item-edit[open] {
-            grid-column: 1 / -1;
-            width: 100%;
-        }
-
-        .catalog-item-edit[open] summary {
-            width: max-content;
-            margin-left: auto;
-            margin-bottom: 12px;
-        }
-
-        .catalog-editor {
-            padding: 16px;
-            border-top: 1px solid var(--catalog-border-soft);
-            background: var(--catalog-cloud);
+        .catalog-edit-modal .modal-footer .form-check {
+            margin-right: auto;
         }
 
         .catalog-advanced {
@@ -324,6 +422,7 @@
         }
 
         @media (prefers-reduced-motion: reduce) {
+
             .rental-catalog-page *,
             .rental-catalog-page *::before,
             .rental-catalog-page *::after {
@@ -332,7 +431,22 @@
             }
         }
 
+        @media (max-width: 991.98px) {
+            .catalog-list-header {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+
         @media (max-width: 767.98px) {
+            .catalog-page-header {
+                display: block;
+            }
+
+            .catalog-page-header nav {
+                margin-top: 16px;
+            }
+
             .catalog-form-grid {
                 grid-template-columns: 1fr 1fr;
             }
@@ -341,9 +455,13 @@
                 grid-column: 1 / -1;
             }
 
+            .catalog-list-toolbar {
+                max-width: none;
+            }
+
             .catalog-item-main {
                 grid-template-columns: minmax(0, 1fr) auto;
-                gap: 8px 12px;
+                gap: 8px 16px;
             }
 
             .catalog-item-status {
@@ -351,18 +469,22 @@
                 grid-row: 2;
             }
 
-            .catalog-item-edit {
+            .catalog-item-edit-trigger {
                 grid-column: 2;
                 grid-row: 1 / span 2;
             }
-
-            .catalog-item-edit[open] {
-                grid-column: 1 / -1;
-                grid-row: auto;
-            }
         }
 
-        @media (max-width: 420px) {
+        @media (max-width: 575.98px) {
+            .rental-catalog-page .card-header,
+            .rental-catalog-page .card-body {
+                padding: 18px 16px;
+            }
+
+            .catalog-intro {
+                padding: 14px;
+            }
+
             .catalog-form-grid {
                 grid-template-columns: 1fr;
             }
@@ -375,12 +497,29 @@
                 padding: 12px;
             }
 
-            .catalog-editor {
-                padding: 12px;
+            .catalog-list-toolbar {
+                grid-template-columns: 1fr;
             }
 
-            .catalog-list-toolbar>* {
-                flex-basis: 100%;
+            .catalog-item-main {
+                gap: 8px 12px;
+            }
+
+            .catalog-item-status {
+                white-space: normal;
+            }
+
+            .catalog-edit-modal .modal-header,
+            .catalog-edit-modal .modal-footer {
+                padding: 16px;
+            }
+
+            .catalog-edit-modal .modal-body {
+                padding: 18px 16px;
+            }
+
+            .catalog-edit-modal .modal-footer {
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -399,18 +538,18 @@
     @endphp
 
     <main class="rental-catalog-page">
-        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
-            <div>
+        <header class="catalog-page-header">
+            <div class="catalog-page-heading">
                 <h1 class="mb-1">Katalog Perlengkapan</h1>
                 <p class="text-secondary mb-0">Atur barang dan stok yang dapat ditambahkan pelanggan saat booking lapangan.
                 </p>
             </div>
-            <div class="d-flex flex-wrap gap-2">
+            <nav class="d-flex flex-wrap gap-2" aria-label="Navigasi katalog perlengkapan">
                 <a href="{{ route('admin.court-bookings.index') }}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left me-1" aria-hidden="true"></i>Kembali ke booking
                 </a>
-            </div>
-        </div>
+            </nav>
+        </header>
 
         @if(session('success'))
             <div class="alert alert-success" role="status">{{ session('success') }}</div>
@@ -473,8 +612,8 @@
         </section>
 
         <section class="card" aria-labelledby="rentalItemsListTitle">
-            <div class="card-header d-flex flex-wrap justify-content-between align-items-end gap-3">
-                <div>
+            <div class="card-header catalog-list-header">
+                <div class="catalog-list-heading">
                     <h2 class="h5 mb-1" id="rentalItemsListTitle">Daftar barang</h2>
                     <div class="catalog-list-meta">
                         {{ $rentalItems->count() }} jenis · {{ $availableCount }} ditawarkan · {{ $emptyCount }} stok habis
@@ -513,9 +652,9 @@
                             @php
                                 $itemState = !$item->is_active ? 'hidden' : ((int) $item->stock_quantity < 1 ? 'empty' : 'available');
                                 $stateLabel = match ($itemState) {
-                                    'available' => 'Ditawarkan ke pelanggan',
+                                    'available' => 'Ditawarkan',
                                     'empty' => 'Stok habis',
-                                    default => 'Tidak ditawarkan',
+                                    default => 'Disembunyikan',
                                 };
                                 $stateIcon = match ($itemState) {
                                     'available' => 'bi-check-circle-fill',
@@ -537,62 +676,11 @@
                                     <span class="catalog-item-status is-{{ $itemState }}">
                                         <i class="bi {{ $stateIcon }}" aria-hidden="true"></i>{{ $stateLabel }}
                                     </span>
-                                    <details class="catalog-item-edit">
-                                        <summary><i class="bi bi-pencil" aria-hidden="true"></i>Ubah</summary>
-                                        <div class="catalog-editor">
-                                            <form method="POST" action="{{ route('admin.court-rentals.items.update', $item) }}">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="row g-3">
-                                                    <div class="col-12 col-lg-5">
-                                                        <label class="form-label" for="rentalName{{ $item->id }}">Nama barang atau
-                                                            varian</label>
-                                                        <input class="form-control" id="rentalName{{ $item->id }}" name="name"
-                                                            required maxlength="100" value="{{ $item->name }}">
-                                                    </div>
-                                                    <div class="col-6 col-lg-3">
-                                                        <label class="form-label" for="rentalPrice{{ $item->id }}">Harga sewa per
-                                                            unit</label>
-                                                        <input class="form-control" id="rentalPrice{{ $item->id }}"
-                                                            name="unit_price" type="text" inputmode="numeric" autocomplete="off"
-                                                            maxlength="18" data-rupiah-input required
-                                                            value="{{ $formatRupiah($item->unit_price) }}">
-                                                    </div>
-                                                    <div class="col-6 col-lg-2">
-                                                        <label class="form-label" for="rentalStock{{ $item->id }}">Stok unit</label>
-                                                        <input class="form-control" id="rentalStock{{ $item->id }}"
-                                                            name="stock_quantity" type="number" min="0" max="65535"
-                                                            value="{{ $item->stock_quantity }}" required>
-                                                    </div>
-                                                    <div class="col-12 col-lg-2 d-flex align-items-end">
-                                                        <button class="btn btn-outline-primary w-100" type="submit"><i
-                                                                class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan</button>
-                                                    </div>
-                                                </div>
-
-                                                <div class="catalog-form-footer">
-                                                    <label class="form-check mb-0">
-                                                        <input class="form-check-input" type="checkbox" name="is_active" value="1"
-                                                            @checked($item->is_active)>
-                                                        <span class="form-check-label">Tersedia sebagai tambahan booking
-                                                            lapangan</span>
-                                                    </label>
-                                                    <details class="catalog-advanced">
-                                                        <summary><i class="bi bi-sliders" aria-hidden="true"></i>Urutan daftar
-                                                        </summary>
-                                                        <div class="catalog-advanced-field">
-                                                            <label class="form-label" for="rentalOrder{{ $item->id }}">Nomor
-                                                                urutan</label>
-                                                            <input class="form-control" id="rentalOrder{{ $item->id }}"
-                                                                name="sort_order" type="number" min="0" max="65535"
-                                                                value="{{ $item->sort_order }}">
-                                                            <div class="form-text">Angka lebih kecil tampil lebih dahulu.</div>
-                                                        </div>
-                                                    </details>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </details>
+                                    <button class="btn btn-outline-secondary catalog-item-edit-trigger" type="button"
+                                        data-bs-toggle="modal" data-bs-target="#editRentalItem{{ $item->id }}"
+                                        aria-label="Ubah {{ $item->name }}">
+                                        <i class="bi bi-pencil" aria-hidden="true"></i>Ubah
+                                    </button>
                                 </div>
                             </article>
                         @endforeach
@@ -605,6 +693,75 @@
             </div>
         </section>
     </main>
+
+    @foreach($rentalItems as $item)
+        @php($editingSubmittedItem = (string) old('_catalog_item_id') === (string) $item->id)
+        <div class="modal fade catalog-edit-modal" id="editRentalItem{{ $item->id }}" tabindex="-1"
+            aria-labelledby="editRentalItemTitle{{ $item->id }}" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <form method="POST" action="{{ route('admin.court-rentals.items.update', $item) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="_catalog_item_id" value="{{ $item->id }}">
+                        <div class="modal-header">
+                            <div>
+                                <h2 class="modal-title mb-1" id="editRentalItemTitle{{ $item->id }}">Ubah barang</h2>
+                                <p class="small text-secondary mb-0">Perbarui nama, harga, stok, atau ketersediaan.</p>
+                            </div>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="row g-3">
+                                <div class="col-12 col-md-6">
+                                    <label class="form-label" for="rentalName{{ $item->id }}">Nama barang atau varian</label>
+                                    <input class="form-control" id="rentalName{{ $item->id }}" name="name" required
+                                        maxlength="100" value="{{ $editingSubmittedItem ? old('name', $item->name) : $item->name }}">
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label" for="rentalPrice{{ $item->id }}">Harga sewa per unit</label>
+                                    <input class="form-control" id="rentalPrice{{ $item->id }}" name="unit_price" type="text"
+                                        inputmode="numeric" autocomplete="off" maxlength="18" data-rupiah-input required
+                                        value="{{ $formatRupiah($editingSubmittedItem ? old('unit_price', $item->unit_price) : $item->unit_price) }}">
+                                </div>
+                                <div class="col-12 col-md-3">
+                                    <label class="form-label" for="rentalStock{{ $item->id }}">Stok unit</label>
+                                    <input class="form-control" id="rentalStock{{ $item->id }}" name="stock_quantity"
+                                        type="number" min="0" max="65535" required
+                                        value="{{ $editingSubmittedItem ? old('stock_quantity', $item->stock_quantity) : $item->stock_quantity }}">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-check mb-0">
+                                        <input class="form-check-input" type="checkbox" name="is_active" value="1"
+                                            @checked($editingSubmittedItem ? old('is_active') : $item->is_active)>
+                                        <span class="form-check-label">Tersedia sebagai tambahan booking lapangan</span>
+                                    </label>
+                                </div>
+                                <div class="col-12">
+                                    <details class="catalog-advanced">
+                                        <summary><i class="bi bi-sliders" aria-hidden="true"></i>Urutan daftar</summary>
+                                        <div class="catalog-advanced-field">
+                                            <label class="form-label" for="rentalOrder{{ $item->id }}">Nomor urutan</label>
+                                            <input class="form-control" id="rentalOrder{{ $item->id }}" name="sort_order"
+                                                type="number" min="0" max="65535"
+                                                value="{{ $editingSubmittedItem ? old('sort_order', $item->sort_order) : $item->sort_order }}">
+                                            <div class="form-text">Angka lebih kecil tampil lebih dahulu.</div>
+                                        </div>
+                                    </details>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                            <button class="btn btn-primary" type="submit">
+                                <i class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan perubahan
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
 @endsection
 
 @push('scripts')
@@ -656,6 +813,12 @@
 
             search.addEventListener('input', filterItems);
             status.addEventListener('change', filterItems);
+
+            const invalidEditId = @json(old('_catalog_item_id'));
+            if (invalidEditId && window.bootstrap?.Modal) {
+                const editModal = document.getElementById(`editRentalItem${invalidEditId}`);
+                if (editModal) window.bootstrap.Modal.getOrCreateInstance(editModal).show();
+            }
         })();
     </script>
 @endpush

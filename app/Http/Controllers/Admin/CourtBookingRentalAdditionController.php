@@ -57,7 +57,7 @@ class CourtBookingRentalAdditionController extends Controller
         $validated = $request->validate([
             'request_key' => ['required', 'uuid'],
             'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'qris'])],
-            'payment_received' => ['required_if:payment_method,cash', 'accepted'],
+            'payment_received' => ['exclude_unless:payment_method,cash', 'required', 'accepted'],
             'rental_items' => ['required', 'array', 'min:1'],
             'rental_items.*' => ['required', 'integer', 'min:0', 'max:65535'],
         ]);

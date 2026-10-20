@@ -50,8 +50,12 @@
             display: flex;
             flex-wrap: wrap;
             align-items: flex-end;
-            gap: 8px;
-            margin-bottom: 20px;
+            gap: 12px;
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid var(--standings-line-soft);
+            border-radius: 8px;
+            background: var(--standings-white);
         }
 
         .admin-standings-page .filter-field {
@@ -66,8 +70,8 @@
         }
 
         .admin-standings-page .filter-select {
-            min-width: min(320px, 100%);
-            min-height: 44px;
+            width: min(360px, 100%);
+            min-height: 48px;
             padding: 8px 40px 8px 16px;
             border: 1px solid var(--standings-line);
             border-radius: 9999px;
@@ -89,8 +93,8 @@
             align-items: center;
             justify-content: center;
             gap: 8px;
-            min-height: 44px;
-            padding: 9px 18px;
+            min-height: 48px;
+            padding: 12px 20px;
             border: 1px solid transparent;
             border-radius: 9999px;
             font-size: 14px;
@@ -123,14 +127,15 @@
             color: var(--standings-ink);
         }
 
-        .admin-standings-page :is(a, button, select):focus-visible {
+        .admin-standings-page :is(a, button):focus-visible {
             outline: 2px solid var(--standings-ink);
             outline-offset: 3px;
         }
 
-        .admin-standings-page .filter-select:focus {
-            border-color: var(--standings-ink);
-            box-shadow: 0 0 0 3px var(--standings-cloud);
+        .admin-standings-page .filter-select:focus-visible {
+            border: 2px solid var(--standings-ink);
+            outline: none;
+            box-shadow: none; /* taste-skill-ignore: suppress framework focus shadow to avoid a double border */
         }
 
         .admin-standings-page .alert-admin {
@@ -194,10 +199,10 @@
             gap: 12px;
             padding: 14px 20px;
             border-bottom: 1px solid var(--standings-line-soft);
-            background: var(--standings-cloud);
+            background: var(--standings-white);
             color: var(--standings-ink);
             font-size: 14px;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         .admin-standings-page .standing-group-heading small {
@@ -207,8 +212,10 @@
         }
 
         .admin-standings-page .standings-table {
-            min-width: 780px;
+            min-width: 980px;
             margin-bottom: 0;
+            --bs-table-bg: var(--standings-white);
+            --bs-table-hover-bg: var(--standings-white);
         }
 
         .admin-standings-page .standings-table > :not(caption) > * > * {
@@ -236,8 +243,40 @@
         }
 
         .admin-standings-page .standing-number {
-            text-align: center;
+            text-align: right;
             font-variant-numeric: tabular-nums;
+        }
+
+        .admin-standings-page .league-table thead th:nth-child(n + 3) {
+            text-align: right;
+        }
+
+        .admin-standings-page .league-table th:first-child,
+        .admin-standings-page .league-table td:first-child {
+            width: 76px;
+        }
+
+        .admin-standings-page .league-table th:nth-child(2),
+        .admin-standings-page .league-table td:nth-child(2) {
+            min-width: 220px;
+        }
+
+        .admin-standings-page .knockout-table {
+            min-width: 780px;
+        }
+
+        .admin-standings-page .knockout-table .standing-number {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .admin-standings-page .table-responsive {
+            overscroll-behavior-x: contain;
+            scrollbar-color: var(--standings-line) transparent;
+        }
+
+        .admin-standings-page .standings-table.table-hover > tbody > tr:hover > * {
+            --bs-table-bg-state: var(--standings-white);
         }
 
         .admin-standings-page .standing-team {
@@ -287,8 +326,8 @@
         .admin-standings-page .status-badge {
             display: inline-flex;
             align-items: center;
-            min-height: 26px;
-            padding: 4px 10px;
+            min-height: 24px;
+            padding: 3px 9px;
             border-radius: 9999px;
             font-size: 12px;
             font-weight: 500;
@@ -343,6 +382,15 @@
         }
 
         @media (max-width: 640px) {
+            .admin-standings-page .page-header {
+                margin-bottom: 20px;
+            }
+
+            .admin-standings-page .filter-form {
+                align-items: stretch;
+                padding: 14px;
+            }
+
             .admin-standings-page .filter-field,
             .admin-standings-page .filter-select,
             .admin-standings-page .filter-form .btn-primary {
@@ -456,7 +504,7 @@
                                 <small>{{ count($matches) }} pertandingan</small>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-hover standings-table">
+                                <table class="table table-hover standings-table knockout-table">
                                     <thead>
                                         <tr>
                                             <th scope="col">Tim kandang</th>
@@ -560,19 +608,19 @@
                                 <small>{{ $groupStandings->count() }} tim</small>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-hover standings-table">
+                                <table class="table table-hover standings-table league-table">
                                     <thead>
                                         <tr>
                                             <th scope="col">Posisi</th>
                                             <th scope="col">Tim</th>
-                                            <th scope="col" class="text-center">Main</th>
-                                            <th scope="col" class="text-center">Menang</th>
-                                            <th scope="col" class="text-center">Seri</th>
-                                            <th scope="col" class="text-center">Kalah</th>
-                                            <th scope="col" class="text-center">Gol masuk</th>
-                                            <th scope="col" class="text-center">Gol lawan</th>
-                                            <th scope="col" class="text-center">Selisih</th>
-                                            <th scope="col" class="text-center">Poin</th>
+                                            <th scope="col" class="standing-number">Main</th>
+                                            <th scope="col" class="standing-number">Menang</th>
+                                            <th scope="col" class="standing-number">Seri</th>
+                                            <th scope="col" class="standing-number">Kalah</th>
+                                            <th scope="col" class="standing-number">Gol masuk</th>
+                                            <th scope="col" class="standing-number">Gol lawan</th>
+                                            <th scope="col" class="standing-number">Selisih</th>
+                                            <th scope="col" class="standing-number">Poin</th>
                                         </tr>
                                     </thead>
                                     <tbody>

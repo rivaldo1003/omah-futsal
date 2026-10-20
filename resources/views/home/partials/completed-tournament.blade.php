@@ -68,9 +68,9 @@
             width: 44px;
             height: 44px;
             place-items: center;
-            border: 1px solid rgba(255, 183, 0, .38);
+            border: 1px solid var(--warning);
             border-radius: 50%;
-            background: rgba(255, 183, 0, .08);
+            background: var(--warning-subtle);
             color: var(--v3-neon-yellow);
             font-size: 18px;
         }
@@ -154,10 +154,11 @@
             justify-content: center;
             gap: 8px;
             min-height: 44px;
-            padding: 0 14px;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--radius-md, 8px);
-            color: var(--v3-text-main);
+            padding: 0 20px;
+            border: 1px solid var(--accent);
+            border-radius: 9999px;
+            background: var(--accent);
+            color: #ffffff;
             font-size: 13px;
             font-weight: 700;
             text-decoration: none;
@@ -166,13 +167,13 @@
 
         .v3-completed-tournament-link:hover,
         .v3-completed-tournament-link:focus-visible {
-            border-color: var(--v3-neon-green);
-            background: var(--accent-subtle);
-            color: var(--v3-neon-green);
+            border-color: var(--accent-hover);
+            background: var(--accent-hover);
+            color: #ffffff;
         }
 
         .v3-completed-tournament-link:focus-visible {
-            outline: 2px solid var(--v3-neon-green);
+            outline: 2px solid var(--accent);
             outline-offset: 3px;
         }
 

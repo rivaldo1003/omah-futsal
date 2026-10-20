@@ -34,7 +34,7 @@ class CourtWalkInOrderController extends Controller
         $filters = $request->validate([
             'date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.$today->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
             'court_id' => ['nullable', 'integer', Rule::exists('courts', 'id')],
-            'range' => ['nullable', 'regex:/^\d{2}:\d{2}\|\d{2}:\d{2}$/'],
+            'range' => ['nullable', 'regex:/^(?:now|\d{2}:\d{2})\|\d{2}:\d{2}$/'],
             'manual_request_key' => ['nullable', 'uuid'],
         ]);
 
@@ -54,6 +54,19 @@ class CourtWalkInOrderController extends Controller
         if ($selectedCourt) {
             $courtSlots = $this->courtSlotGrid($selectedCourt, $date, $availability, $pricing);
             $availableRanges = $this->availableCourtRanges($selectedCourt, $courtSlots, $pricing);
+
+            $currentRange = $this->currentWalkInRange($selectedCourt, $date, $availability, $pricing);
+            if ($currentRange) {
+                $availableRanges->prepend($currentRange);
+                $courtSlots = $courtSlots->map(function (array $slot) use ($currentRange): array {
+                    if ($slot['start'] === $currentRange['block_start'] && $slot['end'] === $currentRange['end']) {
+                        $slot['instant_range'] = $currentRange;
+                    }
+
+                    return $slot;
+                });
+            }
+
             $selectedRange = $availableRanges->firstWhere('value', $filters['range'] ?? null);
 
             if ($selectedRange) {
@@ -96,14 +109,14 @@ class CourtWalkInOrderController extends Controller
         $validated = $request->validate([
             'court_id' => ['required', 'integer', 'exists:courts,id'],
             'booking_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
-            'range' => ['required', 'regex:/^\d{2}:\d{2}\|\d{2}:\d{2}$/'],
+            'range' => ['required', 'regex:/^(?:now|\d{2}:\d{2})\|\d{2}:\d{2}$/'],
             'manual_request_key' => ['required', 'uuid'],
             'customer_name' => ['required', 'string', 'max:120'],
             'team_name' => ['required', 'string', 'max:120'],
             'customer_phone' => ['required', 'string', 'min:8', 'max:30', 'regex:/^[0-9+().\s-]+$/'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'qris'])],
-            'payment_received' => ['required', 'accepted'],
+            'amount_received' => ['required', 'numeric', 'gt:0', 'max:9999999999.99'],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
             'rental_items' => ['nullable', 'array'],
@@ -121,6 +134,7 @@ class CourtWalkInOrderController extends Controller
             'customer_phone' => trim($validated['customer_phone']),
             'customer_email' => $validated['customer_email'] ?? null,
             'payment_method' => $validated['payment_method'],
+            'amount_received' => round((float) $validated['amount_received'], 2),
             'payment_reference' => $validated['payment_reference'] ?? null,
             'admin_note' => $validated['admin_note'] ?? null,
             'rental_items' => $rentalSelections,
@@ -153,10 +167,15 @@ class CourtWalkInOrderController extends Controller
 
                 $availability->expireUnpaidBookings($court->id, $validated['booking_date']);
                 $slots = $this->courtSlotGrid($court, $validated['booking_date'], $availability, $pricing);
-                $availableRange = $this->availableCourtRanges($court, $slots, $pricing)
-                    ->firstWhere('value', $validated['range']);
+                $isInstantRange = str_starts_with($validated['range'], 'now|');
+                $availableRange = $isInstantRange
+                    ? $this->currentWalkInRange($court, $validated['booking_date'], $availability, $pricing)
+                    : $this->availableCourtRanges($court, $slots, $pricing)->firstWhere('value', $validated['range']);
+                if ($availableRange && $availableRange['value'] !== $validated['range']) {
+                    $availableRange = null;
+                }
                 if (!$availableRange) {
-                    throw ValidationException::withMessages(['range' => 'Slot baru saja terisi atau sudah lewat. Muat ulang jadwal dan pilih waktu lain.']);
+                    throw ValidationException::withMessages(['range' => 'Slot baru saja terisi, sudah lewat, atau sisa waktunya kurang dari 30 menit. Muat ulang jadwal dan pilih waktu lain.']);
                 }
 
                 $rentalItems = $this->lockRentalItems($rentalSelections);
@@ -171,6 +190,13 @@ class CourtWalkInOrderController extends Controller
                 $amount = round((float) $availableRange['amount'] + $rentalTotal, 2);
                 if ($amount > 9999999999.99) {
                     throw ValidationException::withMessages(['rental_items' => 'Total transaksi melebihi batas yang dapat disimpan. Kurangi jumlah perlengkapan.']);
+                }
+
+                $amountReceived = round((float) $validated['amount_received'], 2);
+                if ($amountReceived > $amount) {
+                    throw ValidationException::withMessages([
+                        'amount_received' => 'Nominal diterima tidak boleh melebihi total tagihan Rp '.number_format($amount, 0, ',', '.').'.',
+                    ]);
                 }
 
                 $now = now();
@@ -213,13 +239,19 @@ class CourtWalkInOrderController extends Controller
                 }
 
                 $booking->payments()->create([
-                    'amount' => $amount,
-                    'verified_amount' => $amount,
-                    'stage' => CourtBookingPayment::STAGE_FULL,
+                    'amount' => $amountReceived,
+                    'verified_amount' => $amountReceived,
+                    'stage' => $amountReceived >= $amount
+                        ? CourtBookingPayment::STAGE_FULL
+                        : CourtBookingPayment::STAGE_DEPOSIT,
                     'payment_method' => $validated['payment_method'],
                     'payment_reference' => $validated['payment_reference'] ?? null,
                     'status' => CourtBookingPayment::STATUS_CONFIRMED,
-                    'note' => 'Pembayaran diterima saat booking walk-in.',
+                    'note' => ($availableRange['is_instant'] ?? false)
+                        ? 'Booking mulai sekarang; biaya lapangan mengikuti tarif penuh satu slot '.$availableRange['slot_minutes'].' menit. '.($amountReceived >= $amount ? 'Pembayaran lunas diterima.' : 'DP diterima saat booking walk-in.')
+                        : ($amountReceived >= $amount
+                        ? 'Pembayaran lunas diterima saat booking walk-in.'
+                        : 'DP diterima saat booking walk-in.'),
                     'recorded_by' => auth()->id(),
                     'verified_by' => auth()->id(),
                     'recorded_at' => $now,
@@ -236,8 +268,16 @@ class CourtWalkInOrderController extends Controller
             $this->ensureSameFingerprint($booking, $fingerprint, 'manual_request_key');
         }
 
+        $receivedAmount = (float) $booking->payments()
+            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+            ->sum('verified_amount');
+        $balance = max(0, round((float) $booking->amount - $receivedAmount, 2));
+        $successMessage = $balance > 0
+            ? 'Booking walk-in terkonfirmasi. DP Rp '.number_format($receivedAmount, 0, ',', '.').' tercatat; sisa tagihan Rp '.number_format($balance, 0, ',', '.').'.'
+            : 'Booking walk-in berhasil dicatat sebagai lunas dan terkonfirmasi.';
+
         return redirect()->route('admin.court-bookings.index', ['date' => $booking->booking_date->toDateString()])
-            ->with('success', 'Booking walk-in berhasil dicatat sebagai lunas dan terkonfirmasi.');
+            ->with('success', $successMessage);
     }
 
     public function createRental(Request $request, CourtRentalInventoryService $inventory, CourtBookingAvailabilityService $bookingAvailability)
@@ -534,6 +574,74 @@ class CourtWalkInOrderController extends Controller
         }
 
         return collect($ranges);
+    }
+
+    private function currentWalkInRange(
+        Court $court,
+        string $date,
+        CourtBookingAvailabilityService $availability,
+        CourtPricingService $pricing,
+    ): ?array {
+        $now = Carbon::now(CourtBooking::TIMEZONE);
+        if ($date !== $now->toDateString()) {
+            return null;
+        }
+
+        $slotMinutes = max(15, (int) $court->slot_duration_minutes);
+        $opening = Carbon::parse($date.' '.$court->opening_time, CourtBooking::TIMEZONE);
+        $closing = Carbon::parse($date.' '.$court->closing_time, CourtBooking::TIMEZONE);
+        if ($now->lessThan($opening) || $now->greaterThanOrEqualTo($closing)) {
+            return null;
+        }
+
+        $elapsedSeconds = $now->getTimestamp() - $opening->getTimestamp();
+        $slotIndex = intdiv(max(0, $elapsedSeconds), $slotMinutes * 60);
+        $blockStart = $opening->copy()->addMinutes($slotIndex * $slotMinutes);
+        $blockEnd = $blockStart->copy()->addMinutes($slotMinutes);
+        if ($blockEnd->greaterThan($closing)) {
+            return null;
+        }
+
+        // Store minute-precision times, rounding a request with seconds up to the next minute.
+        $startsAt = $now->copy()->startOfMinute();
+        if ($now->second > 0) {
+            $startsAt->addMinute();
+        }
+
+        $lastStartAt = $blockEnd->copy()->subMinutes(30);
+        $remainingSeconds = $blockEnd->getTimestamp() - $startsAt->getTimestamp();
+        if ($startsAt->greaterThan($lastStartAt) || $remainingSeconds < 30 * 60) {
+            return null;
+        }
+
+        $blockStartTime = $blockStart->format('H:i:s');
+        $blockEndTime = $blockEnd->format('H:i:s');
+        if ($availability->bookingConflict($court, $date, $blockStartTime, $blockEndTime)
+            || $availability->matchConflict($court, $date, $blockStartTime, $blockEndTime)) {
+            return null;
+        }
+
+        $duration = intdiv($remainingSeconds, 60);
+        $start = $startsAt->format('H:i');
+        $end = $blockEnd->format('H:i');
+        $amount = $pricing->amountForRange($court, $blockStartTime, $slotMinutes);
+
+        return [
+            'value' => 'now|'.$end,
+            'start' => $start,
+            'end' => $end,
+            'block_start' => $blockStart->format('H:i'),
+            'duration' => $duration,
+            'duration_label' => $this->durationLabel($duration),
+            'amount' => $amount,
+            'is_instant' => true,
+            'slot_minutes' => $slotMinutes,
+            'starts_at' => $startsAt->toIso8601String(),
+            'ends_at' => $blockEnd->toIso8601String(),
+            'last_start_at' => $lastStartAt->toIso8601String(),
+            'label' => 'Mulai sekarang–'.$end.' · '.$this->durationLabel($duration)
+                .' (tarif penuh '.$this->durationLabel($slotMinutes).') · Rp '.number_format($amount, 0, ',', '.'),
+        ];
     }
 
     private function activeRentalItems(): Collection

@@ -1,85 +1,85 @@
 <style>
-/* =========================================================
-   NEWS INDEX — Page-scoped styles
-   ULTRA ANALYTICS ENGINE v3.0 — dark neon telemetry theme
-   Tokens inherited from home/partials/styles.blade.php
-   ========================================================= */
+/* News index page styles. Shared neutral tokens come from the home shell. */
 
 /* ---- Page Header ---- */
 .news-page-header {
-    background: transparent;
+    background: var(--v3-surface);
     border-bottom: 1px solid var(--v3-border);
-    padding: 20px 0 0;
+    padding: 32px 0 0;
 }
 
 .news-page-title {
-    font-size: 1.6rem;
-    font-weight: 900;
-    font-style: italic;
-    text-transform: uppercase;
-    letter-spacing: -0.03em;
+    font-size: clamp(1.75rem, 3vw, 2rem);
+    font-weight: 600;
+    font-style: normal;
+    letter-spacing: -0.035em;
     color: var(--v3-text-main);
-    text-shadow: 0 0 20px rgba(0, 255, 135, 0.35);
-    margin-bottom: 4px;
+    margin-bottom: 8px;
 }
 
 .news-page-subtitle {
-    font-size: 0.85rem;
-    color: var(--v3-text-sub);
-    margin-bottom: 16px;
+    max-width: 620px;
+    font-size: 0.95rem;
+    color: var(--v3-text-muted);
+    margin-bottom: 24px;
 }
 
 /* ---- Category Filter Tabs ---- */
 .news-filter-bar {
     display: flex;
-    gap: 4px;
+    align-items: center;
+    gap: 8px;
     flex-wrap: wrap;
-    padding-bottom: 0;
-    border-bottom: 2px solid var(--v3-border);
+    padding-bottom: 20px;
 }
 
 .news-filter-tab {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 6px 14px;
-    font-size: 0.82rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--v3-text-muted);
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--v3-text-sub);
     text-decoration: none;
-    border-radius: 4px 4px 0 0;
+    background: var(--v3-card);
     border: 1px solid transparent;
-    border-bottom: none;
-    margin-bottom: -2px;
-    transition: color 0.15s, background 0.15s;
+    border-radius: 9999px;
+    transition: color 0.15s ease, background-color 0.15s ease, border-color 0.15s ease;
 }
 
 .news-filter-tab:hover {
-    color: var(--v3-neon-green);
-    background: var(--v3-card);
+    color: var(--v3-text-main);
+    background: #eeeeee;
 }
 
 .news-filter-tab.active {
-    color: var(--v3-neon-green);
-    background: var(--v3-surface);
-    border-color: var(--v3-border) var(--v3-border) var(--v3-surface);
-    border-bottom: 2px solid var(--v3-neon-green);
+    color: #ffffff;
+    background: var(--v3-text-main);
+    border-color: var(--v3-text-main);
+}
+
+.news-filter-tab:focus-visible {
+    outline: 2px solid var(--v3-text-main);
+    outline-offset: 3px;
 }
 
 .news-filter-tab .tab-count {
-    background: var(--v3-border);
-    color: var(--v3-text-sub);
-    font-size: 0.7rem;
-    padding: 1px 5px;
-    border-radius: 8px;
+    min-width: 20px;
+    padding: 1px 6px;
+    border-radius: 9999px;
+    background: rgba(17, 17, 17, 0.08);
+    color: inherit;
+    font-size: 0.75rem;
     font-weight: 700;
 }
 
 .news-filter-tab.active .tab-count {
-    background: rgba(0, 255, 135, 0.15);
-    color: var(--v3-neon-green);
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+    text-align: center;
 }
 
 /* ---- Featured Article Card ---- */

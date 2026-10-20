@@ -188,17 +188,17 @@
     display: inline-flex;
     align-items: center;
     gap: 7px;
-    height: 34px;
+    height: 44px;
     padding: 0 12px;
-    border: 1px solid rgba(0, 255, 135, .42);
-    border-radius: var(--radius-sm);
+    border: 1px solid var(--accent);
+    border-radius: 9999px;
     background: var(--accent);
-    color: #02120a;
+    color: #ffffff;
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
 }
-.nav-btn-booking:hover { color: #02120a; background: #38ffa5; }
+.nav-btn-booking:hover { color: #ffffff; background: var(--accent-hover); }
 
 /* ── Desktop: show desktop menu, hide hamburger ── */
 @media (min-width: 992px) {
@@ -220,7 +220,7 @@
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
+    backdrop-filter: none;
     z-index: 1040;
     opacity: 0;
     transition: opacity 280ms ease;
@@ -244,7 +244,7 @@
     display: flex;
     flex-direction: column;
     transform: translateX(-100%);
-    transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    transition: transform 180ms ease-out;
     box-shadow: var(--v3-shadow-drawer);
 }
 .mobile-sidebar.is-open {
@@ -312,9 +312,9 @@
     transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
 }
 .msb-close:hover {
-    color: var(--v3-neon-green);
+    color: var(--success);
     border-color: var(--v3-border-glow);
-    background: rgba(0, 255, 135, 0.06);
+    background: var(--success-subtle);
 }
 
 /* Sidebar nav links */
@@ -370,8 +370,8 @@
 }
 
 .msb-link.is-active {
-    color: var(--v3-neon-green);
-    background: rgba(0, 255, 135, 0.07);
+    color: var(--success);
+    background: var(--success-subtle);
     font-weight: 600;
 }
 .msb-link.is-active i {
@@ -411,30 +411,29 @@
     font-weight: 700;
     letter-spacing: 0.02em;
     text-decoration: none;
-    transition: filter 150ms ease, transform 150ms ease, background 150ms ease, color 150ms ease;
+    transition: background-color 150ms ease, color 150ms ease;
 }
 
 /* Login = primary solid neon */
 .msb-btn-login {
-    color: #000;
-    background: var(--v3-neon-green);
-    border: 1px solid var(--v3-neon-green);
+    color: #ffffff;
+    background: var(--accent);
+    border: 1px solid var(--accent);
 }
 .msb-btn-login:hover {
-    filter: brightness(1.08);
-    color: #000;
-    transform: translateY(-1px);
+    background: var(--accent-hover);
+    color: #ffffff;
 }
 
 /* Admin = outlined neon (secondary emphasis) */
 .msb-btn-admin {
-    color: var(--v3-neon-green);
-    background: rgba(0, 255, 135, 0.06);
-    border: 1px solid rgba(0, 255, 135, 0.28);
+    color: var(--text-primary);
+    background: var(--surface-subtle);
+    border: 1px solid var(--border-color);
 }
 .msb-btn-admin:hover {
-    background: rgba(0, 255, 135, 0.14);
-    color: var(--v3-neon-green);
+    background: var(--surface-hover);
+    color: var(--text-primary);
 }
 
 .msb-btn-logout {
@@ -457,7 +456,7 @@
 .msb-btn-logout:hover {
     color: var(--v3-neon-pink);
     border-color: rgba(255, 0, 85, 0.4);
-    background: rgba(255, 0, 85, 0.06);
+    background: var(--danger-subtle);
 }
 
 /* ── Desktop "More" dropdown ── */
@@ -487,9 +486,9 @@
     top: calc(100% + 8px);
     right: 0;
     min-width: 210px;
-    background: #090e18;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
+    background: var(--surface);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
     padding: 6px;
     box-shadow: var(--v3-shadow-pop);
     display: flex;
@@ -497,15 +496,13 @@
     gap: 2px;
     opacity: 0;
     visibility: hidden;
-    transform: translateY(-6px);
-    transition: opacity 160ms ease, transform 160ms ease, visibility 160ms;
+    transition: opacity 150ms ease, visibility 150ms;
     z-index: 60;
 }
 
 .nav-dropdown.is-open .nav-dropdown-menu {
     opacity: 1;
     visibility: visible;
-    transform: translateY(0);
 }
 
 .nav-dropdown-item {
@@ -516,7 +513,7 @@
     border-radius: 7px;
     font-size: 13px;
     font-weight: 500;
-    color: #94a3b8;
+    color: var(--text-secondary);
     text-decoration: none;
     transition: color 150ms ease, background 150ms ease;
 }
@@ -528,19 +525,19 @@
 }
 
 .nav-dropdown-item:hover {
-    color: #fff;
-    background: rgba(255, 255, 255, 0.06);
+    color: var(--text-primary);
+    background: var(--surface-subtle);
 }
 
 .nav-dropdown-item.active {
-    color: #00ff87;
-    background: rgba(0, 255, 135, 0.08);
+    color: var(--success);
+    background: var(--success-subtle);
     font-weight: 600;
 }
 
 .nav-dropdown-divider {
     height: 1px;
-    background: rgba(255, 255, 255, 0.08);
+    background: var(--border-color);
     margin: 4px 6px;
 }
 </style>

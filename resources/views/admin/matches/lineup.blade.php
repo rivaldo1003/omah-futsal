@@ -4,256 +4,356 @@
 
 @section('styles')
     <style>
-        /* ===== Match lineup page — design guidelines ===== */
+        .admin-match-lineup {
+            --lineup-ink: #111111;
+            --lineup-charcoal: #39393b;
+            --lineup-muted: #707072;
+            --lineup-cloud: #f5f5f5;
+            --lineup-border: #e5e5e5;
+            --lineup-border-strong: #cacacb;
+            --lineup-success: #007d48;
+            max-width: 1440px;
+            margin-inline: auto;
+            color: var(--lineup-ink);
+        }
 
-        /* Page header */
-        .page-header {
+        .admin-match-lineup .page-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-end;
             flex-wrap: wrap;
-            gap: 16px;
-            margin-bottom: 24px;
+            gap: 20px;
+            margin-bottom: 28px;
         }
 
-        .page-header h1 {
-            font-size: 24px;
+        .admin-match-lineup .page-header h1 {
+            margin: 0 0 8px;
+            color: var(--lineup-ink);
+            font-size: clamp(26px, 3vw, 32px);
             font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-            margin: 0 0 4px;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
         }
 
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
+        .admin-match-lineup .page-subtitle {
             margin: 0;
+            color: var(--lineup-muted);
+            font-size: 15px;
+            line-height: 1.5;
         }
 
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
-            font-size: 14px;
-            font-weight: 500;
+        .admin-match-lineup .btn-back {
+            min-height: 44px;
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            padding: 10px 20px;
+            border: 0;
+            border-radius: 30px;
+            background: var(--lineup-cloud);
+            color: var(--lineup-ink);
+            font-size: 14px;
+            font-weight: 500;
             text-decoration: none;
+            transition: background-color .15s ease;
         }
 
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
+        .admin-match-lineup .btn-back:hover {
+            background: #eaeaec;
+            color: var(--lineup-ink);
         }
 
-        /* Match card */
-        .main-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
+        .admin-match-lineup .main-card {
             overflow: hidden;
+            border: 1px solid var(--lineup-border);
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: none;
         }
 
-        .main-card .card-header {
-            background: var(--bg);
-            border-bottom: 1px solid var(--border);
-            padding: 16px;
+        .admin-match-lineup .main-card > .card-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--lineup-border);
+            background: #ffffff;
         }
 
-        .team-badge {
+        .admin-match-lineup .main-card > .card-header h5 {
+            margin: 0 0 8px !important;
+            color: var(--lineup-ink);
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-match-lineup .team-badge {
+            min-height: 22px;
+            display: inline-flex;
+            align-items: center;
+            padding: 3px 8px;
+            border: 1px solid var(--lineup-border);
+            border-radius: 4px;
+            background: var(--lineup-cloud);
+            color: var(--lineup-muted);
             font-size: 12px;
             font-weight: 500;
-            padding: 2px 8px;
-            border-radius: 6px;
         }
 
-        .badge-home {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--accent);
-        }
-
-        .badge-away {
-            background: #FDF2F3;
-            color: #c01c28;
-        }
-
-        .vs-pill {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 999px;
-            padding: 4px 16px;
-            font-weight: 600;
+        .admin-match-lineup .vs-pill {
+            padding: 6px 12px;
+            border: 1px solid var(--lineup-border);
+            border-radius: 30px;
+            background: #ffffff;
+            color: var(--lineup-muted);
             font-size: 13px;
-            color: var(--text-secondary);
+            font-weight: 600;
         }
 
-        /* Info banner */
-        .info-banner {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 14px;
-            color: var(--text-primary);
+        .admin-match-lineup .main-card .card-body {
+            padding: 24px;
+        }
+
+        .admin-match-lineup .info-banner {
             display: flex;
             align-items: flex-start;
             gap: 12px;
             margin-bottom: 24px;
+            padding: 14px 16px;
+            border: 1px solid var(--lineup-border);
+            border-radius: 8px;
+            background: var(--lineup-cloud);
+            color: var(--lineup-charcoal);
+            font-size: 14px;
+            line-height: 1.55;
         }
 
-        .info-banner i {
-            color: var(--accent);
+        .admin-match-lineup .info-banner i {
+            flex: 0 0 auto;
+            margin-top: 3px;
+            color: var(--lineup-muted);
             font-size: 16px;
-            margin-top: 2px;
         }
 
-        /* Team player cards */
-        .team-card {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            overflow: hidden;
+        .admin-match-lineup .team-card {
             height: 100%;
+            overflow: hidden;
+            border: 1px solid var(--lineup-border);
+            border-radius: 8px;
+            background: #ffffff;
         }
 
-        .team-card .card-header {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
+        .admin-match-lineup .team-card .card-header {
+            min-height: 62px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--lineup-border);
+            background: #ffffff;
         }
 
-        .team-card.home .card-header {
-            background: var(--accent);
-            color: #fff;
-        }
-
-        .team-card.away .card-header {
-            background: #c01c28;
-            color: #fff;
-        }
-
-        .team-card .card-header h6 {
-            font-size: 14px;
-            font-weight: 600;
+        .admin-match-lineup .team-card .card-header h6 {
+            min-width: 0;
             margin: 0;
+            color: var(--lineup-ink);
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
         }
 
-        .team-card .card-header .form-check-label {
-            color: rgba(255, 255, 255, 0.9);
-            font-size: 13px;
-        }
-
-        .team-card .card-header .form-check-input {
-            border-color: rgba(255, 255, 255, 0.6);
-        }
-
-        .team-card .card-header .form-check-input:checked {
-            background-color: #fff;
-            border-color: #fff;
-        }
-
-        .team-card .card-header .form-check-input:checked[type="checkbox"] {
-            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%231a5fb4' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
-        }
-
-        /* Player item */
-        .player-card-item {
+        .admin-match-lineup .team-card .card-header .form-check {
             display: flex;
             align-items: center;
+            gap: 8px;
+            flex: 0 0 auto;
+            padding-left: 0;
+        }
+
+        .admin-match-lineup .team-card .card-header .form-check-label {
+            color: var(--lineup-charcoal);
+            font-size: 13px;
+            white-space: nowrap;
+        }
+
+        .admin-match-lineup .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            border-color: var(--lineup-border-strong);
+            box-shadow: none;
+        }
+
+        .admin-match-lineup .form-check-input:checked {
+            border-color: var(--lineup-success);
+            background-color: var(--lineup-success);
+        }
+
+        .admin-match-lineup .form-check-input:focus {
+            border-color: var(--lineup-ink);
+            box-shadow: none;
+        }
+
+        .admin-match-lineup .form-check-input:focus-visible {
+            border: 2px solid var(--lineup-ink);
+            outline: none;
+        }
+
+        .admin-match-lineup .player-card-item > .form-check {
+            margin: 0 12px 0 0 !important;
+            padding-left: 0;
+        }
+
+        .admin-match-lineup .player-card-item > .form-check .form-check-input {
+            position: static;
+            float: none;
+        }
+
+        .admin-match-lineup .player-card-item {
+            min-height: 68px;
+            display: flex;
+            align-items: center;
+            gap: 0;
             padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--lineup-border);
             border-left: 3px solid transparent;
+            color: var(--lineup-ink);
             cursor: pointer;
-            transition: background-color 0.15s ease;
+            transition: background-color .15s ease, border-color .15s ease;
         }
 
-        .player-card-item:last-child {
-            border-bottom: none;
+        .admin-match-lineup .player-card-item:last-child {
+            border-bottom: 0;
         }
 
-        .player-card-item:hover {
-            background: var(--surface);
+        .admin-match-lineup .player-card-item:hover {
+            background: #fafafa;
         }
 
-        .team-card.home .player-card-item.selected {
-            border-left-color: var(--accent);
-            background: rgba(26, 95, 180, 0.05);
+        .admin-match-lineup .player-card-item.selected {
+            border-left-color: var(--lineup-success);
+            background: #f0f8f4;
         }
 
-        .team-card.away .player-card-item.selected {
-            border-left-color: #c01c28;
-            background: rgba(192, 28, 40, 0.05);
-        }
-
-        .jersey-badge {
-            width: 32px;
-            height: 32px;
+        .admin-match-lineup .jersey-badge {
+            width: 38px;
+            height: 38px;
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 13px;
             flex-shrink: 0;
-        }
-
-        .team-card.home .jersey-badge {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--accent);
-        }
-
-        .team-card.away .jersey-badge {
-            background: #FDF2F3;
-            color: #c01c28;
-        }
-
-        .player-name {
-            font-weight: 500;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .player-position {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        /* Submit */
-        .sticky-submit {
-            position: sticky;
-            bottom: 20px;
-            z-index: 10;
-            padding: 16px;
-            text-align: center;
-        }
-
-        .btn-save-lineup {
-            background: #1E7A46;
-            color: #fff;
-            border: none;
+            border: 1px solid var(--lineup-border);
             border-radius: 8px;
-            height: 44px;
-            padding: 0 32px;
+            background: var(--lineup-cloud);
+            color: var(--lineup-charcoal);
+            font-size: 13px;
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .admin-match-lineup .player-name {
+            color: var(--lineup-ink);
             font-size: 14px;
             font-weight: 600;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
         }
 
-        .btn-save-lineup:hover {
-            background: #186238;
-            color: #fff;
+        .admin-match-lineup .player-position {
+            margin-top: 3px;
+            color: var(--lineup-muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .admin-match-lineup .empty-roster {
+            padding: 22px 16px;
+            color: var(--lineup-muted);
+            font-size: 14px;
+        }
+
+        .admin-match-lineup .sticky-submit {
+            position: sticky;
+            bottom: 0;
+            z-index: 10;
+            margin-top: 18px;
+            padding: 16px 0 0;
+            border-top: 1px solid var(--lineup-border);
+            background: #ffffff;
+            text-align: right;
+        }
+
+        .admin-match-lineup .btn-save-lineup {
+            min-height: 48px;
+            padding: 12px 22px;
+            border: 0;
+            border-radius: 30px;
+            background: var(--lineup-ink);
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color .15s ease;
+        }
+
+        .admin-match-lineup .btn-save-lineup:hover {
+            background: #303032;
+            color: #ffffff;
+        }
+
+        .admin-match-lineup .alert {
+            border-radius: 8px;
+            box-shadow: none;
+        }
+
+        .admin-match-lineup :focus-visible:not(.form-check-input) {
+            outline: 2px solid var(--lineup-ink);
+            outline-offset: 2px;
+        }
+
+        @media (max-width: 768px) {
+            .admin-match-lineup .page-header {
+                align-items: flex-start;
+            }
+
+            .admin-match-lineup .main-card > .card-header,
+            .admin-match-lineup .main-card .card-body {
+                padding: 18px;
+            }
+
+            .admin-match-lineup .sticky-submit {
+                text-align: left;
+            }
+
+            .admin-match-lineup .btn-save-lineup {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .admin-match-lineup .team-card .card-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .admin-match-lineup .player-card-item {
+                padding-inline: 12px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .admin-match-lineup *,
+            .admin-match-lineup *::before,
+            .admin-match-lineup *::after {
+                transition-duration: .01ms !important;
+                animation-duration: .01ms !important;
+            }
         }
     </style>
 @endsection
 
 @section('content')
+    <main class="admin-match-lineup">
     <div class="page-header">
         <div>
             <h1>Lineup Pertandingan</h1>
@@ -322,7 +422,7 @@
                                 </div>
                             </div>
                             <div class="home-players">
-                                @foreach(($match->homeTeam->players ?? collect()) as $player)
+                                @forelse(($match->homeTeam->players ?? collect()) as $player)
                                     <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
                                         for="p{{ $player->id }}">
                                         <div class="form-check me-3">
@@ -336,7 +436,9 @@
                                             <div class="player-position">{{ $player->position }}</div>
                                         </div>
                                     </label>
-                                @endforeach
+                                @empty
+                                    <div class="empty-roster">Belum ada pemain pada tim ini.</div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -353,7 +455,7 @@
                                 </div>
                             </div>
                             <div class="away-players">
-                                @foreach(($match->awayTeam->players ?? collect()) as $player)
+                                @forelse(($match->awayTeam->players ?? collect()) as $player)
                                     <label class="player-card-item {{ in_array($player->id, $currentLineupIds) ? 'selected' : '' }}"
                                         for="p{{ $player->id }}">
                                         <div class="form-check me-3">
@@ -367,7 +469,9 @@
                                             <div class="player-position">{{ $player->position }}</div>
                                         </div>
                                     </label>
-                                @endforeach
+                                @empty
+                                    <div class="empty-roster">Belum ada pemain pada tim ini.</div>
+                                @endforelse
                             </div>
                         </div>
                     </div>
@@ -382,6 +486,7 @@
             </div>
         </form>
     </div>
+    </main>
 @endsection
 
 @section('scripts')

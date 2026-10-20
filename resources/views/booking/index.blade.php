@@ -93,11 +93,11 @@
         }
 
         .legend-dot.booked {
-            background: #8ca2bf;
+            background: #76879a;
         }
 
         .legend-dot.past {
-            background: #64707e;
+            background: #a6a6a8;
         }
 
         .court-schedule {
@@ -155,7 +155,7 @@
             font-weight: 700;
         }
 
-        .slot-button > span {
+        .slot-button>span {
             display: flex;
             align-items: center;
             gap: 6px;
@@ -172,12 +172,15 @@
         }
 
         .slot-button.available {
+            border-color: #9bbca8;
+            background: var(--success-subtle);
+            color: var(--success);
             cursor: pointer;
         }
 
         .slot-button.available:hover {
-            border-color: var(--v3-neon-green);
-            background: rgba(0, 255, 135, .07);
+            border-color: var(--success);
+            background: #dceee3;
         }
 
         .slot-button.available:focus-visible {
@@ -192,7 +195,7 @@
             cursor: not-allowed;
         }
 
-        .slot-button.pending > span {
+        .slot-button.pending>span {
             color: #f1ce73;
         }
 
@@ -205,35 +208,35 @@
         }
 
         .slot-button.booked {
-            border-color: #42536b;
-            background: #111b2a;
-            color: #e1eaf5;
+            border-color: #c7d1dc;
+            background: #edf1f5;
+            color: #344254;
             cursor: not-allowed;
             opacity: 1;
         }
 
-        .slot-button.booked > span {
-            color: #b4c2d5;
+        .slot-button.booked>span {
+            color: #5c6b7b;
         }
 
         .slot-button.past {
             border-style: dashed;
-            border-color: #39424e;
-            background: #0a0e14;
-            color: #a3acb8;
+            border-color: #a6a6a8;
+            background: #eeeeee;
+            color: #555557;
             cursor: not-allowed;
             opacity: 1;
         }
 
-        .slot-button.past > span {
-            color: #a3acb8;
+        .slot-button.past>span {
+            color: var(--text-muted);
         }
 
         .slot-button.selected,
         .slot-button.available[aria-pressed="true"] {
-            border-color: var(--v3-neon-green);
-            background: rgba(0, 255, 135, .1);
-            box-shadow: inset 0 0 0 1px var(--v3-neon-green);
+            border-color: var(--success);
+            background: #dceee3;
+            box-shadow: inset 0 0 0 1px var(--success);
         }
 
         .booking-selection-help {
@@ -288,6 +291,55 @@
         .booking-selection-actions .btn {
             min-height: 48px;
             touch-action: manipulation;
+        }
+
+        .booking-page .btn-primary,
+        .booking-modal .btn-primary {
+            color: #fff;
+            background-color: var(--accent);
+            border-color: var(--accent);
+            border-radius: 999px;
+            padding-inline: 20px;
+            --bs-btn-focus-shadow-rgb: 17, 17, 17;
+        }
+
+        .booking-page .btn-primary:hover,
+        .booking-modal .btn-primary:hover {
+            color: #fff;
+            background-color: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .booking-page .btn-primary:active:not(:disabled),
+        .booking-modal .btn-primary:active:not(:disabled) {
+            color: #fff;
+            background-color: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .booking-page .btn-primary:disabled,
+        .booking-modal .btn-primary:disabled {
+            color: #626264;
+            background-color: var(--border-color);
+            border-color: var(--border-color);
+            opacity: 1;
+            cursor: not-allowed;
+        }
+
+        .booking-page .btn-outline-light,
+        .booking-modal .btn-outline-light {
+            color: var(--text-primary);
+            background-color: var(--surface-subtle);
+            border-color: var(--border-color);
+            border-radius: 999px;
+            padding-inline: 18px;
+        }
+
+        .booking-page .btn-outline-light:hover,
+        .booking-modal .btn-outline-light:hover {
+            color: var(--text-primary);
+            background-color: var(--surface-hover);
+            border-color: var(--accent);
         }
 
         .booking-empty {
@@ -479,19 +531,56 @@
             background: var(--v3-card);
         }
 
-        .rental-choice-copy { min-width: 0; }
+        .rental-choice-copy {
+            min-width: 0;
+        }
+
         .rental-choice-copy strong,
         .rental-choice-copy span,
-        .rental-choice-copy small { display: block; }
-        .rental-choice-copy strong { color: var(--text-primary); font-size: 14px; }
-        .rental-choice-copy span { color: var(--text-secondary); font-size: 12px; }
-        .rental-choice-copy small { margin-top: 2px; color: var(--text-muted); font-size: 11px; line-height: 1.35; }
-        .rental-choice-quantity .form-control { min-width: 0; padding-inline: 7px; text-align: center; }
-        .rental-choice-total { color: var(--text-primary); text-align: right; font-size: 12px; font-weight: 650; font-variant-numeric: tabular-nums; }
+        .rental-choice-copy small {
+            display: block;
+        }
+
+        .rental-choice-copy strong {
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .rental-choice-copy span {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .rental-choice-copy small {
+            margin-top: 2px;
+            color: var(--text-muted);
+            font-size: 11px;
+            line-height: 1.35;
+        }
+
+        .rental-choice-quantity .form-control {
+            min-width: 0;
+            padding-inline: 7px;
+            text-align: center;
+        }
+
+        .rental-choice-total {
+            color: var(--text-primary);
+            text-align: right;
+            font-size: 12px;
+            font-weight: 650;
+            font-variant-numeric: tabular-nums;
+        }
 
         @media(max-width:420px) {
-            .rental-choice-item { grid-template-columns: minmax(0, 1fr) 66px; }
-            .rental-choice-total { grid-column: 1 / -1; text-align: left; }
+            .rental-choice-item {
+                grid-template-columns: minmax(0, 1fr) 66px;
+            }
+
+            .rental-choice-total {
+                grid-column: 1 / -1;
+                text-align: left;
+            }
         }
 
         .booking-rules {
@@ -586,11 +675,13 @@
         <div class="booking-heading">
             <div>
                 <h1>Booking Lapangan</h1>
-                <p>Pilih slot, lalu tambahkan perlengkapan jika perlu. Perlengkapan hanya tersedia bersama booking lapangan dan tercatat dalam satu pesanan.
+                <p>Pilih slot, lalu tambahkan perlengkapan jika perlu. Perlengkapan hanya tersedia bersama booking
+                    lapangan dan tercatat dalam satu pesanan.
                 </p>
             </div>
             <div class="d-flex flex-wrap gap-3 align-items-center">
-                <a href="{{ route('schedule') }}" class="nav-menu-link"><i class="bi bi-calendar2-week"></i> Jadwal pertandingan</a>
+                <a href="{{ route('schedule') }}" class="nav-menu-link"><i class="bi bi-calendar2-week"></i> Jadwal
+                    pertandingan</a>
             </div>
         </div>
 
@@ -656,7 +747,8 @@
                     <span class="court-rate">
                         Siang Rp {{ number_format((float) $schedule['court']->day_hourly_rate, 0, ',', '.') }}/jam ·
                         Malam Rp {{ number_format((float) $schedule['court']->night_hourly_rate, 0, ',', '.') }}/jam mulai
-                        {{ $schedule['court']->night_rate_starts_at_formatted }} · {{ $schedule['court']->slot_duration_minutes }} menit per slot
+                        {{ $schedule['court']->night_rate_starts_at_formatted }} ·
+                        {{ $schedule['court']->slot_duration_minutes }} menit per slot
                     </span>
                 </header>
                 @if(count($schedule['slots']))
@@ -742,8 +834,8 @@
                         <input type="hidden" name="quoted_amount" id="selectedQuotedAmount">
                         <input type="hidden" name="booking_policy_hash"
                             value="{{ hash('sha256', $settings->booking_policy) }}">
-                        <div class="booking-price"><span>Total tagihan booking</span><strong
-                                id="selectedAmount">Rp 0</strong></div>
+                        <div class="booking-price"><span>Total tagihan booking</span><strong id="selectedAmount">Rp
+                                0</strong></div>
 
                         <div class="mb-3">
                             <label for="customerName" class="form-label">Nama pemesan</label>
@@ -769,8 +861,11 @@
 
                         @if($rentalItems->isNotEmpty())
                             <fieldset class="mb-3 rental-choice" aria-describedby="rentalChoiceHelp">
-                                <legend class="form-label mb-1">Tambahkan perlengkapan <span class="text-secondary">(opsional)</span></legend>
-                                <p class="small text-secondary mb-2" id="rentalChoiceHelp">Perlengkapan hanya disewakan bersama booking lapangan ini. Jadwalnya mengikuti tanggal dan jam lapangan, dan biayanya masuk ke total booking.</p>
+                                <legend class="form-label mb-1">Tambahkan perlengkapan <span
+                                        class="text-secondary">(opsional)</span></legend>
+                                <p class="small text-secondary mb-2" id="rentalChoiceHelp">Perlengkapan hanya disewakan
+                                    bersama booking lapangan ini. Jadwalnya mengikuti tanggal dan jam lapangan, dan biayanya
+                                    masuk ke total booking.</p>
                                 <div class="d-grid gap-2">
                                     @foreach($rentalItems as $item)
                                         <div class="rental-choice-item" data-rental-item data-item-id="{{ $item->id }}"
@@ -778,16 +873,21 @@
                                             data-stock="{{ (int) $item->stock_quantity }}">
                                             <div class="rental-choice-copy">
                                                 <strong>{{ $item->name }}</strong>
-                                                <span>Rp {{ number_format((float) $item->unit_price, 0, ',', '.') }} / item</span>
-                                                <small data-rental-availability-copy>Stok tersedia untuk waktu ini akan ditampilkan setelah memilih jam.</small>
+                                                <span>Rp {{ number_format((float) $item->unit_price, 0, ',', '.') }} /
+                                                    item</span>
+                                                <small data-rental-availability-copy>Stok tersedia untuk waktu ini akan
+                                                    ditampilkan setelah memilih jam.</small>
                                             </div>
                                             <div class="rental-choice-quantity">
-                                                <label class="visually-hidden" for="rentalItem{{ $item->id }}">Jumlah {{ $item->name }}</label>
+                                                <label class="visually-hidden" for="rentalItem{{ $item->id }}">Jumlah
+                                                    {{ $item->name }}</label>
                                                 <input class="form-control" id="rentalItem{{ $item->id }}" type="number"
-                                                    name="rental_items[{{ $item->id }}]" min="0" max="{{ $item->stock_quantity }}"
-                                                    value="0" inputmode="numeric" data-rental-quantity aria-describedby="rentalTotal{{ $item->id }}">
+                                                    name="rental_items[{{ $item->id }}]" min="0"
+                                                    max="{{ $item->stock_quantity }}" value="0" inputmode="numeric"
+                                                    data-rental-quantity aria-describedby="rentalTotal{{ $item->id }}">
                                             </div>
-                                            <span class="rental-choice-total" id="rentalTotal{{ $item->id }}" data-rental-line-total>Rp 0</span>
+                                            <span class="rental-choice-total" id="rentalTotal{{ $item->id }}"
+                                                data-rental-line-total>Rp 0</span>
                                         </div>
                                     @endforeach
                                 </div>

@@ -4,22 +4,19 @@
 
 @section('styles')
     <style>
-        /* ===== Tournament detail page — design guidelines ===== */
-
-        :root {
-            --primary: var(--accent);
-            --secondary: var(--text-secondary);
-            --success: #1E7A46;
-            --warning: #B45309;
-            --danger: #c01c28;
-            --dark: var(--text-primary);
-            --light: var(--surface);
-            --card-bg: var(--bg);
-            --radius: 12px;
+        .admin-tournament-show {
+            --show-ink: #111111;
+            --show-charcoal: #39393b;
+            --show-muted: #707072;
+            --show-cloud: #f5f5f5;
+            --show-rule: #e5e5e5;
+            --show-border: #cacacb;
+            --show-success: #007d48;
+            --show-danger: #d30005;
+            color: var(--show-ink);
         }
 
-        /* Page header */
-        .page-header {
+        .admin-tournament-show .page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -28,515 +25,260 @@
             margin-bottom: 24px;
         }
 
-        .page-header h1 {
+        .admin-tournament-show .page-header h1 {
+            margin: 0 0 4px;
+            color: var(--show-ink);
             font-size: 24px;
             font-weight: 600;
-            color: var(--text-primary);
             line-height: 1.2;
-            margin: 0 0 4px;
         }
 
-        .page-subtitle {
-            color: var(--text-secondary);
-            font-size: 14px;
-            margin: 0;
-        }
+        .admin-tournament-show .page-subtitle,
+        .admin-tournament-show .meta-item { color: var(--show-muted); }
+        .admin-tournament-show .page-subtitle { margin: 0; font-size: 14px; }
 
-        .btn-back {
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text-primary);
-            border-radius: 6px;
-            height: 40px;
-            padding: 0 16px;
-            font-size: 14px;
-            font-weight: 500;
+        .admin-tournament-show .page-header .btn,
+        .admin-tournament-show .btn-back {
+            min-height: 40px;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 8px;
+            border-radius: 999px;
+            padding: 0 18px;
+            font-size: 14px;
+            font-weight: 600;
             text-decoration: none;
         }
 
-        .btn-back:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-
-        /* Tournament header banner */
-        .tournament-header {
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 24px;
-        }
-
-        .tournament-title {
-            font-size: 24px;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-
-        .tournament-meta {
-            display: flex;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 8px;
-        }
-
-        .meta-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .badge-status {
-            padding: 2px 12px;
-            border-radius: 999px;
-            font-weight: 600;
-            font-size: 12px;
-        }
-
-        .badge-status-ongoing {
-            background: #FDF6EC;
-            border: 1px solid rgba(180, 83, 9, 0.2);
-            color: #B45309;
-        }
-
-        .badge-status-upcoming {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .badge-status-completed {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        /* Statistik di dalam banner */
-        .banner-stats {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-top: 20px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
-        }
-
-        .banner-stat-value {
-            font-size: 20px;
-            font-weight: 600;
-            color: var(--text-primary);
-            line-height: 1.2;
-        }
-
-        .banner-stat-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-
-        .tab-badge {
-            font-size: 11px;
-            font-weight: 500;
-            padding: 0 8px;
-            border-radius: 999px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .group-badge {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: var(--accent);
+        .admin-tournament-show .page-header .btn-primary {
+            border-color: var(--show-ink);
+            background: var(--show-ink);
             color: #fff;
         }
 
-        .round-badge {
-            font-size: 12px;
+        .admin-tournament-show .btn-primary {
+            border-color: var(--show-ink);
+            background: var(--show-ink);
+            color: #fff;
+        }
+
+        .admin-tournament-show .btn-primary:hover { border-color: var(--show-charcoal); background: var(--show-charcoal); color: #fff; }
+
+        .admin-tournament-show .page-header .btn-outline-primary,
+        .admin-tournament-show .btn-back {
+            border: 1px solid var(--show-rule);
+            background: var(--show-cloud);
+            color: var(--show-ink);
+        }
+
+        .admin-tournament-show .page-header .btn-outline-primary:hover,
+        .admin-tournament-show .btn-back:hover { border-color: var(--show-border); color: var(--show-ink); }
+
+        .admin-tournament-show .tournament-header,
+        .admin-tournament-show .compact-tabs,
+        .admin-tournament-show .danger-zone {
+            border: 1px solid var(--show-rule);
+            border-radius: 8px;
+            background: #fff;
+        }
+
+        .admin-tournament-show .tournament-header { padding: 24px; margin-bottom: 24px; }
+        .admin-tournament-show .tournament-title { margin: 0 0 10px; font-size: 22px; font-weight: 600; line-height: 1.25; }
+        .admin-tournament-show .tournament-meta { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 8px; }
+        .admin-tournament-show .meta-item { display: inline-flex; align-items: center; gap: 7px; font-size: 14px; }
+        .admin-tournament-show .tournament-header p { max-width: 760px; color: var(--show-charcoal) !important; line-height: 1.55; }
+
+        .admin-tournament-show .badge-status,
+        .admin-tournament-show .tab-badge,
+        .admin-tournament-show .round-badge,
+        .admin-tournament-show .team-group {
+            display: inline-flex;
+            align-items: center;
+            border: 1px solid var(--show-rule);
+            border-radius: 999px;
+            background: var(--show-cloud);
+            color: var(--show-charcoal);
             font-weight: 500;
-            padding: 2px 8px;
-            border-radius: 6px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
+            line-height: 1.4;
         }
 
-        /* Tabel detail ringkasan */
-        .detail-table {
-            margin-bottom: 0;
+        .admin-tournament-show .badge-status { padding: 4px 10px; font-size: 12px; }
+        .admin-tournament-show .badge-status-ongoing { border-color: #b9dfcd; background: #edf7f1; color: var(--show-success); }
+        .admin-tournament-show .badge-status-upcoming,
+        .admin-tournament-show .badge-status-completed { color: var(--show-charcoal); }
+        .admin-tournament-show .banner-stats {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--show-rule);
         }
+        .admin-tournament-show .banner-stats > div { padding: 0 16px; border-left: 1px solid var(--show-rule); }
+        .admin-tournament-show .banner-stats > div:first-child { padding-left: 0; border-left: 0; }
+        .admin-tournament-show .banner-stat-value { color: var(--show-ink); font-size: 22px; font-weight: 600; line-height: 1.2; font-variant-numeric: tabular-nums; }
+        .admin-tournament-show .banner-stat-label { margin-top: 3px; color: var(--show-muted); font-size: 13px; }
 
-        .detail-table td {
-            padding: 6px 0;
-            border: 0;
-            font-size: 14px;
-            color: var(--text-primary);
-        }
-
-        .detail-table td:first-child {
-            width: 140px;
-            color: var(--text-secondary);
-        }
-
-        /* Tabs */
-        .compact-tabs {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            border: 1px solid var(--border);
-            margin-bottom: 24px;
-            overflow: hidden;
-        }
-
-        .tabs-header {
+        .admin-tournament-show .compact-tabs { margin-bottom: 24px; overflow: hidden; }
+        .admin-tournament-show .tabs-header {
             display: flex;
-            background: var(--light);
-            border-bottom: 1px solid var(--border);
             overflow-x: auto;
+            border-bottom: 1px solid var(--show-rule);
+            background: #fff;
             scrollbar-width: none;
         }
-
-        .tabs-header::-webkit-scrollbar {
-            display: none;
-        }
-
-        .tab-btn {
-            padding: 12px 20px;
-            background: none;
-            border: none;
-            border-bottom: 2px solid transparent;
-            color: var(--secondary);
-            font-weight: 500;
-            font-size: 14px;
-            white-space: nowrap;
-            cursor: pointer;
-            transition: color 0.15s ease, border-color 0.15s ease;
-            display: flex;
+        .admin-tournament-show .tabs-header::-webkit-scrollbar { display: none; }
+        .admin-tournament-show .tab-btn {
+            min-height: 48px;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
-        }
-
-        .tab-btn:hover {
-            color: var(--primary);
-        }
-
-        .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
-        }
-
-        .tab-btn .badge {
-            font-size: 11px;
+            flex: 0 0 auto;
+            padding: 0 18px;
+            border: 0;
+            border-bottom: 2px solid transparent;
+            background: transparent;
+            color: var(--show-muted);
+            font-size: 14px;
             font-weight: 500;
+            white-space: nowrap;
+            cursor: pointer;
         }
-
-        .tab-content {
-            padding: 24px;
+        .admin-tournament-show .tab-btn:hover { color: var(--show-ink); }
+        .admin-tournament-show .tab-btn.active { border-bottom-color: var(--show-ink); color: var(--show-ink); }
+        .admin-tournament-show .tab-btn:focus-visible,
+        .admin-tournament-show .btn:focus-visible,
+        .admin-tournament-show .btn-back:focus-visible { outline: 2px solid var(--show-ink); outline-offset: 2px; box-shadow: none; /* taste-skill-ignore: suppress Bootstrap's second focus halo. */ }
+        .admin-tournament-show .tab-badge { min-width: 20px; justify-content: center; padding: 1px 6px; font-size: 11px; }
+        .admin-tournament-show .tab-content { padding: 24px; }
+        .admin-tournament-show .tab-content h6 { color: var(--show-ink); font-size: 15px; font-weight: 600; }
+        .admin-tournament-show .btn-group .btn {
+            border-color: var(--show-rule);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--show-charcoal);
+            font-size: 13px;
         }
+        .admin-tournament-show .btn-group .btn.active { border-color: var(--show-ink); background: var(--show-ink); color: #fff; }
+        .admin-tournament-show .btn-group .btn:hover:not(.active) { border-color: var(--show-border); background: var(--show-cloud); color: var(--show-ink); }
 
-        /* Teams list */
-        .teams-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-            gap: 16px;
+        .admin-tournament-show .detail-table { margin-bottom: 0; }
+        .admin-tournament-show .detail-table td { padding: 7px 10px 7px 0; border: 0; color: var(--show-ink); font-size: 14px; }
+        .admin-tournament-show .detail-table td:first-child { width: 160px; color: var(--show-muted); }
+
+        .admin-tournament-show .teams-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+        .admin-tournament-show .team-card {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--show-rule);
         }
-
-        .team-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-            text-align: center;
-            transition: border-color 0.15s ease;
-        }
-
-        .team-card:hover {
-            border-color: var(--primary);
-        }
-
-        .team-avatar {
-            width: 48px;
-            height: 48px;
+        .admin-tournament-show .team-avatar {
+            width: 44px;
+            height: 44px;
+            flex: 0 0 44px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: white;
-            font-weight: 600;
-            font-size: 20px;
-            margin: 0 auto 12px;
-            border-radius: 8px;
             overflow: hidden;
-            background: var(--light);
+            border: 1px solid var(--show-rule);
+            border-radius: 50%;
+            background: var(--show-cloud);
+            color: var(--show-ink);
+            font-size: 17px;
+            font-weight: 600;
         }
+        .admin-tournament-show .team-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .admin-tournament-show .team-name { min-width: 0; flex: 1; margin: 0 0 4px; color: var(--show-ink); font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+        .admin-tournament-show .team-group { padding: 2px 8px; font-size: 11px; }
+        .admin-tournament-show .group-badge { display: inline-block; padding: 3px 9px; border-radius: 999px; background: var(--show-cloud); color: var(--show-ink); font-size: 12px; font-weight: 600; }
 
-        .team-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .team-name {
-            font-weight: 500;
-            color: var(--dark);
-            margin-bottom: 4px;
-            font-size: 14px;
-        }
-
-        .team-group {
+        .admin-tournament-show .compact-table { width: 100%; border-collapse: collapse; border-spacing: 0; }
+        .admin-tournament-show .compact-table th {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--show-border);
+            background: #fff;
+            color: var(--show-muted);
             font-size: 12px;
-            color: var(--secondary);
-            padding: 2px 8px;
-            background: var(--light);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            display: inline-block;
-        }
-
-        /* Matches table */
-        .compact-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-        }
-
-        .compact-table thead th {
-            background: var(--light);
-            color: var(--secondary);
             font-weight: 500;
-            font-size: 13px;
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .compact-table tbody td {
-            padding: 12px 16px;
-            border-bottom: 1px solid var(--border);
-            color: var(--dark);
-            font-size: 14px;
-        }
-
-        .compact-table tbody tr:last-child td {
-            border-bottom: none;
-        }
-
-        .compact-table tbody tr:hover {
-            background: var(--light);
-        }
-
-        .match-row {
-            cursor: pointer;
-        }
-
-        .match-teams {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .team-side {
-            flex: 1;
             text-align: left;
+            white-space: nowrap;
         }
+        .admin-tournament-show .compact-table td { padding: 12px; border-bottom: 1px solid var(--show-rule); color: var(--show-ink); font-size: 13px; vertical-align: middle; }
+        .admin-tournament-show .compact-table tbody tr:last-child td { border-bottom: 0; }
+        .admin-tournament-show .compact-table tbody tr:hover { background: #fafafa; }
+        .admin-tournament-show .match-row { cursor: default; }
+        .admin-tournament-show .match-teams { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-width: 280px; }
+        .admin-tournament-show .team-side { flex: 1; min-width: 0; text-align: left; }
+        .admin-tournament-show .team-side.home { text-align: right; }
+        .admin-tournament-show .team-name-sm { margin-bottom: 2px; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
+        .admin-tournament-show .team-group-sm,
+        .admin-tournament-show .match-status,
+        .admin-tournament-show .match-info { color: var(--show-muted); font-size: 12px; }
+        .admin-tournament-show .match-score { min-width: 72px; padding: 0 8px; text-align: center; }
+        .admin-tournament-show .score { color: var(--show-ink); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; }
+        .admin-tournament-show .match-info { display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+        .admin-tournament-show .round-badge { padding: 3px 9px; font-size: 11px; }
 
-        .team-side.home {
-            text-align: right;
-        }
+        .admin-tournament-show .settings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 24px; }
+        .admin-tournament-show .setting-item { padding: 12px 0; border-bottom: 1px solid var(--show-rule); }
+        .admin-tournament-show .setting-label { margin-bottom: 3px; color: var(--show-muted); font-size: 13px; }
+        .admin-tournament-show .setting-value { color: var(--show-ink); font-size: 14px; font-weight: 600; }
+        .admin-tournament-show .danger-zone { margin-top: 24px; padding: 20px 24px; }
+        .admin-tournament-show .danger-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; color: var(--show-danger); font-weight: 600; }
+        .admin-tournament-show .danger-text { max-width: 760px; margin-bottom: 14px; color: var(--show-charcoal); font-size: 14px; }
+        .admin-tournament-show .btn-danger { border-radius: 999px; }
+        .admin-tournament-show .empty-state { padding: 40px 16px; text-align: center; }
+        .admin-tournament-show .empty-icon { margin-bottom: 12px; color: var(--show-muted); font-size: 28px; }
+        .admin-tournament-show .empty-title { margin-bottom: 4px; color: var(--show-ink); font-size: 15px; font-weight: 600; }
+        .admin-tournament-show .empty-text { max-width: 320px; margin: 0 auto 16px; color: var(--show-muted); font-size: 14px; }
 
-        .team-name-sm {
-            font-weight: 500;
-            font-size: 14px;
-            margin-bottom: 2px;
-        }
-
-        .team-group-sm {
-            font-size: 12px;
-            color: var(--secondary);
-        }
-
-        .match-score {
-            padding: 0 16px;
-            min-width: 80px;
-            text-align: center;
-        }
-
-        .score {
-            font-weight: 600;
-            font-size: 14px;
-            color: var(--dark);
-        }
-
-        .match-status {
-            font-size: 12px;
-            color: var(--secondary);
-            margin-top: 2px;
-        }
-
-        .match-info {
-            font-size: 12px;
-            color: var(--secondary);
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        /* Settings grid */
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-        }
-
-        .setting-item {
-            background: var(--card-bg);
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            padding: 16px;
-        }
-
-        .setting-label {
-            font-size: 12px;
-            color: var(--secondary);
-            margin-bottom: 4px;
-
-        }
-
-        .setting-value {
-            font-weight: 600;
-            color: var(--dark);
-            font-size: 14px;
-        }
-
-        /* Danger zone */
-        .danger-zone {
-            background: #FDF2F3;
-            border: 1px solid rgba(192, 28, 40, 0.2);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-top: 24px;
-        }
-
-        .danger-header {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #c01c28;
-            margin-bottom: 12px;
-            font-weight: 600;
-        }
-
-        .danger-text {
-            color: rgba(192, 28, 40, 0.8);
-            font-size: 14px;
-            margin-bottom: 16px;
-        }
-
-        /* Empty state */
-        .empty-state {
-            text-align: center;
-            padding: 48px 16px;
-        }
-
-        .empty-icon {
-            font-size: 32px;
-            color: var(--border);
-            margin-bottom: 12px;
-        }
-
-        .empty-title {
-            color: var(--text-primary);
-            font-weight: 600;
-            margin-bottom: 4px;
-        }
-
-        .empty-text {
-            color: var(--secondary);
-            font-size: 14px;
-            max-width: 300px;
-            margin: 0 auto 16px;
-        }
+        .admin-tournament-show .alert { border-radius: 8px; }
+        .admin-tournament-show .alert-info { border-color: var(--show-rule); background: var(--show-cloud); color: var(--show-charcoal); }
+        .admin-tournament-show .alert-info h6 { color: var(--show-ink); }
+        .admin-tournament-show .alert-info .btn-primary { border-color: var(--show-ink); background: var(--show-ink); }
 
         @media (max-width: 768px) {
-            .page-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
-
-            .tournament-meta {
-                justify-content: flex-start;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .teams-list {
-                grid-template-columns: repeat(2, 1fr);
-            }
-
-            .match-teams {
-                flex-direction: column;
-                gap: 4px;
-            }
-
-            .team-side {
-                text-align: center !important;
-                width: 100%;
-            }
-
-            .match-score {
-                order: -1;
-                padding: 8px 0;
-            }
-
-            .settings-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .banner-stats {
-                grid-template-columns: repeat(2, 1fr);
-            }
+            .admin-tournament-show .page-header { align-items: flex-start; flex-direction: column; }
+            .admin-tournament-show .page-header > .d-flex { width: 100%; }
+            .admin-tournament-show .tournament-header > .d-flex { flex-direction: column; gap: 12px; }
+            .admin-tournament-show .tournament-header > .d-flex > .text-end { text-align: left !important; }
+            .admin-tournament-show .teams-list,
+            .admin-tournament-show .settings-grid { grid-template-columns: 1fr; }
+            .admin-tournament-show .banner-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); row-gap: 16px; }
+            .admin-tournament-show .banner-stats > div:nth-child(3) { padding-left: 0; border-left: 0; }
+            .admin-tournament-show .match-teams { min-width: 270px; }
+            .admin-tournament-show .tab-content { padding: 18px; }
         }
 
         @media (max-width: 480px) {
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .teams-list {
-                grid-template-columns: 1fr;
-            }
+            .admin-tournament-show .tournament-header { padding: 18px; }
+            .admin-tournament-show .banner-stats > div { padding-right: 8px; padding-left: 10px; }
+            .admin-tournament-show .banner-stats > div:nth-child(odd) { padding-left: 0; border-left: 0; }
+            .admin-tournament-show .detail-table td:first-child { width: 125px; }
+            .admin-tournament-show .tab-content { padding: 14px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-
-            *,
-            *::before,
-            *::after {
-                transition: none !important;
-                animation: none !important;
-            }
+            .admin-tournament-show *, .admin-tournament-show *::before, .admin-tournament-show *::after { transition: none !important; animation: none !important; }
         }
     </style>
 @endsection
 
 @section('content')
+    <div class="admin-tournament-show">
     <!-- Page header -->
     <div class="page-header">
         <div>
             <h1>Detail Turnamen</h1>
-            <p class="page-subtitle">Kelola dan lihat turnamen {{ $tournament->name }}</p>
+            <p class="page-subtitle">Ringkasan, peserta, jadwal, dan aturan turnamen.</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
             @if($tournament->type === 'knockout')
                 <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-outline-primary">
-                    <i class="bi bi-diagram-3 me-1"></i> Tournament Draw
+                    <i class="bi bi-diagram-3 me-1"></i> Undian knockout
                 </a>
             @endif
             <a href="{{ route('admin.tournaments.edit', $tournament) }}" class="btn btn-primary">
@@ -559,12 +301,12 @@
     <!-- Banner turnamen -->
     <div class="tournament-header">
         <div class="d-flex justify-content-between align-items-start">
-            <div class="position-relative" style="z-index: 1;">
+            <div>
                 <h1 class="tournament-title">{{ $tournament->name }}</h1>
                 <div class="tournament-meta">
                     <span class="meta-item">
                         <i class="bi bi-geo-alt"></i>
-                        {{ $tournament->location ?? 'N/A' }}
+                        {{ $tournament->location ?? 'Lokasi belum ditentukan' }}
                     </span>
                     <span class="meta-item">
                         <i class="bi bi-calendar"></i>
@@ -582,11 +324,10 @@
             </div>
             <div class="text-end">
                 <span class="badge-status badge-status-{{ $tournament->status }}">
-                    {{ ucfirst($tournament->status) }}
+                    {{ ['upcoming' => 'Akan datang', 'ongoing' => 'Berlangsung', 'completed' => 'Selesai'][$tournament->status] ?? ucfirst($tournament->status) }}
                 </span>
                 <div class="mt-2">
-                    <small
-                        style="color: var(--text-secondary);">{{ ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
+                    <small style="color: var(--text-secondary);">{{ ['knockout' => 'Knockout', 'group_knockout' => 'Grup + knockout', 'league' => 'Liga', 'group' => 'Grup'][$tournament->type] ?? ucfirst(str_replace('_', ' ', $tournament->type)) }}</small>
                 </div>
             </div>
         </div>
@@ -649,11 +390,11 @@
                         <table class="table detail-table">
                             <tr>
                                 <td>Penyelenggara</td>
-                                <td>{{ $tournament->organizer ?? 'N/A' }}</td>
+                                <td>{{ $tournament->organizer ?? 'Belum ditentukan' }}</td>
                             </tr>
                             <tr>
                                 <td>Lokasi</td>
-                                <td>{{ $tournament->location ?? 'N/A' }}</td>
+                                <td>{{ $tournament->location ?? 'Belum ditentukan' }}</td>
                             </tr>
                             <tr>
                                 <td>Tanggal Mulai</td>
@@ -712,7 +453,7 @@
                         @endphp
                         @foreach($groupedTeams as $groupName => $teams)
                             <h6 class="mb-3 mt-4">
-                                <span class="group-badge me-2">Group {{ $groupName }}</span>
+                                <span class="group-badge me-2">Grup {{ $groupName }}</span>
                                 <small class="text-secondary">{{ $teams->count() }} tim</small>
                             </h6>
                             <div class="teams-list mb-4">
@@ -728,7 +469,7 @@
                                         </div>
                                         <div class="team-name">{{ $team->name }}</div>
                                         <div class="team-group">
-                                            Seed #{{ $team->pivot->seed ?? '-' }}
+                                            {{ $team->pivot->seed ? 'Seed #' . $team->pivot->seed : 'Seed tidak tersedia' }}
                                         </div>
                                     </div>
                                 @endforeach
@@ -776,9 +517,9 @@
                     <div class="mb-3">
                         <div class="btn-group btn-group-sm" role="group">
                             <button type="button" class="btn btn-outline-secondary active" data-filter="all">Semua</button>
-                            <button type="button" class="btn btn-outline-secondary" data-filter="completed">Completed</button>
-                            <button type="button" class="btn btn-outline-secondary" data-filter="upcoming">Upcoming</button>
-                            <button type="button" class="btn btn-outline-secondary" data-filter="ongoing">Ongoing</button>
+                            <button type="button" class="btn btn-outline-secondary" data-filter="completed">Selesai</button>
+                            <button type="button" class="btn btn-outline-secondary" data-filter="upcoming">Akan datang</button>
+                            <button type="button" class="btn btn-outline-secondary" data-filter="ongoing">Berlangsung</button>
                         </div>
                     </div>
 
@@ -788,7 +529,7 @@
                                 <tr>
                                     <th>Pertandingan</th>
                                     <th>Tanggal & Waktu</th>
-                                    <th>Venue</th>
+                                    <th>Lokasi</th>
                                     <th>Ronde</th>
                                 </tr>
                             </thead>
@@ -798,9 +539,9 @@
                                         <td>
                                             <div class="match-teams">
                                                 <div class="team-side">
-                                                    <div class="team-name-sm">{{ $match->homeTeam->name ?? 'TBD' }}</div>
+                                                    <div class="team-name-sm">{{ $match->homeTeam->name ?? 'Belum ditentukan' }}</div>
                                                     @if($match->group_name)
-                                                        <div class="team-group-sm">Group {{ $match->group_name }}</div>
+                                                        <div class="team-group-sm">Grup {{ $match->group_name }}</div>
                                                     @endif
                                                 </div>
                                                 <div class="match-score">
@@ -813,10 +554,10 @@
                                                             VS
                                                         @endif
                                                     </div>
-                                                    <div class="match-status">{{ ucfirst($match->status) }}</div>
+                                                    <div class="match-status">{{ ['upcoming' => 'Akan datang', 'ongoing' => 'Berlangsung', 'completed' => 'Selesai'][$match->status] ?? ucfirst($match->status) }}</div>
                                                 </div>
                                                 <div class="team-side home">
-                                                    <div class="team-name-sm">{{ $match->awayTeam->name ?? 'TBD' }}</div>
+                                                    <div class="team-name-sm">{{ $match->awayTeam->name ?? 'Belum ditentukan' }}</div>
                                                     @if($match->round_type != 'group')
                                                         <div class="team-group-sm">{{ ucfirst($match->round_type) }}</div>
                                                     @endif
@@ -830,7 +571,7 @@
                                             </div>
                                         </td>
                                         <td>
-                                            <small>{{ $match->venue ?? 'Main Field' }}</small>
+                                            <small>{{ $match->venue ?? 'Lapangan belum ditentukan' }}</small>
                                         </td>
                                         <td>
                                             <span class="round-badge">
@@ -862,12 +603,11 @@
                     <div class="alert alert-info mb-0">
                         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div>
-                                <h6 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>Bracket Knockout</h6>
-                                <p class="mb-0">Undian, BYE, progres pemenang, dan fixture dikelola pada satu halaman Tournament
-                                    Draw.</p>
+                                <h6 class="mb-1"><i class="bi bi-diagram-3 me-2"></i>Bagan knockout</h6>
+                                <p class="mb-0">Undian, BYE, progres pemenang, dan pertandingan dikelola di halaman Undian Knockout.</p>
                             </div>
                             <a href="{{ route('admin.tournaments.draw.show', $tournament) }}" class="btn btn-primary btn-sm">
-                                Buka Tournament Draw <i class="bi bi-arrow-right ms-1"></i>
+                                Buka undian knockout <i class="bi bi-arrow-right ms-1"></i>
                             </a>
                         </div>
                     </div>
@@ -932,6 +672,7 @@
                 <i class="bi bi-trash me-1"></i> Hapus Turnamen
             </button>
         </form>
+    </div>
     </div>
 @endsection
 

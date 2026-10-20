@@ -1,12 +1,7 @@
-{{-- ============================================================
-     news/partials/header.blade.php
-     Page title bar + category filter tabs
-     Variables: $categories (Collection), $news (Paginator)
-     ============================================================ --}}
+{{-- Page title and category filters. Variables: $categories, $news. --}}
 <div class="news-page-header">
     <div class="app-container">
         <h1 class="news-page-title">
-            <i class="bi bi-newspaper me-1"></i>
             @if(request()->has('category'))
                 {{ request('category') }} News
             @else
@@ -18,7 +13,8 @@
         {{-- Category filter tabs --}}
         <nav class="news-filter-bar" aria-label="News categories">
             <a href="{{ route('news.index') }}"
-               class="news-filter-tab {{ !request()->has('category') ? 'active' : '' }}">
+                @class(['news-filter-tab', 'active' => !request()->has('category')])
+                @if(!request()->has('category')) aria-current="page" @endif>
                 <i class="bi bi-grid"></i>
                 All
                 <span class="tab-count">{{ $news->total() }}</span>
@@ -26,7 +22,8 @@
 
             @foreach($categories as $category)
                 <a href="{{ route('news.index', ['category' => $category]) }}"
-                   class="news-filter-tab {{ request('category') === $category ? 'active' : '' }}">
+                    @class(['news-filter-tab', 'active' => request('category') === $category])
+                    @if(request('category') === $category) aria-current="page" @endif>
                     {{ $category }}
                 </a>
             @endforeach

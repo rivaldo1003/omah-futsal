@@ -232,9 +232,17 @@
             color: white;
         }
 
-        .position-1 .position-badge { background: linear-gradient(135deg, #f59e0b, #d97706); }
-        .position-2 .position-badge { background: linear-gradient(135deg, #94a3b8, #64748b); }
-        .position-3 .position-badge { background: linear-gradient(135deg, #f97316, #ea580c); }
+        .position-1 .position-badge {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+        }
+
+        .position-2 .position-badge {
+            background: linear-gradient(135deg, #94a3b8, #64748b);
+        }
+
+        .position-3 .position-badge {
+            background: linear-gradient(135deg, #f97316, #ea580c);
+        }
 
         /* Top Scorer Cards - Premium */
         .player-card-premium {
@@ -397,7 +405,8 @@
         <div class="container position-relative">
             <div class="text-center">
                 <h1>Omah Futsal Centre Surabaya</h1>
-                <p class="lead">Liga Futsal Premium Terbaik di Surabaya — Pantau jadwal, klasemen, top score, dan statistik tim secara real-time</p>
+                <p class="lead">Liga Futsal Premium Terbaik di Surabaya — Pantau jadwal, klasemen, top score, dan statistik
+                    tim secara real-time</p>
 
                 <div class="hero-stats">
                     <div class="hero-stat">
@@ -507,17 +516,20 @@
                                     <div class="match-item">
                                         <div class="d-flex justify-content-between align-items-center">
                                             <div class="d-flex align-items-center flex-grow-1">
-                                                <div class="team-logo-premium" style="background: linear-gradient(135deg, {{ $match->homeTeam->primary_color ?? '#3b82f6' }}, #1e40af)">
+                                                <div class="team-logo-premium"
+                                                    style="background: linear-gradient(135deg, {{ $match->homeTeam->primary_color ?? '#3b82f6' }}, #1e40af)">
                                                     {{ substr($match->homeTeam->name, 0, 2) }}
                                                 </div>
                                                 <div class="flex-grow-1">
                                                     <div class="d-flex justify-content-between align-items-center mb-1">
                                                         <span class="team-name">{{ $match->homeTeam->name }}</span>
-                                                        <span class="badge-premium bg-secondary">{{ $match->homeTeam->group }}</span>
+                                                        <span
+                                                            class="badge-premium bg-secondary">{{ $match->homeTeam->group }}</span>
                                                     </div>
                                                     <div class="d-flex justify-content-between align-items-center">
                                                         <span class="team-name">{{ $match->awayTeam->name }}</span>
-                                                        <span class="badge-premium bg-secondary">{{ $match->awayTeam->group }}</span>
+                                                        <span
+                                                            class="badge-premium bg-secondary">{{ $match->awayTeam->group }}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -571,7 +583,8 @@
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
-                                                    <div class="team-logo-premium" style="background: linear-gradient(135deg, {{ $standing->team->primary_color ?? '#6b7280' }}, #4b5563)">
+                                                    <div class="team-logo-premium"
+                                                        style="background: linear-gradient(135deg, {{ $standing->team->primary_color ?? '#6b7280' }}, #4b5563)">
                                                         {{ substr($standing->team->name, 0, 2) }}
                                                     </div>
                                                     <div>
@@ -616,17 +629,18 @@
                 <div class="col-xl-3 col-lg-6 col-md-6 mb-4">
                     <div class="player-card-premium h-100">
                         <div class="rank-badge" style="background: linear-gradient(135deg, 
-                            @if($index == 0) #f59e0b, #d97706
-                            @elseif($index == 1) #94a3b8, #64748b
-                            @elseif($index == 2) #f97316, #ea580c
-                            @else #3b82f6, #1e40af
-                            @endif
-                        )">
+                                    @if($index == 0) #f59e0b, #d97706
+                                    @elseif($index == 1) #94a3b8, #64748b
+                                    @elseif($index == 2) #f97316, #ea580c
+                                    @else #3b82f6, #1e40af
+                                    @endif
+                                )">
                             {{ $index + 1 }}
                         </div>
 
                         <div class="card-body text-center pt-5 pb-4">
-                            <div class="player-avatar" style="background: linear-gradient(135deg, {{ $player->team->primary_color ?? '#3b82f6' }}, #1e40af)">
+                            <div class="player-avatar"
+                                style="background: linear-gradient(135deg, {{ $player->team->primary_color ?? '#3b82f6' }}, #1e40af)">
                                 <i class="fas fa-user"></i>
                             </div>
 
