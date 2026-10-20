@@ -17,6 +17,20 @@ jobs:
         with:
           fetch-depth: 2
 
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 📦 Install frontend dependencies
+        run: npm ci
+
+      - name: 🏗️ Build frontend assets
+        run: |
+          npm run build
+          grep -q '"resources/js/admin/court-bookings-chart.js"' public/build/manifest.json
+
       - name: 🚀 Sync Files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
