@@ -52,15 +52,22 @@ class CourtBookingController extends Controller
             ->orderBy('sort_order')
             ->orderBy('name')
             ->get();
-        $rentalReservations = $rentalInventory->reservationsForDate($date->toDateString(), $rentalItems->modelKeys());
+        $rentalReservations = $rentalInventory->reservationsForDate($date->toDateString(), $rentalItems->modelKeys())
+            ->concat($rentalInventory->reservationsForDate($date->copy()->addDay()->toDateString(), $rentalItems->modelKeys()));
 
-        $schedules = $courts->map(function (Court $court) use ($date, $availability, $pricing, $rentalItems, $rentalReservations) {
+        $schedules = $courts->map(function (Court $court) use ($date, $availability, $pricing, $rentalItems, $rentalReservations, $rentalInventory) {
             $slots = [];
             $cursor = Carbon::parse($date->toDateString().' '.$court->opening_time, CourtBooking::TIMEZONE);
             $closing = Carbon::parse($date->toDateString().' '.$court->closing_time, CourtBooking::TIMEZONE);
-            $duration = max(15, (int) $court->slot_duration_minutes);
+            if ($closing->lessThanOrEqualTo($cursor)) {
+                $closing->addDay();
+            }
+            $duration = 30;
 
-            while ($cursor->copy()->addMinutes($duration)->lessThanOrEqualTo($closing)) {
+            // The booking date identifies the date play starts. Keep start slots
+            // on that date, while allowing the last slot to finish at 00:00.
+            while ($cursor->toDateString() === $date->toDateString()
+                && $cursor->copy()->addMinutes($duration)->lessThanOrEqualTo($closing)) {
                 $end = $cursor->copy()->addMinutes($duration);
                 $startTime = $cursor->format('H:i:s');
                 $endTime = $end->format('H:i:s');
@@ -71,13 +78,13 @@ class CourtBookingController extends Controller
                     'end' => $end->format('H:i'),
                     'starts_at' => $cursor->toIso8601String(),
                     'status' => $status,
-                    'amount' => $pricing->amountForRange($court, $startTime, $duration),
+                    'amount' => $pricing->amountForRange($court, $startTime, $duration, $date->toDateString()),
                     'duration' => $duration,
                     'request_key' => (string) Str::uuid(),
-                    'rental_availability' => $rentalItems->mapWithKeys(function (CourtRentalItem $item) use ($rentalReservations, $startTime, $endTime) {
+                    'rental_availability' => $rentalItems->mapWithKeys(function (CourtRentalItem $item) use ($rentalReservations, $startTime, $endTime, $date, $rentalInventory) {
                         $reserved = $rentalReservations
                             ->where('item_id', $item->id)
-                            ->filter(fn ($reservation) => $reservation->time_start < $endTime && $reservation->time_end > $startTime)
+                            ->filter(fn ($reservation) => $rentalInventory->reservationOverlapsInterval($date->toDateString(), $startTime, $endTime, $reservation))
                             ->sum('quantity');
 
                         return [$item->id => max(0, (int) $item->stock_quantity - (int) $reserved)];
@@ -202,13 +209,16 @@ class CourtBookingController extends Controller
                 }
 
                 $availability->expireUnpaidBookings($court->id, $validated['booking_date']);
-                $slotDuration = max(15, (int) $court->slot_duration_minutes);
+                $slotDuration = 30;
                 $duration = (int) $validated['quoted_duration_minutes'];
                 if ($duration < $slotDuration || $duration % $slotDuration !== 0) {
                     throw ValidationException::withMessages(['time_start' => 'Durasi booking harus mengikuti kelipatan slot lapangan. Pilih ulang slot yang berurutan.']);
                 }
                 $opening = Carbon::parse($validated['booking_date'].' '.$court->opening_time, CourtBooking::TIMEZONE);
                 $closing = Carbon::parse($validated['booking_date'].' '.$court->closing_time, CourtBooking::TIMEZONE);
+                if ($closing->lessThanOrEqualTo($opening)) {
+                    $closing->addDay();
+                }
                 $start = Carbon::createFromFormat('Y-m-d H:i', $validated['booking_date'].' '.$validated['time_start'], CourtBooking::TIMEZONE);
                 $end = $start->copy()->addMinutes($duration);
                 $offset = $opening->diffInMinutes($start, false);
@@ -228,8 +238,11 @@ class CourtBookingController extends Controller
                 if ($availability->matchConflict($court, $validated['booking_date'], $startTime, $endTime)) {
                     throw ValidationException::withMessages(['time_start' => 'Lapangan memiliki pertandingan pada jam tersebut. Silakan pilih jadwal lain.']);
                 }
+                if ($availability->memberScheduleConflict($court, $validated['booking_date'], $startTime, $endTime)) {
+                    throw ValidationException::withMessages(['time_start' => 'Slot tersebut dialokasikan untuk jadwal member. Silakan pilih waktu lain.']);
+                }
 
-                $amount = $pricing->amountForRange($court, $startTime, $duration);
+                $amount = $pricing->amountForRange($court, $startTime, $duration, $validated['booking_date']);
 
                 $rentalItems = collect();
                 $rentalTotal = 0.0;
@@ -248,13 +261,16 @@ class CourtBookingController extends Controller
                     $rentalInventory->expireUnpaidOrders($validated['booking_date']);
                     // Current locking reads from both order sources see requests that
                     // waited on the same item locks, including under MySQL repeatable read.
-                    $reservations = $rentalInventory->reservationsForDate(
+                    $reservations = $rentalInventory->reservationsForInterval(
                         $validated['booking_date'],
+                        $startTime,
+                        $endTime,
                         array_keys($rentalSelections),
                         lockForUpdate: true,
                     );
                     $reservedQuantities = $reservations
-                        ->filter(fn ($reservation) => $reservation->time_start < $endTime && $reservation->time_end > $startTime)
+                        ->filter(fn ($reservation) => $rentalInventory->reservationOverlapsInterval($validated['booking_date'], $startTime, $endTime, $reservation))
+                        ->unique(fn ($reservation) => $reservation->reservation_source.':'.$reservation->reservation_record_id.':'.$reservation->item_id)
                         ->groupBy('item_id')
                         ->map(fn ($lines) => $lines->sum('quantity'));
 

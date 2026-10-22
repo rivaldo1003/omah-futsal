@@ -867,13 +867,11 @@ class TournamentController extends Controller
             ->where('round_type', 'third_place')
             ->first();
         $thirdPlaceFixtureExists = (bool) $thirdPlaceFixture;
-        $thirdPlaceHasEvents = $thirdPlaceFixture?->events()->exists() ?? false;
-        $thirdPlaceHasStarted = $thirdPlaceFixture
-            && in_array($thirdPlaceFixture->status, ['ongoing', 'completed'], true);
-        $thirdPlaceLocked = $thirdPlaceHasStarted
-            || ($thirdPlaceHasEvents && $tournament->knockout_third_place);
+        $knockoutMatchesHaveStarted = app(\App\Services\KnockoutDrawService::class)
+            ->hasStartedKnockoutMatches($tournament);
+        $thirdPlaceLocked = $knockoutMatchesHaveStarted;
 
-        return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings', 'thirdPlaceLocked', 'thirdPlaceFixtureExists', 'thirdPlaceHasEvents'));
+        return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings', 'thirdPlaceLocked', 'thirdPlaceFixtureExists'));
     }
 
     // Update tournament

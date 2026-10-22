@@ -53,7 +53,7 @@ class CourtWalkInOrderController extends Controller
 
         if ($selectedCourt) {
             $courtSlots = $this->courtSlotGrid($selectedCourt, $date, $availability, $pricing);
-            $availableRanges = $this->availableCourtRanges($selectedCourt, $courtSlots, $pricing);
+            $availableRanges = $this->availableCourtRanges($selectedCourt, $date, $courtSlots, $pricing);
 
             $currentRange = $this->currentWalkInRange($selectedCourt, $date, $availability, $pricing);
             if ($currentRange) {
@@ -170,7 +170,7 @@ class CourtWalkInOrderController extends Controller
                 $isInstantRange = str_starts_with($validated['range'], 'now|');
                 $availableRange = $isInstantRange
                     ? $this->currentWalkInRange($court, $validated['booking_date'], $availability, $pricing)
-                    : $this->availableCourtRanges($court, $slots, $pricing)->firstWhere('value', $validated['range']);
+                    : $this->availableCourtRanges($court, $validated['booking_date'], $slots, $pricing)->firstWhere('value', $validated['range']);
                 if ($availableRange && $availableRange['value'] !== $validated['range']) {
                     $availableRange = null;
                 }
@@ -522,13 +522,18 @@ class CourtWalkInOrderController extends Controller
         CourtBookingAvailabilityService $availability,
         CourtPricingService $pricing,
     ): Collection {
-        $slotMinutes = max(15, (int) $court->slot_duration_minutes);
+        $slotMinutes = 30;
         $opening = Carbon::parse($date.' '.$court->opening_time, CourtBooking::TIMEZONE);
         $closing = Carbon::parse($date.' '.$court->closing_time, CourtBooking::TIMEZONE);
+        if ($closing->lessThanOrEqualTo($opening)) {
+            $closing->addDay();
+        }
         $slots = [];
         $cursor = $opening->copy();
 
-        while ($cursor->copy()->addMinutes($slotMinutes)->lessThanOrEqualTo($closing)) {
+        // Keep selectable start times on the selected booking date; an end at 00:00 is valid.
+        while ($cursor->toDateString() === $date
+            && $cursor->copy()->addMinutes($slotMinutes)->lessThanOrEqualTo($closing)) {
             $end = $cursor->copy()->addMinutes($slotMinutes);
             $startTime = $cursor->format('H:i:s');
             $endTime = $end->format('H:i:s');
@@ -538,7 +543,7 @@ class CourtWalkInOrderController extends Controller
                 'end' => $end->format('H:i'),
                 'starts_at' => Carbon::parse($date.' '.$startTime, CourtBooking::TIMEZONE)->toIso8601String(),
                 'status' => $status,
-                'amount' => $pricing->amountForRange($court, $startTime, $slotMinutes),
+                'amount' => $pricing->amountForRange($court, $startTime, $slotMinutes, $date),
             ];
             $cursor = $end;
         }
@@ -546,10 +551,10 @@ class CourtWalkInOrderController extends Controller
         return collect($slots);
     }
 
-    private function availableCourtRanges(Court $court, Collection $courtSlots, CourtPricingService $pricing): Collection
+    private function availableCourtRanges(Court $court, string $date, Collection $courtSlots, CourtPricingService $pricing): Collection
     {
         $slots = $courtSlots->values()->all();
-        $slotMinutes = max(15, (int) $court->slot_duration_minutes);
+        $slotMinutes = 30;
         $ranges = [];
         foreach ($slots as $startIndex => $slot) {
             if ($slot['status'] !== 'available') {
@@ -560,7 +565,7 @@ class CourtWalkInOrderController extends Controller
                 $duration = ($endIndex - $startIndex + 1) * $slotMinutes;
                 $start = $slot['start'];
                 $end = $slots[$endIndex]['end'];
-                $amount = $pricing->amountForRange($court, $start.':00', $duration);
+                $amount = $pricing->amountForRange($court, $start.':00', $duration, $date);
                 $ranges[] = [
                     'value' => $start.'|'.$end,
                     'start' => $start,
@@ -587,9 +592,12 @@ class CourtWalkInOrderController extends Controller
             return null;
         }
 
-        $slotMinutes = max(15, (int) $court->slot_duration_minutes);
+        $slotMinutes = 30;
         $opening = Carbon::parse($date.' '.$court->opening_time, CourtBooking::TIMEZONE);
         $closing = Carbon::parse($date.' '.$court->closing_time, CourtBooking::TIMEZONE);
+        if ($closing->lessThanOrEqualTo($opening)) {
+            $closing->addDay();
+        }
         if ($now->lessThan($opening) || $now->greaterThanOrEqualTo($closing)) {
             return null;
         }
@@ -617,14 +625,15 @@ class CourtWalkInOrderController extends Controller
         $blockStartTime = $blockStart->format('H:i:s');
         $blockEndTime = $blockEnd->format('H:i:s');
         if ($availability->bookingConflict($court, $date, $blockStartTime, $blockEndTime)
-            || $availability->matchConflict($court, $date, $blockStartTime, $blockEndTime)) {
+            || $availability->matchConflict($court, $date, $blockStartTime, $blockEndTime)
+            || $availability->memberScheduleConflict($court, $date, $blockStartTime, $blockEndTime)) {
             return null;
         }
 
         $duration = intdiv($remainingSeconds, 60);
         $start = $startsAt->format('H:i');
         $end = $blockEnd->format('H:i');
-        $amount = $pricing->amountForRange($court, $blockStartTime, $slotMinutes);
+        $amount = $pricing->amountForRange($court, $blockStartTime, $slotMinutes, $date);
 
         return [
             'value' => 'now|'.$end,
@@ -662,8 +671,9 @@ class CourtWalkInOrderController extends Controller
         Collection $items,
         CourtRentalInventoryService $inventory,
     ): Collection {
-        $reservations = $inventory->reservationsForDate($date, $items->modelKeys())
-            ->filter(fn ($reservation) => $reservation->time_start < $end && $reservation->time_end > $start)
+        $reservations = $inventory->reservationsForInterval($date, $start, $end, $items->modelKeys())
+            ->filter(fn ($reservation) => $inventory->reservationOverlapsInterval($date, $start, $end, $reservation))
+            ->unique(fn ($reservation) => $reservation->reservation_source.':'.$reservation->reservation_record_id.':'.$reservation->item_id)
             ->groupBy('item_id')
             ->map(fn ($lines) => $lines->sum('quantity'));
 
@@ -689,8 +699,9 @@ class CourtWalkInOrderController extends Controller
         }
 
         $inventory->expireUnpaidOrders($date);
-        $reservations = $inventory->reservationsForDate($date, array_keys($selections), lockForUpdate: true)
-            ->filter(fn ($reservation) => $reservation->time_start < $end && $reservation->time_end > $start)
+        $reservations = $inventory->reservationsForInterval($date, $start, $end, array_keys($selections), lockForUpdate: true)
+            ->filter(fn ($reservation) => $inventory->reservationOverlapsInterval($date, $start, $end, $reservation))
+            ->unique(fn ($reservation) => $reservation->reservation_source.':'.$reservation->reservation_record_id.':'.$reservation->item_id)
             ->groupBy('item_id')
             ->map(fn ($lines) => $lines->sum('quantity'));
 

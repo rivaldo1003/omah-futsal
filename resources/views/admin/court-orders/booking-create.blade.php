@@ -248,6 +248,10 @@
             background: #52606b;
         }
 
+        .walk-in-legend-mark.member {
+            background: #7762b5;
+        }
+
         .walk-in-legend-mark.past {
             background: #9e9ea0;
         }
@@ -355,6 +359,16 @@
 
         .walk-in-slot.is-booked .walk-in-slot-copy {
             color: var(--walk-in-charcoal);
+        }
+
+        .walk-in-slot.is-member {
+            border-color: #c9bee9;
+            background: #f0edfa;
+            color: #493b73;
+        }
+
+        .walk-in-slot.is-member .walk-in-slot-copy {
+            color: #5d4b8d;
         }
 
         .walk-in-slot.is-past {
@@ -607,9 +621,14 @@
             <h2>2. Pilih slot lapangan</h2>
             <div class="walk-in-schedule-meta">
                 {{ $selectedCourt->name }} · {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}
-                · {{ $selectedCourt->slot_duration_minutes }} menit per slot
-                · Siang Rp {{ number_format((float) $selectedCourt->day_hourly_rate, 0, ',', '.') }}/jam
-                · Malam Rp {{ number_format((float) $selectedCourt->night_hourly_rate, 0, ',', '.') }}/jam
+                · 30 menit per slot
+                @if(\Carbon\CarbonImmutable::parse($date)->isWeekend())
+                    · Siang akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_day_hourly_rate, 0, ',', '.') }}/jam
+                    · Malam akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_night_hourly_rate, 0, ',', '.') }}/jam
+                @else
+                    · Siang Rp {{ number_format((float) $selectedCourt->day_hourly_rate, 0, ',', '.') }}/jam
+                    · Malam Rp {{ number_format((float) $selectedCourt->night_hourly_rate, 0, ',', '.') }}/jam
+                @endif
             </div>
         </div>
         <div class="card-body">
@@ -624,12 +643,13 @@
                     diproses</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Sudah terisi atau
                     terjadwal</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark member"></span>Jadwal member</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu sudah lewat</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang · tarif penuh satu slot</span>
             </div>
 
-            <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Status jadwal
-                pertandingan dan booking aktif ditampilkan langsung di bawah. Untuk slot yang sedang berjalan, admin dapat
+            <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Jadwal member,
+                pertandingan, dan booking aktif ditampilkan langsung di bawah. Untuk slot yang sedang berjalan, admin dapat
                 memilih mulai sekarang jika masih tersisa sedikitnya 30 menit; tarifnya tetap tarif penuh satu slot.</p>
             <div class="walk-in-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
                 @php
@@ -637,21 +657,34 @@
                         'available' => 'Tersedia',
                         'pending' => 'Sedang diproses',
                         'booked' => 'Sudah terisi atau terjadwal',
+                        'member' => 'Jadwal member',
                         'past' => 'Waktu sudah lewat',
                     ];
                     $slotIcons = [
                         'available' => 'bi-plus-circle',
                         'pending' => 'bi-hourglass-split',
                         'booked' => 'bi-calendar2-check',
+                        'member' => 'bi-person-lock',
                         'past' => 'bi-clock-history',
                     ];
                 @endphp
                 @foreach($courtSlots as $slot)
                 @php
                     $instantRange = $slot['instant_range'] ?? null;
+                    $minutesForTime = fn ($time) => ((int) substr($time, 0, 2) * 60) + (int) substr($time, 3, 2);
+                    $selectedStartMinutes = $selectedRange ? $minutesForTime($selectedRange['start']) : null;
+                    $selectedEndMinutes = $selectedRange ? $minutesForTime($selectedRange['end']) : null;
+                    if ($selectedRange && $selectedEndMinutes <= $selectedStartMinutes) {
+                        $selectedEndMinutes += 1440;
+                    }
+                    $slotStartMinutes = $minutesForTime($instantRange['start'] ?? $slot['start']);
+                    $slotEndMinutes = $minutesForTime($slot['end']);
+                    if ($slotEndMinutes <= $slotStartMinutes) {
+                        $slotEndMinutes += 1440;
+                    }
                     $isSelectedSlot = $selectedRange && ($instantRange
                         ? $selectedRange['value'] === $instantRange['value']
-                        : (!($selectedRange['is_instant'] ?? false) && $slot['start'] >= $selectedRange['start'] && $slot['end'] <= $selectedRange['end']));
+                        : (!($selectedRange['is_instant'] ?? false) && $slotStartMinutes >= $selectedStartMinutes && $slotEndMinutes <= $selectedEndMinutes));
                 @endphp
                 @if($slot['status'] === 'available' || $instantRange)
                     <button type="button" class="walk-in-slot is-available{{ $instantRange ? ' is-instant' : '' }}{{ $isSelectedSlot ? ' is-selected' : '' }}"
@@ -886,17 +919,30 @@
             const currentRange = rangeInput.value;
             const formatter = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
             const amountLabel = (amount) => `Rp ${formatter.format(Number(amount) || 0)}`;
-            const rangeParts = currentRange.split('|');
-            let selectedSlots = currentRange.startsWith('now|')
-                ? slots.filter((slot) => slot.dataset.rangeValue === currentRange)
-                : (rangeParts.length === 2 && rangeParts[0] && rangeParts[1]
-                    ? slots.filter((slot) => slot.dataset.instant !== 'true' && slot.dataset.start >= rangeParts[0] && slot.dataset.end <= rangeParts[1])
-                    : []);
-
             const timeToMinutes = (value) => {
                 const [hours, minutes] = value.split(':').map(Number);
                 return hours * 60 + minutes;
             };
+            const slotDurationMinutes = (start, end) => {
+                const difference = timeToMinutes(end) - timeToMinutes(start);
+                return difference > 0 ? difference : difference + (24 * 60);
+            };
+            const rangeParts = currentRange.split('|');
+            const rangeStartMinutes = rangeParts[0] ? timeToMinutes(rangeParts[0]) : null;
+            let rangeEndMinutes = rangeParts[1] ? timeToMinutes(rangeParts[1]) : null;
+            if (rangeStartMinutes !== null && rangeEndMinutes !== null && rangeEndMinutes <= rangeStartMinutes) {
+                rangeEndMinutes += 24 * 60;
+            }
+            let selectedSlots = currentRange.startsWith('now|')
+                ? slots.filter((slot) => slot.dataset.rangeValue === currentRange)
+                : (rangeParts.length === 2 && rangeParts[0] && rangeParts[1]
+                    ? slots.filter((slot) => {
+                        if (slot.dataset.instant === 'true') return false;
+                        const start = timeToMinutes(slot.dataset.start);
+                        const end = start + slotDurationMinutes(slot.dataset.start, slot.dataset.end);
+                        return start >= rangeStartMinutes && end <= rangeEndMinutes;
+                    })
+                    : []);
             const durationLabel = (minutes) => {
                 const hours = Math.floor(minutes / 60);
                 const remaining = minutes % 60;
@@ -923,7 +969,7 @@
 
                     if (isSelected) {
                         amount += slotAmount;
-                        duration += timeToMinutes(slot.dataset.end) - timeToMinutes(slot.dataset.start);
+                        duration += slotDurationMinutes(slot.dataset.start, slot.dataset.end);
                     }
                 });
 

@@ -60,7 +60,7 @@ class CourtBookingPayment extends Model
     public function getStageLabelAttribute(): string
     {
         return match ($this->stage) {
-            self::STAGE_UNVERIFIED => 'Menunggu nominal',
+            self::STAGE_UNVERIFIED => 'Menunggu verifikasi',
             self::STAGE_DEPOSIT => 'DP',
             self::STAGE_SETTLEMENT => 'Pelunasan',
             default => 'Lunas',

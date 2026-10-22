@@ -17,6 +17,7 @@
 
     <!-- Standings Page Specific Styles -->
     @include('standings.partials.styles')
+    @include('partials.knockout-bracket-styles')
 </head>
 
 <body>
@@ -53,7 +54,7 @@
 
             @if(isset($selectedTournament) && $selectedTournament->type === 'group_knockout' && !empty($knockoutBracket))
                 <section class="mt-5" aria-labelledby="group-knockout-bracket-title">
-                    <h2 id="group-knockout-bracket-title" class="h4 mb-3">Knockout Bracket</h2>
+                    <h2 id="group-knockout-bracket-title" class="h4 mb-3">Bagan sistem gugur</h2>
                     <x-knockout-bracket :knockout-bracket="$knockoutBracket" />
                 </section>
             @endif

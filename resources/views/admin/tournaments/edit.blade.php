@@ -682,11 +682,9 @@
                                     @enderror
                                 </div>
                                 @if($thirdPlaceLocked)
-                                    <div class="form-text text-warning">Pengaturan terkunci karena laga sudah berlangsung/selesai atau fixture aktif memiliki event. Hapus event sebelum menonaktifkannya.</div>
-                                @elseif($thirdPlaceHasEvents && !$tournament->knockout_third_place)
-                                    <div class="form-text text-warning">Fixture nonaktif ini masih memiliki event. Aktifkan kembali untuk memeriksanya; hapus event sebelum menonaktifkan lagi.</div>
+                                    <div class="form-text text-warning">Pengaturan terkunci karena pertandingan knockout sudah dimulai atau memiliki hasil/event. Tentukan laga juara 3/4 sebelum pertandingan knockout pertama dimulai.</div>
                                 @else
-                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Jika dinonaktifkan sebelum mulai, fixture dibatalkan dan disembunyikan dari jadwal publik; datanya tetap tersimpan di admin.</div>
+                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pengaturan dapat diubah sebelum pertandingan knockout dimulai.</div>
                                 @endif
                             </div>
                         </div>

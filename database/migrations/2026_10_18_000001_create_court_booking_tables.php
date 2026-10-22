@@ -14,7 +14,7 @@ return new class extends Migration
             $table->decimal('hourly_rate', 12, 2);
             $table->time('opening_time')->default('08:00:00');
             $table->time('closing_time')->default('23:00:00');
-            $table->unsignedSmallInteger('slot_duration_minutes')->default(60);
+            $table->unsignedSmallInteger('slot_duration_minutes')->default(30);
             $table->boolean('is_active')->default(true);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();

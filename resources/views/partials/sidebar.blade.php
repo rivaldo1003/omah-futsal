@@ -137,6 +137,20 @@
         color: #ffffff;
     }
 
+    .booking-pending-badge {
+        min-width: 22px;
+        margin-left: auto;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: #b42318;
+        color: #ffffff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        line-height: 1.4;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+
     .nav-link.utility-link {
         font-size: 0.8125rem;
         min-height: 36px;
@@ -319,23 +333,25 @@
                 </span>
             </a>
 
-            <div class="nav-divider">Turnamen</div>
+            <div class="nav-divider">Operasional</div>
 
-            {{-- TOURNAMENTS --}}
-            <a class="nav-link {{ request()->routeIs('admin.tournaments.*') ? 'active' : '' }}"
-                href="{{ route('admin.tournaments.index') }}">
-                <i class="bi bi-trophy"></i> Turnamen
-            </a>
-
-            {{-- MATCHES --}}
-            <a class="nav-link {{ request()->routeIs('admin.matches.*') ? 'active' : '' }}"
-                href="{{ route('admin.matches.index') }}">
-                <i class="bi bi-calendar2-event"></i> Pertandingan
-            </a>
-
-            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index', 'admin.court-bookings.manual.*') ? 'active' : '' }}"
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index', 'admin.court-bookings.manual.*', 'admin.court-bookings.settings', 'admin.court-bookings.member-schedules.*') ? 'active' : '' }}"
                 href="{{ route('admin.court-bookings.index') }}">
                 <i class="bi bi-calendar-check"></i> Booking lapangan
+                @php
+                    $waitingCourtBookings = \App\Models\CourtBooking::where(function ($query) {
+                        $query->where('status', \App\Models\CourtBooking::STATUS_PENDING_REVIEW)
+                            ->orWhere(function ($pending) {
+                                $pending->where('status', \App\Models\CourtBooking::STATUS_AWAITING_PAYMENT)
+                                    ->where(function ($hold) {
+                                        $hold->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                                    });
+                            });
+                    })->count();
+                @endphp
+                @if($waitingCourtBookings > 0)
+                    <span class="booking-pending-badge" title="Booking menunggu pembayaran atau verifikasi">{{ $waitingCourtBookings }}</span>
+                @endif
             </a>
 
             <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.daily*') ? 'active' : '' }}"
@@ -351,6 +367,20 @@
             <a class="nav-link {{ request()->routeIs('admin.court-rentals.settings', 'admin.court-rentals.items.*') ? 'active' : '' }}"
                 href="{{ route('admin.court-rentals.settings') }}">
                 <i class="bi bi-box-seam"></i> Katalog perlengkapan
+            </a>
+
+            <div class="nav-divider">Turnamen</div>
+
+            {{-- TOURNAMENTS --}}
+            <a class="nav-link {{ request()->routeIs('admin.tournaments.*') ? 'active' : '' }}"
+                href="{{ route('admin.tournaments.index') }}">
+                <i class="bi bi-trophy"></i> Turnamen
+            </a>
+
+            {{-- MATCHES --}}
+            <a class="nav-link {{ request()->routeIs('admin.matches.*') ? 'active' : '' }}"
+                href="{{ route('admin.matches.index') }}">
+                <i class="bi bi-calendar2-event"></i> Pertandingan
             </a>
 
             {{-- STANDINGS --}}

@@ -2,6 +2,10 @@
 
 @section('title', 'Pengaturan Lapangan')
 
+@php
+    $memberWeekdays = [0 => 'Minggu', 1 => 'Senin', 2 => 'Selasa', 3 => 'Rabu', 4 => 'Kamis', 5 => 'Jumat', 6 => 'Sabtu'];
+@endphp
+
 @push('styles')
     <style>
         .court-settings-page {
@@ -380,10 +384,278 @@
             line-height: 1.5;
         }
 
+        .court-member-schedule-create {
+            display: grid;
+            gap: 18px;
+            margin-bottom: 24px;
+            padding: 20px;
+            border: 1px solid var(--settings-line-soft);
+            border-radius: 8px;
+            background: #fafafa;
+        }
+
+        .court-member-schedule-create-heading h3,
+        .court-member-schedule-list-heading h3 {
+            margin: 0 0 4px;
+            color: var(--settings-ink);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .court-member-schedule-create-heading p,
+        .court-member-schedule-list-heading p {
+            margin: 0;
+            color: var(--settings-muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .court-member-schedule-fields {
+            display: grid;
+            gap: 16px;
+        }
+
+        .court-member-schedule-fields--three {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .court-member-schedule-fields--four {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .court-member-schedule-note-field {
+            max-width: 50%;
+        }
+
+        .court-member-schedule-form-actions {
+            display: flex;
+            justify-content: flex-end;
+            padding-top: 2px;
+        }
+
+        .court-member-schedule-list-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 16px;
+            margin: 0 0 8px;
+        }
+
+        .court-member-schedule-list {
+            border-top: 1px solid var(--settings-line-soft);
+        }
+
+        .court-member-schedule-row {
+            padding: 20px 0;
+            border-bottom: 1px solid var(--settings-line-soft);
+        }
+
+        .court-member-schedule-row-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .court-member-schedule-identity {
+            min-width: 0;
+        }
+
+        .court-member-schedule-identity-line {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px 10px;
+        }
+
+        .court-member-schedule-identity h4 {
+            margin: 0;
+            color: var(--settings-ink);
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .court-member-schedule-court {
+            margin: 4px 0 0;
+            color: var(--settings-muted);
+            font-size: 13px;
+        }
+
+        .court-member-schedule-status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 24px;
+            padding: 2px 9px;
+            border-radius: 4px;
+            background: #e8f4ed;
+            color: #145c3d;
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .court-member-schedule-status--paused {
+            background: var(--settings-cloud);
+            color: var(--settings-charcoal);
+        }
+
+        .court-member-schedule-row-controls {
+            display: flex;
+            flex: 0 0 auto;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .court-member-schedule-row-controls .btn,
+        .court-member-schedule-exceptions-heading .btn {
+            min-height: 36px;
+            padding: 7px 13px;
+            font-size: 13px;
+        }
+
+        .court-member-schedule-facts {
+            display: grid;
+            grid-template-columns: minmax(180px, .8fr) minmax(260px, 1.2fr);
+            gap: 20px;
+            margin-top: 16px;
+        }
+
+        .court-member-schedule-fact {
+            min-width: 0;
+        }
+
+        .court-member-schedule-fact span,
+        .court-member-schedule-exceptions-heading h5 {
+            display: block;
+            margin: 0 0 4px;
+            color: var(--settings-muted);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 1.4;
+        }
+
+        .court-member-schedule-fact strong {
+            display: block;
+            color: var(--settings-charcoal);
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.45;
+            overflow-wrap: anywhere;
+        }
+
+        .court-member-schedule-exceptions {
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid var(--settings-line-soft);
+        }
+
+        .court-member-schedule-exceptions-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .court-member-schedule-exceptions-heading h5 {
+            margin: 0;
+            color: var(--settings-ink);
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .court-member-schedule-day-offs {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .court-member-schedule-day-off {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 34px;
+            padding: 4px 6px 4px 10px;
+            border: 1px solid var(--settings-line-soft);
+            border-radius: 6px;
+            background: var(--settings-canvas);
+            color: var(--settings-charcoal);
+            font-size: 13px;
+        }
+
+        .court-member-schedule-day-off form {
+            margin: 0;
+        }
+
+        .court-member-schedule-day-off button {
+            padding: 3px 6px;
+            border: 0;
+            border-radius: 4px;
+            background: transparent;
+            color: var(--settings-danger);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .court-member-schedule-no-days-off {
+            margin: 10px 0 0;
+            color: var(--settings-muted);
+            font-size: 13px;
+        }
+
+        .court-member-schedule-empty {
+            margin: 0;
+            padding: 18px 0 4px;
+            color: var(--settings-muted);
+            font-size: 14px;
+        }
+
+        .court-member-day-off-modal .modal-content {
+            border: 1px solid var(--settings-line-soft);
+            border-radius: 8px;
+            box-shadow: 0 12px 36px rgb(17 17 17 / 14%);
+        }
+
+        .court-member-day-off-modal .modal-header,
+        .court-member-day-off-modal .modal-footer {
+            padding: 18px 22px;
+            border-color: var(--settings-line-soft);
+        }
+
+        .court-member-day-off-modal .modal-body {
+            padding: 22px;
+        }
+
+        .court-member-day-off-modal .modal-title {
+            color: var(--settings-ink);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .court-member-day-off-help {
+            margin: 12px 0 0;
+            color: var(--settings-muted);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
         @media (max-width: 1100px) {
             .court-settings-grid {
                 grid-template-columns: minmax(0, 1fr);
                 gap: 24px;
+            }
+
+            .court-member-schedule-fields--four {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .court-member-schedule-note-field {
+                max-width: 100%;
             }
         }
 
@@ -405,6 +677,38 @@
             .court-settings-field-grid--four {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 gap: 14px 12px;
+            }
+
+            .court-member-schedule-fields--three,
+            .court-member-schedule-fields--four,
+            .court-member-schedule-facts {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .court-member-schedule-row-header {
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .court-member-schedule-row-controls {
+                width: 100%;
+            }
+
+            .court-member-schedule-row-controls .btn {
+                flex: 1 1 auto;
+            }
+
+            .court-member-schedule-exceptions-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .court-member-schedule-exceptions-heading .btn {
+                width: 100%;
+            }
+
+            .court-member-schedule-create {
+                padding: 16px;
             }
 
             .court-settings-section-heading h2 {
@@ -601,6 +905,21 @@
                             </div>
                         </div>
 
+                        <div class="court-settings-field-grid">
+                            <div>
+                                <label class="form-label" for="newCourtWeekendDayRate">Tarif siang Sabtu/Minggu per jam</label>
+                                <input class="form-control" id="newCourtWeekendDayRate" name="weekend_day_hourly_rate" type="text"
+                                    inputmode="numeric" autocomplete="off" maxlength="18" data-rupiah-input required
+                                    value="{{ $formatRupiah(old('weekend_day_hourly_rate')) }}" placeholder="Rp 300.000">
+                            </div>
+                            <div>
+                                <label class="form-label" for="newCourtWeekendNightRate">Tarif malam Sabtu/Minggu per jam</label>
+                                <input class="form-control" id="newCourtWeekendNightRate" name="weekend_night_hourly_rate" type="text"
+                                    inputmode="numeric" autocomplete="off" maxlength="18" data-rupiah-input required
+                                    value="{{ $formatRupiah(old('weekend_night_hourly_rate')) }}" placeholder="Rp 400.000">
+                            </div>
+                        </div>
+
                         <div class="court-settings-field-grid court-settings-field-grid--four">
                             <div>
                                 <label class="form-label" for="newOpen">Buka</label>
@@ -609,15 +928,13 @@
                             <div>
                                 <label class="form-label" for="newClose">Tutup</label>
                                 <input class="form-control" id="newClose" name="closing_time" type="time" value="23:00" required>
+                                <div class="form-text">Pilih 00.00 jika tutup setelah lewat tengah malam.</div>
                             </div>
                             <div>
                                 <label class="form-label" for="newDuration">Durasi slot</label>
-                                <select class="form-select" id="newDuration" name="slot_duration_minutes">
-                                    <option value="60">60 menit</option>
-                                    <option value="90">90 menit</option>
-                                    <option value="120">120 menit</option>
-                                    <option value="30">30 menit</option>
-                                </select>
+                                <input type="hidden" name="slot_duration_minutes" value="30">
+                                <input class="form-control" id="newDuration" type="text" value="30 menit" readonly>
+                                <div class="form-text">Pelanggan dapat memilih durasi kelipatan 30 menit.</div>
                             </div>
                             <div>
                                 <label class="form-label" for="newOrder">Urutan tampil</label>
@@ -685,6 +1002,21 @@
                                     </div>
                                 </div>
 
+                                <div class="court-settings-field-grid">
+                                    <div>
+                                        <label class="form-label" for="courtWeekendDayRate{{ $court->id }}">Tarif siang Sabtu/Minggu per jam</label>
+                                        <input class="form-control" id="courtWeekendDayRate{{ $court->id }}" name="weekend_day_hourly_rate"
+                                            type="text" inputmode="numeric" autocomplete="off" maxlength="18" data-rupiah-input required
+                                            value="{{ $formatRupiah($court->weekend_day_hourly_rate) }}">
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="courtWeekendNightRate{{ $court->id }}">Tarif malam Sabtu/Minggu per jam</label>
+                                        <input class="form-control" id="courtWeekendNightRate{{ $court->id }}" name="weekend_night_hourly_rate"
+                                            type="text" inputmode="numeric" autocomplete="off" maxlength="18" data-rupiah-input required
+                                            value="{{ $formatRupiah($court->weekend_night_hourly_rate) }}">
+                                    </div>
+                                </div>
+
                                 <div class="court-settings-field-grid court-settings-field-grid--four">
                                     <div>
                                         <label class="form-label" for="courtOpen{{ $court->id }}">Buka</label>
@@ -695,16 +1027,13 @@
                                         <label class="form-label" for="courtClose{{ $court->id }}">Tutup</label>
                                         <input class="form-control" id="courtClose{{ $court->id }}" name="closing_time" type="time"
                                             required value="{{ $court->closing_time_formatted }}">
+                                        <div class="form-text">Pilih 00.00 jika tutup setelah lewat tengah malam.</div>
                                     </div>
                                     <div>
                                         <label class="form-label" for="courtDuration{{ $court->id }}">Durasi slot</label>
-                                        <select class="form-select" id="courtDuration{{ $court->id }}" name="slot_duration_minutes">
-                                            @foreach([30, 60, 90, 120] as $minutes)
-                                                <option value="{{ $minutes }}" @selected($court->slot_duration_minutes === $minutes)>
-                                                    {{ $minutes }} menit
-                                                </option>
-                                            @endforeach
-                                        </select>
+                                        <input type="hidden" name="slot_duration_minutes" value="30">
+                                        <input class="form-control" id="courtDuration{{ $court->id }}" type="text" value="30 menit" readonly>
+                                        <div class="form-text">Durasi booking menggunakan kelipatan 30 menit.</div>
                                     </div>
                                     <div>
                                         <label class="form-label" for="courtOrder{{ $court->id }}">Urutan tampil</label>
@@ -727,6 +1056,200 @@
                 </div>
             </section>
         </div>
+
+        <section class="court-settings-section mt-4" aria-labelledby="memberScheduleHeading">
+            <div class="court-settings-section-heading">
+                <h2 id="memberScheduleHeading">Jadwal member</h2>
+                <p>Slot rutin ditahan untuk member. Pada tanggal libur, slot dibuka kembali untuk booking umum.</p>
+            </div>
+
+            <form method="POST" action="{{ route('admin.court-bookings.member-schedules.store') }}" class="court-member-schedule-create">
+                @csrf
+                <div class="court-member-schedule-create-heading">
+                    <h3>Tambah jadwal member</h3>
+                    <p>Tentukan lapangan, hari rutin, dan waktu pemakaian member.</p>
+                </div>
+
+                <div class="court-member-schedule-fields court-member-schedule-fields--three">
+                    <div>
+                        <label class="form-label" for="memberScheduleCourt">Lapangan</label>
+                        <select class="form-select" id="memberScheduleCourt" name="court_id" required>
+                            @foreach($courts as $court)<option value="{{ $court->id }}">{{ $court->name }}</option>@endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="form-label" for="memberScheduleName">Nama member / grup</label>
+                        <input class="form-control" id="memberScheduleName" name="member_name" maxlength="120" required placeholder="Contoh: Member Jumat malam">
+                    </div>
+                    <div>
+                        <label class="form-label" for="memberScheduleDay">Hari rutin</label>
+                        <select class="form-select" id="memberScheduleDay" name="day_of_week" required>
+                            @foreach($memberWeekdays as $day => $label)<option value="{{ $day }}">{{ $label }}</option>@endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="court-member-schedule-fields court-member-schedule-fields--four">
+                    <div>
+                        <label class="form-label" for="memberScheduleStart">Jam mulai</label>
+                        <input class="form-control" id="memberScheduleStart" name="time_start" type="time" required>
+                    </div>
+                    <div>
+                        <label class="form-label" for="memberScheduleEnd">Jam selesai</label>
+                        <input class="form-control" id="memberScheduleEnd" name="time_end" type="time" required>
+                    </div>
+                    <div>
+                        <label class="form-label" for="memberScheduleStartsOn">Berlaku mulai</label>
+                        <input class="form-control" id="memberScheduleStartsOn" name="starts_on" type="date">
+                    </div>
+                    <div>
+                        <label class="form-label" for="memberScheduleEndsOn">Berlaku sampai</label>
+                        <input class="form-control" id="memberScheduleEndsOn" name="ends_on" type="date">
+                    </div>
+                </div>
+
+                <div class="court-member-schedule-note-field">
+                    <div>
+                        <label class="form-label" for="memberScheduleNotes">Catatan</label>
+                        <input class="form-control" id="memberScheduleNotes" name="notes" maxlength="500" placeholder="Opsional">
+                    </div>
+                </div>
+                <input type="hidden" name="is_active" value="1">
+                <div class="court-member-schedule-form-actions">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i>
+                        Simpan jadwal
+                    </button>
+                </div>
+            </form>
+
+            <div class="court-member-schedule-list-heading">
+                <h3>Jadwal terdaftar</h3>
+                <p>{{ $memberSchedules->count() }} jadwal</p>
+            </div>
+
+            <div class="court-member-schedule-list">
+                @forelse($memberSchedules as $schedule)
+                    @php
+                        $dayLabel = $memberWeekdays[$schedule->day_of_week] ?? 'Hari tidak valid';
+                        $dayOffModalId = 'memberDayOffModal' . $schedule->id;
+                    @endphp
+                    <article class="court-member-schedule-row" aria-labelledby="memberScheduleName{{ $schedule->id }}">
+                        <div class="court-member-schedule-row-header">
+                            <div class="court-member-schedule-identity">
+                                <div class="court-member-schedule-identity-line">
+                                    <h4 id="memberScheduleName{{ $schedule->id }}">{{ $schedule->member_name }}</h4>
+                                    <span class="court-member-schedule-status {{ $schedule->is_active ? '' : 'court-member-schedule-status--paused' }}">
+                                        {{ $schedule->is_active ? 'Aktif' : 'Dijeda' }}
+                                    </span>
+                                </div>
+                                <p class="court-member-schedule-court">{{ $schedule->court->name }}</p>
+                            </div>
+
+                            <div class="court-member-schedule-row-controls">
+                                <form method="POST" action="{{ route('admin.court-bookings.member-schedules.update', $schedule) }}">
+                                    @csrf @method('PUT')
+                                    <input type="hidden" name="court_id" value="{{ $schedule->court_id }}">
+                                    <input type="hidden" name="member_name" value="{{ $schedule->member_name }}">
+                                    <input type="hidden" name="day_of_week" value="{{ $schedule->day_of_week }}">
+                                    <input type="hidden" name="time_start" value="{{ substr($schedule->time_start, 0, 5) }}">
+                                    <input type="hidden" name="time_end" value="{{ substr($schedule->time_end, 0, 5) }}">
+                                    <input type="hidden" name="starts_on" value="{{ $schedule->starts_on?->toDateString() }}">
+                                    <input type="hidden" name="ends_on" value="{{ $schedule->ends_on?->toDateString() }}">
+                                    <input type="hidden" name="notes" value="{{ $schedule->notes }}">
+                                    <input type="hidden" name="is_active" value="{{ $schedule->is_active ? 0 : 1 }}">
+                                    <button class="btn btn-outline-secondary" type="submit">
+                                        {{ $schedule->is_active ? 'Jeda jadwal' : 'Aktifkan jadwal' }}
+                                    </button>
+                                </form>
+                                <form method="POST" action="{{ route('admin.court-bookings.member-schedules.destroy', $schedule) }}" onsubmit="return confirm(@js('Hapus jadwal member ' . $schedule->member_name . '?'))">
+                                    @csrf @method('DELETE')
+                                    <button class="btn btn-outline-danger" type="submit">Hapus jadwal</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="court-member-schedule-facts">
+                            <div class="court-member-schedule-fact">
+                                <span>Jadwal rutin</span>
+                                <strong>{{ $dayLabel }}, {{ substr($schedule->time_start, 0, 5) }} sampai {{ substr($schedule->time_end, 0, 5) }}</strong>
+                            </div>
+                            <div class="court-member-schedule-fact">
+                                <span>Masa berlaku</span>
+                                <strong>{{ $schedule->starts_on?->format('d M Y') ?? 'Tanpa batas awal' }} sampai {{ $schedule->ends_on?->format('d M Y') ?? 'Tanpa batas akhir' }}</strong>
+                            </div>
+                        </div>
+
+                        <div class="court-member-schedule-exceptions">
+                            <div class="court-member-schedule-exceptions-heading">
+                                <h5>Tanggal libur</h5>
+                                <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal" data-bs-target="#{{ $dayOffModalId }}">
+                                    <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+                                    Jadwalkan tanggal libur
+                                </button>
+                            </div>
+
+                            @if($schedule->daysOff->isNotEmpty())
+                                <ul class="court-member-schedule-day-offs">
+                                    @foreach($schedule->daysOff as $dayOff)
+                                    <li class="court-member-schedule-day-off">
+                                        <span>
+                                            <strong>{{ $dayOff->off_date->format('d M Y') }}</strong>
+                                            @if($dayOff->note)<span> · {{ $dayOff->note }}</span>@endif
+                                        </span>
+                                        <form method="POST" action="{{ route('admin.court-bookings.member-schedules.days-off.destroy', [$schedule, $dayOff]) }}">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" aria-label="Hapus tanggal libur {{ $dayOff->off_date->format('d M Y') }}">Hapus</button>
+                                        </form>
+                                    </li>
+                                    @endforeach
+                                </ul>
+                            @else
+                                <p class="court-member-schedule-no-days-off">Belum ada tanggal libur untuk jadwal ini.</p>
+                            @endif
+                        </div>
+                    </article>
+
+                    <div class="modal fade court-member-day-off-modal" id="{{ $dayOffModalId }}" tabindex="-1"
+                        aria-labelledby="{{ $dayOffModalId }}Title" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <form method="POST" action="{{ route('admin.court-bookings.member-schedules.days-off.store', $schedule) }}">
+                                    @csrf
+                                    <div class="modal-header">
+                                        <h3 class="modal-title" id="{{ $dayOffModalId }}Title">Jadwalkan tanggal libur</h3>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <p class="mb-3">
+                                            {{ $schedule->member_name }} biasanya memakai lapangan {{ strtolower($dayLabel) }}.
+                                            Pilih tanggal ketika jadwal rutin ini libur.
+                                        </p>
+                                        <label class="form-label" for="{{ $dayOffModalId }}Date">Tanggal libur</label>
+                                        <input class="form-control" id="{{ $dayOffModalId }}Date" type="date" name="off_date"
+                                            min="{{ now('Asia/Jakarta')->toDateString() }}" required>
+                                        <p class="court-member-day-off-help">
+                                            Tanggal harus jatuh pada hari {{ strtolower($dayLabel) }} dan masuk masa berlaku jadwal.
+                                            Pada tanggal itu, slot kembali tersedia untuk booking umum.
+                                        </p>
+                                        <div class="mt-3">
+                                            <label class="form-label" for="{{ $dayOffModalId }}Note">Catatan</label>
+                                            <input class="form-control" id="{{ $dayOffModalId }}Note" type="text" name="note" maxlength="255" placeholder="Opsional">
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                                        <button class="btn btn-primary" type="submit">Simpan tanggal libur</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @empty
+                    <p class="court-member-schedule-empty">Belum ada jadwal member. Tambahkan jadwal rutin agar slot khusus tidak ditawarkan ke booking umum.</p>
+                @endforelse
+            </div>
+        </section>
     </main>
 @endsection
 

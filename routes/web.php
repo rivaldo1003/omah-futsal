@@ -233,6 +233,14 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
         Route::put('/reports/daily/revenue', [AdminCourtBookingController::class, 'updateDailyRevenue'])->name('reports.daily-revenue.update');
+        Route::post('/reports/daily/revenue-entries', [AdminCourtBookingController::class, 'storeDailyRevenueEntry'])->name('reports.daily-revenue-entries.store');
+        Route::put('/reports/daily/revenue-entries/{entry}', [AdminCourtBookingController::class, 'updateDailyRevenueEntry'])->name('reports.daily-revenue-entries.update');
+        Route::delete('/reports/daily/revenue-entries/{entry}', [AdminCourtBookingController::class, 'destroyDailyRevenueEntry'])->name('reports.daily-revenue-entries.destroy');
+        Route::post('/settings/member-schedules', [AdminCourtBookingController::class, 'storeMemberSchedule'])->name('member-schedules.store');
+        Route::put('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'updateMemberSchedule'])->name('member-schedules.update');
+        Route::delete('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'destroyMemberSchedule'])->name('member-schedules.destroy');
+        Route::post('/settings/member-schedules/{schedule}/days-off', [AdminCourtBookingController::class, 'storeMemberDayOff'])->name('member-schedules.days-off.store');
+        Route::delete('/settings/member-schedules/{schedule}/days-off/{dayOff}', [AdminCourtBookingController::class, 'destroyMemberDayOff'])->name('member-schedules.days-off.destroy');
         Route::get('/manual/create', [AdminCourtWalkInOrderController::class, 'createBooking'])->name('manual.create');
         Route::post('/manual', [AdminCourtWalkInOrderController::class, 'storeBooking'])->name('manual.store');
         Route::get('/settings', [AdminCourtBookingController::class, 'settings'])->name('settings');
@@ -245,8 +253,12 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{booking}/confirm', [AdminCourtBookingController::class, 'confirm'])->name('confirm');
         Route::post('/{booking}/reject', [AdminCourtBookingController::class, 'reject'])->name('reject');
         Route::post('/{booking}/cancel', [AdminCourtBookingController::class, 'cancel'])->name('cancel');
+        Route::post('/{booking}/fund-settlements', [AdminCourtBookingController::class, 'storeFundSettlement'])->name('fund-settlements.store');
+        Route::post('/{booking}/fund-settlements/{settlement}/void', [AdminCourtBookingController::class, 'voidFundSettlement'])->name('fund-settlements.void');
         Route::put('/{booking}/team', [AdminCourtBookingController::class, 'updateTeamName'])->name('team.update');
         Route::post('/{booking}/payments', [AdminCourtBookingController::class, 'recordPayment'])->name('payments.store');
+        Route::put('/{booking}/payments/{payment}', [AdminCourtBookingController::class, 'updatePayment'])->name('payments.update');
+        Route::post('/{booking}/payments/{payment}/unverify', [AdminCourtBookingController::class, 'unverifyPayment'])->name('payments.unverify');
         Route::post('/{booking}/rentals/pickup', [AdminCourtBookingController::class, 'markRentalPickedUp'])->name('rentals.pickup');
         Route::post('/{booking}/rentals/return', [AdminCourtBookingController::class, 'markRentalReturned'])->name('rentals.return');
         Route::get('/{booking}/rental-additions/create', [AdminCourtBookingRentalAdditionController::class, 'create'])->name('rental-additions.create');

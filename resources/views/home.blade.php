@@ -14,6 +14,7 @@
 
     <!-- Design Guidelines System Tokens & Layout -->
     @include('home.partials.styles')
+    @include('partials.knockout-bracket-styles')
 </head>
 
 <body class="home-page">
@@ -26,7 +27,7 @@
     <!-- Main Content Container -->
     <main class="app-container content-section home-content" aria-label="Informasi OFS Futsal Center">
         @if($activeTournament)
-            <section class="home-section home-section--feature" aria-label="Klasemen atau bracket turnamen berjalan">
+            <section class="home-section home-section--feature" aria-label="Klasemen atau bagan turnamen yang sedang berlangsung">
                 @include('home.partials.standings')
             </section>
         @endif

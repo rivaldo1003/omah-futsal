@@ -151,15 +151,30 @@ Route::post('/deploy/execute/{token}', function ($token) {
 
         foreach ($migrationFiles as $pending) {
             try {
-                \Illuminate\Support\Facades\Artisan::call('migrate', [
+                $exitCode = \Illuminate\Support\Facades\Artisan::call('migrate', [
                     '--path'   => 'database/migrations/' . $pending . '.php',
                     '--force'  => true,
                 ]);
                 $migrateOutput .= Artisan::output();
+                if ($exitCode !== 0) {
+                    $migrationErrors[] = [
+                        'migration' => $pending,
+                        'error' => "Artisan migrate exited with code {$exitCode}.",
+                    ];
+                }
             } catch (\Throwable $e) {
                 $migrationErrors[] = ['migration' => $pending, 'error' => $e->getMessage()];
                 $migrateOutput .= "FAILED: {$pending}: " . $e->getMessage() . PHP_EOL;
             }
+        }
+
+        if ($migrationErrors !== []) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'One or more database migrations failed.',
+                'migrate_output' => trim($migrateOutput),
+                'migration_errors' => $migrationErrors,
+            ], 500);
         }
 
         // 4. Ensure the public/storage symlink exists so team/player photos are accessible

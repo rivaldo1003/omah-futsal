@@ -138,43 +138,33 @@
                     <h3 class="app-card-title v3-card-title">
                         <span class="v3-beacon"></span>
                         <i class="bi bi-diagram-3"></i>
-                        <span>Bracket knockout</span>
+                        <span>Bagan sistem gugur</span>
                     </h3>
                     <span class="v3-hud-tag">Fase gugur</span>
                 </div>
                 <div class="app-card-body">
                     <div class="v3-format-panel">
-                        <div class="v3-format-glow"></div>
-                        <div class="v3-format-body">
-                            <div class="v3-format-icon">
-                                <i class="bi bi-trophy"></i>
-                            </div>
-                            <div class="v3-format-text">
-                                <div class="v3-format-meta">
-                                    <span class="v3-sc-lbl">FORMAT</span>
-                                    <span class="v3-format-badge">Sistem gugur tunggal</span>
-                                </div>
-                                <h6 class="v3-format-name">{{ $activeTournament->name }}</h6>
-                                <p class="v3-format-desc">
-                                    Turnamen sistem gugur tanpa klasemen grup. Hasil undian ditampilkan di bawah;
-                                    Pemenang pertandingan maju ke babak berikutnya.
-                                </p>
-                                <span class="v3-format-hint">
-                                    <i class="bi bi-diagram-3 me-1"></i>
-                                    Pertandingan berikutnya dapat menunggu hasil babak sebelumnya.
-                                </span>
-                            </div>
+                        <div class="v3-format-heading">
+                            <h6 class="v3-format-name">{{ $activeTournament->name }}</h6>
+                            <span class="v3-format-badge">Sistem gugur tunggal</span>
+                        </div>
+                        <p class="v3-format-desc">
+                            Turnamen ini tidak menggunakan klasemen grup. Pemenang setiap pertandingan melaju ke babak berikutnya.
+                        </p>
+                        <div class="v3-format-hint">
+                            <i class="bi bi-info-circle" aria-hidden="true"></i>
+                            <span>Jadwal babak berikutnya dapat menunggu hasil pertandingan sebelumnya.</span>
                         </div>
                     </div>
 
                     @if(isset($knockoutBracket) && $knockoutBracket->isNotEmpty())
-                        <x-knockout-bracket :knockout-bracket="$knockoutBracket" variant="home" />
+                        <x-knockout-bracket :knockout-bracket="$knockoutBracket" />
 
                         <div class="pt-3">
                             <a href="{{ route('standings', ['tournament_id' => $activeTournament->id]) }}"
                                 class="btn-action-secondary w-100 v3-action">
                                 <i class="bi bi-diagram-3" aria-hidden="true"></i>
-                                <span>Lihat bracket lengkap</span>
+                                <span>Lihat bagan lengkap</span>
                             </a>
                         </div>
                     @else
@@ -194,18 +184,18 @@
                 <h3 class="app-card-title v3-card-title">
                     <span class="v3-beacon"></span>
                     <i class="bi bi-diagram-3"></i>
-                    <span>Bracket knockout</span>
+                    <span>Bagan sistem gugur</span>
                 </h3>
                 <span class="v3-hud-tag">FASE GUGUR</span>
             </div>
             <div class="app-card-body">
-                <x-knockout-bracket :knockout-bracket="$knockoutBracket" variant="home" />
+                <x-knockout-bracket :knockout-bracket="$knockoutBracket" />
 
                 <div class="pt-3">
                     <a href="{{ route('standings', ['tournament_id' => $activeTournament->id]) }}"
                         class="btn-action-secondary w-100 v3-action">
                         <i class="bi bi-diagram-3" aria-hidden="true"></i>
-                        <span>Lihat bracket lengkap</span>
+                        <span>Lihat bagan lengkap</span>
                     </a>
                 </div>
             </div>
@@ -543,652 +533,63 @@
 
         /* Tournament format panel */
         .v3-home-standings .v3-format-panel {
-            position: relative;
-            background: var(--v3-bg);
-            border: 1px solid var(--v3-border);
+            background: var(--v3-card);
             border-radius: var(--v3-radius-sm);
-            padding: 20px;
-            overflow: hidden;
+            padding: 16px;
         }
 
-        .v3-home-standings .v3-format-glow {
-            display: none;
-        }
-
-        .v3-home-standings .v3-format-body {
-            position: relative;
-            z-index: 2;
+        .v3-home-standings .v3-format-heading {
             display: flex;
             align-items: flex-start;
-            gap: 18px;
-        }
-
-        .v3-home-standings .v3-format-icon {
-            width: 52px;
-            height: 52px;
-            flex-shrink: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: var(--v3-radius-sm);
-            background: rgba(0, 255, 135, 0.08);
-            border: 1px solid var(--v3-border-glow);
-            color: var(--v3-neon-green);
-            font-size: 22px;
-            box-shadow: none;
-        }
-
-        .v3-home-standings .v3-format-text {
-            min-width: 0;
-        }
-
-        .v3-home-standings .v3-format-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 4px;
-        }
-
-        .v3-home-standings .v3-sc-lbl {
-            font-size: 8px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--v3-text-muted);
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 8px 12px;
+            margin-bottom: 8px;
         }
 
         .v3-home-standings .v3-format-badge {
-            font-size: 9px;
-            font-weight: 900;
-            font-style: italic;
-            letter-spacing: 1px;
-            padding: 2px 8px;
-            border-radius: 4px;
-            color: var(--v3-neon-green);
-            border: 1px solid var(--v3-border-glow);
-            background: rgba(0, 255, 135, 0.08);
+            display: inline-flex;
+            align-items: center;
+            flex-shrink: 0;
+            padding: 5px 9px;
+            border: 1px solid var(--v3-border);
+            border-radius: 999px;
+            background: var(--v3-surface);
+            color: var(--v3-text-sub);
+            font-size: 12px;
+            font-weight: 600;
+            line-height: 1.2;
         }
 
         .v3-home-standings .v3-format-name {
-            font-size: 1.1rem;
-            font-weight: 900;
-            font-style: italic;
-            text-transform: uppercase;
-            letter-spacing: -0.01em;
-            margin: 0 0 6px;
+            min-width: 0;
+            margin: 0;
             color: var(--v3-text-main);
-            text-shadow: none;
+            font-size: 1rem;
+            font-weight: 700;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
         }
 
         .v3-home-standings .v3-format-desc {
-            font-size: 12.5px;
+            margin: 0 0 10px;
             color: var(--v3-text-sub);
-            margin: 0 0 8px;
+            font-size: 14px;
+            line-height: 1.5;
         }
 
         .v3-home-standings .v3-format-hint {
-            font-size: 11px;
-            font-weight: 700;
-            color: var(--v3-text-muted);
-        }
-
-        .v3-home-standings .v3-bracket-scroll {
-            margin-top: 16px;
-            overflow-x: auto;
-            padding-bottom: 8px;
-            scrollbar-color: var(--v3-border) var(--v3-bg);
-            scroll-snap-type: x proximity;
-        }
-
-        .v3-home-standings .v3-bracket-champion-banner {
-            position: relative;
-            overflow: hidden;
             display: flex;
-            align-items: center;
-            gap: 12px;
-            margin: 16px 0 10px;
-            padding: 13px 16px;
-            border: 1px solid var(--v3-border-glow);
-            border-radius: var(--v3-radius-md, 8px);
-            background: var(--v3-surface);
-            color: var(--v3-text-main);
-            animation: bracket-champion-arrive 760ms cubic-bezier(.2, .75, .25, 1) both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-banner::before {
-            position: absolute;
-            z-index: 0;
-            top: 0;
-            bottom: 0;
-            left: -28%;
-            width: 18%;
-            background: rgba(255, 255, 255, 0.08);
-            content: '';
-            opacity: 0;
-            pointer-events: none;
-            transform: skewX(-22deg);
-            animation: bracket-champion-sweep 1.05s 420ms ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-banner::after {
-            position: absolute;
-            z-index: 0;
-            top: -10px;
-            right: 18%;
-            width: 5px;
-            height: 9px;
-            border-radius: 1px;
-            background: var(--v3-neon-yellow);
-            box-shadow:
-                -31px 18px 0 -1px var(--v3-neon-green),
-                -17px 39px 0 -1px var(--v3-neon-yellow),
-                13px 8px 0 -1px var(--v3-neon-green),
-                29px 27px 0 -1px var(--v3-neon-yellow),
-                44px 46px 0 -1px var(--v3-neon-green),
-                61px 13px 0 -1px var(--v3-neon-yellow),
-                78px 34px 0 -1px var(--v3-neon-green);
-            opacity: 0;
-            pointer-events: none;
-            content: '';
-            animation: bracket-champion-confetti 1.7s 180ms ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-emblem {
-            position: relative;
-            z-index: 1;
-            display: grid;
-            align-items: center;
-            justify-items: center;
-            flex: 0 0 46px;
-            width: 46px;
-            height: 46px;
-            border: 1px solid rgba(255, 183, 0, 0.5);
-            border-radius: 50%;
-            background: rgba(255, 183, 0, 0.08);
-            color: var(--v3-neon-yellow);
-            font-size: 19px;
-        }
-
-        .v3-home-standings .v3-bracket-champion-emblem>i {
-            animation: bracket-champion-trophy 700ms 160ms cubic-bezier(.2, .75, .25, 1) both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-emblem::before {
-            position: absolute;
-            inset: -5px;
-            border: 1px solid rgba(255, 183, 0, 0.38);
-            border-radius: inherit;
-            content: '';
-            opacity: 0;
-            pointer-events: none;
-            animation: bracket-champion-ripple 900ms 400ms ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-emblem::after {
-            position: absolute;
-            top: -5px;
-            right: -3px;
-            color: var(--v3-neon-yellow);
-            content: '✦';
-            font-size: 11px;
-            animation: bracket-champion-spark 1.15s 470ms ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-logo {
-            position: relative;
-            z-index: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 48px;
-            width: 48px;
-            height: 48px;
-            overflow: hidden;
-            border-radius: 50%;
-            border: 1px solid var(--v3-border);
-            background: var(--v3-bg);
-            padding: 5px;
-            animation: bracket-champion-logo 620ms 260ms cubic-bezier(.2, .75, .25, 1) both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .v3-home-standings .v3-bracket-champion-copy {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            gap: 2px;
-            min-width: 0;
-        }
-
-        .v3-home-standings .v3-bracket-champion-label {
-            color: var(--v3-neon-green);
-            font-size: 9px;
-            font-weight: 800;
-            letter-spacing: .8px;
-            line-height: 1.3;
-            animation: bracket-champion-copy 460ms 390ms ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-champion-copy>strong {
-            overflow: hidden;
-            color: var(--v3-text-main);
-            font-size: 18px;
-            font-weight: 900;
-            letter-spacing: -.25px;
-            line-height: 1.2;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            animation: bracket-champion-copy 520ms 500ms ease-out both;
-        }
-
-        @keyframes bracket-champion-arrive {
-            0% {
-                opacity: 0;
-                clip-path: inset(0 100% 0 0);
-                transform: translateY(10px) scale(.985);
-            }
-
-            68% {
-                opacity: 1;
-                clip-path: inset(0 0 0 0);
-            }
-
-            100% {
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        @keyframes bracket-champion-sweep {
-            0% {
-                opacity: 0;
-                transform: translateX(0) skewX(-22deg);
-            }
-
-            18% {
-                opacity: .8;
-            }
-
-            100% {
-                opacity: 0;
-                transform: translateX(760%) skewX(-22deg);
-            }
-        }
-
-        @keyframes bracket-champion-confetti {
-            0% {
-                opacity: 0;
-                transform: translateY(-5px) rotate(0);
-            }
-
-            14% {
-                opacity: .9;
-            }
-
-            100% {
-                opacity: 0;
-                transform: translateY(74px) rotate(110deg);
-            }
-        }
-
-        @keyframes bracket-champion-trophy {
-            0% {
-                opacity: 0;
-                transform: translateY(5px) rotate(-14deg) scale(.76);
-            }
-
-            72% {
-                opacity: 1;
-                transform: translateY(-1px) rotate(3deg) scale(1.04);
-            }
-
-            100% {
-                transform: translateY(0) rotate(0) scale(1);
-            }
-        }
-
-        @keyframes bracket-champion-ripple {
-            0% {
-                opacity: .7;
-                transform: scale(.72);
-            }
-
-            100% {
-                opacity: 0;
-                transform: scale(1.4);
-            }
-        }
-
-        @keyframes bracket-champion-logo {
-            from {
-                opacity: 0;
-                transform: scale(.82) rotate(-8deg);
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1) rotate(0);
-            }
-        }
-
-        @keyframes bracket-champion-copy {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes bracket-champion-card {
-
-            0%,
-            100% {
-                box-shadow: inset 3px 0 0 var(--v3-neon-green);
-            }
-
-            42% {
-                box-shadow: inset 3px 0 0 var(--v3-neon-green), 0 0 0 4px rgba(0, 255, 135, 0.14);
-            }
-        }
-
-        @keyframes bracket-champion-row {
-            0% {
-                background: rgba(0, 255, 135, 0.02);
-            }
-
-            52% {
-                background: rgba(0, 255, 135, 0.14);
-            }
-
-            100% {
-                background: rgba(0, 255, 135, 0.07);
-            }
-        }
-
-        @keyframes bracket-champion-spark {
-            0% {
-                opacity: 0;
-                transform: scale(.4) rotate(-25deg);
-            }
-
-            45% {
-                opacity: 1;
-                transform: scale(1.1) rotate(12deg);
-            }
-
-            100% {
-                opacity: .35;
-                transform: scale(.8) rotate(0);
-            }
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-
-            .v3-home-standings .v3-bracket-champion-banner,
-            .v3-home-standings .v3-bracket-champion-banner::before,
-            .v3-home-standings .v3-bracket-champion-banner::after,
-            .v3-home-standings .v3-bracket-champion-emblem::before,
-            .v3-home-standings .v3-bracket-champion-emblem>i,
-            .v3-home-standings .v3-bracket-champion-emblem::after,
-            .v3-home-standings .v3-bracket-champion-logo,
-            .v3-home-standings .v3-bracket-champion-label,
-            .v3-home-standings .v3-bracket-champion-copy>strong,
-            .v3-home-standings .v3-bracket-match.is-champion-decided,
-            .v3-home-standings .v3-bracket-team-row.is-champion {
-                animation: none;
-            }
-        }
-
-        .v3-home-standings .v3-bracket-board {
-            position: relative;
-            isolation: isolate;
-            display: flex;
-            align-items: stretch;
-            gap: 24px;
-            min-width: max-content;
-        }
-
-        .v3-home-standings .v3-bracket-connections {
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            width: 100%;
-            height: 100%;
-            overflow: visible;
-            pointer-events: none;
-        }
-
-        .v3-home-standings .v3-bracket-connector-path {
-            fill: none;
-            stroke: var(--v3-border-glow);
-            stroke-width: 1.75;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-        }
-
-        .v3-home-standings .v3-bracket-connector-junction {
-            fill: var(--v3-bg);
-            stroke: var(--v3-border-glow);
-            stroke-width: 1.5;
-        }
-
-        .v3-home-standings .v3-bracket-round {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            flex-direction: column;
-            flex: 0 0 228px;
-            width: 228px;
-            scroll-snap-align: start;
-        }
-
-        .v3-home-standings .v3-bracket-round-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-            min-height: 36px;
-            margin-bottom: 8px;
-            padding: 7px 9px;
-            border: 1px solid var(--v3-border);
-            border-radius: 5px;
-            background: var(--v3-surface);
-            color: var(--v3-text-main);
-            font-size: 10px;
-            font-weight: 800;
-            letter-spacing: .6px;
-            text-transform: uppercase;
-        }
-
-        .v3-home-standings .v3-bracket-round-header small {
-            color: var(--v3-text-muted);
-            font-size: 9px;
-            font-weight: 600;
-            letter-spacing: 0;
-            white-space: nowrap;
-        }
-
-        .v3-home-standings .v3-bracket-round.is-final .v3-bracket-round-header {
-            border-color: var(--v3-border-glow);
-            color: var(--v3-neon-green);
-        }
-
-        .v3-home-standings .v3-bracket-round-matches {
-            display: flex;
-            flex: 1;
-            flex-direction: column;
-            justify-content: space-around;
-            gap: 8px;
-        }
-
-        .v3-home-standings .v3-bracket-match {
-            position: relative;
-            min-height: 82px;
-            padding: 8px 10px;
-            border: 1px solid var(--v3-border);
-            border-radius: var(--v3-radius-sm);
-            background: var(--v3-bg);
-        }
-
-        .v3-home-standings .v3-bracket-match.is-champion-decided {
-            border-color: var(--v3-border-glow);
-            box-shadow: inset 3px 0 0 var(--v3-neon-green);
-            animation: bracket-champion-card 1s 1.05s ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-match-meta,
-        .v3-home-standings .v3-bracket-team-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 8px;
-        }
-
-        .v3-home-standings .v3-bracket-team-identity {
-            display: flex;
-            align-items: center;
-            flex: 1;
+            align-items: flex-start;
             gap: 7px;
-            min-width: 0;
-        }
-
-        .v3-home-standings .v3-bracket-logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            flex: 0 0 22px;
-            width: 22px;
-            height: 22px;
-            overflow: hidden;
-            border-radius: 50%;
             color: var(--v3-text-muted);
             font-size: 12px;
+            line-height: 1.45;
         }
 
-        .v3-home-standings .v3-bracket-logo img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .v3-home-standings .v3-bracket-match-meta {
-            margin-bottom: 4px;
-            color: var(--v3-text-muted);
-            font-size: 9px;
-            font-weight: 700;
-        }
-
-        .v3-home-standings .v3-knockout-status {
-            padding: 2px 7px;
-            border: 1px solid var(--v3-border);
-            border-radius: 4px;
-            color: var(--v3-text-sub);
-            font-size: 9px;
-            font-weight: 700;
-            white-space: nowrap;
-        }
-
-        .v3-home-standings .v3-knockout-status.is-ongoing {
-            border-color: rgba(0, 229, 255, 0.35);
-            color: var(--v3-neon-blue);
-        }
-
-        .v3-home-standings .v3-knockout-status.is-completed {
-            border-color: var(--v3-border-glow);
-            color: var(--v3-neon-green);
-        }
-
-        .v3-home-standings .v3-knockout-status.is-bye {
-            border-color: var(--v3-border-glow);
-            color: var(--v3-neon-green);
-        }
-
-        .v3-home-standings .v3-bracket-team {
-            overflow: hidden;
-            color: var(--v3-text-main);
-            font-size: 12px;
-            font-weight: 700;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .v3-home-standings .v3-bracket-team-row.is-champion {
-            margin-inline: -3px;
-            padding: 3px;
-            border-radius: 4px;
-            background: rgba(0, 255, 135, 0.07);
-            animation: bracket-champion-row 900ms 1.28s ease-out both;
-        }
-
-        .v3-home-standings .v3-bracket-score {
-            min-width: 20px;
-            color: var(--v3-neon-green);
-            font-family: var(--v3-font-mono);
-            font-size: 12px;
-            font-weight: 800;
-            text-align: center;
-        }
-
-        .v3-home-standings .v3-bracket-placement {
-            flex: 0 0 auto;
-            padding: 2px 4px;
-            border: 1px solid var(--v3-border-glow);
-            border-radius: 4px;
-            color: var(--v3-neon-green);
-            font-size: 8px;
-            font-weight: 800;
-            line-height: 1.2;
-            white-space: nowrap;
-        }
-
-        .v3-home-standings .v3-bracket-placement.is-champion {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 3px 6px;
-            border-radius: 999px;
-            background: rgba(0, 255, 135, 0.12);
-            letter-spacing: .25px;
-        }
-
-        .v3-home-standings .v3-bracket-extras {
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 6px;
-            padding-top: 6px;
-            border-top: 1px solid var(--v3-border);
-        }
-
-        .v3-home-standings .v3-bracket-extra {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            color: var(--v3-text-sub);
-            font-size: 10px;
-        }
-
-        .v3-home-standings .v3-bracket-extra strong {
-            color: var(--v3-text-main);
-            font-family: var(--v3-font-mono);
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .v3-home-standings .v3-bracket-extra.is-penalty {
-            color: var(--v3-neon-yellow);
-            font-weight: 700;
+        .v3-home-standings .v3-format-hint i {
+            flex-shrink: 0;
+            margin-top: 2px;
         }
 
         /* Responsive */
@@ -1203,8 +604,8 @@
                 max-width: 100%;
             }
 
-            .v3-home-standings .v3-format-body {
-                flex-direction: column;
+            .v3-home-standings .v3-format-panel {
+                padding: 14px;
             }
 
             .v3-home-standings .v3-team-name {
@@ -1212,32 +613,6 @@
                 font-size: 12px;
             }
 
-            .v3-home-standings .v3-bracket-round {
-                flex-basis: 210px;
-                width: 210px;
-            }
-
-            .v3-home-standings .v3-bracket-champion-banner {
-                gap: 8px;
-                padding: 10px;
-            }
-
-            .v3-home-standings .v3-bracket-champion-emblem {
-                flex-basis: 38px;
-                width: 38px;
-                height: 38px;
-                font-size: 16px;
-            }
-
-            .v3-home-standings .v3-bracket-champion-logo {
-                flex-basis: 42px;
-                width: 42px;
-                height: 42px;
-            }
-
-            .v3-home-standings .v3-bracket-champion-copy>strong {
-                font-size: 15px;
-            }
         }
     </style>
 </div>

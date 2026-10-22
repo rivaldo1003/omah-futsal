@@ -1,64 +1,93 @@
 {{-- ============================================================
      NAVBAR + MOBILE SIDEBAR DRAWER
      ============================================================ --}}
+@php
+    $isCompetitionSection = request()->is('tournaments*')
+        || request()->is('schedule*')
+        || request()->is('matches*')
+        || request()->is('standings*')
+        || request()->is('top-scorers*')
+        || request()->is('highlights*');
+    $isScheduleSection = request()->is('schedule*') || request()->is('matches*');
+    $isMoreSection = request()->is('all-teams*')
+        || request()->is('market-value*')
+        || request()->is('admin/tournaments*')
+        || request()->is('admin/teams*');
+@endphp
 <nav class="navbar app-navbar">
     <div class="app-container d-flex align-items-center justify-content-between">
         <a class="nav-brand-wrap" href="{{ url('/') }}">
-            <img src="{{ asset('images/logo-ofs.png') }}" alt="OFS Logo" class="nav-brand-logo">
+            <img src="{{ asset('images/logo-ofs.png') }}" alt="Logo OFS Futsal Center" class="nav-brand-logo">
             <div>
                 <span class="nav-brand-title">OFS FUTSAL</span>
                 <span class="nav-brand-sub">Center</span>
             </div>
         </a>
 
-        {{-- Desktop menu (primary links only — secondary grouped under "More") --}}
+        {{-- Desktop menu --}}
         <ul class="nav-menu-list nav-menu-desktop ms-auto align-items-center">
             <li>
                 <a class="nav-menu-link {{ request()->is('/') ? 'active' : '' }}" href="{{ url('/') }}">
-                    <i class="bi bi-house-door"></i><span>Home</span>
+                    <i class="bi bi-house-door"></i><span>Beranda</span>
                 </a>
             </li>
             <li>
                 <a class="nav-menu-link {{ request()->is('news*') ? 'active' : '' }}" href="{{ route('news.index') }}">
-                    <i class="bi bi-newspaper"></i><span>News</span>
+                    <i class="bi bi-newspaper"></i><span>Berita</span>
                 </a>
             </li>
-            <li>
-                <a class="nav-menu-link {{ request()->is('schedule*') || request()->is('matches*') ? 'active' : '' }}" href="{{ route('schedule') }}">
-                    <i class="bi bi-calendar2-week"></i><span>Schedule</span>
-                </a>
-            </li>
-            <li>
-                <a class="nav-menu-link {{ request()->is('standings*') ? 'active' : '' }}" href="{{ route('standings') }}">
-                    <i class="bi bi-bar-chart-line"></i><span>Standings</span>
-                </a>
+            <li class="nav-dropdown {{ $isCompetitionSection ? 'is-active' : '' }}">
+                <button type="button" class="nav-menu-link nav-dropdown-toggle {{ $isCompetitionSection ? 'active' : '' }}"
+                    id="navCompetitionToggle" aria-haspopup="true" aria-controls="navCompetitionMenu" aria-expanded="false">
+                    <i class="bi bi-trophy"></i><span>Kompetisi</span>
+                    <i class="bi bi-chevron-down nav-dropdown-caret"></i>
+                </button>
+                <div class="nav-dropdown-menu" id="navCompetitionMenu" role="menu">
+                    <a class="nav-dropdown-item {{ request()->is('tournaments*') ? 'active' : '' }}"
+                        href="{{ route('tournaments.index') }}" role="menuitem">
+                        <i class="bi bi-trophy"></i><span>Daftar turnamen</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ $isScheduleSection ? 'active' : '' }}"
+                        href="{{ route('schedule') }}" role="menuitem">
+                        <i class="bi bi-calendar2-week"></i><span>Jadwal pertandingan</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ request()->is('standings*') ? 'active' : '' }}"
+                        href="{{ route('standings') }}" role="menuitem">
+                        <i class="bi bi-bar-chart-line"></i><span>Klasemen</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ request()->is('top-scorers*') ? 'active' : '' }}"
+                        href="{{ route('top-scorers') }}" role="menuitem">
+                        <i class="bi bi-bullseye"></i><span>Pencetak gol</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ request()->is('highlights*') ? 'active' : '' }}"
+                        href="{{ route('highlights.index') }}" role="menuitem">
+                        <i class="bi bi-play-circle"></i><span>Sorotan pertandingan</span>
+                    </a>
+                </div>
             </li>
 
-            {{-- "More" dropdown: secondary public links + admin shortcuts --}}
+            {{-- Tautan tambahan dan pintasan administrasi --}}
             <li class="nav-dropdown">
-                <button type="button" class="nav-menu-link nav-dropdown-toggle" id="navMoreToggle"
-                    aria-haspopup="true" aria-expanded="false">
-                    <i class="bi bi-grid"></i><span>More</span>
+                <button type="button" class="nav-menu-link nav-dropdown-toggle {{ $isMoreSection ? 'active' : '' }}"
+                    id="navMoreToggle" aria-haspopup="true" aria-controls="navMoreMenu" aria-expanded="false">
+                    <i class="bi bi-grid"></i><span>Lainnya</span>
                     <i class="bi bi-chevron-down nav-dropdown-caret"></i>
                 </button>
                 <div class="nav-dropdown-menu" id="navMoreMenu" role="menu">
-                    <a class="nav-dropdown-item {{ request()->is('highlights*') ? 'active' : '' }}" href="{{ route('highlights.index') }}" role="menuitem">
-                        <i class="bi bi-play-circle"></i><span>Highlights</span>
-                    </a>
                     <a class="nav-dropdown-item {{ request()->is('all-teams*') ? 'active' : '' }}" href="{{ route('all-teams') }}" role="menuitem">
-                        <i class="bi bi-people"></i><span>Teams</span>
+                        <i class="bi bi-people"></i><span>Tim</span>
                     </a>
                     <a class="nav-dropdown-item {{ request()->is('market-value*') ? 'active' : '' }}" href="{{ route('market-value.showcase') }}" role="menuitem">
-                        <i class="bi bi-graph-up-arrow"></i><span>Market value</span>
+                        <i class="bi bi-graph-up-arrow"></i><span>Nilai pasar pemain</span>
                     </a>
                     @auth
                         @if(auth()->user()->role === 'admin')
                             <div class="nav-dropdown-divider"></div>
-                            <a class="nav-dropdown-item {{ request()->is('tournaments*') ? 'active' : '' }}" href="{{ route('tournaments.index') }}" role="menuitem">
-                                <i class="bi bi-trophy"></i><span>Tournaments</span>
+                            <a class="nav-dropdown-item {{ request()->is('admin/tournaments*') ? 'active' : '' }}" href="{{ route('admin.tournaments.index') }}" role="menuitem">
+                                <i class="bi bi-trophy"></i><span>Kelola turnamen</span>
                             </a>
-                            <a class="nav-dropdown-item {{ request()->is('teams*') ? 'active' : '' }}" href="{{ route('teams.index') }}" role="menuitem">
-                                <i class="bi bi-gear"></i><span>Manage teams</span>
+                            <a class="nav-dropdown-item {{ request()->is('admin/teams*') ? 'active' : '' }}" href="{{ route('admin.teams.index') }}" role="menuitem">
+                                <i class="bi bi-gear"></i><span>Kelola tim</span>
                             </a>
                         @endif
                     @endauth
@@ -69,7 +98,7 @@
                 @if(auth()->user()->role === 'admin')
                     <li class="ms-lg-2">
                         <a class="nav-btn-admin" href="{{ route('admin.dashboard') }}">
-                            <i class="bi bi-speedometer2"></i><span>Admin panel</span>
+                            <i class="bi bi-speedometer2"></i><span>Panel administrasi</span>
                         </a>
                     </li>
                 @endif
@@ -77,25 +106,25 @@
                     <form method="POST" action="{{ route('logout') }}" class="d-inline">
                         @csrf
                         <button type="submit" class="nav-btn-logout">
-                            <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+                            <i class="bi bi-box-arrow-right"></i><span>Keluar</span>
                         </button>
                     </form>
                 </li>
             @else
                 <li class="ms-lg-2">
                     <a class="nav-btn-login" href="{{ route('login') }}">
-                        <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
+                        <i class="bi bi-box-arrow-in-right"></i><span>Masuk</span>
                     </a>
                 </li>
             @endauth
         </ul>
 
         <a class="nav-btn-booking ms-lg-2" href="{{ route('booking.index') }}">
-            <i class="bi bi-calendar-plus"></i><span>Booking Lapangan</span>
+            <i class="bi bi-calendar-plus"></i><span>Pesan lapangan</span>
         </a>
 
         {{-- Hamburger (mobile only) --}}
-        <button class="navbar-toggler" id="sidebarToggle" type="button" aria-label="Open menu" aria-expanded="false">
+        <button class="navbar-toggler" id="sidebarToggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false">
             <span class="navbar-toggler-icon"></span>
         </button>
     </div>
@@ -104,58 +133,79 @@
 {{-- ── SIDEBAR DRAWER (mobile) ─────────────────────────────────── --}}
 <div class="mobile-sidebar-overlay" id="sidebarOverlay" aria-hidden="true"></div>
 
-<aside class="mobile-sidebar" id="mobileSidebar" role="dialog" aria-modal="true" aria-label="Navigation menu">
+<aside class="mobile-sidebar" id="mobileSidebar" role="dialog" aria-modal="true" aria-label="Menu navigasi">
     {{-- Sidebar header --}}
     <div class="msb-header">
         <a class="msb-brand" href="{{ url('/') }}">
-            <img src="{{ asset('images/logo-ofs.png') }}" alt="OFS Logo" class="msb-brand-logo">
+            <img src="{{ asset('images/logo-ofs.png') }}" alt="Logo OFS Futsal Center" class="msb-brand-logo">
             <span class="msb-brand-text">
                 <span class="msb-brand-title">OFS Futsal</span>
                 <span class="msb-brand-sub">Center</span>
             </span>
         </a>
-        <button class="msb-close" id="sidebarClose" aria-label="Close menu">
+        <button class="msb-close" id="sidebarClose" aria-label="Tutup menu navigasi">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
 
     {{-- Sidebar nav links --}}
     <nav class="msb-nav">
-        <span class="msb-section-label">Menu</span>
+        <span class="msb-section-label">Navigasi</span>
 
         <a class="msb-link {{ request()->is('/') ? 'is-active' : '' }}" href="{{ url('/') }}">
-            <i class="bi bi-house-door"></i><span>Home</span>
+            <i class="bi bi-house-door"></i><span>Beranda</span>
         </a>
         <a class="msb-link {{ request()->is('news*') ? 'is-active' : '' }}" href="{{ route('news.index') }}">
-            <i class="bi bi-newspaper"></i><span>News</span>
+            <i class="bi bi-newspaper"></i><span>Berita</span>
         </a>
-        <a class="msb-link {{ request()->is('schedule*') || request()->is('matches*') ? 'is-active' : '' }}" href="{{ route('schedule') }}">
-            <i class="bi bi-calendar2-week"></i><span>Schedule</span>
+        <details class="msb-group {{ $isCompetitionSection ? 'is-active' : '' }}" open>
+            <summary class="msb-link msb-group-toggle">
+                <i class="bi bi-trophy" aria-hidden="true"></i><span>Kompetisi</span>
+                <i class="bi bi-chevron-down msb-group-caret" aria-hidden="true"></i>
+            </summary>
+            <div class="msb-subnav">
+                <a class="msb-link msb-sublink {{ request()->is('tournaments*') ? 'is-active' : '' }}"
+                    href="{{ route('tournaments.index') }}" @if(request()->is('tournaments*')) aria-current="page" @endif>
+                    <i class="bi bi-trophy" aria-hidden="true"></i><span>Daftar turnamen</span>
+                </a>
+                <a class="msb-link msb-sublink {{ $isScheduleSection ? 'is-active' : '' }}"
+                    href="{{ route('schedule') }}" @if($isScheduleSection) aria-current="page" @endif>
+                    <i class="bi bi-calendar2-week" aria-hidden="true"></i><span>Jadwal pertandingan</span>
+                </a>
+                <a class="msb-link msb-sublink {{ request()->is('standings*') ? 'is-active' : '' }}"
+                    href="{{ route('standings') }}" @if(request()->is('standings*')) aria-current="page" @endif>
+                    <i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Klasemen</span>
+                </a>
+                <a class="msb-link msb-sublink {{ request()->is('top-scorers*') ? 'is-active' : '' }}"
+                    href="{{ route('top-scorers') }}" @if(request()->is('top-scorers*')) aria-current="page" @endif>
+                    <i class="bi bi-bullseye" aria-hidden="true"></i><span>Pencetak gol</span>
+                </a>
+                <a class="msb-link msb-sublink {{ request()->is('highlights*') ? 'is-active' : '' }}"
+                    href="{{ route('highlights.index') }}" @if(request()->is('highlights*')) aria-current="page" @endif>
+                    <i class="bi bi-play-circle" aria-hidden="true"></i><span>Sorotan pertandingan</span>
+                </a>
+            </div>
+        </details>
+        <a class="msb-link msb-link-booking {{ request()->is('booking*') ? 'is-active' : '' }}"
+            href="{{ route('booking.index') }}" @if(request()->is('booking*')) aria-current="page" @endif>
+            <i class="bi bi-calendar-check" aria-hidden="true"></i><span>Booking lapangan</span>
         </a>
-        <a class="msb-link {{ request()->is('booking*') ? 'is-active' : '' }}" href="{{ route('booking.index') }}">
-            <i class="bi bi-calendar-check"></i><span>Booking lapangan</span>
-        </a>
-        <a class="msb-link {{ request()->is('standings*') ? 'is-active' : '' }}" href="{{ route('standings') }}">
-            <i class="bi bi-bar-chart-line"></i><span>Standings</span>
-        </a>
-        <a class="msb-link {{ request()->is('highlights*') ? 'is-active' : '' }}" href="{{ route('highlights.index') }}">
-            <i class="bi bi-play-circle"></i><span>Highlights</span>
-        </a>
+        <span class="msb-section-label">Jelajahi</span>
         <a class="msb-link {{ request()->is('all-teams*') ? 'is-active' : '' }}" href="{{ route('all-teams') }}">
-            <i class="bi bi-people"></i><span>Teams</span>
+            <i class="bi bi-people"></i><span>Tim</span>
         </a>
         <a class="msb-link {{ request()->is('market-value*') ? 'is-active' : '' }}" href="{{ route('market-value.showcase') }}">
-            <i class="bi bi-graph-up-arrow"></i><span>Market value</span>
+            <i class="bi bi-graph-up-arrow"></i><span>Nilai pasar pemain</span>
         </a>
 
         @auth
             @if(auth()->user()->role === 'admin')
-                <span class="msb-section-label">Admin</span>
-                <a class="msb-link {{ request()->is('tournaments*') ? 'is-active' : '' }}" href="{{ route('tournaments.index') }}">
-                    <i class="bi bi-trophy"></i><span>Tournaments</span>
+                <span class="msb-section-label">Pengelolaan</span>
+                <a class="msb-link {{ request()->is('admin/tournaments*') ? 'is-active' : '' }}" href="{{ route('admin.tournaments.index') }}">
+                    <i class="bi bi-trophy"></i><span>Kelola turnamen</span>
                 </a>
-                <a class="msb-link {{ request()->is('teams*') ? 'is-active' : '' }}" href="{{ route('teams.index') }}">
-                    <i class="bi bi-gear"></i><span>Manage teams</span>
+                <a class="msb-link {{ request()->is('admin/teams*') ? 'is-active' : '' }}" href="{{ route('admin.teams.index') }}">
+                    <i class="bi bi-gear"></i><span>Kelola tim</span>
                 </a>
             @endif
         @endauth
@@ -166,20 +216,21 @@
         @auth
             @if(auth()->user()->role === 'admin')
                 <a class="msb-btn-admin" href="{{ route('admin.dashboard') }}">
-                    <i class="bi bi-speedometer2"></i><span>Admin panel</span>
+                    <i class="bi bi-speedometer2"></i><span>Panel administrasi</span>
                 </a>
             @endif
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit" class="msb-btn-logout">
-                    <i class="bi bi-box-arrow-right"></i><span>Logout</span>
+                    <i class="bi bi-box-arrow-right"></i><span>Keluar</span>
                 </button>
             </form>
         @else
             <a class="msb-btn-login" href="{{ route('login') }}">
-                <i class="bi bi-box-arrow-in-right"></i><span>Login</span>
+                <i class="bi bi-box-arrow-in-right"></i><span>Masuk</span>
             </a>
         @endauth
+
     </div>
 </aside>
 
@@ -390,6 +441,76 @@
     background: var(--v3-neon-green);
 }
 
+.msb-link-booking {
+    margin: 4px 0;
+    border: 1px solid rgba(0, 125, 72, 0.2);
+    background: var(--success-subtle);
+    color: var(--success);
+    font-weight: 700;
+}
+.msb-link-booking i,
+.msb-link-booking.is-active i {
+    color: var(--success);
+}
+.msb-link-booking:hover,
+.msb-link-booking.is-active {
+    border-color: rgba(0, 125, 72, 0.34);
+    background: #deeee5;
+    color: #00643a;
+}
+.msb-link-booking.is-active::before {
+    display: none;
+}
+.msb-link-booking:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
+.msb-group {
+    display: flex;
+    flex-direction: column;
+}
+.msb-group-toggle {
+    width: 100%;
+    list-style: none;
+    cursor: pointer;
+}
+.msb-group-toggle::-webkit-details-marker {
+    display: none;
+}
+.msb-group-toggle .msb-group-caret {
+    margin-left: auto;
+    font-size: 0.75rem;
+    transition: transform 150ms ease;
+}
+.msb-group[open] .msb-group-caret {
+    transform: rotate(180deg);
+}
+.msb-group.is-active > .msb-group-toggle {
+    color: var(--success);
+    font-weight: 600;
+}
+.msb-group.is-active > .msb-group-toggle > i:first-child {
+    color: var(--v3-neon-green);
+}
+.msb-subnav {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 2px 0 6px 18px;
+    padding-left: 8px;
+    border-left: 1px solid var(--v3-border);
+}
+.msb-link.msb-sublink {
+    padding: 9px 10px;
+    font-size: 0.8125rem;
+}
+.msb-group-toggle:focus-visible,
+.msb-sublink:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
 /* Sidebar footer */
 .msb-footer {
     padding: 14px 12px 18px;
@@ -459,6 +580,13 @@
     background: var(--danger-subtle);
 }
 
+.msb-btn-admin:focus-visible,
+.msb-btn-login:focus-visible,
+.msb-btn-logout:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+}
+
 /* ── Desktop "More" dropdown ── */
 .nav-dropdown {
     position: relative;
@@ -479,6 +607,12 @@
 
 .nav-dropdown.is-open .nav-dropdown-caret {
     transform: rotate(180deg);
+}
+
+.nav-dropdown.is-active > .nav-dropdown-toggle {
+    color: var(--accent);
+    background-color: var(--accent-subtle);
+    font-weight: 600;
 }
 
 .nav-dropdown-menu {
@@ -574,36 +708,45 @@
         }
     });
 
-    // ── Desktop "More" dropdown toggle ──
-    const moreToggle = document.getElementById('navMoreToggle');
-    const moreMenu   = document.getElementById('navMoreMenu');
+    // ── Desktop dropdowns ──
+    const dropdowns = Array.from(document.querySelectorAll('.nav-dropdown'));
 
-    if (moreToggle && moreMenu) {
-        const dropdown = moreToggle.closest('.nav-dropdown');
-
-        function setDropdown(open) {
-            dropdown.classList.toggle('is-open', open);
-            moreToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
-        }
-
-        moreToggle.addEventListener('click', function (e) {
-            e.stopPropagation();
-            setDropdown(!dropdown.classList.contains('is-open'));
-        });
-
-        // Close when clicking outside
-        document.addEventListener('click', function (e) {
-            if (dropdown.classList.contains('is-open') && !dropdown.contains(e.target)) {
-                setDropdown(false);
-            }
-        });
-
-        // Close on Escape
-        document.addEventListener('keydown', function (e) {
-            if (e.key === 'Escape' && dropdown.classList.contains('is-open')) {
-                setDropdown(false);
-            }
-        });
+    function setDropdown(dropdown, open) {
+        const button = dropdown.querySelector('.nav-dropdown-toggle');
+        dropdown.classList.toggle('is-open', open);
+        button?.setAttribute('aria-expanded', open ? 'true' : 'false');
     }
+
+    dropdowns.forEach(function (dropdown) {
+        const button = dropdown.querySelector('.nav-dropdown-toggle');
+        if (!button) return;
+
+        button.addEventListener('click', function (e) {
+            e.stopPropagation();
+            const shouldOpen = !dropdown.classList.contains('is-open');
+            dropdowns.forEach(function (other) {
+                setDropdown(other, other === dropdown && shouldOpen);
+            });
+        });
+    });
+
+    document.addEventListener('click', function (e) {
+        dropdowns.forEach(function (dropdown) {
+            if (dropdown.classList.contains('is-open') && !dropdown.contains(e.target)) {
+                setDropdown(dropdown, false);
+            }
+        });
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key !== 'Escape') return;
+        const openDropdown = dropdowns.find(function (dropdown) {
+            return dropdown.classList.contains('is-open');
+        });
+        if (openDropdown) {
+            setDropdown(openDropdown, false);
+            openDropdown.querySelector('.nav-dropdown-toggle')?.focus();
+        }
+    });
 })();
 </script>

@@ -15,6 +15,8 @@ class Court extends Model
         'hourly_rate',
         'day_hourly_rate',
         'night_hourly_rate',
+        'weekend_day_hourly_rate',
+        'weekend_night_hourly_rate',
         'night_rate_starts_at',
         'opening_time',
         'closing_time',
@@ -27,6 +29,8 @@ class Court extends Model
         'hourly_rate' => 'decimal:2',
         'day_hourly_rate' => 'decimal:2',
         'night_hourly_rate' => 'decimal:2',
+        'weekend_day_hourly_rate' => 'decimal:2',
+        'weekend_night_hourly_rate' => 'decimal:2',
         'is_active' => 'boolean',
     ];
 
@@ -40,9 +44,24 @@ class Court extends Model
         return number_format((float) ($value ?? $this->attributes['hourly_rate'] ?? 0), 2, '.', '');
     }
 
+    public function getWeekendDayHourlyRateAttribute($value): string
+    {
+        return number_format((float) ($value ?? $this->day_hourly_rate), 2, '.', '');
+    }
+
+    public function getWeekendNightHourlyRateAttribute($value): string
+    {
+        return number_format((float) ($value ?? $this->night_hourly_rate), 2, '.', '');
+    }
+
     public function bookings(): HasMany
     {
         return $this->hasMany(CourtBooking::class);
+    }
+
+    public function memberSchedules(): HasMany
+    {
+        return $this->hasMany(CourtMemberSchedule::class);
     }
 
     public function getOpeningTimeFormattedAttribute(): string

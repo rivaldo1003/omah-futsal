@@ -52,6 +52,7 @@ class CourtBooking extends Model
         'expires_at',
         'verified_by',
         'cancelled_by',
+        'cancelled_by_name_snapshot',
         'verified_at',
         'confirmed_at',
         'cancelled_at',
@@ -88,6 +89,16 @@ class CourtBooking extends Model
     public function payments(): HasMany
     {
         return $this->hasMany(CourtBookingPayment::class, 'court_booking_id')->orderBy('recorded_at')->orderBy('id');
+    }
+
+    public function fundSettlements(): HasMany
+    {
+        return $this->hasMany(CourtBookingFundSettlement::class, 'court_booking_id')->orderBy('recorded_at')->orderBy('id');
+    }
+
+    public function paymentAudits(): HasMany
+    {
+        return $this->hasMany(CourtBookingPaymentAudit::class, 'court_booking_id')->orderBy('created_at')->orderBy('id');
     }
 
     public function verifiedBy(): BelongsTo

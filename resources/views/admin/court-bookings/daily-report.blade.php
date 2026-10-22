@@ -199,6 +199,52 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .daily-other-income-panel {
+            padding: 22px 24px;
+            margin-bottom: 32px;
+            border: 1px solid var(--report-line-soft);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .daily-other-income-panel h2 {
+            margin: 0 0 5px;
+            color: var(--report-ink);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .daily-other-income-panel > p {
+            margin: 0 0 18px;
+            color: var(--report-muted);
+            font-size: 13px;
+        }
+
+        .daily-other-income-form {
+            display: grid;
+            grid-template-columns: minmax(160px, 1fr) minmax(150px, .8fr) minmax(180px, 1.3fr) auto;
+            align-items: end;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+
+        .daily-other-income-table input {
+            min-width: 130px;
+        }
+
+        .daily-other-income-table .daily-entry-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            min-width: 150px;
+        }
+
+        @media (max-width: 700px) {
+            .daily-other-income-panel { padding: 18px 14px; }
+            .daily-other-income-form { grid-template-columns: 1fr 1fr; }
+            .daily-other-income-form .btn { grid-column: 1 / -1; width: 100%; }
+        }
+
         .daily-revenue-form .form-control:focus {
             border-color: var(--report-ink);
             box-shadow: 0 0 0 3px rgba(17, 17, 17, .1);
@@ -549,7 +595,7 @@
         <header class="daily-report-header">
             <div>
                 <h1>Laporan Operasional Harian</h1>
-                <p>Rekap pemasukan dan pemakaian lapangan berdasarkan tanggal sewa. Bukti pembayaran yang menunggu verifikasi belum dihitung sebagai uang diterima.</p>
+                <p>Rekap pemasukan dan pemakaian lapangan berdasarkan tanggal sewa. Refund dan dana booking batal yang belum diputuskan ditampilkan terpisah.</p>
             </div>
             <nav class="daily-report-actions" aria-label="Aksi laporan harian">
                 <a href="{{ route('admin.court-bookings.index') }}" class="btn btn-outline-secondary">
@@ -585,7 +631,7 @@
             <div class="daily-report-total">
                 <span class="daily-report-total-label">Total pemasukan tercatat · {{ \Carbon\CarbonImmutable::parse($reportDate)->locale('id')->translatedFormat('d F Y') }}</span>
                 <strong>Rp {{ number_format($dailyTotalIncome, 0, ',', '.') }}</strong>
-                <p>Termasuk pembayaran booking dan perlengkapan, serta total parkir dan toko harian yang dicatat terpisah dari booking.</p>
+                <p>Nilai booking termasuk perlengkapan tambahan, dikurangi refund, dan memisahkan dana booking batal yang belum diputuskan. Sewa mandiri dihitung terpisah.</p>
             </div>
 
             <div class="daily-report-metrics">
@@ -598,8 +644,24 @@
                     <strong>{{ intdiv($dailyPendingMinutes, 60) }}j {{ $dailyPendingMinutes % 60 }}m</strong>
                 </div>
                 <div class="daily-report-metric">
-                    <span>Pembayaran diterima</span>
+                    <span>Pembayaran booking bruto</span>
                     <strong>Rp {{ number_format($dailyBookingPayments, 0, ',', '.') }}</strong>
+                </div>
+                <div class="daily-report-metric">
+                    <span>Pemasukan booking diakui</span>
+                    <strong>Rp {{ number_format($dailyBookingIncome, 0, ',', '.') }}</strong>
+                </div>
+                <div class="daily-report-metric">
+                    <span>Tambahan perlengkapan (termasuk di pemasukan booking)</span>
+                    <strong>Rp {{ number_format($dailyRentalAdditionIncome, 0, ',', '.') }}</strong>
+                </div>
+                <div class="daily-report-metric">
+                    <span>Refund booking</span>
+                    <strong>Rp {{ number_format($dailyBookingRefunds, 0, ',', '.') }}</strong>
+                </div>
+                <div class="daily-report-metric">
+                    <span>Dana batal belum diputuskan</span>
+                    <strong>Rp {{ number_format($dailyUnresolvedCancellationFunds, 0, ',', '.') }}</strong>
                 </div>
                 <div class="daily-report-metric">
                     <span>Sisa tagihan terkonfirmasi</span>
@@ -613,13 +675,17 @@
                     <span>Toko di luar booking</span>
                     <strong>Rp {{ number_format($dailyShopIncome, 0, ',', '.') }}</strong>
                 </div>
+                <div class="daily-report-metric">
+                    <span>Pemasukan lain</span>
+                    <strong>Rp {{ number_format($dailyOtherIncome, 0, ',', '.') }}</strong>
+                </div>
             </div>
         </section>
 
         <section class="daily-revenue-entry" aria-labelledby="dailyRevenueEntryTitle">
             <div>
                 <h2 id="dailyRevenueEntryTitle">Pemasukan harian di luar booking</h2>
-                <p>Catat total uang parkir dan toko untuk tanggal ini. Angka ini berdiri sendiri dan tidak dikaitkan ke pesanan lapangan.</p>
+                <p>Pilih tanggal di atas untuk memperbarui catatan parkir dan toko pada hari mana pun. Nilainya berdiri sendiri dan tidak terkait ke pesanan lapangan.</p>
                 @if($dailyRevenue?->updated_at)
                     <p class="daily-revenue-last-saved">
                         Terakhir diperbarui {{ $dailyRevenue->updated_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
@@ -653,6 +719,58 @@
             </form>
         </section>
 
+        <section class="daily-other-income-panel" aria-labelledby="dailyOtherIncomeTitle">
+            <h2 id="dailyOtherIncomeTitle">Pemasukan lain</h2>
+            <p>Catat sumber di luar booking, parkir, dan toko, seperti sponsor atau pemasukan kegiatan. Setiap catatan dapat dikoreksi atau dihapus.</p>
+
+            <form class="daily-other-income-form" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.store') }}">
+                @csrf
+                <input type="hidden" name="operating_date" value="{{ $reportDate }}">
+                <div>
+                    <label class="form-label" for="otherIncomeTitle">Sumber pemasukan</label>
+                    <input class="form-control" id="otherIncomeTitle" name="title" maxlength="120" placeholder="Contoh: Sponsor" required>
+                </div>
+                <div>
+                    <label class="form-label" for="otherIncomeAmount">Nominal diterima</label>
+                    <input class="form-control" id="otherIncomeAmount" name="amount" type="text" inputmode="numeric" autocomplete="off" data-daily-rupiah placeholder="Rp 0" required>
+                </div>
+                <div>
+                    <label class="form-label" for="otherIncomeNote">Catatan</label>
+                    <input class="form-control" id="otherIncomeNote" name="note" maxlength="500" placeholder="Opsional">
+                </div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-plus-lg" aria-hidden="true"></i>Catat pemasukan</button>
+            </form>
+
+            <div class="table-responsive daily-other-income-table">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Sumber</th><th>Nominal</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                    <tbody>
+                    @forelse($dailyRevenueEntries as $entry)
+                        <tr>
+                            <td><label class="visually-hidden" for="otherIncomeTitle{{ $entry->id }}">Sumber pemasukan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTitle{{ $entry->id }}" name="title" maxlength="120" value="{{ $entry->title }}" required></td>
+                            <td><label class="visually-hidden" for="otherIncomeAmount{{ $entry->id }}">Nominal diterima</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeAmount{{ $entry->id }}" name="amount" type="text" inputmode="numeric" autocomplete="off" data-daily-rupiah value="{{ $formatRupiah($entry->amount) }}" required></td>
+                            <td><label class="visually-hidden" for="otherIncomeNote{{ $entry->id }}">Catatan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeNote{{ $entry->id }}" name="note" maxlength="500" value="{{ $entry->note }}" placeholder="Catatan opsional"></td>
+                            <td>
+                                <div class="daily-entry-actions">
+                                    <form id="editOtherIncome{{ $entry->id }}" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.update', $entry) }}">
+                                        @csrf @method('PUT')
+                                        <button class="btn btn-outline-primary btn-sm" type="submit">Simpan perubahan</button>
+                                    </form>
+                                    <button class="btn btn-outline-danger btn-sm" type="submit" form="deleteOtherIncome{{ $entry->id }}">Hapus</button>
+                                </div>
+                                <form id="deleteOtherIncome{{ $entry->id }}" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.destroy', $entry) }}" onsubmit="return confirm('Hapus catatan pemasukan {{ $entry->title }}?')">
+                                    @csrf @method('DELETE')
+                                </form>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" class="text-secondary">Belum ada pemasukan lain untuk tanggal ini.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
         <section class="daily-report-table" aria-labelledby="dailyBookingsTitle">
             <header class="daily-report-table-header">
                 <div>
@@ -680,6 +798,15 @@
                                 $dailyPaid = (float) $dailyBooking->payments
                                     ->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
                                     ->sum(fn ($payment) => $payment->recognized_amount);
+                    $dailySettlements = $dailyBooking->fundSettlements;
+                    $dailySettledAmount = (float) $dailySettlements->whereNull('voided_at')->sum('amount');
+                    $dailyPaidAdditions = $dailyBooking->status === 'cancelled'
+                        ? (float) $dailyBooking->rentalAdditions->whereNotNull('confirmed_at')->sum('amount')
+                        : 0;
+                    $dailyBookingFundsReceived = $dailyPaid + $dailyPaidAdditions;
+                    $bookingFundsUnresolved = $dailyBooking->status === 'cancelled'
+                        ? max(0, round($dailyBookingFundsReceived - $dailySettledAmount, 2))
+                        : 0;
                                 $dailyPending = (float) $dailyBooking->payments
                                     ->where('status', \App\Models\CourtBookingPayment::STATUS_PENDING_REVIEW)
                                     ->sum(fn ($payment) => (float) ($payment->claimed_amount ?? 0));
@@ -698,6 +825,13 @@
                                 </td>
                                 <td>
                                     <span class="badge text-bg-{{ $dailyBooking->status === 'confirmed' ? 'success' : (in_array($dailyBooking->status, ['pending_review', 'awaiting_payment'], true) ? 'warning' : 'secondary') }}">{{ $dailyBooking->status_label }}</span>
+                                    @if($dailyBooking->status === 'cancelled')
+                                        <div class="small text-secondary mt-1">
+                                            Dibatalkan {{ $dailyBooking->cancelled_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M, H:i') }}
+                                            oleh {{ $dailyBooking->cancelled_by_name_snapshot ?? $dailyBooking->cancelledBy?->name ?? 'Admin tidak diketahui' }}
+                                            @if($dailyBooking->admin_note)<br>Alasan: {{ $dailyBooking->admin_note }}@endif
+                                        </div>
+                                    @endif
                                 </td>
                                 <td style="min-width: 235px">
                                     @forelse($dailyBooking->payments as $dailyPayment)
@@ -721,6 +855,25 @@
                                         <span class="small text-secondary">Belum ada pembayaran</span>
                                     @endforelse
 
+                                    @if($dailyPaidAdditions > 0)
+                                        <div class="small text-secondary">Pembayaran tambahan perlengkapan terverifikasi Rp {{ number_format($dailyPaidAdditions, 0, ',', '.') }}</div>
+                                        @foreach($dailyBooking->rentalAdditions->whereNotNull('confirmed_at') as $paidAddition)
+                                            <div class="small text-secondary">Tambahan terverifikasi {{ $paidAddition->confirmed_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M, H:i') }} · {{ $paidAddition->verifiedBy?->name ?? 'Admin dihapus' }} · Rp {{ number_format((float) $paidAddition->amount, 0, ',', '.') }}</div>
+                                        @endforeach
+                                    @endif
+
+                                    @foreach($dailySettlements as $dailySettlement)
+                                        <div class="small {{ $dailySettlement->voided_at ? 'text-secondary text-decoration-line-through' : '' }}">
+                                            {{ $dailySettlement->type_label }} · Rp {{ number_format((float) $dailySettlement->amount, 0, ',', '.') }}
+                                            @if($dailySettlement->payment_method_label) · {{ $dailySettlement->payment_method_label }}@endif
+                                            · {{ $dailySettlement->recorded_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M, H:i') }}
+                                        </div>
+                                        <div class="small text-secondary">Dicatat {{ $dailySettlement->recorded_by_name_snapshot ?? $dailySettlement->recordedBy?->name ?? 'Admin tidak diketahui' }} · {{ $dailySettlement->reason }}</div>
+                                        @if($dailySettlement->voided_at)
+                                            <div class="small text-secondary">Dibatalkan {{ $dailySettlement->voided_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M, H:i') }} oleh {{ $dailySettlement->voided_by_name_snapshot ?? $dailySettlement->voidedBy?->name ?? 'Admin tidak diketahui' }} · {{ $dailySettlement->void_reason }}</div>
+                                        @endif
+                                    @endforeach
+
                                     @if($dailyBooking->status === 'confirmed')
                                         <div class="small text-secondary mt-1">Diterima Rp {{ number_format($dailyPaid, 0, ',', '.') }} · Sisa tagihan Rp {{ number_format($dailyBalance, 0, ',', '.') }}</div>
                                     @elseif($dailyBooking->status === 'pending_review')
@@ -735,6 +888,9 @@
                                         <div class="small text-secondary mt-1">Belum ada pembayaran terverifikasi · Tagihan Rp {{ number_format((float) $dailyBooking->amount, 0, ',', '.') }}</div>
                                     @elseif($dailyPaid > 0)
                                         <div class="small text-secondary mt-1">Pembayaran terverifikasi Rp {{ number_format($dailyPaid, 0, ',', '.') }}</div>
+                                    @endif
+                                    @if($bookingFundsUnresolved > 0)
+                                        <div class="small text-warning-emphasis mt-1">Dana batal belum diputuskan Rp {{ number_format($bookingFundsUnresolved, 0, ',', '.') }}</div>
                                     @endif
                                 </td>
                                 <td>

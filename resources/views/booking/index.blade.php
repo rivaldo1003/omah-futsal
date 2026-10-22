@@ -63,7 +63,9 @@
         }
 
         .booking-date input::-webkit-calendar-picker-indicator {
-            filter: invert(1);
+            filter: brightness(0) saturate(100%);
+            opacity: .68;
+            cursor: pointer;
         }
 
         .booking-legend {
@@ -98,6 +100,10 @@
 
         .legend-dot.past {
             background: #a6a6a8;
+        }
+
+        .legend-dot.member {
+            background: #7762b5;
         }
 
         .court-schedule {
@@ -139,6 +145,9 @@
         }
 
         .slot-button {
+            position: relative;
+            isolation: isolate;
+            overflow: hidden;
             min-height: 72px;
             text-align: left;
             border: 1px solid var(--border-color);
@@ -149,13 +158,71 @@
             transition: border-color 150ms ease, background-color 150ms ease;
         }
 
+        .slot-button .slot-pitch-markings {
+            position: absolute;
+            z-index: 0;
+            inset: 7px;
+            display: block;
+            margin: 0;
+            opacity: .13;
+            pointer-events: none;
+        }
+
+        .slot-pitch-boundary {
+            position: absolute;
+            inset: 0;
+            border: 1px solid currentColor;
+            border-radius: 4px;
+        }
+
+        .slot-pitch-midline {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            border-left: 1px solid currentColor;
+        }
+
+        .slot-pitch-center-circle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 25px;
+            aspect-ratio: 1;
+            border: 1px solid currentColor;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .slot-pitch-penalty-area {
+            position: absolute;
+            top: 22%;
+            bottom: 22%;
+            width: 11%;
+            border: 1px solid currentColor;
+        }
+
+        .slot-pitch-penalty-area--left {
+            left: 0;
+            border-left: 0;
+        }
+
+        .slot-pitch-penalty-area--right {
+            right: 0;
+            border-right: 0;
+        }
+
         .slot-button strong {
+            position: relative;
+            z-index: 1;
             display: block;
             font-size: 14px;
             font-weight: 700;
         }
 
-        .slot-button>span {
+        .slot-button>span:not(.slot-pitch-markings) {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
             gap: 6px;
@@ -188,6 +255,10 @@
             outline-offset: 2px;
         }
 
+        .slot-button.available .slot-pitch-markings {
+            opacity: .18;
+        }
+
         .slot-button.pending {
             border-color: rgba(255, 183, 0, .28);
             background: rgba(255, 183, 0, .055);
@@ -195,8 +266,12 @@
             cursor: not-allowed;
         }
 
-        .slot-button.pending>span {
+        .slot-button.pending>span:not(.slot-pitch-markings) {
             color: #f1ce73;
+        }
+
+        .slot-button.pending .slot-pitch-markings {
+            opacity: .18;
         }
 
         .slot-button.unavailable {
@@ -215,7 +290,7 @@
             opacity: 1;
         }
 
-        .slot-button.booked>span {
+        .slot-button.booked>span:not(.slot-pitch-markings) {
             color: #5c6b7b;
         }
 
@@ -228,8 +303,25 @@
             opacity: 1;
         }
 
-        .slot-button.past>span {
+        .slot-button.past>span:not(.slot-pitch-markings) {
             color: var(--text-muted);
+        }
+
+        .slot-button.member {
+            border-color: #c9bee9;
+            background: #f0edfa;
+            color: #493b73;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        .slot-button.member>span:not(.slot-pitch-markings) {
+            color: #5d4b8d;
+        }
+
+        .slot-button.selected .slot-pitch-markings,
+        .slot-button.available[aria-pressed="true"] .slot-pitch-markings {
+            opacity: .22;
         }
 
         .slot-button.selected,
@@ -713,6 +805,7 @@
         <div class="booking-legend" aria-label="Keterangan status slot">
             <span class="legend-item"><span class="legend-dot"></span> Tersedia</span>
             <span class="legend-item"><span class="legend-dot booked"></span> Terisi atau terjadwal</span>
+            <span class="legend-item"><span class="legend-dot member"></span> Jadwal member</span>
             <span class="legend-item"><span class="legend-dot pending"></span> Sedang diproses</span>
             <span class="legend-item"><span class="legend-dot past"></span> Waktu sudah lewat</span>
         </div>
@@ -745,10 +838,16 @@
                 <header class="court-head">
                     <h2 id="court-{{ $schedule['court']->id }}">{{ $schedule['court']->name }}</h2>
                     <span class="court-rate">
-                        Siang Rp {{ number_format((float) $schedule['court']->day_hourly_rate, 0, ',', '.') }}/jam ·
-                        Malam Rp {{ number_format((float) $schedule['court']->night_hourly_rate, 0, ',', '.') }}/jam mulai
-                        {{ $schedule['court']->night_rate_starts_at_formatted }} ·
-                        {{ $schedule['court']->slot_duration_minutes }} menit per slot
+                        @if($date->isWeekend())
+                            Tarif akhir pekan: siang Rp
+                            {{ number_format((float) $schedule['court']->weekend_day_hourly_rate, 0, ',', '.') }}/jam ·
+                            malam Rp {{ number_format((float) $schedule['court']->weekend_night_hourly_rate, 0, ',', '.') }}/jam
+                        @else
+                            Tarif hari biasa: siang Rp
+                            {{ number_format((float) $schedule['court']->day_hourly_rate, 0, ',', '.') }}/jam ·
+                            malam Rp {{ number_format((float) $schedule['court']->night_hourly_rate, 0, ',', '.') }}/jam
+                        @endif
+                        mulai {{ $schedule['court']->night_rate_starts_at_formatted }} · interval 30 menit
                     </span>
                 </header>
                 @if(count($schedule['slots']))
@@ -763,12 +862,14 @@
                                     'available' => 'Tersedia',
                                     'pending' => 'Sedang diproses',
                                     'booked' => 'Sudah terisi',
+                                    'member' => 'Jadwal member',
                                     'past' => 'Waktu sudah lewat',
                                     'unavailable' => 'Booking online belum dibuka',
                                 ];
                                 $statusIcons = [
                                     'pending' => 'bi-hourglass-split',
                                     'booked' => 'bi-calendar2-check',
+                                    'member' => 'bi-person-lock',
                                     'past' => 'bi-clock-history',
                                     'unavailable' => 'bi-info-circle',
                                 ];
@@ -783,12 +884,26 @@
                                     data-amount-cents="{{ (int) round((float) $slot['amount'] * 100) }}"
                                     data-rental-availability='@json($slot['rental_availability'])'
                                     aria-describedby="bookingSelectionHelp" aria-pressed="false">
+                                    <span class="slot-pitch-markings" aria-hidden="true">
+                                        <span class="slot-pitch-boundary"></span>
+                                        <span class="slot-pitch-midline"></span>
+                                        <span class="slot-pitch-center-circle"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
+                                    </span>
                                     <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
                                     <span>Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot</span>
                                 </button>
                             @else
                                 <button type="button" class="slot-button {{ $slotDisplayStatus }}" disabled
                                     aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $statusLabels[$slotDisplayStatus] }}">
+                                    <span class="slot-pitch-markings" aria-hidden="true">
+                                        <span class="slot-pitch-boundary"></span>
+                                        <span class="slot-pitch-midline"></span>
+                                        <span class="slot-pitch-center-circle"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
+                                    </span>
                                     <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
                                     <span>
                                         <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
@@ -1248,7 +1363,7 @@
                     button.classList.remove('available');
                     button.classList.add('past');
                     button.setAttribute('aria-label', `${button.dataset.start} sampai ${button.dataset.end}: Waktu sudah lewat`);
-                    const slotStatus = button.querySelector(':scope > span');
+                    const slotStatus = button.querySelector(':scope > span:not(.slot-pitch-markings)');
                     if (slotStatus) {
                         const icon = document.createElement('i');
                         icon.className = 'bi bi-clock-history';

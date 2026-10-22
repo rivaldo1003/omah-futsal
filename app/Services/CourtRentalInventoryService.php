@@ -66,6 +66,9 @@ class CourtRentalInventoryService
                         $carried->whereDate('reservation.booking_date', '<', $date)
                             ->whereNotNull('reservation.rental_picked_up_at')
                             ->whereNull('reservation.rental_returned_at');
+                    })->orWhere(function ($overnight) use ($date) {
+                        $overnight->whereDate('reservation.booking_date', Carbon::parse($date, CourtBooking::TIMEZONE)->subDay()->toDateString())
+                            ->whereColumn('reservation.time_end', '<=', 'reservation.time_start');
                     });
             })
             ->where($this->activeReservationPredicate(...));
@@ -79,6 +82,9 @@ class CourtRentalInventoryService
                         $carried->whereDate('reservation.rental_date', '<', $date)
                             ->whereNotNull('reservation.rental_picked_up_at')
                             ->whereNull('reservation.rental_returned_at');
+                    })->orWhere(function ($overnight) use ($date) {
+                        $overnight->whereDate('reservation.rental_date', Carbon::parse($date, CourtRentalOrder::TIMEZONE)->subDay()->toDateString())
+                            ->whereColumn('reservation.time_end', '<=', 'reservation.time_start');
                     });
             })
             ->where($this->activeReservationPredicate(...));
@@ -94,6 +100,9 @@ class CourtRentalInventoryService
                         $carried->whereDate('reservation.booking_date', '<', $date)
                             ->whereNotNull('reservation.rental_picked_up_at')
                             ->whereNull('reservation.rental_returned_at');
+                    })->orWhere(function ($overnight) use ($date) {
+                        $overnight->whereDate('reservation.booking_date', Carbon::parse($date, CourtBooking::TIMEZONE)->subDay()->toDateString())
+                            ->whereColumn('reservation.time_end', '<=', 'reservation.time_start');
                     });
             })
             ->where($this->activeAdditionReservationPredicate(...));
@@ -105,18 +114,59 @@ class CourtRentalInventoryService
         }
 
         return $bookingQuery->get([
+            'reservation.id as reservation_record_id', DB::raw("'booking' as reservation_source"),
             'line.court_rental_item_id as item_id', 'line.quantity',
             'reservation.booking_date as reservation_date', 'reservation.time_start', 'reservation.time_end',
             'reservation.rental_picked_up_at', 'reservation.rental_returned_at',
         ])->concat($orderQuery->get([
+            'reservation.id as reservation_record_id', DB::raw("'order' as reservation_source"),
             'line.court_rental_item_id as item_id', 'line.quantity',
             'reservation.rental_date as reservation_date', 'reservation.time_start', 'reservation.time_end',
             'reservation.rental_picked_up_at', 'reservation.rental_returned_at',
         ]))->concat($additionQuery->get([
+            'reservation.id as reservation_record_id', DB::raw("'addition' as reservation_source"),
             'line.court_rental_item_id as item_id', 'line.quantity',
             'reservation.booking_date as reservation_date', 'reservation.time_start', 'reservation.time_end',
             'reservation.rental_picked_up_at', 'reservation.rental_returned_at',
         ]))->flatMap(fn ($reservation) => $this->reservationOnDate($reservation, $date))->values();
+    }
+
+    public function reservationsForInterval(string $date, string $start, string $end, array $itemIds, bool $lockForUpdate = false): Collection
+    {
+        if ($itemIds === []) {
+            return collect();
+        }
+
+        $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
+        $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt->addDay();
+        }
+        $lastDate = $endAt->copy()->subSecond()->toDateString();
+        $reservations = collect();
+        for ($cursor = $startAt->copy()->startOfDay(); $cursor->toDateString() <= $lastDate; $cursor->addDay()) {
+            $reservations = $reservations->concat($this->reservationsForDate($cursor->toDateString(), $itemIds, $lockForUpdate));
+        }
+
+        return $reservations->values();
+    }
+
+    public function reservationOverlapsInterval(string $date, string $start, string $end, object $reservation): bool
+    {
+        $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
+        $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt->addDay();
+        }
+
+        $reservationDate = (string) ($reservation->reservation_date ?? $date);
+        $reservationStart = Carbon::parse($reservationDate.' '.$reservation->time_start, CourtBooking::TIMEZONE);
+        $reservationEnd = Carbon::parse($reservationDate.' '.$reservation->time_end, CourtBooking::TIMEZONE);
+        if ($reservationEnd->lessThanOrEqualTo($reservationStart)) {
+            $reservationEnd->addDay();
+        }
+
+        return $reservationStart->lessThan($endAt) && $reservationEnd->greaterThan($startAt);
     }
 
     public function maximumConcurrentReservedQuantity(int $itemId): int
@@ -195,6 +245,9 @@ class CourtRentalInventoryService
         $dayEnd = Carbon::parse($date.' 23:59:59', $timezone);
         $start = Carbon::parse($reservation->reservation_date.' '.$reservation->time_start, $timezone);
         $scheduledEnd = Carbon::parse($reservation->reservation_date.' '.$reservation->time_end, $timezone);
+        if ($scheduledEnd->lessThanOrEqualTo($start)) {
+            $scheduledEnd->addDay();
+        }
         $pickedUpAt = $reservation->rental_picked_up_at
             ? $this->databaseTimestamp($reservation->rental_picked_up_at)
             : null;
@@ -220,8 +273,11 @@ class CourtRentalInventoryService
         }
 
         return collect([(object) [
+            'reservation_record_id' => (int) ($reservation->reservation_record_id ?? 0),
+            'reservation_source' => (string) ($reservation->reservation_source ?? ''),
             'item_id' => (int) $reservation->item_id,
             'quantity' => (int) $reservation->quantity,
+            'reservation_date' => $date,
             'time_start' => $start->greaterThan($dayStart) ? $start->format('H:i:s') : '00:00:00',
             'time_end' => $end->lessThan($dayEnd) ? $end->format('H:i:s') : '23:59:59',
         ]]);

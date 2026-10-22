@@ -78,7 +78,7 @@
 
         .revenue-overview {
             display: grid;
-            grid-template-columns: minmax(260px, 1.35fr) repeat(4, minmax(150px, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
         .revenue-total,
@@ -89,6 +89,19 @@
 
         .revenue-source {
             border-left: 1px solid var(--revenue-line);
+        }
+
+        .revenue-total {
+            grid-column: 1 / -1;
+            border-bottom: 1px solid var(--revenue-line);
+        }
+
+        .revenue-source:nth-child(3n + 2) {
+            border-left: 0;
+        }
+
+        .revenue-source:nth-child(n + 5) {
+            border-top: 1px solid var(--revenue-line);
         }
 
         .revenue-label {
@@ -253,6 +266,14 @@
             .revenue-source:nth-child(2) {
                 border-left: 0;
             }
+
+            .revenue-source:nth-child(4n + 2) {
+                border-left: 0;
+            }
+
+            .revenue-source:nth-child(n + 6) {
+                border-top: 1px solid var(--revenue-line);
+            }
         }
 
         @media (max-width: 767.98px) {
@@ -345,7 +366,7 @@
         <header class="revenue-page-header">
             <div>
                 <h1>Laporan pemasukan</h1>
-                <p>Ringkasan pembayaran terverifikasi dari booking, sewa perlengkapan, parkir, dan toko.</p>
+                <p>Ringkasan pembayaran terverifikasi dari booking, sewa perlengkapan, parkir, toko, dan pemasukan lain.</p>
             </div>
             <nav class="revenue-page-actions" aria-label="Navigasi laporan pemasukan">
                 <a href="{{ route('admin.court-bookings.index') }}" class="btn">
@@ -361,17 +382,37 @@
             <div class="revenue-total">
                 <span class="revenue-label">Total pemasukan tercatat</span>
                 <strong>Rp {{ number_format($totalIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Akumulasi seluruh data tersimpan. Refund belum dikurangkan.</span>
+                <span class="revenue-caption">Pemasukan yang diakui setelah refund dan dana pembatalan belum diputuskan dipisahkan.</span>
             </div>
             <div class="revenue-source">
-                <span class="revenue-label">Pembayaran booking</span>
+                <span class="revenue-label">Pemasukan booking diakui</span>
                 <strong>Rp {{ number_format($bookingIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Pembayaran yang sudah diverifikasi</span>
+                <span class="revenue-caption">Booking aktif, perlengkapan tambahan, dan biaya pembatalan yang ditahan</span>
             </div>
             <div class="revenue-source">
-                <span class="revenue-label">Sewa tambahan dan mandiri</span>
+                <span class="revenue-label">Pembayaran booking bruto</span>
+                <strong>Rp {{ number_format($grossBookingPayments, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Seluruh pembayaran terverifikasi</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Refund tercatat</span>
+                <strong>Rp {{ number_format($bookingRefunds, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Dana yang sudah dikembalikan</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Dana batal belum diputuskan</span>
+                <strong>Rp {{ number_format($unresolvedCancellationFunds, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Belum dicatat sebagai refund atau biaya pembatalan</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Biaya pembatalan ditahan</span>
+                <strong>Rp {{ number_format($retainedCancellationIncome, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Dana yang admin catat sebagai pendapatan pembatalan</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Sewa perlengkapan mandiri</span>
                 <strong>Rp {{ number_format($otherRentalIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Tambahan booking dan pesanan perlengkapan</span>
+                <span class="revenue-caption">Pesanan perlengkapan di luar booking lapangan</span>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Parkir</span>
@@ -382,6 +423,11 @@
                 <span class="revenue-label">Toko</span>
                 <strong>Rp {{ number_format($allTimeShopIncome, 0, ',', '.') }}</strong>
                 <span class="revenue-caption">Catatan pemasukan harian</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Pemasukan lain</span>
+                <strong>Rp {{ number_format($allTimeOtherIncome, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Sponsor dan sumber lain</span>
             </div>
         </section>
 
@@ -423,8 +469,7 @@
             <header class="report-panel-header">
                 <div>
                     <h2 id="bookingActivityTitle">Aktivitas transaksi per bulan</h2>
-                    <p>12 bulan terakhir ({{ $chartStart->format('m/Y') }}–{{ $chartEnd->format('m/Y') }}). Grafik menampilkan
-                        transaksi booking dan sewa terkonfirmasi; pemasukan parkir dan toko termasuk pada total, dicatat terpisah per hari.</p>
+                    <p>12 bulan terakhir ({{ $chartStart->format('m/Y') }}–{{ $chartEnd->format('m/Y') }}). Grafik mengikuti booking aktif dan biaya pembatalan yang dicatat ditahan.</p>
                 </div>
                 @if($busiestMonths)
                     <div class="revenue-peak">

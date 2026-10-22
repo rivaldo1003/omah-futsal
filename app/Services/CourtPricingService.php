@@ -3,44 +3,49 @@
 namespace App\Services;
 
 use App\Models\Court;
+use App\Models\CourtBooking;
+use Carbon\CarbonImmutable;
 
 class CourtPricingService
 {
-    public function amountForRange(Court $court, string $startTime, int $durationMinutes): float
+    public function amountForRange(Court $court, string $startTime, int $durationMinutes, ?string $bookingDate = null): float
     {
-        $slotMinutes = max(15, (int) $court->slot_duration_minutes);
+        $timezone = CourtBooking::TIMEZONE;
+        $date = $bookingDate ?? CarbonImmutable::now($timezone)->toDateString();
+        $cursor = CarbonImmutable::parse($date.' '.$startTime, $timezone);
+        $end = $cursor->addMinutes($durationMinutes);
+        $nightStartsAt = $court->night_rate_starts_at_formatted;
         $amount = 0.0;
 
-        for ($elapsedMinutes = 0; $elapsedMinutes < $durationMinutes; $elapsedMinutes += $slotMinutes) {
-            $amount += $this->amountForSegment(
-                $court,
-                $startTime,
-                $elapsedMinutes,
-                min($slotMinutes, $durationMinutes - $elapsedMinutes),
-            );
+        while ($cursor->lessThan($end)) {
+            $nightBoundary = CarbonImmutable::parse($cursor->toDateString().' '.$nightStartsAt, $timezone);
+            if ($nightBoundary->lessThanOrEqualTo($cursor)) {
+                $nightBoundary = $nightBoundary->addDay();
+            }
+            $nextBoundary = $cursor->startOfDay()->addDay();
+            $segmentEnd = $end->min($nextBoundary);
+            if ($nightBoundary->lessThan($segmentEnd)) {
+                $segmentEnd = $nightBoundary;
+            }
+
+            $segmentMinutes = (int) (($segmentEnd->getTimestamp() - $cursor->getTimestamp()) / 60);
+            if ($segmentMinutes < 1) {
+                $segmentMinutes = 1;
+                $segmentEnd = $cursor->addMinute();
+            }
+
+            $isWeekend = $cursor->isSaturday() || $cursor->isSunday();
+            $isNight = $cursor->format('H:i') >= $nightStartsAt;
+            $hourlyRate = match (true) {
+                $isWeekend && $isNight => (float) $court->weekend_night_hourly_rate,
+                $isWeekend => (float) $court->weekend_day_hourly_rate,
+                $isNight => (float) $court->night_hourly_rate,
+                default => (float) $court->day_hourly_rate,
+            };
+            $amount += $hourlyRate * $segmentMinutes / 60;
+            $cursor = $segmentEnd;
         }
 
         return round($amount, 2);
-    }
-
-    private function amountForSegment(Court $court, string $startTime, int $offsetMinutes, int $durationMinutes): float
-    {
-        $startMinute = $this->minutesSinceMidnight($startTime) + $offsetMinutes;
-        $endMinute = $startMinute + $durationMinutes;
-        $nightStartMinute = $this->minutesSinceMidnight($court->night_rate_starts_at_formatted);
-        $dayMinutes = max(0, min($endMinute, $nightStartMinute) - $startMinute);
-        $nightMinutes = max(0, $durationMinutes - $dayMinutes);
-
-        return round((
-            ((float) $court->day_hourly_rate * $dayMinutes)
-            + ((float) $court->night_hourly_rate * $nightMinutes)
-        ) / 60, 2);
-    }
-
-    private function minutesSinceMidnight(string $time): int
-    {
-        [$hours, $minutes] = array_map('intval', explode(':', substr($time, 0, 5)));
-
-        return ($hours * 60) + $minutes;
     }
 }

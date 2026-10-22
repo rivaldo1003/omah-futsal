@@ -1,7 +1,6 @@
-@props(['knockoutBracket' => [], 'variant' => 'standings'])
+@props(['knockoutBracket' => []])
 
 @php
-    $isHome = ($variant ?? 'standings') === 'home';
     $roundLabels = [
         'round_of_64' => 'Babak 64 Besar',
         'round_of_32' => 'Babak 32 Besar',
@@ -18,7 +17,7 @@
         'ongoing' => 'Berlangsung',
         'completed' => 'Selesai',
         'postponed' => 'Ditunda',
-        'bye' => 'BYE · Lolos otomatis',
+        'bye' => 'Lolos otomatis',
     ];
     $champion = null;
     foreach (($knockoutBracket['final'] ?? []) as $finalMatch) {
@@ -38,39 +37,37 @@
 
 @if($knockoutBracket && count($knockoutBracket) > 0)
     @if($champion)
-        <div class="{{ $isHome ? 'v3-bracket-champion-banner' : 'standings-bracket-champion-banner' }}" role="status"
+        <div class="standings-bracket-champion-banner" role="status"
             aria-label="Juara turnamen: {{ $champion['name'] }}">
-            <span class="{{ $isHome ? 'v3-bracket-champion-emblem' : 'standings-bracket-champion-emblem' }}" aria-hidden="true">
+            <span class="standings-bracket-champion-emblem" aria-hidden="true">
                 <i class="bi bi-trophy-fill"></i>
             </span>
-            @include('partials.team-crest', ['logo' => $champion['logo'] ?? null, 'class' => $isHome ? 'v3-bracket-champion-logo' : 'standings-bracket-champion-logo'])
-            <span class="{{ $isHome ? 'v3-bracket-champion-copy' : 'standings-bracket-champion-copy' }}">
-                <span class="{{ $isHome ? 'v3-bracket-champion-label' : 'standings-bracket-champion-label' }}">JUARA TURNAMEN ·
-                    FINAL</span>
+            @include('partials.team-crest', ['logo' => $champion['logo'] ?? null, 'class' => 'standings-bracket-champion-logo'])
+            <span class="standings-bracket-champion-copy">
+                <span class="standings-bracket-champion-label">JUARA TURNAMEN · BABAK FINAL</span>
                 <strong>{{ $champion['name'] }}</strong>
             </span>
         </div>
     @endif
-    <div class="{{ $isHome ? 'v3-bracket-scroll' : 'standings-bracket-scroller' }}" tabindex="0"
-        aria-label="Bracket knockout; geser untuk melihat ronde berikutnya">
-        <div class="{{ $isHome ? 'v3-bracket-board' : 'standings-bracket-board' }}" data-bracket-connectors>
-            <svg class="{{ $isHome ? 'v3-bracket-connections' : 'standings-bracket-connections' }}" aria-hidden="true"
-                focusable="false"></svg>
+    <div class="standings-bracket-scroller" tabindex="0"
+        aria-label="Bagan sistem gugur; geser untuk melihat babak berikutnya">
+        <div class="standings-bracket-board" data-bracket-connectors>
+            <svg class="standings-bracket-connections" aria-hidden="true" focusable="false"></svg>
             @foreach($knockoutBracket as $round => $matches)
                 @if(count($matches) > 0)
                     <section
-                        class="{{ $isHome ? 'v3-bracket-round' : 'standings-bracket-round' }} {{ $round === 'final' ? 'is-final' : '' }}"
+                        class="standings-bracket-round {{ $round === 'final' ? 'is-final' : '' }}"
                         data-bracket-round="{{ $round }}" data-bracket-advances="{{ $round === 'third_place' ? 'false' : 'true' }}">
-                        <header class="{{ $isHome ? 'v3-bracket-round-header' : 'standings-bracket-round-header' }}">
+                        <header class="standings-bracket-round-header">
                             <span>{{ $roundLabels[$round] ?? ucfirst(str_replace('_', ' ', $round)) }}</span>
                             @php
                                 $byeCount = collect($matches)->filter(fn($match) => !empty($match['is_bye']))->count();
                                 $fixtureCount = count($matches) - $byeCount;
                             @endphp
-                            <small>{{ $fixtureCount }} match{{ $byeCount ? ' · ' . $byeCount . ' bye' : '' }}</small>
+                            <small>{{ $fixtureCount }} pertandingan{{ $byeCount ? ' · ' . $byeCount . ' tim lolos otomatis' : '' }}</small>
                         </header>
 
-                        <div class="{{ $isHome ? 'v3-bracket-round-matches' : 'standings-bracket-matches' }}">
+                        <div class="standings-bracket-matches">
                             @foreach($matches as $match)
                                 @php
                                     $home = $match['home_team'] ?? null;
@@ -81,11 +78,6 @@
                                     $matchNumber = (int) ($match['bracket_index'] ?? $loop->index) + 1;
                                     $showScore = in_array($status, ['ongoing', 'completed'], true);
                                     $extras = $match['extras'] ?? [];
-                                    $homeRowClass = $isHome ? 'v3-bracket-team-row' : 'standings-bracket-team';
-                                    $homeIdentityClass = $isHome ? 'v3-bracket-team-identity' : 'standings-bracket-identity';
-                                    $homeLogoClass = $isHome ? 'v3-bracket-logo' : 'standings-bracket-logo';
-                                    $homeNameClass = $isHome ? 'v3-bracket-team' : '';
-                                    $scoreClass = $isHome ? 'v3-bracket-score' : 'standings-bracket-score';
                                     $homePlacement = null;
                                     $awayPlacement = null;
                                     $homeIsChampion = $round === 'final' && $status === 'completed' && $winner === 'home';
@@ -96,80 +88,80 @@
                                         $awayPlacement = $winner === 'away' ? 'Juara 3' : ($winner === 'home' ? 'Juara 4' : null);
                                     }
                                     if ($homeIsChampion) {
-                                        $homePlacement = 'CHAMPION';
+                                        $homePlacement = 'Juara';
                                     } elseif ($awayIsChampion) {
-                                        $awayPlacement = 'CHAMPION';
+                                        $awayPlacement = 'Juara';
                                     }
                                 @endphp
 
                                 <article
-                                    class="{{ $isHome ? 'v3-bracket-match' : 'standings-bracket-match' }} {{ $championDecided ? 'is-champion-decided' : '' }} {{ $isBye ? 'is-bye' : '' }}"
+                                    class="standings-bracket-match {{ $championDecided ? 'is-champion-decided' : '' }} {{ $isBye ? 'is-bye' : '' }}"
                                     data-bracket-match-index="{{ $match['bracket_index'] ?? $loop->index }}">
-                                    <div class="{{ $isHome ? 'v3-bracket-match-meta' : 'standings-bracket-match-meta' }}">
-                                        <span>{{ $isHome ? '#' . $matchNumber : 'Match ' . $matchNumber }}</span>
+                                    <div class="standings-bracket-match-meta">
+                                        <span>Pertandingan {{ $matchNumber }}</span>
                                         <span
-                                            class="{{ $isHome ? 'v3-knockout-status' : 'standings-bracket-status' }} is-{{ $status }}">
+                                            class="standings-bracket-status is-{{ $status }}">
                                             {{ $statusLabels[$status] ?? ucfirst($status) }}
                                         </span>
                                     </div>
 
-                                    @if($home || $away || $isHome)
+                                    @if($home || $away)
                                         <div
-                                            class="{{ $homeRowClass }} {{ $winner === 'home' ? 'is-winner' : '' }} {{ $homeIsChampion ? 'is-champion' : '' }}">
-                                            <span class="{{ $homeIdentityClass }}">
+                                            class="standings-bracket-team {{ $winner === 'home' ? 'is-winner' : '' }} {{ $homeIsChampion ? 'is-champion' : '' }}">
+                                            <span class="standings-bracket-identity">
                                                 @if(!empty($home['is_bye']))
-                                                    <span class="{{ $homeLogoClass }}" aria-hidden="true"><i
+                                                    <span class="standings-bracket-logo" aria-hidden="true"><i
                                                             class="bi bi-arrow-return-right"></i></span>
                                                 @else
-                                                    @include('partials.team-crest', ['logo' => $home['logo'] ?? null, 'class' => $homeLogoClass])
+                                                    @include('partials.team-crest', ['logo' => $home['logo'] ?? null, 'class' => 'standings-bracket-logo'])
                                                 @endif
-                                                <span class="{{ $homeNameClass }}">{{ $home['name'] ?? 'Menunggu pemenang' }}</span>
+                                                <span>{{ $home['name'] ?? 'Menunggu pemenang' }}</span>
                                             </span>
                                             @if($homePlacement)
                                                 <small
-                                                    class="{{ $isHome ? 'v3-bracket-placement' : 'standings-bracket-placement' }} {{ $homeIsChampion ? 'is-champion' : '' }}">
+                                                    class="standings-bracket-placement {{ $homeIsChampion ? 'is-champion' : '' }}">
                                                     @if($homeIsChampion)<i class="bi bi-trophy-fill" aria-hidden="true"></i>@endif
                                                     {{ $homePlacement }}
                                                 </small>
                                             @endif
-                                            <span class="{{ $scoreClass }}">{{ $showScore ? ($home['score'] ?? '–') : '–' }}</span>
+                                            <span class="standings-bracket-score">{{ $showScore ? ($home['score'] ?? '–') : '–' }}</span>
                                         </div>
                                         <div
-                                            class="{{ $homeRowClass }} {{ $winner === 'away' ? 'is-winner' : '' }} {{ $awayIsChampion ? 'is-champion' : '' }}">
-                                            <span class="{{ $homeIdentityClass }}">
+                                            class="standings-bracket-team {{ $winner === 'away' ? 'is-winner' : '' }} {{ $awayIsChampion ? 'is-champion' : '' }}">
+                                            <span class="standings-bracket-identity">
                                                 @if(!empty($away['is_bye']))
-                                                    <span class="{{ $homeLogoClass }}" aria-hidden="true"><i
+                                                    <span class="standings-bracket-logo" aria-hidden="true"><i
                                                             class="bi bi-arrow-return-right"></i></span>
                                                 @else
-                                                    @include('partials.team-crest', ['logo' => $away['logo'] ?? null, 'class' => $homeLogoClass])
+                                                    @include('partials.team-crest', ['logo' => $away['logo'] ?? null, 'class' => 'standings-bracket-logo'])
                                                 @endif
-                                                <span class="{{ $homeNameClass }}">{{ $away['name'] ?? 'Menunggu pemenang' }}</span>
+                                                <span>{{ $away['name'] ?? 'Menunggu pemenang' }}</span>
                                             </span>
                                             @if($awayPlacement)
                                                 <small
-                                                    class="{{ $isHome ? 'v3-bracket-placement' : 'standings-bracket-placement' }} {{ $awayIsChampion ? 'is-champion' : '' }}">
+                                                    class="standings-bracket-placement {{ $awayIsChampion ? 'is-champion' : '' }}">
                                                     @if($awayIsChampion)<i class="bi bi-trophy-fill" aria-hidden="true"></i>@endif
                                                     {{ $awayPlacement }}
                                                 </small>
                                             @endif
-                                            <span class="{{ $scoreClass }}">{{ $showScore ? ($away['score'] ?? '–') : '–' }}</span>
+                                            <span class="standings-bracket-score">{{ $showScore ? ($away['score'] ?? '–') : '–' }}</span>
                                         </div>
                                     @else
                                         <div class="standings-bracket-empty">Peserta belum ditentukan</div>
                                     @endif
 
                                     @if($status === 'completed' && (!empty($extras['penalty_score']) || !empty($extras['et_score'])))
-                                        <div class="{{ $isHome ? 'v3-bracket-extras' : 'standings-bracket-extras' }}"
+                                        <div class="standings-bracket-extras"
                                             aria-label="Hasil babak tambahan">
                                             @if(!empty($extras['et_score']))
-                                                <span class="{{ $isHome ? 'v3-bracket-extra' : 'standings-bracket-extra' }}">
+                                                <span class="standings-bracket-extra">
                                                     <i class="bi bi-clock-history" aria-hidden="true"></i>
-                                                    <span>ET</span>
+                                                    <span>Perpanjangan waktu</span>
                                                     <strong>{{ $extras['et_score'] }}</strong>
                                                 </span>
                                             @endif
                                             @if(!empty($extras['penalty_score']))
-                                                <span class="{{ $isHome ? 'v3-bracket-extra' : 'standings-bracket-extra' }} is-penalty">
+                                                <span class="standings-bracket-extra is-penalty">
                                                     <i class="bi bi-flag" aria-hidden="true"></i>
                                                     <span>Penalti</span>
                                                     <strong>{{ $extras['penalty_score'] }}</strong>
@@ -186,10 +178,10 @@
         </div>
     </div>
     @include('partials.bracket-connectors-script')
-@elseif(!$isHome)
+@else
     <div class="standings-empty">
         <div class="standings-empty-icon"><i class="bi bi-diagram-3" aria-hidden="true"></i></div>
-        <h2 class="standings-empty-title">Bracket belum tersedia</h2>
-        <p class="standings-empty-text">Generate match dari bracket undian untuk menampilkan bagan turnamen.</p>
+        <h2 class="standings-empty-title">Bagan belum tersedia</h2>
+        <p class="standings-empty-text">Buat pertandingan dari hasil undian untuk menampilkan bagan turnamen.</p>
     </div>
 @endif
