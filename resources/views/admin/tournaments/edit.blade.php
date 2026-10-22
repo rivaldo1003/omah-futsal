@@ -681,10 +681,14 @@
                                         <div class="invalid-feedback d-block">{{ $message }}</div>
                                     @enderror
                                 </div>
-                                @if($thirdPlaceLocked)
-                                    <div class="form-text text-warning">Pengaturan terkunci karena pertandingan knockout sudah dimulai atau memiliki hasil/event. Tentukan laga juara 3/4 sebelum pertandingan knockout pertama dimulai.</div>
+                                @if($thirdPlaceLocked && $finalHasProgress)
+                                    <div class="form-text text-warning">Pengaturan terkunci karena final sudah dimulai atau memiliki hasil/event.</div>
+                                @elseif($thirdPlaceLocked && $thirdPlaceHasProgress)
+                                    <div class="form-text text-warning">Pengaturan terkunci karena laga juara 3/4 sudah dimulai atau memiliki hasil/event.</div>
+                                @elseif($knockoutMatchesHaveStarted)
+                                    <div class="form-text">Knockout sudah berjalan. Laga juara 3/4 masih dapat diaktifkan atau dinonaktifkan sampai final atau laga juara 3/4 dimulai. Jika semifinal selesai, pesertanya diisi dari tim yang kalah.</div>
                                 @else
-                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pengaturan dapat diubah sebelum pertandingan knockout dimulai.</div>
+                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pengaturan dapat diubah sampai final atau laga juara 3/4 dimulai.</div>
                                 @endif
                             </div>
                         </div>

@@ -45,6 +45,20 @@ class TournamentController extends Controller
         return null;
     }
 
+    private function matchHasProgress(?Game $match): bool
+    {
+        if (!$match) {
+            return false;
+        }
+
+        return in_array($match->status, ['ongoing', 'completed'], true)
+            || (int) ($match->home_score ?? 0) !== 0
+            || (int) ($match->away_score ?? 0) !== 0
+            || $match->et_score !== null
+            || $match->penalty_score !== null
+            || $match->events()->exists();
+    }
+
     // Create tournament - redirect to step 1
     public function create()
     {
@@ -867,11 +881,28 @@ class TournamentController extends Controller
             ->where('round_type', 'third_place')
             ->first();
         $thirdPlaceFixtureExists = (bool) $thirdPlaceFixture;
+        $finalFixture = Game::where('tournament_id', $tournament->id)
+            ->whereNull('group_name')
+            ->where('round_type', 'final')
+            ->first();
+        $finalHasProgress = $this->matchHasProgress($finalFixture);
+        $thirdPlaceHasProgress = $this->matchHasProgress($thirdPlaceFixture);
         $knockoutMatchesHaveStarted = app(\App\Services\KnockoutDrawService::class)
             ->hasStartedKnockoutMatches($tournament);
-        $thirdPlaceLocked = $knockoutMatchesHaveStarted;
+        $thirdPlaceLocked = $finalHasProgress
+            || $thirdPlaceHasProgress;
 
-        return view('admin.tournaments.edit', compact('tournament', 'teams', 'selectedTeams', 'settings', 'thirdPlaceLocked', 'thirdPlaceFixtureExists'));
+        return view('admin.tournaments.edit', compact(
+            'tournament',
+            'teams',
+            'selectedTeams',
+            'settings',
+            'thirdPlaceLocked',
+            'thirdPlaceFixtureExists',
+            'finalHasProgress',
+            'thirdPlaceHasProgress',
+            'knockoutMatchesHaveStarted'
+        ));
     }
 
     // Update tournament
@@ -1063,26 +1094,19 @@ class TournamentController extends Controller
         $thirdPlaceMatch = Game::where('tournament_id', $tournament->id)
             ->where('round_type', 'third_place')
             ->first();
-        $thirdPlaceHasEvents = $thirdPlaceMatch?->events()->exists() ?? false;
-        $thirdPlaceHasStarted = $thirdPlaceMatch
-            && in_array($thirdPlaceMatch->status, ['ongoing', 'completed'], true);
-        $wouldDisableFixtureWithEvents = $thirdPlaceHasEvents
-            && $tournament->knockout_third_place
-            && !$willEnableThirdPlace;
+        $finalMatch = Game::where('tournament_id', $tournament->id)
+            ->whereNull('group_name')
+            ->where('round_type', 'final')
+            ->first();
+        $thirdPlaceHasProgress = $this->matchHasProgress($thirdPlaceMatch);
+        $finalHasProgress = $this->matchHasProgress($finalMatch);
+        $thirdPlaceSettingChanged = $willEnableThirdPlace !== (bool) $tournament->knockout_third_place;
 
-        if ($thirdPlaceMatch
-            && (($thirdPlaceHasStarted && $willEnableThirdPlace !== (bool) $tournament->knockout_third_place)
-                || $wouldDisableFixtureWithEvents)) {
+        if ($thirdPlaceSettingChanged && ($thirdPlaceHasProgress || $finalHasProgress)) {
             return back()
-                ->withErrors(['knockout_third_place' => 'Laga perebutan juara 3/4 sudah memiliki event, dimulai, atau selesai. Hapus event terlebih dahulu sebelum mengubah pengaturan.'])
-                ->withInput();
-        }
-
-        if ($hasKnockoutStructure
-            && $willEnableThirdPlace !== (bool) $tournament->knockout_third_place
-            && app(\App\Services\KnockoutDrawService::class)->hasStartedKnockoutMatches($tournament)) {
-            return back()
-                ->withErrors(['knockout_third_place' => 'Pengaturan juara 3/4 tidak dapat diubah setelah pertandingan knockout dimulai.'])
+                ->withErrors(['knockout_third_place' => $thirdPlaceHasProgress
+                    ? 'Pengaturan tidak dapat diubah karena laga juara 3/4 sudah dimulai atau memiliki hasil/event.'
+                    : 'Pengaturan juara 3/4 tidak dapat diubah setelah final dimulai atau memiliki hasil/event.'])
                 ->withInput();
         }
 
