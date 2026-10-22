@@ -7,11 +7,12 @@
         || request()->is('matches*')
         || request()->is('standings*')
         || request()->is('top-scorers*')
-        || request()->is('highlights*');
+        || request()->is('highlights*')
+        || request()->is('all-teams*')
+        || request()->is('teams*')
+        || request()->is('market-value*');
     $isScheduleSection = request()->is('schedule*') || request()->is('matches*');
-    $isMoreSection = request()->is('all-teams*')
-        || request()->is('market-value*')
-        || request()->is('admin/tournaments*')
+    $isMoreSection = request()->is('admin/tournaments*')
         || request()->is('admin/teams*');
 @endphp
 <nav class="navbar app-navbar">
@@ -63,36 +64,37 @@
                         href="{{ route('highlights.index') }}" role="menuitem">
                         <i class="bi bi-play-circle"></i><span>Sorotan pertandingan</span>
                     </a>
+                    <a class="nav-dropdown-item {{ request()->is('all-teams*', 'teams*') ? 'active' : '' }}"
+                        href="{{ route('all-teams') }}" role="menuitem">
+                        <i class="bi bi-people"></i><span>Tim</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ request()->is('market-value*') ? 'active' : '' }}"
+                        href="{{ route('market-value.showcase') }}" role="menuitem">
+                        <i class="bi bi-graph-up-arrow"></i><span>Nilai pasar pemain</span>
+                    </a>
                 </div>
             </li>
 
             {{-- Tautan tambahan dan pintasan administrasi --}}
-            <li class="nav-dropdown">
-                <button type="button" class="nav-menu-link nav-dropdown-toggle {{ $isMoreSection ? 'active' : '' }}"
-                    id="navMoreToggle" aria-haspopup="true" aria-controls="navMoreMenu" aria-expanded="false">
-                    <i class="bi bi-grid"></i><span>Lainnya</span>
-                    <i class="bi bi-chevron-down nav-dropdown-caret"></i>
-                </button>
-                <div class="nav-dropdown-menu" id="navMoreMenu" role="menu">
-                    <a class="nav-dropdown-item {{ request()->is('all-teams*') ? 'active' : '' }}" href="{{ route('all-teams') }}" role="menuitem">
-                        <i class="bi bi-people"></i><span>Tim</span>
-                    </a>
-                    <a class="nav-dropdown-item {{ request()->is('market-value*') ? 'active' : '' }}" href="{{ route('market-value.showcase') }}" role="menuitem">
-                        <i class="bi bi-graph-up-arrow"></i><span>Nilai pasar pemain</span>
-                    </a>
-                    @auth
-                        @if(auth()->user()->role === 'admin')
-                            <div class="nav-dropdown-divider"></div>
+            @auth
+                @if(auth()->user()->role === 'admin')
+                    <li class="nav-dropdown">
+                        <button type="button" class="nav-menu-link nav-dropdown-toggle {{ $isMoreSection ? 'active' : '' }}"
+                            id="navMoreToggle" aria-haspopup="true" aria-controls="navMoreMenu" aria-expanded="false">
+                            <i class="bi bi-grid"></i><span>Lainnya</span>
+                            <i class="bi bi-chevron-down nav-dropdown-caret"></i>
+                        </button>
+                        <div class="nav-dropdown-menu" id="navMoreMenu" role="menu">
                             <a class="nav-dropdown-item {{ request()->is('admin/tournaments*') ? 'active' : '' }}" href="{{ route('admin.tournaments.index') }}" role="menuitem">
                                 <i class="bi bi-trophy"></i><span>Kelola turnamen</span>
                             </a>
                             <a class="nav-dropdown-item {{ request()->is('admin/teams*') ? 'active' : '' }}" href="{{ route('admin.teams.index') }}" role="menuitem">
                                 <i class="bi bi-gear"></i><span>Kelola tim</span>
                             </a>
-                        @endif
-                    @endauth
-                </div>
-            </li>
+                        </div>
+                    </li>
+                @endif
+            @endauth
 
             @auth
                 @if(auth()->user()->role === 'admin')
@@ -184,18 +186,19 @@
                     href="{{ route('highlights.index') }}" @if(request()->is('highlights*')) aria-current="page" @endif>
                     <i class="bi bi-play-circle" aria-hidden="true"></i><span>Sorotan pertandingan</span>
                 </a>
+                <a class="msb-link msb-sublink {{ request()->is('all-teams*', 'teams*') ? 'is-active' : '' }}"
+                    href="{{ route('all-teams') }}" @if(request()->is('all-teams*', 'teams*')) aria-current="page" @endif>
+                    <i class="bi bi-people" aria-hidden="true"></i><span>Tim</span>
+                </a>
+                <a class="msb-link msb-sublink {{ request()->is('market-value*') ? 'is-active' : '' }}"
+                    href="{{ route('market-value.showcase') }}" @if(request()->is('market-value*')) aria-current="page" @endif>
+                    <i class="bi bi-graph-up-arrow" aria-hidden="true"></i><span>Nilai pasar pemain</span>
+                </a>
             </div>
         </details>
         <a class="msb-link msb-link-booking {{ request()->is('booking*') ? 'is-active' : '' }}"
             href="{{ route('booking.index') }}" @if(request()->is('booking*')) aria-current="page" @endif>
             <i class="bi bi-calendar-check" aria-hidden="true"></i><span>Booking lapangan</span>
-        </a>
-        <span class="msb-section-label">Jelajahi</span>
-        <a class="msb-link {{ request()->is('all-teams*') ? 'is-active' : '' }}" href="{{ route('all-teams') }}">
-            <i class="bi bi-people"></i><span>Tim</span>
-        </a>
-        <a class="msb-link {{ request()->is('market-value*') ? 'is-active' : '' }}" href="{{ route('market-value.showcase') }}">
-            <i class="bi bi-graph-up-arrow"></i><span>Nilai pasar pemain</span>
         </a>
 
         @auth
