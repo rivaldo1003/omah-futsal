@@ -71,13 +71,14 @@ class CourtBookingController extends Controller
                 $end = $cursor->copy()->addMinutes($duration);
                 $startTime = $cursor->format('H:i:s');
                 $endTime = $end->format('H:i:s');
-                $status = $availability->slotStatus($court, $date->toDateString(), $startTime, $endTime);
+                $slotAvailability = $availability->slotAvailability($court, $date->toDateString(), $startTime, $endTime);
 
                 $slots[] = [
                     'start' => $cursor->format('H:i'),
                     'end' => $end->format('H:i'),
                     'starts_at' => $cursor->toIso8601String(),
-                    'status' => $status,
+                    'status' => $slotAvailability['status'],
+                    'display_name' => $slotAvailability['display_name'],
                     'amount' => $pricing->amountForRange($court, $startTime, $duration, $date->toDateString()),
                     'duration' => $duration,
                     'request_key' => (string) Str::uuid(),

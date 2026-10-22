@@ -238,6 +238,16 @@
             font: inherit;
         }
 
+        .slot-button .slot-occupant-copy {
+            display: inline-block;
+            min-width: 0;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-weight: 650;
+        }
+
         .slot-button.available {
             border-color: #9bbca8;
             background: var(--success-subtle);
@@ -469,6 +479,17 @@
             font-weight: 750;
         }
 
+        .booking-resume-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+        }
+
+        .booking-resume-heading .btn {
+            flex-shrink: 0;
+        }
+
         .booking-resume-intro {
             margin: 0;
             color: var(--text-secondary);
@@ -529,6 +550,10 @@
             justify-content: flex-end;
             flex-shrink: 0;
             gap: 8px;
+        }
+
+        .booking-resume-actions--preview .btn {
+            min-width: 150px;
         }
 
         .booking-resume-item .btn {
@@ -728,6 +753,11 @@
                 padding: 15px;
             }
 
+            .booking-resume-heading {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
             .booking-resume-item {
                 align-items: stretch;
                 flex-direction: column;
@@ -789,10 +819,18 @@
 
         <section class="booking-resume" id="bookingResume" data-booking-base="{{ url('/booking') }}" hidden
             aria-labelledby="bookingResumeTitle" aria-live="polite">
-            <h2 id="bookingResumeTitle">Riwayat booking di perangkat ini</h2>
-            <p class="booking-resume-intro">Status diperbarui saat halaman dibuka. Simpan atau bagikan tautan booking
-                jika ingin membukanya dari perangkat lain.</p>
-            <div class="booking-resume-list" id="bookingResumeList"></div>
+            <div class="booking-resume-heading">
+                <div>
+                    <h2 id="bookingResumeTitle">Riwayat booking di perangkat ini</h2>
+                    <p class="booking-resume-intro">Menampilkan 3 booking terbaru. Riwayat tersimpan di browser ini.</p>
+                </div>
+                <button type="button" class="btn btn-outline-light" id="bookingResumeViewAll" data-bs-toggle="modal"
+                    data-bs-target="#bookingHistoryModal" hidden>
+                    <i class="bi bi-clock-history me-1" aria-hidden="true"></i>
+                    Lihat semua <span id="bookingResumeCount"></span>
+                </button>
+            </div>
+            <div class="booking-resume-list" id="bookingResumePreviewList"></div>
         </section>
 
         <form class="booking-date" method="GET" action="{{ route('booking.index') }}">
@@ -873,6 +911,14 @@
                                     'past' => 'bi-clock-history',
                                     'unavailable' => 'bi-info-circle',
                                 ];
+                                $displayNameLabel = match ($slotDisplayStatus) {
+                                    'member' => 'Member: ',
+                                    default => 'Tim: ',
+                                };
+                                $slotAriaLabel = $slot['start'].' sampai '.$slot['end'].': '.$statusLabels[$slotDisplayStatus];
+                                if (in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name'])) {
+                                    $slotAriaLabel .= ', '.$displayNameLabel.trim($slot['display_name']);
+                                }
                             @endphp
                             @if($slot['status'] === 'available' && $hasPaymentOption)
                                 <button type="button" class="slot-button available js-book-slot"
@@ -896,7 +942,7 @@
                                 </button>
                             @else
                                 <button type="button" class="slot-button {{ $slotDisplayStatus }}" disabled
-                                    aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $statusLabels[$slotDisplayStatus] }}">
+                                    aria-label="{{ $slotAriaLabel }}">
                                     <span class="slot-pitch-markings" aria-hidden="true">
                                         <span class="slot-pitch-boundary"></span>
                                         <span class="slot-pitch-midline"></span>
@@ -907,7 +953,13 @@
                                     <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
                                     <span>
                                         <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
-                                        <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
+                                        @if(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
+                                            <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
+                                                {{ $displayNameLabel.trim($slot['display_name']) }}
+                                            </span>
+                                        @else
+                                            <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
+                                        @endif
                                     </span>
                                 </button>
                             @endif
@@ -1044,11 +1096,35 @@
         </div>
     </div>
 
+    <div class="modal fade booking-modal" id="bookingHistoryModal" tabindex="-1"
+        aria-labelledby="bookingHistoryModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5 fw-bold" id="bookingHistoryModalTitle">Semua riwayat booking</h2>
+                        <p class="booking-resume-intro mt-1">Maksimal 10 booking terbaru yang tersimpan di perangkat ini.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="booking-resume-list mt-0" id="bookingResumeList"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const bookingResumeStorageKey = 'ofs_booking_resume_v1';
         const bookingResumePanel = document.getElementById('bookingResume');
+        const bookingResumePreviewList = document.getElementById('bookingResumePreviewList');
         const bookingResumeList = document.getElementById('bookingResumeList');
+        const bookingResumeViewAll = document.getElementById('bookingResumeViewAll');
+        const bookingResumeCount = document.getElementById('bookingResumeCount');
         const bookingTokenPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
         const readSavedBookings = () => {
@@ -1067,6 +1143,7 @@
 
         if (savedBookings.length) {
             const bookingBase = bookingResumePanel.dataset.bookingBase.replace(/\/$/, '');
+            const previewLimit = 3;
             const statusLabels = {
                 awaiting_payment: 'Menunggu pembayaran',
                 pending_review: 'Menunggu verifikasi',
@@ -1094,11 +1171,16 @@
                 return parts.join(' · ');
             };
 
-            const rows = new Map();
+            const rowDetails = new Map();
             const links = new Map();
             const stateNotes = new Map();
+            const previewRows = new Map();
+            const previewDetails = new Map();
+            const previewLinks = new Map();
+            const previewStateNotes = new Map();
             const removeButtons = new Map();
             const dismissedTokens = new Set();
+            const appendToMap = (map, token, element) => map.set(token, [...(map.get(token) || []), element]);
             const stateNoteForBooking = (booking) => {
                 if (booking.status === 'expired') return 'Batas pembayaran habis · slot tersedia kembali';
                 if (booking.status === 'confirmed' && booking.scheduleHasPassed) return 'Jadwal telah lewat · pembayaran tetap terkonfirmasi';
@@ -1112,7 +1194,13 @@
                 return { label: 'Lihat detail', primary: false };
             };
 
-            savedBookings.forEach((booking) => {
+            const updateViewAllButton = () => {
+                const count = bookingResumeList.children.length;
+                bookingResumeCount.textContent = `(${count})`;
+                bookingResumeViewAll.hidden = count <= previewLimit;
+            };
+
+            savedBookings.forEach((booking, index) => {
                 const row = document.createElement('div');
                 row.className = 'booking-resume-item';
 
@@ -1150,6 +1238,8 @@
                         window.localStorage.setItem(bookingResumeStorageKey, JSON.stringify(remaining));
                         dismissedTokens.add(booking.token);
                         row.remove();
+                        previewRows.get(booking.token)?.remove();
+                        updateViewAllButton();
                         if (!bookingResumeList.children.length) bookingResumePanel.hidden = true;
                     } catch {
                         removeButton.textContent = 'Gagal menghapus';
@@ -1161,12 +1251,42 @@
                 actions.append(link, removeButton);
                 row.append(copy, actions);
                 bookingResumeList.append(row);
-                rows.set(booking.token, detail);
-                links.set(booking.token, link);
-                stateNotes.set(booking.token, stateNote);
+                appendToMap(rowDetails, booking.token, detail);
+                appendToMap(links, booking.token, link);
+                appendToMap(stateNotes, booking.token, stateNote);
                 removeButtons.set(booking.token, removeButton);
+
+                if (index < previewLimit) {
+                    const previewRow = document.createElement('div');
+                    previewRow.className = 'booking-resume-item';
+                    const previewCopy = document.createElement('div');
+                    previewCopy.className = 'booking-resume-copy';
+                    const previewTitle = document.createElement('strong');
+                    previewTitle.textContent = `Booking #${booking.code}`;
+                    const previewDetail = document.createElement('span');
+                    previewDetail.textContent = bookingDetails(booking);
+                    const previewStateNote = document.createElement('span');
+                    previewStateNote.className = 'booking-resume-state-note';
+                    previewStateNote.textContent = stateNoteForBooking(booking);
+                    previewStateNote.hidden = !previewStateNote.textContent;
+                    const previewLink = document.createElement('a');
+                    previewLink.className = action.primary ? 'btn btn-primary fw-bold' : 'btn btn-outline-light';
+                    previewLink.href = link.href;
+                    previewLink.textContent = action.label;
+                    const previewActions = document.createElement('div');
+                    previewActions.className = 'booking-resume-actions booking-resume-actions--preview';
+                    previewActions.append(previewLink);
+                    previewCopy.append(previewTitle, previewDetail, previewStateNote);
+                    previewRow.append(previewCopy, previewActions);
+                    bookingResumePreviewList.append(previewRow);
+                    previewRows.set(booking.token, previewRow);
+                    appendToMap(previewDetails, booking.token, previewDetail);
+                    appendToMap(previewLinks, booking.token, previewLink);
+                    appendToMap(previewStateNotes, booking.token, previewStateNote);
+                }
             });
 
+            updateViewAllButton();
             bookingResumePanel.hidden = false;
 
             Promise.all(savedBookings.map(async (booking) => {
@@ -1192,21 +1312,25 @@
                         scheduleHasPassed: latest.schedule_has_passed,
                         expiresAt: latest.expires_at,
                     };
-                    const detail = rows.get(booking.token);
-                    if (detail) detail.textContent = bookingDetails(refreshedBooking);
-                    const stateNote = stateNotes.get(booking.token);
-                    if (stateNote) {
-                        stateNote.textContent = stateNoteForBooking(refreshedBooking);
-                        stateNote.hidden = !stateNote.textContent;
-                    }
+                    (rowDetails.get(booking.token) || []).forEach((detail) => {
+                        detail.textContent = bookingDetails(refreshedBooking);
+                    });
+                    (previewDetails.get(booking.token) || []).forEach((detail) => {
+                        detail.textContent = bookingDetails(refreshedBooking);
+                    });
+                    [...(stateNotes.get(booking.token) || []), ...(previewStateNotes.get(booking.token) || [])]
+                        .forEach((stateNote) => {
+                            stateNote.textContent = stateNoteForBooking(refreshedBooking);
+                            stateNote.hidden = !stateNote.textContent;
+                        });
                     const removeButton = removeButtons.get(booking.token);
                     if (removeButton) removeButton.hidden = refreshedBooking.status !== 'expired';
-                    const link = links.get(booking.token);
-                    if (link) {
-                        const action = actionForBooking(refreshedBooking);
-                        link.textContent = action.label;
-                        link.className = action.primary ? 'btn btn-primary fw-bold' : 'btn btn-outline-light';
-                    }
+                    [...(links.get(booking.token) || []), ...(previewLinks.get(booking.token) || [])]
+                        .forEach((link) => {
+                            const action = actionForBooking(refreshedBooking);
+                            link.textContent = action.label;
+                            link.className = action.primary ? 'btn btn-primary fw-bold' : 'btn btn-outline-light';
+                        });
                     return refreshedBooking;
                 } catch {
                     return booking;

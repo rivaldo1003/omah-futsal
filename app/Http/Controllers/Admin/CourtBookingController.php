@@ -535,7 +535,16 @@ class CourtBookingController extends Controller
     public function storeCourt(Request $request)
     {
         $this->ensureAdmin();
-        $validated = $this->validateCourt($request);
+
+        try {
+            $validated = $this->validateCourt($request);
+        } catch (ValidationException $exception) {
+            return back()
+                ->withInput()
+                ->withErrors($exception->errors(), 'addCourt')
+                ->with('open_add_court_modal', true);
+        }
+
         Court::query()->create($validated);
 
         return back()->with('success', 'Lapangan berhasil ditambahkan.');

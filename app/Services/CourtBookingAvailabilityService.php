@@ -79,6 +79,11 @@ class CourtBookingAvailabilityService
 
     public function memberScheduleConflict(Court $court, string $date, string $start, string $end): bool
     {
+        return $this->memberScheduleNameForSlot($court, $date, $start, $end) !== null;
+    }
+
+    public function memberScheduleNameForSlot(Court $court, string $date, string $start, string $end): ?string
+    {
         $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
         if ($endAt->lessThanOrEqualTo($startAt)) {
@@ -121,37 +126,49 @@ class CourtBookingAvailabilityService
             }
 
             if ($memberStart->lessThan($endAt) && $memberEnd->greaterThan($startAt)) {
-                return true;
+                return trim((string) $schedule->member_name);
             }
         }
 
-        return false;
+        return null;
     }
 
     public function slotStatus(Court $court, string $date, string $start, string $end): string
     {
+        return $this->slotAvailability($court, $date, $start, $end)['status'];
+    }
+
+    /** @return array{status: string, display_name: ?string} */
+    public function slotAvailability(Court $court, string $date, string $start, string $end): array
+    {
         $slotStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         if ($slotStart->lessThanOrEqualTo(now(CourtBooking::TIMEZONE))) {
-            return 'past';
+            return ['status' => 'past', 'display_name' => null];
         }
 
         $booking = $this->bookingConflict($court, $date, $start, $end);
         if ($booking) {
-            return in_array($booking->status, [
-                CourtBooking::STATUS_AWAITING_PAYMENT,
-                CourtBooking::STATUS_PENDING_REVIEW,
-            ], true) ? 'pending' : 'booked';
+            return [
+                'status' => in_array($booking->status, [
+                    CourtBooking::STATUS_AWAITING_PAYMENT,
+                    CourtBooking::STATUS_PENDING_REVIEW,
+                ], true) ? 'pending' : 'booked',
+                // Only the explicit team/member label is public. Never expose the
+                // customer's personal name, phone number, or email here.
+                'display_name' => filled($booking->team_name) ? trim($booking->team_name) : null,
+            ];
         }
 
         if ($this->matchConflict($court, $date, $start, $end)) {
-            return 'booked';
+            return ['status' => 'booked', 'display_name' => null];
         }
 
-        if ($this->memberScheduleConflict($court, $date, $start, $end)) {
-            return 'member';
+        $memberName = $this->memberScheduleNameForSlot($court, $date, $start, $end);
+        if ($memberName !== null) {
+            return ['status' => 'member', 'display_name' => $memberName];
         }
 
-        return 'available';
+        return ['status' => 'available', 'display_name' => null];
     }
 
     public function lockCourt(int $courtId): ?Court
