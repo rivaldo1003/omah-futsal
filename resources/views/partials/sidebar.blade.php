@@ -335,7 +335,7 @@
 
             <div class="nav-divider">Operasional</div>
 
-            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index', 'admin.court-bookings.manual.*', 'admin.court-bookings.settings', 'admin.court-bookings.member-schedules.*') ? 'active' : '' }}"
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.index', 'admin.court-bookings.manual.*') ? 'active' : '' }}"
                 href="{{ route('admin.court-bookings.index') }}">
                 <i class="bi bi-calendar-check"></i> Booking lapangan
                 @php
@@ -352,6 +352,16 @@
                 @if($waitingCourtBookings > 0)
                     <span class="booking-pending-badge" title="Booking menunggu pembayaran atau verifikasi">{{ $waitingCourtBookings }}</span>
                 @endif
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.member-schedules.*') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.member-schedules.index') }}">
+                <i class="bi bi-people"></i> Jadwal member
+            </a>
+
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.settings') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.settings') }}">
+                <i class="bi bi-sliders"></i> Pengaturan booking
             </a>
 
             <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.daily*') ? 'active' : '' }}"

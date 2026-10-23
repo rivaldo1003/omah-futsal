@@ -6,6 +6,7 @@ use App\Models\Court;
 use App\Models\CourtBooking;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtBookingSetting;
+use App\Models\CourtMemberSchedule;
 use App\Models\CourtRentalItem;
 use App\Models\User;
 use Carbon\Carbon;
@@ -78,6 +79,75 @@ class CourtBookingWorkflowTest extends TestCase
             ->assertOk()
             ->assertJsonPath('status', CourtBooking::STATUS_AWAITING_PAYMENT)
             ->assertHeader('Cache-Control', 'max-age=0, no-store, private');
+    }
+
+    public function test_member_schedules_have_a_dedicated_admin_page_and_can_be_paused(): void
+    {
+        $firstSchedule = CourtMemberSchedule::query()->create([
+            'court_id' => $this->court->id,
+            'member_name' => 'Elano',
+            'day_of_week' => 2,
+            'time_start' => '20:00',
+            'time_end' => '21:00',
+            'is_active' => true,
+        ]);
+        CourtMemberSchedule::query()->create([
+            'court_id' => $this->court->id,
+            'member_name' => 'Elano',
+            'day_of_week' => 6,
+            'time_start' => '20:00',
+            'time_end' => '21:00',
+            'is_active' => true,
+        ]);
+
+        $admin = $this->createAdmin();
+        $this->actingAs($admin)
+            ->get(route('admin.court-bookings.member-schedules.index'))
+            ->assertOk()
+            ->assertSee('Jadwal Member')
+            ->assertSee('Jadwal terdaftar')
+            ->assertSee('2 jadwal')
+            ->assertDontSee('Informasi pembayaran');
+
+        $this->actingAs($admin)
+            ->get(route('admin.court-bookings.settings'))
+            ->assertOk()
+            ->assertSee('Informasi pembayaran')
+            ->assertDontSee('Jadwal terdaftar');
+
+        $this->from(route('admin.court-bookings.member-schedules.index'))
+            ->actingAs($admin)
+            ->post(route('admin.court-bookings.member-schedules.days-off.store', $firstSchedule), [
+                'off_date' => '2026-10-27',
+                'note' => 'Libur khusus',
+            ])
+            ->assertRedirect(route('admin.court-bookings.member-schedules.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('court_member_schedule_days_off', [
+            'court_member_schedule_id' => $firstSchedule->id,
+            'off_date' => '2026-10-27',
+            'note' => 'Libur khusus',
+        ]);
+
+        $this->from(route('admin.court-bookings.member-schedules.index'))
+            ->actingAs($admin)
+            ->put(route('admin.court-bookings.member-schedules.update', $firstSchedule), [
+                'court_id' => $this->court->id,
+                'member_name' => 'Elano',
+                'member_name_mode' => 'existing',
+                'day_of_week' => 2,
+                'time_start' => '20:00',
+                'time_end' => '21:00',
+                'is_active' => '0',
+            ])
+            ->assertRedirect(route('admin.court-bookings.member-schedules.index'))
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('court_member_schedules', [
+            'id' => $firstSchedule->id,
+            'is_active' => false,
+        ]);
     }
 
     public function test_public_booking_uses_server_pricing_and_supports_multiple_consecutive_slots(): void
@@ -555,6 +625,7 @@ class CourtBookingWorkflowTest extends TestCase
             $table->id();
             $table->string('title')->nullable();
             $table->string('status')->nullable();
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
         Schema::create('courts', function (Blueprint $table): void {
@@ -570,6 +641,27 @@ class CourtBookingWorkflowTest extends TestCase
             $table->boolean('is_active')->default(true);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();
+        });
+        Schema::create('court_member_schedules', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('court_id')->constrained()->cascadeOnDelete();
+            $table->string('member_name', 120);
+            $table->unsignedTinyInteger('day_of_week');
+            $table->time('time_start');
+            $table->time('time_end');
+            $table->date('starts_on')->nullable();
+            $table->date('ends_on')->nullable();
+            $table->boolean('is_active')->default(true);
+            $table->string('notes', 500)->nullable();
+            $table->timestamps();
+        });
+        Schema::create('court_member_schedule_days_off', function (Blueprint $table): void {
+            $table->id();
+            $table->foreignId('court_member_schedule_id')->constrained('court_member_schedules')->cascadeOnDelete();
+            $table->date('off_date');
+            $table->string('note', 255)->nullable();
+            $table->timestamps();
+            $table->unique(['court_member_schedule_id', 'off_date']);
         });
         Schema::create('court_booking_settings', function (Blueprint $table): void {
             $table->id();

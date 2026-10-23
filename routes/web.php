@@ -230,17 +230,24 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // ========== MATCHES MANAGEMENT ==========
     Route::prefix('court-bookings')->name('court-bookings.')->group(function () {
         Route::get('/', [AdminCourtBookingController::class, 'index'])->name('index');
+        Route::get('/member-schedules', [AdminCourtBookingController::class, 'memberSchedules'])->name('member-schedules.index');
         Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
         Route::put('/reports/daily/revenue', [AdminCourtBookingController::class, 'updateDailyRevenue'])->name('reports.daily-revenue.update');
         Route::post('/reports/daily/revenue-entries', [AdminCourtBookingController::class, 'storeDailyRevenueEntry'])->name('reports.daily-revenue-entries.store');
         Route::put('/reports/daily/revenue-entries/{entry}', [AdminCourtBookingController::class, 'updateDailyRevenueEntry'])->name('reports.daily-revenue-entries.update');
         Route::delete('/reports/daily/revenue-entries/{entry}', [AdminCourtBookingController::class, 'destroyDailyRevenueEntry'])->name('reports.daily-revenue-entries.destroy');
-        Route::post('/settings/member-schedules', [AdminCourtBookingController::class, 'storeMemberSchedule'])->name('member-schedules.store');
-        Route::put('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'updateMemberSchedule'])->name('member-schedules.update');
-        Route::delete('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'destroyMemberSchedule'])->name('member-schedules.destroy');
-        Route::post('/settings/member-schedules/{schedule}/days-off', [AdminCourtBookingController::class, 'storeMemberDayOff'])->name('member-schedules.days-off.store');
-        Route::delete('/settings/member-schedules/{schedule}/days-off/{dayOff}', [AdminCourtBookingController::class, 'destroyMemberDayOff'])->name('member-schedules.days-off.destroy');
+        Route::post('/member-schedules', [AdminCourtBookingController::class, 'storeMemberSchedule'])->name('member-schedules.store');
+        Route::put('/member-schedules/{schedule}', [AdminCourtBookingController::class, 'updateMemberSchedule'])->name('member-schedules.update');
+        Route::delete('/member-schedules/{schedule}', [AdminCourtBookingController::class, 'destroyMemberSchedule'])->name('member-schedules.destroy');
+        Route::post('/member-schedules/{schedule}/days-off', [AdminCourtBookingController::class, 'storeMemberDayOff'])->name('member-schedules.days-off.store');
+        Route::delete('/member-schedules/{schedule}/days-off/{dayOff}', [AdminCourtBookingController::class, 'destroyMemberDayOff'])->name('member-schedules.days-off.destroy');
+        // Accept open forms from the previous settings page during deployment.
+        Route::post('/settings/member-schedules', [AdminCourtBookingController::class, 'storeMemberSchedule'])->name('settings.member-schedules.store');
+        Route::put('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'updateMemberSchedule'])->name('settings.member-schedules.update');
+        Route::delete('/settings/member-schedules/{schedule}', [AdminCourtBookingController::class, 'destroyMemberSchedule'])->name('settings.member-schedules.destroy');
+        Route::post('/settings/member-schedules/{schedule}/days-off', [AdminCourtBookingController::class, 'storeMemberDayOff'])->name('settings.member-schedules.days-off.store');
+        Route::delete('/settings/member-schedules/{schedule}/days-off/{dayOff}', [AdminCourtBookingController::class, 'destroyMemberDayOff'])->name('settings.member-schedules.days-off.destroy');
         Route::get('/manual/create', [AdminCourtWalkInOrderController::class, 'createBooking'])->name('manual.create');
         Route::post('/manual', [AdminCourtWalkInOrderController::class, 'storeBooking'])->name('manual.store');
         Route::get('/settings', [AdminCourtBookingController::class, 'settings'])->name('settings');

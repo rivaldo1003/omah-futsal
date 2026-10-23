@@ -431,11 +431,30 @@ class CourtBookingController extends Controller
             ['payment_hold_minutes' => 60],
         );
         $courts = Court::query()->orderBy('sort_order')->orderBy('name')->get();
+
+        return view('admin.court-bookings.settings', compact('settings', 'courts'));
+    }
+
+    public function memberSchedules()
+    {
+        $this->ensureAdmin();
+        $courts = Court::query()->orderBy('sort_order')->orderBy('name')->get();
         $memberSchedules = CourtMemberSchedule::query()
             ->with(['court', 'daysOff' => fn ($query) => $query->whereDate('off_date', '>=', now(CourtBooking::TIMEZONE)->toDateString())->orderBy('off_date')])
             ->orderBy('court_id')->orderBy('day_of_week')->orderBy('time_start')->get();
+        $memberScheduleGroups = $memberSchedules->groupBy(fn (CourtMemberSchedule $schedule) => mb_strtolower(
+            preg_replace('/\\s+/u', ' ', trim($schedule->member_name)),
+        ))->sortKeys(SORT_NATURAL | SORT_FLAG_CASE);
+        $memberNames = $memberScheduleGroups
+            ->map(fn ($schedules) => trim($schedules->first()->member_name))
+            ->values();
 
-        return view('admin.court-bookings.settings', compact('settings', 'courts', 'memberSchedules'));
+        return view('admin.court-bookings.member-schedules', compact(
+            'courts',
+            'memberSchedules',
+            'memberNames',
+            'memberScheduleGroups',
+        ));
     }
 
     public function storeMemberSchedule(Request $request)
@@ -453,16 +472,56 @@ class CourtBookingController extends Controller
     public function updateMemberSchedule(Request $request, CourtMemberSchedule $schedule)
     {
         $this->ensureAdmin();
-        $initial = $this->validateMemberSchedule($request, $schedule);
-        if ((int) $initial['court_id'] !== (int) $schedule->court_id) {
-            throw ValidationException::withMessages(['court_id' => 'Lapangan jadwal member tidak dapat dipindahkan. Hapus jadwal lama lalu buat jadwal baru di lapangan yang dituju.']);
+        try {
+            $initial = $this->validateMemberSchedule($request, $schedule);
+            DB::transaction(function () use ($request, $schedule, $initial): void {
+                $courtIds = collect([(int) $schedule->court_id, (int) $initial['court_id']])
+                    ->unique()
+                    ->sort()
+                    ->values();
+                $lockedCourts = Court::query()
+                    ->whereIn('id', $courtIds)
+                    ->orderBy('id')
+                    ->lockForUpdate()
+                    ->get()
+                    ->keyBy('id');
+                if ($lockedCourts->count() !== $courtIds->count()) {
+                    throw ValidationException::withMessages(['court_id' => 'Lapangan yang dipilih tidak lagi tersedia. Muat ulang halaman lalu coba lagi.']);
+                }
+
+                $lockedSchedule = CourtMemberSchedule::query()
+                    ->whereKey($schedule->id)
+                    ->lockForUpdate()
+                    ->firstOrFail();
+                if (!$courtIds->contains((int) $lockedSchedule->court_id)) {
+                    throw ValidationException::withMessages(['court_id' => 'Jadwal berubah saat sedang diedit. Muat ulang halaman lalu coba lagi.']);
+                }
+
+                $validated = $this->validateMemberSchedule($request, $lockedSchedule);
+                $today = CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString();
+                $futureDayOffs = $lockedSchedule->daysOff()
+                    ->whereDate('off_date', '>=', $today)
+                    ->get(['off_date']);
+                $hasInvalidDayOff = $futureDayOffs->contains(function (CourtMemberScheduleDayOff $dayOff) use ($validated): bool {
+                    $offDate = $dayOff->off_date->toDateString();
+
+                    return $dayOff->off_date->dayOfWeek !== (int) $validated['day_of_week']
+                        || (isset($validated['starts_on']) && $offDate < $validated['starts_on'])
+                        || (isset($validated['ends_on']) && $offDate > $validated['ends_on']);
+                });
+                if ($hasInvalidDayOff) {
+                    throw ValidationException::withMessages(['day_of_week' => 'Hapus atau sesuaikan tanggal libur mendatang sebelum mengubah hari atau masa berlaku jadwal.']);
+                }
+
+                $validated['is_active'] = $request->boolean('is_active');
+                $lockedSchedule->update($validated);
+            }, 3);
+        } catch (ValidationException $exception) {
+            return back()
+                ->withInput()
+                ->withErrors($exception->errors(), 'memberSchedule'.$schedule->id)
+                ->with('open_member_schedule_modal', $schedule->id);
         }
-        DB::transaction(function () use ($request, $schedule, $initial): void {
-            Court::query()->whereKey($initial['court_id'])->lockForUpdate()->firstOrFail();
-            $validated = $this->validateMemberSchedule($request, $schedule);
-            $validated['is_active'] = $request->boolean('is_active');
-            $schedule->update($validated);
-        }, 3);
 
         return back()->with('success', 'Jadwal member berhasil diperbarui.');
     }
@@ -1365,6 +1424,7 @@ class CourtBookingController extends Controller
         $validated = $request->validate([
             'court_id' => ['required', 'integer', 'exists:courts,id'],
             'member_name' => ['required', 'string', 'max:120'],
+            'member_name_mode' => ['nullable', Rule::in(['existing', 'new'])],
             'day_of_week' => ['required', 'integer', 'between:0,6'],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i', 'after:time_start'],
@@ -1373,6 +1433,34 @@ class CourtBookingController extends Controller
             'notes' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
         ]);
+
+        $validated['member_name'] = preg_replace('/\\s+/u', ' ', trim($validated['member_name']));
+        $normalizedMemberName = mb_strtolower($validated['member_name']);
+        if (($validated['member_name_mode'] ?? null) === 'new') {
+            $nameAlreadyExists = CourtMemberSchedule::query()
+                ->whereRaw('LOWER(TRIM(member_name)) = ?', [$normalizedMemberName])
+                ->exists();
+
+            if ($nameAlreadyExists) {
+                throw ValidationException::withMessages([
+                    'member_name' => 'Nama ini sudah terdaftar. Pilih nama tersebut dari daftar agar penulisannya konsisten.',
+                ]);
+            }
+        } elseif (($validated['member_name_mode'] ?? null) === 'existing') {
+            $canonicalMemberName = CourtMemberSchedule::query()
+                ->whereRaw('LOWER(TRIM(member_name)) = ?', [$normalizedMemberName])
+                ->orderBy('id')
+                ->value('member_name');
+
+            if (!$canonicalMemberName) {
+                throw ValidationException::withMessages([
+                    'member_name' => 'Nama member tidak ditemukan. Pilih nama yang tersedia atau tambahkan sebagai nama baru.',
+                ]);
+            }
+
+            $validated['member_name'] = $canonicalMemberName;
+        }
+        unset($validated['member_name_mode']);
 
         $candidateStart = $validated['starts_on'] ?? '0001-01-01';
         $candidateEnd = $validated['ends_on'] ?? '9999-12-31';
