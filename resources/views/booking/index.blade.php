@@ -98,6 +98,10 @@
             background: #76879a;
         }
 
+        .legend-dot.match {
+            background: #3478c4;
+        }
+
         .legend-dot.past {
             background: #a6a6a8;
         }
@@ -302,6 +306,32 @@
 
         .slot-button.booked>span:not(.slot-pitch-markings) {
             color: #5c6b7b;
+        }
+
+        .slot-button.match {
+            border-color: #a9c9ea;
+            background: #eaf3ff;
+            color: #174a7d;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        .slot-button.match>span:not(.slot-pitch-markings) {
+            color: #315e89;
+        }
+
+        .slot-button .slot-status-badge--match {
+            display: inline-flex;
+            align-items: center;
+            width: fit-content;
+            padding: 2px 7px;
+            border: 1px solid #b6d4f2;
+            border-radius: 4px;
+            background: #dcecff;
+            color: #164f84;
+            font-size: 10px;
+            font-weight: 700;
+            line-height: 1.4;
         }
 
         .slot-button.past {
@@ -649,6 +679,12 @@
             color: #344254;
         }
 
+        .slot-detail-status--match {
+            border-color: #b6d4f2;
+            background: #dcecff;
+            color: #164f84;
+        }
+
         .slot-detail-status--member {
             border-color: #c9bee9;
             background: #f0edfa;
@@ -674,6 +710,10 @@
             padding: 12px 14px;
             border: 1px solid var(--border-color);
             border-radius: var(--radius-sm);
+        }
+
+        .slot-detail-facts>div[hidden] {
+            display: none;
         }
 
         .slot-detail-facts dt {
@@ -964,7 +1004,8 @@
 
         <div class="booking-legend" aria-label="Keterangan status slot">
             <span class="legend-item"><span class="legend-dot"></span> Tersedia</span>
-            <span class="legend-item"><span class="legend-dot booked"></span> Terisi atau terjadwal</span>
+            <span class="legend-item"><span class="legend-dot booked"></span> Booking terisi</span>
+            <span class="legend-item"><span class="legend-dot match"></span> Jadwal pertandingan</span>
             <span class="legend-item"><span class="legend-dot member"></span> Jadwal member</span>
             <span class="legend-item"><span class="legend-dot pending"></span> Sedang diproses</span>
             <span class="legend-item"><span class="legend-dot past"></span> Waktu sudah lewat</span>
@@ -1022,6 +1063,7 @@
                                     'available' => 'Tersedia',
                                     'pending' => 'Sedang diproses',
                                     'booked' => 'Sudah terisi',
+                                    'match' => 'Jadwal pertandingan',
                                     'member' => 'Jadwal member',
                                     'past' => 'Waktu sudah lewat',
                                     'unavailable' => 'Booking online belum dibuka',
@@ -1029,6 +1071,7 @@
                                 $statusIcons = [
                                     'pending' => 'bi-hourglass-split',
                                     'booked' => 'bi-calendar2-check',
+                                    'match' => 'bi-calendar-event',
                                     'member' => 'bi-person-lock',
                                     'past' => 'bi-clock-history',
                                     'unavailable' => 'bi-info-circle',
@@ -1061,6 +1104,31 @@
                                     </span>
                                     <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
                                     <span>Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot</span>
+                                </button>
+                            @elseif($slotDisplayStatus === 'match' && filled($slot['match_details']))
+                                <button type="button" class="slot-button slot-button--inspect match js-slot-detail"
+                                    data-detail-kind="Pertandingan"
+                                    data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
+                                    data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
+                                    data-detail-court="{{ $schedule['court']->name }}"
+                                    data-detail-date="{{ $date->translatedFormat('l, d F Y') }}"
+                                    data-detail-start="{{ $slot['start'] }}" data-detail-end="{{ $slot['end'] }}"
+                                    data-detail-status="match" aria-haspopup="dialog" aria-controls="slotDetailModal"
+                                    title="Klik untuk melihat detail pertandingan"
+                                    aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}">
+                                    <span class="slot-pitch-markings" aria-hidden="true">
+                                        <span class="slot-pitch-boundary"></span>
+                                        <span class="slot-pitch-midline"></span>
+                                        <span class="slot-pitch-center-circle"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
+                                    </span>
+                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
+                                    <span>
+                                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                                        <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
+                                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                                    </span>
                                 </button>
                             @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
                                 <button type="button" class="slot-button slot-button--inspect {{ $slotDisplayStatus }} js-slot-detail"
@@ -1104,6 +1172,8 @@
                                             <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
                                                 {{ $displayNameLabel.trim($slot['display_name']) }}
                                             </span>
+                                        @elseif($slotDisplayStatus === 'match')
+                                            <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
                                         @else
                                             <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
                                         @endif
@@ -1145,6 +1215,10 @@
                     <span class="slot-detail-status" id="slotDetailStatus"></span>
                     <p class="slot-detail-note" id="slotDetailNote"></p>
                     <dl class="slot-detail-facts">
+                        <div id="slotDetailCompetitionFact" hidden>
+                            <dt>Turnamen / kompetisi</dt>
+                            <dd id="slotDetailCompetition"></dd>
+                        </div>
                         <div>
                             <dt>Lapangan</dt>
                             <dd id="slotDetailCourt"></dd>
@@ -1555,6 +1629,11 @@
                 className: 'slot-detail-status--booked',
                 note: 'Slot ini sudah dipesan untuk jadwal yang ditampilkan.',
             },
+            match: {
+                label: 'Jadwal pertandingan',
+                className: 'slot-detail-status--match',
+                note: 'Lapangan digunakan untuk pertandingan ini dan tidak tersedia untuk booking umum.',
+            },
             member: {
                 label: 'Jadwal member',
                 className: 'slot-detail-status--member',
@@ -1573,6 +1652,9 @@
                 document.getElementById('slotDetailDate').textContent = button.dataset.detailDate;
                 document.getElementById('slotDetailTime').textContent = `${button.dataset.detailStart}–${button.dataset.detailEnd}`;
                 document.getElementById('slotDetailNote').textContent = detail.note;
+                const competitionFact = document.getElementById('slotDetailCompetitionFact');
+                competitionFact.hidden = button.dataset.detailStatus !== 'match';
+                document.getElementById('slotDetailCompetition').textContent = button.dataset.detailCompetition || '';
 
                 const status = document.getElementById('slotDetailStatus');
                 status.className = `slot-detail-status ${detail.className}`;

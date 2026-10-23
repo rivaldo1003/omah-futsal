@@ -79,6 +79,7 @@ class CourtBookingController extends Controller
                     'starts_at' => $cursor->toIso8601String(),
                     'status' => $slotAvailability['status'],
                     'display_name' => $slotAvailability['display_name'],
+                    'match_details' => $slotAvailability['match_details'],
                     'amount' => $pricing->amountForRange($court, $startTime, $duration, $date->toDateString()),
                     'duration' => $duration,
                     'request_key' => (string) Str::uuid(),

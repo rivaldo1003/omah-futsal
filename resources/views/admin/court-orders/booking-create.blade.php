@@ -248,6 +248,10 @@
             background: #52606b;
         }
 
+        .walk-in-legend-mark.match {
+            background: #3478c4;
+        }
+
         .walk-in-legend-mark.member {
             background: #7762b5;
         }
@@ -359,6 +363,23 @@
 
         .walk-in-slot.is-booked .walk-in-slot-copy {
             color: var(--walk-in-charcoal);
+        }
+
+        .walk-in-slot.is-match {
+            border-color: #a9c9ea;
+            background: #eaf3ff;
+            color: #174a7d;
+        }
+
+        .walk-in-slot.is-match .walk-in-slot-copy {
+            width: fit-content;
+            padding: 2px 7px;
+            border: 1px solid #b6d4f2;
+            border-radius: 4px;
+            background: #dcecff;
+            color: #164f84;
+            font-size: 11px;
+            font-weight: 700;
         }
 
         .walk-in-slot.is-member {
@@ -641,8 +662,8 @@
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark"></span>Tersedia</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark pending"></span>Sedang
                     diproses</span>
-                <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Sudah terisi atau
-                    terjadwal</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Booking terisi</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark match"></span>Jadwal pertandingan</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark member"></span>Jadwal member</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu sudah lewat</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang · tarif penuh satu slot</span>
@@ -656,7 +677,8 @@
                     $slotStatusLabels = [
                         'available' => 'Tersedia',
                         'pending' => 'Sedang diproses',
-                        'booked' => 'Sudah terisi atau terjadwal',
+                        'booked' => 'Booking terisi',
+                        'match' => 'Jadwal pertandingan',
                         'member' => 'Jadwal member',
                         'past' => 'Waktu sudah lewat',
                     ];
@@ -664,6 +686,7 @@
                         'available' => 'bi-plus-circle',
                         'pending' => 'bi-hourglass-split',
                         'booked' => 'bi-calendar2-check',
+                        'match' => 'bi-calendar-event',
                         'member' => 'bi-person-lock',
                         'past' => 'bi-clock-history',
                     ];

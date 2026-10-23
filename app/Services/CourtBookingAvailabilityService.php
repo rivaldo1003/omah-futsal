@@ -7,6 +7,7 @@ use App\Models\CourtBooking;
 use App\Models\CourtMemberSchedule;
 use App\Models\Game;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 
 class CourtBookingAvailabilityService
 {
@@ -60,6 +61,18 @@ class CourtBookingAvailabilityService
 
     public function matchConflict(Court $court, string $date, string $start, string $end): bool
     {
+        return $this->matchingGameQuery($court, $date, $start, $end)->exists();
+    }
+
+    public function matchForSlot(Court $court, string $date, string $start, string $end): ?Game
+    {
+        return $this->matchingGameQuery($court, $date, $start, $end)
+            ->with(['tournament:id,name', 'homeTeam:id,name', 'awayTeam:id,name'])
+            ->first();
+    }
+
+    private function matchingGameQuery(Court $court, string $date, string $start, string $end): Builder
+    {
         $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
         if ($endAt->lessThanOrEqualTo($startAt)) {
@@ -74,7 +87,9 @@ class CourtBookingAvailabilityService
             ->where('status', '!=', 'postponed')
             ->whereRaw('TIMESTAMP(match_date, time_start) < ?', [$endAt->format('Y-m-d H:i:s')])
             ->whereRaw("(CASE WHEN time_end <= time_start THEN DATE_ADD(TIMESTAMP(match_date, time_end), INTERVAL 1 DAY) ELSE TIMESTAMP(match_date, time_end) END) > ?", [$startAt->format('Y-m-d H:i:s')])
-            ->exists();
+            ->orderBy('match_date')
+            ->orderBy('time_start')
+            ->orderBy('id');
     }
 
     public function memberScheduleConflict(Court $court, string $date, string $start, string $end): bool
@@ -135,15 +150,15 @@ class CourtBookingAvailabilityService
 
     public function slotStatus(Court $court, string $date, string $start, string $end): string
     {
-        return $this->slotAvailability($court, $date, $start, $end)['status'];
+        return $this->slotAvailability($court, $date, $start, $end, false)['status'];
     }
 
-    /** @return array{status: string, display_name: ?string} */
-    public function slotAvailability(Court $court, string $date, string $start, string $end): array
+    /** @return array{status: string, display_name: ?string, match_details: ?array{competition_name: string, home_team: string, away_team: string}} */
+    public function slotAvailability(Court $court, string $date, string $start, string $end, bool $includeMatchDetails = true): array
     {
         $slotStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         if ($slotStart->lessThanOrEqualTo(now(CourtBooking::TIMEZONE))) {
-            return ['status' => 'past', 'display_name' => null];
+            return ['status' => 'past', 'display_name' => null, 'match_details' => null];
         }
 
         $booking = $this->bookingConflict($court, $date, $start, $end);
@@ -156,19 +171,30 @@ class CourtBookingAvailabilityService
                 // Only the explicit team/member label is public. Never expose the
                 // customer's personal name, phone number, or email here.
                 'display_name' => filled($booking->team_name) ? trim($booking->team_name) : null,
+                'match_details' => null,
             ];
         }
 
-        if ($this->matchConflict($court, $date, $start, $end)) {
-            return ['status' => 'booked', 'display_name' => null];
+        $match = $includeMatchDetails ? $this->matchForSlot($court, $date, $start, $end) : null;
+        $hasMatchConflict = $match !== null || (!$includeMatchDetails && $this->matchConflict($court, $date, $start, $end));
+        if ($hasMatchConflict) {
+            return [
+                'status' => 'match',
+                'display_name' => null,
+                'match_details' => $match ? [
+                    'competition_name' => $match->tournament?->name ?: 'Pertandingan persahabatan',
+                    'home_team' => $match->homeTeam?->name ?: 'TBA',
+                    'away_team' => $match->awayTeam?->name ?: 'TBA',
+                ] : null,
+            ];
         }
 
         $memberName = $this->memberScheduleNameForSlot($court, $date, $start, $end);
         if ($memberName !== null) {
-            return ['status' => 'member', 'display_name' => $memberName];
+            return ['status' => 'member', 'display_name' => $memberName, 'match_details' => null];
         }
 
-        return ['status' => 'available', 'display_name' => null];
+        return ['status' => 'available', 'display_name' => null, 'match_details' => null];
     }
 
     public function lockCourt(int $courtId): ?Court
