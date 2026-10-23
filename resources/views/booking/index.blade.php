@@ -329,6 +329,33 @@
             color: #5d4b8d;
         }
 
+        .slot-button--inspect {
+            width: 100%;
+            cursor: pointer !important;
+            text-align: left;
+            transition: border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .slot-button--inspect:hover {
+            border-color: currentColor;
+            box-shadow: 0 2px 8px rgb(21 31 44 / 10%);
+        }
+
+        .slot-button--inspect:focus-visible {
+            outline: 3px solid #278451;
+            outline-offset: 2px;
+        }
+
+        .slot-button--inspect>span:not(.slot-pitch-markings) {
+            justify-content: space-between;
+        }
+
+        .slot-inspect-icon {
+            flex: 0 0 auto;
+            margin-left: auto;
+            opacity: .72;
+        }
+
         .slot-button.selected .slot-pitch-markings,
         .slot-button.available[aria-pressed="true"] .slot-pitch-markings {
             opacity: .22;
@@ -573,6 +600,97 @@
             border-color: var(--border-color);
         }
 
+        .slot-detail-identity {
+            padding: 15px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--v3-radius-md);
+            background: var(--v3-card);
+        }
+
+        .slot-detail-identity span {
+            display: block;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 650;
+            letter-spacing: .04em;
+            text-transform: uppercase;
+        }
+
+        .slot-detail-identity strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 19px;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .slot-detail-status {
+            display: inline-flex;
+            align-items: center;
+            min-height: 28px;
+            margin: 14px 0 4px;
+            padding: 4px 10px;
+            border: 1px solid transparent;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 650;
+        }
+
+        .slot-detail-status--pending {
+            border-color: #e9c96d;
+            background: #fff6d8;
+            color: #725300;
+        }
+
+        .slot-detail-status--booked {
+            border-color: #c7d1dc;
+            background: #edf1f5;
+            color: #344254;
+        }
+
+        .slot-detail-status--member {
+            border-color: #c9bee9;
+            background: #f0edfa;
+            color: #493b73;
+        }
+
+        .slot-detail-note {
+            margin: 8px 0 0;
+            color: var(--text-secondary);
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .slot-detail-facts {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+            margin: 16px 0 0;
+        }
+
+        .slot-detail-facts>div {
+            min-width: 0;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-sm);
+        }
+
+        .slot-detail-facts dt {
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .slot-detail-facts dd {
+            margin: 0;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 650;
+            overflow-wrap: anywhere;
+        }
+
         .booking-modal .btn-close {
             filter: invert(1);
         }
@@ -776,6 +894,10 @@
             .booking-resume-actions .btn {
                 width: auto;
             }
+
+            .slot-detail-facts {
+                grid-template-columns: minmax(0, 1fr);
+            }
         }
 
         @media(prefers-reduced-motion:reduce) {
@@ -940,6 +1062,31 @@
                                     <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
                                     <span>Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot</span>
                                 </button>
+                            @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
+                                <button type="button" class="slot-button slot-button--inspect {{ $slotDisplayStatus }} js-slot-detail"
+                                    data-detail-kind="{{ $slotDisplayStatus === 'member' ? 'Member' : 'Tim' }}"
+                                    data-detail-name="{{ trim($slot['display_name']) }}"
+                                    data-detail-court="{{ $schedule['court']->name }}"
+                                    data-detail-date="{{ $date->translatedFormat('l, d F Y') }}"
+                                    data-detail-start="{{ $slot['start'] }}" data-detail-end="{{ $slot['end'] }}"
+                                    data-detail-status="{{ $slotDisplayStatus }}" aria-haspopup="dialog"
+                                    aria-controls="slotDetailModal" title="Klik untuk melihat detail jadwal"
+                                    aria-label="Lihat detail {{ $displayNameLabel.trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
+                                    <span class="slot-pitch-markings" aria-hidden="true">
+                                        <span class="slot-pitch-boundary"></span>
+                                        <span class="slot-pitch-midline"></span>
+                                        <span class="slot-pitch-center-circle"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
+                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
+                                    </span>
+                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
+                                    <span>
+                                        <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
+                                            {{ $displayNameLabel.trim($slot['display_name']) }}
+                                        </span>
+                                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                                    </span>
+                                </button>
                             @else
                                 <button type="button" class="slot-button {{ $slotDisplayStatus }}" disabled
                                     aria-label="{{ $slotAriaLabel }}">
@@ -978,6 +1125,46 @@
     </main>
 
     @include('home.partials.footer')
+
+    <div class="modal fade booking-modal" id="slotDetailModal" tabindex="-1" aria-labelledby="slotDetailModalTitle"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5 fw-bold" id="slotDetailModalTitle">Detail slot lapangan</h2>
+                        <p class="booking-resume-intro mt-1 mb-0">Informasi jadwal yang sedang terisi.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="slot-detail-identity">
+                        <span id="slotDetailKind">Tim</span>
+                        <strong id="slotDetailName"></strong>
+                    </div>
+                    <span class="slot-detail-status" id="slotDetailStatus"></span>
+                    <p class="slot-detail-note" id="slotDetailNote"></p>
+                    <dl class="slot-detail-facts">
+                        <div>
+                            <dt>Lapangan</dt>
+                            <dd id="slotDetailCourt"></dd>
+                        </div>
+                        <div>
+                            <dt>Tanggal</dt>
+                            <dd id="slotDetailDate"></dd>
+                        </div>
+                        <div>
+                            <dt>Jam</dt>
+                            <dd id="slotDetailTime"></dd>
+                        </div>
+                    </dl>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="modal fade booking-modal" id="bookingModal" tabindex="-1" aria-labelledby="bookingModalTitle"
         aria-hidden="true">
@@ -1356,6 +1543,44 @@
         const continueBookingButton = document.getElementById('continueBooking');
         const rupiahNumberFormatter = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
         const formatRupiah = (amount) => `Rp ${rupiahNumberFormatter.format(Number(amount) || 0)}`;
+
+        const slotDetailContent = {
+            pending: {
+                label: 'Sedang diproses',
+                className: 'slot-detail-status--pending',
+                note: 'Pemesanan ini masih dalam proses pembayaran atau verifikasi.',
+            },
+            booked: {
+                label: 'Sudah terisi',
+                className: 'slot-detail-status--booked',
+                note: 'Slot ini sudah dipesan untuk jadwal yang ditampilkan.',
+            },
+            member: {
+                label: 'Jadwal member',
+                className: 'slot-detail-status--member',
+                note: 'Slot ini digunakan sesuai jadwal rutin member.',
+            },
+        };
+
+        document.querySelectorAll('.js-slot-detail').forEach((button) => {
+            button.addEventListener('click', () => {
+                const detail = slotDetailContent[button.dataset.detailStatus];
+                if (!detail) return;
+
+                document.getElementById('slotDetailKind').textContent = button.dataset.detailKind;
+                document.getElementById('slotDetailName').textContent = button.dataset.detailName;
+                document.getElementById('slotDetailCourt').textContent = button.dataset.detailCourt;
+                document.getElementById('slotDetailDate').textContent = button.dataset.detailDate;
+                document.getElementById('slotDetailTime').textContent = `${button.dataset.detailStart}–${button.dataset.detailEnd}`;
+                document.getElementById('slotDetailNote').textContent = detail.note;
+
+                const status = document.getElementById('slotDetailStatus');
+                status.className = `slot-detail-status ${detail.className}`;
+                status.textContent = detail.label;
+
+                bootstrap.Modal.getOrCreateInstance(document.getElementById('slotDetailModal')).show();
+            });
+        });
 
         const rentalItemRows = [...document.querySelectorAll('[data-rental-item]')];
         const rentalAvailabilityForItem = (itemId) => {
