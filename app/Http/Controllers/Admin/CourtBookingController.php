@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Court;
 use App\Models\CourtBooking;
+use App\Models\CourtBookingScheduleAudit;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtBookingRentalAddition;
 use App\Models\CourtBookingSetting;
@@ -18,6 +19,7 @@ use App\Models\Game;
 use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
 use App\Services\CourtBookingAvailabilityService;
+use App\Services\CourtPricingService;
 use App\Services\CourtRentalInventoryService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -49,7 +51,7 @@ class CourtBookingController extends Controller
         ]);
 
         $bookings = CourtBooking::query()
-            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
+            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
             ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where(function ($bookingStatus) use ($status) {
                     $bookingStatus->where('status', $status);
@@ -423,6 +425,54 @@ class CourtBookingController extends Controller
         ));
     }
 
+    public function teamHoursReport(Request $request)
+    {
+        $this->ensureAdmin();
+        $today = CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString();
+        $filters = $request->validate([
+            'from' => ['nullable', 'date_format:Y-m-d'],
+            'to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+        $fromDate = $filters['from'] ?? null;
+        $toDate = $filters['to'] ?? $today;
+        if ($fromDate && $toDate < $fromDate) {
+            throw ValidationException::withMessages([
+                'to' => 'Tanggal akhir harus sama atau sesudah tanggal awal.',
+            ]);
+        }
+
+        $baseQuery = CourtBooking::query()
+            ->where('status', CourtBooking::STATUS_CONFIRMED)
+            ->whereNotNull('team_name')
+            ->whereRaw("TRIM(team_name) <> ''")
+            ->when($fromDate, fn ($query) => $query->whereDate('booking_date', '>=', $fromDate))
+            ->whereDate('booking_date', '<=', $toDate);
+
+        $teamCount = (clone $baseQuery)
+            ->selectRaw('COUNT(DISTINCT LOWER(TRIM(team_name))) as team_count')
+            ->first()?->team_count ?? 0;
+        $summary = (clone $baseQuery)
+            ->selectRaw('COUNT(*) as booking_count, COALESCE(SUM(duration_minutes), 0) as total_minutes')
+            ->first();
+
+        $teams = (clone $baseQuery)
+            ->selectRaw('LOWER(TRIM(team_name)) as team_key, MIN(TRIM(team_name)) as team_name, COUNT(*) as booking_count, SUM(duration_minutes) as total_minutes')
+            ->groupBy('team_key')
+            ->orderByDesc('total_minutes')
+            ->orderBy('team_name')
+            ->paginate(30)
+            ->withQueryString();
+
+        return view('admin.court-bookings.team-hours', [
+            'teams' => $teams,
+            'fromDate' => $fromDate,
+            'toDate' => $toDate,
+            'teamCount' => (int) $teamCount,
+            'confirmedBookingCount' => (int) ($summary->booking_count ?? 0),
+            'confirmedMinutes' => (int) ($summary->total_minutes ?? 0),
+        ]);
+    }
+
     public function settings()
     {
         $this->ensureAdmin();
@@ -764,6 +814,132 @@ class CourtBookingController extends Controller
         return back()->with('success', 'Nama tim booking berhasil disimpan.');
     }
 
+    public function updateSchedule(
+        Request $request,
+        CourtBooking $booking,
+        CourtBookingAvailabilityService $availability,
+        CourtPricingService $pricing,
+    ) {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            '_schedule_edit_booking_id' => ['required', 'integer', 'in:'.$booking->id],
+            'booking_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString()],
+            'time_start' => ['required', 'date_format:H:i'],
+            'time_end' => ['required', 'date_format:H:i'],
+            'reason' => ['required', 'string', 'max:500'],
+        ], [
+            'booking_date.before_or_equal' => 'Koreksi jadwal hanya dapat disimpan untuk tanggal hari ini atau tanggal sebelumnya.',
+        ]);
+
+        DB::transaction(function () use ($booking, $validated, $availability, $pricing) {
+            // Serialize edits and new bookings for this court, then lock the booking row.
+            $court = $availability->lockCourt((int) $booking->court_id);
+            if (!$court) {
+                throw ValidationException::withMessages(['booking' => 'Lapangan booking ini sudah tidak tersedia.']);
+            }
+
+            $lockedBooking = CourtBooking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+            if ($lockedBooking->status !== CourtBooking::STATUS_CONFIRMED) {
+                throw ValidationException::withMessages(['booking' => 'Jadwal hanya dapat dikoreksi untuk booking yang sudah terkonfirmasi.']);
+            }
+
+            $start = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $validated['booking_date'].' '.$validated['time_start'],
+                CourtBooking::TIMEZONE,
+            );
+            $end = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $validated['booking_date'].' '.$validated['time_end'],
+                CourtBooking::TIMEZONE,
+            );
+            if (!$start || !$end) {
+                throw ValidationException::withMessages(['time_end' => 'Tanggal atau jam booking tidak valid.']);
+            }
+            if ($end->lessThanOrEqualTo($start)) {
+                $end = $end->addDay();
+            }
+
+            $durationMinutes = intdiv($end->getTimestamp() - $start->getTimestamp(), 60);
+            $now = CarbonImmutable::now(CourtBooking::TIMEZONE);
+            if ($durationMinutes < 1 || $durationMinutes > 1440) {
+                throw ValidationException::withMessages(['time_end' => 'Durasi koreksi harus lebih dari 0 dan maksimal 24 jam.']);
+            }
+            if ($end->isAfter($now)) {
+                throw ValidationException::withMessages(['time_end' => 'Koreksi hanya untuk pemakaian yang sudah selesai. Jam selesai harus sudah lewat.']);
+            }
+
+            $conflictingBooking = $availability->bookingConflict(
+                $court,
+                $validated['booking_date'],
+                $validated['time_start'],
+                $validated['time_end'],
+                (int) $lockedBooking->id,
+            );
+            if ($conflictingBooking) {
+                throw ValidationException::withMessages([
+                    'time_start' => 'Jadwal berbenturan dengan booking lain (#'.str_pad((string) $conflictingBooking->id, 6, '0', STR_PAD_LEFT).'). Periksa kembali tanggal dan jamnya.',
+                ]);
+            }
+
+            $courtAmount = $pricing->amountForRange(
+                $court,
+                $validated['time_start'],
+                $durationMinutes,
+                $validated['booking_date'],
+            );
+            $rentalAmount = (float) $lockedBooking->rentalLines()->sum('line_total');
+            $newAmount = round($courtAmount + $rentalAmount, 2);
+            $paidAmount = (float) $lockedBooking->payments()
+                ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+                ->sum(DB::raw('COALESCE(verified_amount, amount)'));
+
+            if ($newAmount + 0.009 < $paidAmount) {
+                throw ValidationException::withMessages([
+                    'time_end' => 'Total baru (Rp '.number_format($newAmount, 0, ',', '.').') lebih kecil daripada pembayaran yang sudah diterima (Rp '.number_format($paidAmount, 0, ',', '.').'). Koreksi ini belum dapat disimpan karena belum ada alur pencatatan kelebihan pembayaran/refund.',
+                ]);
+            }
+
+            $before = [
+                'booking_date' => $lockedBooking->booking_date->toDateString(),
+                'time_start' => substr((string) $lockedBooking->time_start, 0, 5),
+                'time_end' => substr((string) $lockedBooking->time_end, 0, 5),
+                'duration_minutes' => (int) $lockedBooking->duration_minutes,
+                'amount' => (float) $lockedBooking->amount,
+            ];
+            $after = [
+                'booking_date' => $validated['booking_date'],
+                'time_start' => $validated['time_start'],
+                'time_end' => $validated['time_end'],
+                'duration_minutes' => $durationMinutes,
+                'amount' => $newAmount,
+            ];
+
+            if ($before === $after) {
+                throw ValidationException::withMessages(['booking' => 'Tidak ada perubahan jadwal atau total tagihan untuk disimpan.']);
+            }
+
+            $lockedBooking->update([
+                'booking_date' => $validated['booking_date'],
+                'time_start' => $validated['time_start'],
+                'time_end' => $validated['time_end'],
+                'duration_minutes' => $durationMinutes,
+                'amount' => $newAmount,
+            ]);
+
+            CourtBookingScheduleAudit::query()->create([
+                'court_booking_id' => $lockedBooking->id,
+                'admin_id' => auth()->id(),
+                'admin_name_snapshot' => auth()->user()?->name,
+                'reason' => trim($validated['reason']),
+                'before_data' => $before,
+                'after_data' => $after,
+            ]);
+        });
+
+        return back()->with('success', 'Jadwal booking berhasil dikoreksi. Total tagihan dihitung ulang dan riwayat koreksi tersimpan. Pembayaran yang telah diterima tidak diubah.');
+    }
+
     public function updateDailyRevenue(Request $request)
     {
         $this->ensureAdmin();
@@ -900,6 +1076,9 @@ class CourtBookingController extends Controller
                 'verified_by' => auth()->id(),
                 'recorded_at' => $now,
                 'verified_at' => $now,
+            ]);
+            $lockedBooking->update([
+                'payment_method' => $validated['payment_method'],
             ]);
         });
 

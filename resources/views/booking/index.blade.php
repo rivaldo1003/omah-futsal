@@ -1013,7 +1013,8 @@
 
         @if($hasPaymentOption)
             <p class="booking-selection-help" id="bookingSelectionHelp">Untuk booking lebih dari satu slot, pilih jam
-                pertama lalu pilih slot di sebelahnya secara berurutan. Semua jam akan masuk dalam satu booking.</p>
+                pertama lalu pilih slot di sebelahnya secara berurutan. Slot yang waktunya sudah lewat tidak dapat dipesan
+                secara online. Semua jam yang dipilih masuk dalam satu booking.</p>
         @endif
         <section class="booking-selection" id="bookingSelection" hidden aria-live="polite"
             aria-label="Ringkasan pilihan booking">
@@ -1056,6 +1057,9 @@
                         @foreach($schedule['slots'] as $slot)
                             @php
                                 $slotDisplayStatus = $slot['status'];
+                                if ($slotDisplayStatus === 'past_available') {
+                                    $slotDisplayStatus = 'past';
+                                }
                                 if ($slotDisplayStatus === 'available' && !$hasPaymentOption) {
                                     $slotDisplayStatus = 'unavailable';
                                 }
@@ -1094,7 +1098,7 @@
                                     data-duration="{{ $slot['duration'] }}"
                                     data-amount-cents="{{ (int) round((float) $slot['amount'] * 100) }}"
                                     data-rental-availability='@json($slot['rental_availability'])'
-                                    aria-describedby="bookingSelectionHelp" aria-pressed="false">
+                                    aria-label="{{ $slotAriaLabel }}" aria-describedby="bookingSelectionHelp" aria-pressed="false">
                                     <span class="slot-pitch-markings" aria-hidden="true">
                                         <span class="slot-pitch-boundary"></span>
                                         <span class="slot-pitch-midline"></span>
@@ -1723,9 +1727,8 @@
                 button.classList.toggle('selected', selected);
                 button.setAttribute('aria-pressed', selected ? 'true' : 'false');
                 const slotAmount = Number(button.dataset.amountCents) / 100;
-                button.querySelector('span').textContent = selected
-                    ? 'Bagian booking'
-                    : `${formatRupiah(slotAmount)} · Pilih slot`;
+                const statusCopy = button.querySelector(':scope > span:not(.slot-pitch-markings)');
+                statusCopy.textContent = selected ? 'Bagian booking' : `${formatRupiah(slotAmount)} · Pilih slot`;
             });
 
             selectionPanel.hidden = selectedSlots.length === 0;
@@ -1785,35 +1788,22 @@
             }
         };
 
-        const disableSlotsThatHaveStarted = () => {
+        const markSlotsThatHavePassed = () => {
             const now = Date.now();
             let selectionExpired = false;
             slotButtons.filter((button) => !button.disabled).forEach((button) => {
                 if (Date.parse(button.dataset.startsAt) <= now) {
+                    selectionExpired = selectionExpired || selectedSlots.includes(button);
+                    selectedSlots = selectedSlots.filter((selected) => selected !== button);
                     button.disabled = true;
-                    button.classList.remove('available');
+                    button.classList.remove('available', 'selected');
                     button.classList.add('past');
                     button.setAttribute('aria-label', `${button.dataset.start} sampai ${button.dataset.end}: Waktu sudah lewat`);
-                    const slotStatus = button.querySelector(':scope > span:not(.slot-pitch-markings)');
-                    if (slotStatus) {
-                        const icon = document.createElement('i');
-                        icon.className = 'bi bi-clock-history';
-                        icon.setAttribute('aria-hidden', 'true');
-
-                        const label = document.createElement('span');
-                        label.className = 'slot-status-copy';
-                        label.textContent = 'Waktu sudah lewat';
-
-                        slotStatus.replaceChildren(icon, label);
-                    }
-                    selectionExpired = selectionExpired || selectedSlots.includes(button);
+                    const statusCopy = button.querySelector(':scope > span:not(.slot-pitch-markings)');
+                    if (statusCopy) statusCopy.innerHTML = '<i class="bi bi-clock-history" aria-hidden="true"></i>Waktu sudah lewat';
                 }
             });
-
-            if (selectionExpired) {
-                selectedSlots = [];
-                updateSelection('Slot yang dipilih sudah dimulai. Pilih rentang waktu yang lain.');
-            }
+            updateSelection(selectionExpired ? 'Slot yang waktunya sudah lewat dihapus dari pilihan.' : '');
         };
 
         slotButtons.forEach((button) => {
@@ -1845,8 +1835,8 @@
             bootstrap.Modal.getOrCreateInstance(document.getElementById('bookingModal')).show();
         });
 
-        disableSlotsThatHaveStarted();
-        window.setInterval(disableSlotsThatHaveStarted, 15000);
+        markSlotsThatHavePassed();
+        window.setInterval(markSlotsThatHavePassed, 15000);
     </script>
 </body>
 

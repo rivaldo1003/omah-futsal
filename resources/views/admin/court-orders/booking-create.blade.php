@@ -323,6 +323,18 @@
             background: var(--walk-in-cloud);
         }
 
+        .walk-in-slot.is-available.is-past-available {
+            border-color: #a6a6a8;
+            background: #f3f3f3;
+            color: #3f464b;
+        }
+
+        .walk-in-slot.is-available.is-past-available:hover:not(.is-selected) {
+            border-color: var(--walk-in-success);
+            background: #e7f1eb;
+            color: var(--walk-in-success);
+        }
+
         .walk-in-slot.is-available:focus-visible {
             outline: 2px solid var(--walk-in-ink);
             outline-offset: 2px;
@@ -369,6 +381,7 @@
             border-color: #a9c9ea;
             background: #eaf3ff;
             color: #174a7d;
+            cursor: pointer;
         }
 
         .walk-in-slot.is-match .walk-in-slot-copy {
@@ -380,6 +393,137 @@
             color: #164f84;
             font-size: 11px;
             font-weight: 700;
+        }
+
+        .walk-in-slot.is-inspectable {
+            cursor: pointer;
+        }
+
+        .walk-in-slot.is-inspectable:hover,
+        .walk-in-slot.is-inspectable:focus-visible {
+            border-color: var(--walk-in-charcoal);
+        }
+
+        .walk-in-slot.is-inspectable:focus-visible {
+            outline: 2px solid var(--walk-in-ink);
+            outline-offset: 2px;
+        }
+
+        .walk-in-slot.is-inspectable .walk-in-slot-copy {
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .walk-in-slot.is-match.is-inspectable:hover,
+        .walk-in-slot.is-match.is-inspectable:focus-visible {
+            border-color: #6e9fce;
+            background: #dcecff;
+        }
+
+        .walk-in-slot.is-match.is-inspectable:focus-visible {
+            outline-color: #3478c4;
+        }
+
+        .walk-in-detail-modal .modal-content {
+            overflow: hidden;
+            border: 1px solid var(--walk-in-line);
+            border-radius: 12px;
+            background: var(--walk-in-white);
+            box-shadow: 0 18px 50px rgb(17 17 17 / 16%);
+        }
+
+        .walk-in-detail-modal .modal-header,
+        .walk-in-detail-modal .modal-footer {
+            border-color: var(--walk-in-line-soft);
+            padding: 18px 22px;
+        }
+
+        .walk-in-detail-modal .modal-body {
+            padding: 22px;
+        }
+
+        .walk-in-detail-summary {
+            padding: 16px;
+            border-radius: 8px;
+            background: var(--walk-in-cloud);
+        }
+
+        .walk-in-detail-summary-label,
+        .walk-in-detail-facts dt {
+            margin: 0 0 5px;
+            color: var(--walk-in-muted);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .walk-in-detail-summary strong {
+            display: block;
+            color: var(--walk-in-ink);
+            font-size: 19px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .walk-in-detail-status {
+            display: inline-flex;
+            margin-top: 14px;
+            padding: 5px 9px;
+            border: 1px solid var(--walk-in-line);
+            border-radius: 999px;
+            background: var(--walk-in-cloud);
+            color: var(--walk-in-charcoal);
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .walk-in-detail-status--pending {
+            border-color: #f0dfbd;
+            background: #fff6e7;
+            color: var(--walk-in-warning);
+        }
+
+        .walk-in-detail-status--booked {
+            border-color: var(--walk-in-line-soft);
+            background: var(--walk-in-cloud);
+            color: var(--walk-in-charcoal);
+        }
+
+        .walk-in-detail-status--member {
+            border-color: #c9bee9;
+            background: #f0edfa;
+            color: #493b73;
+        }
+
+        .walk-in-detail-status--match {
+            border-color: #b6d4f2;
+            background: #dcecff;
+            color: #164f84;
+        }
+
+        .walk-in-detail-note {
+            margin: 12px 0 0;
+            color: var(--walk-in-muted);
+            font-size: 13px;
+        }
+
+        .walk-in-detail-facts {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 18px 24px;
+            margin: 20px 0 0;
+        }
+
+        .walk-in-detail-facts>div[hidden] {
+            display: none;
+        }
+
+        .walk-in-detail-facts dd {
+            margin: 0;
+            color: var(--walk-in-ink);
+            font-size: 14px;
+            font-weight: 500;
         }
 
         .walk-in-slot.is-member {
@@ -556,6 +700,12 @@
                 padding: 10px 12px;
             }
 
+            .walk-in-detail-modal .modal-header,
+            .walk-in-detail-modal .modal-footer,
+            .walk-in-detail-modal .modal-body {
+                padding: 16px;
+            }
+
             .walk-in-selection,
             .walk-in-selection>.btn {
                 width: 100%;
@@ -644,8 +794,10 @@
                 {{ $selectedCourt->name }} · {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}
                 · 30 menit per slot
                 @if(\Carbon\CarbonImmutable::parse($date)->isWeekend())
-                    · Siang akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_day_hourly_rate, 0, ',', '.') }}/jam
-                    · Malam akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_night_hourly_rate, 0, ',', '.') }}/jam
+                    · Siang akhir pekan Rp
+                    {{ number_format((float) $selectedCourt->weekend_day_hourly_rate, 0, ',', '.') }}/jam
+                    · Malam akhir pekan Rp
+                    {{ number_format((float) $selectedCourt->weekend_night_hourly_rate, 0, ',', '.') }}/jam
                 @else
                     · Siang Rp {{ number_format((float) $selectedCourt->day_hourly_rate, 0, ',', '.') }}/jam
                     · Malam Rp {{ number_format((float) $selectedCourt->night_hourly_rate, 0, ',', '.') }}/jam
@@ -663,21 +815,25 @@
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark pending"></span>Sedang
                     diproses</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Booking terisi</span>
-                <span class="walk-in-legend-item"><span class="walk-in-legend-mark match"></span>Jadwal pertandingan</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark match"></span>Jadwal
+                    pertandingan</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark member"></span>Jadwal member</span>
-                <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu sudah lewat</span>
-                <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang · tarif penuh satu slot</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu lewat · tetap bisa dipilih</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang ·
+                    tarif penuh satu slot</span>
             </div>
 
-            <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Jadwal member,
-                pertandingan, dan booking aktif ditampilkan langsung di bawah. Untuk slot yang sedang berjalan, admin dapat
-                memilih mulai sekarang jika masih tersisa sedikitnya 30 menit; tarifnya tetap tarif penuh satu slot.</p>
+            <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Slot kosong yang waktunya
+                sudah lewat tetap dapat dicatat untuk administrasi; booking aktif, jadwal member, dan pertandingan tetap
+                mengunci slot. Untuk slot yang sedang berjalan, admin juga dapat memilih mulai sekarang jika masih tersisa
+                sedikitnya 30 menit.</p>
             <div class="walk-in-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
                 @php
                     $slotStatusLabels = [
                         'available' => 'Tersedia',
+                        'past_available' => 'Waktu lewat, tetap bisa dipilih',
                         'pending' => 'Sedang diproses',
-                        'booked' => 'Booking terisi',
+                        'booked' => 'Sudah terisi',
                         'match' => 'Jadwal pertandingan',
                         'member' => 'Jadwal member',
                         'past' => 'Waktu sudah lewat',
@@ -694,7 +850,7 @@
                 @foreach($courtSlots as $slot)
                 @php
                     $instantRange = $slot['instant_range'] ?? null;
-                    $minutesForTime = fn ($time) => ((int) substr($time, 0, 2) * 60) + (int) substr($time, 3, 2);
+                    $minutesForTime = fn($time) => ((int) substr($time, 0, 2) * 60) + (int) substr($time, 3, 2);
                     $selectedStartMinutes = $selectedRange ? $minutesForTime($selectedRange['start']) : null;
                     $selectedEndMinutes = $selectedRange ? $minutesForTime($selectedRange['end']) : null;
                     if ($selectedRange && $selectedEndMinutes <= $selectedStartMinutes) {
@@ -709,30 +865,65 @@
                         ? $selectedRange['value'] === $instantRange['value']
                         : (!($selectedRange['is_instant'] ?? false) && $slotStartMinutes >= $selectedStartMinutes && $slotEndMinutes <= $selectedEndMinutes));
                 @endphp
-                @if($slot['status'] === 'available' || $instantRange)
-                    <button type="button" class="walk-in-slot is-available{{ $instantRange ? ' is-instant' : '' }}{{ $isSelectedSlot ? ' is-selected' : '' }}"
+                @if(in_array($slot['status'], ['available', 'past_available'], true) || $instantRange)
+                    <button type="button"
+                        class="walk-in-slot is-available{{ $slot['status'] === 'past_available' ? ' is-past-available' : '' }}{{ $instantRange ? ' is-instant' : '' }}{{ $isSelectedSlot ? ' is-selected' : '' }}"
                         data-start="{{ $instantRange['start'] ?? $slot['start'] }}" data-end="{{ $slot['end'] }}"
                         data-starts-at="{{ $instantRange['starts_at'] ?? $slot['starts_at'] }}"
+                        data-time-passed="{{ $slot['status'] === 'past_available' ? 'true' : 'false' }}"
                         data-amount="{{ $instantRange['amount'] ?? $slot['amount'] }}"
-                        data-range-value="{{ $instantRange['value'] ?? ($slot['start'].'|'.$slot['end']) }}"
-                        data-instant="{{ $instantRange ? 'true' : 'false' }}"
-                        @if($instantRange)
+                        data-range-value="{{ $instantRange['value'] ?? ($slot['start'] . '|' . $slot['end']) }}"
+                        data-instant="{{ $instantRange ? 'true' : 'false' }}" @if($instantRange)
                             data-slot-minutes="{{ $instantRange['slot_minutes'] }}"
                             data-ends-at="{{ $instantRange['ends_at'] }}"
-                            data-last-start-at="{{ $instantRange['last_start_at'] }}"
-                        @endif
+                        data-last-start-at="{{ $instantRange['last_start_at'] }}" @endif
                         aria-pressed="{{ $isSelectedSlot ? 'true' : 'false' }}">
-                        <span class="walk-in-slot-time">{{ $instantRange ? 'Mulai sekarang · sampai '.$slot['end'] : $slot['start'].'–'.$slot['end'] }}</span>
-                        <span class="walk-in-slot-copy">Rp {{ number_format($instantRange['amount'] ?? $slot['amount'], 0, ',', '.') }} ·
-                            {{ $instantRange ? 'Tarif penuh '.$instantRange['slot_minutes'].' menit' : ($isSelectedSlot ? 'Dipilih' : 'Pilih slot') }}</span>
+                        <span
+                            class="walk-in-slot-time">{{ $instantRange ? 'Mulai sekarang · sampai ' . $slot['end'] : $slot['start'] . '–' . $slot['end'] }}</span>
+                        <span class="walk-in-slot-copy">{{ $slot['status'] === 'past_available' ? 'Waktu lewat · ' : '' }}Rp
+                            {{ number_format($instantRange['amount'] ?? $slot['amount'], 0, ',', '.') }} ·
+                            {{ $instantRange ? 'Tarif penuh ' . $instantRange['slot_minutes'] . ' menit' : ($isSelectedSlot ? 'Dipilih' : 'Pilih slot') }}</span>
+                    </button>
+                @elseif($slot['status'] === 'match' && filled($slot['match_details']))
+                    <button type="button" class="walk-in-slot is-match is-inspectable js-walk-in-slot-detail"
+                        data-detail-kind="Pertandingan"
+                        data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
+                        data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
+                        data-detail-status="match" data-detail-court="{{ $selectedCourt->name }}"
+                        data-detail-date="{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}"
+                        data-detail-time="{{ $slot['start'] }}–{{ $slot['end'] }}" aria-haspopup="dialog"
+                        aria-controls="walkInSlotDetailModal"
+                        aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
+                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
+                        <span class="walk-in-slot-copy">
+                            <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>Jadwal pertandingan
+                            <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                        </span>
+                    </button>
+                @elseif(in_array($slot['status'], ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
+                @php($slotNamePrefix = $slot['status'] === 'member' ? 'Member: ' : 'Tim: ')
+                    <button type="button"
+                        class="walk-in-slot is-{{ $slot['status'] }} is-inspectable js-walk-in-slot-detail"
+                        data-detail-kind="{{ $slot['status'] === 'member' ? 'Member' : 'Tim' }}"
+                        data-detail-name="{{ trim($slot['display_name']) }}" data-detail-status="{{ $slot['status'] }}"
+                        data-detail-court="{{ $selectedCourt->name }}"
+                        data-detail-date="{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}"
+                        data-detail-time="{{ $slot['start'] }}–{{ $slot['end'] }}" aria-haspopup="dialog"
+                        aria-controls="walkInSlotDetailModal"
+                        aria-label="Lihat detail {{ $slotNamePrefix . trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
+                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
+                        <span class="walk-in-slot-copy">
+                            {{ $slotNamePrefix . trim($slot['display_name']) }}
+                            <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                        </span>
                     </button>
                 @else
-                    <button type="button" class="walk-in-slot is-{{ $slot['status'] }}" disabled
-                        aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $slotStatusLabels[$slot['status']] }}">
-                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
-                        <span class="walk-in-slot-copy"><i class="bi {{ $slotIcons[$slot['status']] }} me-1"
-                                aria-hidden="true"></i>{{ $slotStatusLabels[$slot['status']] }}</span>
-                    </button>
+                <button type="button" class="walk-in-slot is-{{ $slot['status'] }}" disabled
+                    aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $slotStatusLabels[$slot['status']] }}">
+                    <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
+                    <span class="walk-in-slot-copy"><i class="bi {{ $slotIcons[$slot['status']] }} me-1"
+                            aria-hidden="true"></i>{{ $slotStatusLabels[$slot['status']] }}</span>
+                </button>
                 @endif
                 @endforeach
             </div>
@@ -740,9 +931,9 @@
             <div class="walk-in-selection" aria-live="polite">
                 <div class="walk-in-selection-summary">
                     <strong
-                        id="walkInSelectionSummary">{{ $selectedRange ? (($selectedRange['is_instant'] ?? false) ? 'Mulai sekarang · sampai '.$selectedRange['end'] : $selectedRange['start'] . '–' . $selectedRange['end']) : 'Belum ada slot dipilih' }}</strong>
+                        id="walkInSelectionSummary">{{ $selectedRange ? (($selectedRange['is_instant'] ?? false) ? 'Mulai sekarang · sampai ' . $selectedRange['end'] : $selectedRange['start'] . '–' . $selectedRange['end']) : 'Belum ada slot dipilih' }}</strong>
                     <span id="walkInSelectionDetails"
-                        class="small text-secondary">{{ $selectedRange ? $selectedRange['duration_label'] . (($selectedRange['is_instant'] ?? false) ? ' aktual · tarif penuh '.$selectedRange['slot_minutes'].' menit · ' : ' · ') . 'Rp ' . number_format($selectedRange['amount'], 0, ',', '.') : 'Pilih slot yang tersedia untuk melanjutkan.' }}</span>
+                        class="small text-secondary">{{ $selectedRange ? $selectedRange['duration_label'] . (($selectedRange['is_instant'] ?? false) ? ' aktual · tarif penuh ' . $selectedRange['slot_minutes'] . ' menit · ' : ' · ') . 'Rp ' . number_format($selectedRange['amount'], 0, ',', '.') : 'Pilih slot yang tersedia untuk melanjutkan.' }}</span>
                 </div>
                 <button class="btn btn-outline-secondary" type="submit" id="walkInContinue" @disabled(!$selectedRange)>
                     <i class="bi bi-arrow-right me-1" aria-hidden="true"></i>Lanjut ke data pelanggan
@@ -751,6 +942,49 @@
             <p class="small text-secondary mt-2 mb-0" id="walkInSelectionMessage" role="status"></p>
         </div>
     </form>
+    @endif
+
+    @if($selectedCourt && $courtSlots->isNotEmpty())
+        <div class="modal fade walk-in-detail-modal" id="walkInSlotDetailModal" tabindex="-1"
+            aria-labelledby="walkInSlotDetailTitle" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h2 class="modal-title fs-5 fw-semibold" id="walkInSlotDetailTitle">Detail jadwal</h2>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="walk-in-detail-summary">
+                            <p class="walk-in-detail-summary-label" id="walkInSlotDetailKind"></p>
+                            <strong id="walkInSlotDetailName"></strong>
+                        </div>
+                        <span class="walk-in-detail-status" id="walkInSlotDetailStatus"></span>
+                        <p class="walk-in-detail-note" id="walkInSlotDetailNote"></p>
+                        <dl class="walk-in-detail-facts">
+                            <div id="walkInSlotDetailCompetitionFact" hidden>
+                                <dt>Turnamen / kompetisi</dt>
+                                <dd id="walkInSlotDetailCompetition"></dd>
+                            </div>
+                            <div>
+                                <dt>Lapangan</dt>
+                                <dd id="walkInSlotDetailCourt"></dd>
+                            </div>
+                            <div>
+                                <dt>Tanggal</dt>
+                                <dd id="walkInSlotDetailDate"></dd>
+                            </div>
+                            <div>
+                                <dt>Jam</dt>
+                                <dd id="walkInSlotDetailTime"></dd>
+                            </div>
+                        </dl>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     @endif
 
     @if($courts->isEmpty())
@@ -778,7 +1012,8 @@
                 <div><strong>{{ $selectedCourt->name }}</strong> ·
                     {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} ·
                     @if($selectedRange['is_instant'] ?? false)
-                        Mulai sekarang sampai {{ $selectedRange['end'] }} · {{ $selectedRange['duration_label'] }} aktual · tarif penuh {{ $selectedRange['slot_minutes'] }} menit
+                        Mulai sekarang sampai {{ $selectedRange['end'] }} · {{ $selectedRange['duration_label'] }} aktual ·
+                        tarif penuh {{ $selectedRange['slot_minutes'] }} menit
                     @else
                         {{ $selectedRange['start'] }}–{{ $selectedRange['end'] }} ({{ $selectedRange['duration_label'] }})
                     @endif
@@ -817,31 +1052,34 @@
                         <div class="col-12 col-md-5">
                             <label class="form-label" for="walkInPayment">Metode pembayaran</label>
                             <select class="form-select" id="walkInPayment" name="payment_method" required>
-                                <option value="cash" @selected(old('payment_method', 'cash') === 'cash')>Tunai</option>
+                                <option value="none" @selected(old('payment_method', 'none') === 'none')>Belum ada pembayaran</option>
+                                <option value="cash" @selected(old('payment_method') === 'cash')>Tunai</option>
                                 <option value="bank_transfer" @selected(old('payment_method') === 'bank_transfer')>
                                     Transfer bank</option>
                                 <option value="qris" @selected(old('payment_method') === 'qris')>QRIS</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-7">
-                            <label class="form-label" for="walkInAmountReceivedDisplay">Nominal yang diterima sekarang</label>
+                            <label class="form-label" for="walkInAmountReceivedDisplay">Nominal yang diterima sekarang
+                                <span class="text-secondary">(opsional)</span></label>
                             <div class="input-group">
                                 <span class="input-group-text">Rp</span>
                                 <input class="form-control" id="walkInAmountReceivedDisplay" type="text"
                                     inputmode="numeric" autocomplete="off" spellcheck="false" maxlength="16"
                                     value="{{ old('amount_received') !== null ? number_format((float) old('amount_received'), 0, ',', '.') : '' }}"
-                                    placeholder="Contoh: 150.000" data-rupiah-input required
+                                    placeholder="Kosongkan jika belum menerima pembayaran" data-rupiah-input
                                     aria-describedby="walkInAmountReceivedHelp">
                                 <input type="hidden" id="walkInAmountReceived" name="amount_received"
                                     value="{{ old('amount_received', '') }}" data-rupiah-value>
                             </div>
                             <div class="form-text" id="walkInAmountReceivedHelp">
-                                Masukkan jumlah yang benar-benar diterima. Pembayaran sebagian akan dicatat sebagai DP.
+                                Kosongkan atau isi 0 jika booking dikonfirmasi tanpa DP. Jika ada pembayaran, masukkan nominal yang benar-benar diterima.
                             </div>
                             <div class="small mt-1" aria-live="polite">
-                                Sisa setelah pembayaran ini: <strong id="walkInBalance">Masukkan nominal pembayaran</strong>
+                                Sisa tagihan: <strong id="walkInBalance">Rp {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong>
                             </div>
-                            <div class="text-danger small mt-1" id="walkInAmountReceivedError" role="alert" @if(!$errors->has('amount_received')) hidden @endif>
+                            <div class="text-danger small mt-1" id="walkInAmountReceivedError" role="alert"
+                                @if(!$errors->has('amount_received')) hidden @endif>
                                 {{ $errors->first('amount_received') }}
                             </div>
                         </div>
@@ -852,8 +1090,8 @@
                                 value="{{ old('payment_reference') }}">
                         </div>
                     </div>
-                    <div class="form-text mt-3">Booking langsung terkonfirmasi setelah pembayaran yang dicatat diterima.
-                        Sisa tagihan dapat dicatat kemudian dari daftar booking.</div>
+                    <div class="form-text mt-3">Booking walk-in langsung terkonfirmasi. Pembayaran awal boleh dikosongkan;
+                        sisa tagihan tetap tercatat dan dapat diperbarui dari daftar booking.</div>
                 </div>
             </section>
 
@@ -929,6 +1167,56 @@
 @section('scripts')
     <script>
         (() => {
+            const slotDetailModal = document.getElementById('walkInSlotDetailModal');
+            const slotDetailContent = {
+                pending: {
+                    label: 'Sedang diproses',
+                    className: 'walk-in-detail-status--pending',
+                    note: 'Pemesanan ini masih dalam proses pembayaran atau verifikasi.',
+                },
+                booked: {
+                    label: 'Sudah terisi',
+                    className: 'walk-in-detail-status--booked',
+                    note: 'Slot ini sudah dipesan untuk tim yang ditampilkan.',
+                },
+                member: {
+                    label: 'Jadwal member',
+                    className: 'walk-in-detail-status--member',
+                    note: 'Slot ini digunakan sesuai jadwal rutin member.',
+                },
+                match: {
+                    label: 'Jadwal pertandingan',
+                    className: 'walk-in-detail-status--match',
+                    note: 'Lapangan digunakan untuk pertandingan ini dan tidak tersedia untuk booking umum.',
+                },
+            };
+
+            document.querySelectorAll('.js-walk-in-slot-detail').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const detail = slotDetailContent[button.dataset.detailStatus];
+                    if (!detail) return;
+
+                    document.getElementById('walkInSlotDetailKind').textContent = button.dataset.detailKind || '';
+                    document.getElementById('walkInSlotDetailName').textContent = button.dataset.detailName || '';
+                    document.getElementById('walkInSlotDetailCourt').textContent = button.dataset.detailCourt || '';
+                    document.getElementById('walkInSlotDetailDate').textContent = button.dataset.detailDate || '';
+                    document.getElementById('walkInSlotDetailTime').textContent = button.dataset.detailTime || '';
+                    document.getElementById('walkInSlotDetailNote').textContent = detail.note;
+
+                    const competitionFact = document.getElementById('walkInSlotDetailCompetitionFact');
+                    competitionFact.hidden = button.dataset.detailStatus !== 'match';
+                    document.getElementById('walkInSlotDetailCompetition').textContent = button.dataset.detailCompetition || '';
+
+                    const status = document.getElementById('walkInSlotDetailStatus');
+                    status.className = `walk-in-detail-status ${detail.className}`;
+                    status.textContent = detail.label;
+
+                    if (slotDetailModal && window.bootstrap?.Modal) {
+                        window.bootstrap.Modal.getOrCreateInstance(slotDetailModal).show();
+                    }
+                });
+            });
+
             const scheduleForm = document.getElementById('walkInSlotForm');
             if (!scheduleForm) return;
 
@@ -988,7 +1276,9 @@
                     const slotAmount = Number(slot.dataset.amount || 0);
                     slot.querySelector('.walk-in-slot-copy').textContent = slot.dataset.instant === 'true'
                         ? `${amountLabel(slotAmount)} · ${isSelected ? 'Dipilih' : `Tarif penuh ${slot.dataset.slotMinutes} menit`}`
-                        : (isSelected ? `${amountLabel(slotAmount)} · Dipilih` : `${amountLabel(slotAmount)} · Pilih slot`);
+                        : (slot.dataset.timePassed === 'true'
+                            ? `Waktu lewat · ${amountLabel(slotAmount)} · ${isSelected ? 'Dipilih' : 'Pilih slot'}`
+                            : (isSelected ? `${amountLabel(slotAmount)} · Dipilih` : `${amountLabel(slotAmount)} · Pilih slot`));
 
                     if (isSelected) {
                         amount += slotAmount;
@@ -1074,33 +1364,30 @@
             slots.forEach((slot) => slot.addEventListener('click', () => selectSlot(slot)));
             updateSelection();
 
-            const disableStartedSlots = () => {
+            const updateElapsedSlotStates = () => {
                 const now = Date.now();
                 let selectionChanged = false;
                 slots.forEach((slot) => {
-                    const disableAt = slot.dataset.instant === 'true'
-                        ? Date.parse(slot.dataset.lastStartAt)
-                        : Date.parse(slot.dataset.startsAt);
-                    if (!slot.disabled && disableAt < now) {
+                    if (slot.dataset.instant === 'true' && !slot.disabled && Date.parse(slot.dataset.lastStartAt) < now) {
                         slot.disabled = true;
                         slot.classList.remove('is-available', 'is-selected');
                         slot.classList.add('is-past');
                         slot.setAttribute('aria-pressed', 'false');
-                        slot.querySelector('.walk-in-slot-copy').textContent = slot.dataset.instant === 'true'
-                            ? 'Batas pemesanan lewat'
-                            : 'Waktu sudah lewat';
+                        slot.querySelector('.walk-in-slot-copy').textContent = 'Batas pemesanan lewat';
                         selectionChanged ||= selectedSlots.includes(slot);
-                        if (slot.dataset.instant !== 'true') {
-                            selectedSlots = selectedSlots.filter((selectedSlot) => selectedSlot !== slot);
-                        }
+                        selectedSlots = selectedSlots.filter((selectedSlot) => selectedSlot !== slot);
+                    } else if (slot.dataset.instant !== 'true' && Date.parse(slot.dataset.startsAt) <= now && slot.dataset.timePassed !== 'true') {
+                        slot.dataset.timePassed = 'true';
+                        slot.classList.add('is-past-available');
+                        slot.setAttribute('aria-label', `${slot.dataset.start} sampai ${slot.dataset.end}: Waktu lewat, tetap bisa dipilih`);
                     }
                 });
-                if (selectionChanged) updateSelection('Slot yang waktunya sudah mulai tidak dapat dipilih.');
-                else if (selectedSlots.some((slot) => slot.dataset.instant === 'true')) updateSelection();
+                if (selectionChanged) updateSelection('Batas memilih mulai-sekarang telah lewat. Slot penuh yang waktunya lewat tetap dapat dicatat.');
+                else updateSelection();
             };
 
-            disableStartedSlots();
-            window.setInterval(disableStartedSlots, 30000);
+            updateElapsedSlotStates();
+            window.setInterval(updateElapsedSlotStates, 30000);
         })();
 
         (() => {
@@ -1110,6 +1397,7 @@
             const amountValue = document.getElementById('walkInAmountReceived');
             const balance = document.getElementById('walkInBalance');
             const amountError = document.getElementById('walkInAmountReceivedError');
+            const paymentMethod = document.getElementById('walkInPayment');
             if (!form || !total || !amountDisplay || !amountValue || !balance || !amountError) return;
 
             const money = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
@@ -1120,7 +1408,7 @@
                 const received = Number(amountValue.value || 0);
                 balance.classList.toggle('text-danger', received > totalAmount);
                 balance.textContent = !received
-                    ? 'Masukkan nominal pembayaran'
+                    ? `Rp ${money.format(totalAmount)}`
                     : received > totalAmount
                         ? `Melebihi total tagihan Rp ${money.format(totalAmount)}`
                         : `Rp ${money.format(Math.max(0, totalAmount - received))}`;
@@ -1154,11 +1442,11 @@
             form.addEventListener('submit', (event) => {
                 syncReceivedAmount();
                 const received = Number(amountValue.value || 0);
-                const error = !received
-                    ? 'Masukkan nominal pembayaran yang sudah diterima.'
-                    : received > totalAmount
+                const error = received > totalAmount
                         ? `Nominal tidak boleh melebihi total tagihan Rp ${money.format(totalAmount)}.`
-                        : '';
+                        : (received > 0 && paymentMethod?.value === 'none'
+                            ? 'Pilih metode pembayaran jika ada nominal yang diterima.'
+                            : '');
 
                 amountDisplay.setCustomValidity(error);
                 amountError.textContent = error;

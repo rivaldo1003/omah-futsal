@@ -1278,6 +1278,12 @@
                                     ->where('status', \App\Models\CourtBookingRentalAddition::STATUS_PENDING_REVIEW)
                                     ->count();
                                 $bookingStart = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_start, \App\Models\CourtBooking::TIMEZONE);
+                                $bookingEnd = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE);
+                                if ($bookingEnd->lessThanOrEqualTo($bookingStart)) {
+                                    $bookingEnd->addDay();
+                                }
+                                $canCorrectSchedule = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED
+                                    && $bookingEnd->lessThanOrEqualTo(now(\App\Models\CourtBooking::TIMEZONE));
                                 $paidAmount = (float) $booking->payments->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)->sum(fn($payment) => $payment->recognized_amount);
                                 $paidRentalAdditionAmount = $booking->status === \App\Models\CourtBooking::STATUS_CANCELLED
                                     ? (float) $booking->rentalAdditions->whereNotNull('confirmed_at')->sum('amount')
@@ -1367,7 +1373,7 @@
                                             @endif
                                         @endif
                                     </div>
-                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
+                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->scheduleAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
                                         <details class="booking-row-details">
                                             <summary>
                                                 <span>Rincian transaksi</span>
@@ -1464,6 +1470,32 @@
                                                     <div class="small text-secondary">Sebelum Rp {{ number_format((float) $auditBeforeAmount, 0, ',', '.') }} · Sesudah Rp {{ number_format((float) $auditAfterAmount, 0, ',', '.') }}</div>
                                                 @endif
                                                 <div class="small text-secondary mb-2">Alasan: {{ $paymentAudit->reason }}</div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if($booking->scheduleAudits->isNotEmpty())
+                                        <div class="border-top mt-3 pt-2">
+                                            <div class="small fw-semibold mb-2">Riwayat koreksi jadwal</div>
+                                            @foreach($booking->scheduleAudits as $scheduleAudit)
+                                                @php
+                                                    $scheduleBefore = $scheduleAudit->before_data ?? [];
+                                                    $scheduleAfter = $scheduleAudit->after_data ?? [];
+                                                @endphp
+                                                <div class="small">
+                                                    {{ $scheduleAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
+                                                    · {{ $scheduleAudit->admin_name_snapshot ?? $scheduleAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                </div>
+                                                <div class="small text-secondary">
+                                                    Sebelum: {{ data_get($scheduleBefore, 'booking_date') }}
+                                                    {{ data_get($scheduleBefore, 'time_start') }}–{{ data_get($scheduleBefore, 'time_end') }}
+                                                    ({{ (int) data_get($scheduleBefore, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleBefore, 'amount'), 0, ',', '.') }}.
+                                                </div>
+                                                <div class="small text-secondary">
+                                                    Sesudah: {{ data_get($scheduleAfter, 'booking_date') }}
+                                                    {{ data_get($scheduleAfter, 'time_start') }}–{{ data_get($scheduleAfter, 'time_end') }}
+                                                    ({{ (int) data_get($scheduleAfter, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleAfter, 'amount'), 0, ',', '.') }}.
+                                                </div>
+                                                <div class="small text-secondary mb-2">Alasan: {{ $scheduleAudit->reason }}</div>
                                             @endforeach
                                         </div>
                                     @endif
@@ -1584,6 +1616,12 @@
                                     </div>
                                 </td>
                                 <td class="booking-actions-cell">
+                                    @if($canCorrectSchedule)
+                                        <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#bookingScheduleCorrection{{ $booking->id }}" aria-haspopup="dialog">
+                                            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Koreksi jadwal
+                                        </button>
+                                    @endif
                                     @if($remainingAmount > 0 && $booking->status === 'confirmed')
                                         <button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal"
                                             data-bs-target="#bookingPaymentRecord{{ $booking->id }}" aria-haspopup="dialog">
@@ -2319,6 +2357,87 @@
                     </div>
                 </div>
             @endif
+
+            @php
+                $scheduleCorrectionOldInput = (string) old('_schedule_edit_booking_id', '') === (string) $booking->id;
+                $scheduleCorrectionEnd = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE);
+                $scheduleCorrectionStart = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_start, \App\Models\CourtBooking::TIMEZONE);
+                if ($scheduleCorrectionEnd->lessThanOrEqualTo($scheduleCorrectionStart)) {
+                    $scheduleCorrectionEnd->addDay();
+                }
+                $canShowScheduleCorrection = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED
+                    && $scheduleCorrectionEnd->lessThanOrEqualTo(now(\App\Models\CourtBooking::TIMEZONE));
+            @endphp
+            @if($canShowScheduleCorrection)
+                <div class="modal fade booking-payment-modal" id="bookingScheduleCorrection{{ $booking->id }}"
+                    tabindex="-1" aria-labelledby="bookingScheduleCorrectionTitle{{ $booking->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ route('admin.court-bookings.schedule.update', $booking) }}">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="_schedule_edit_booking_id" value="{{ $booking->id }}">
+                                <div class="modal-header">
+                                    <div>
+                                        <div class="booking-payment-modal-kicker">KOREKSI PEMAKAIAN · BOOKING #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingScheduleCorrectionTitle{{ $booking->id }}">Koreksi jadwal booking</h2>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="booking-payment-context mb-3">
+                                        <div>
+                                            <strong>{{ $booking->team_name ?: $booking->customer_name }}</strong>
+                                            <span>{{ $booking->court?->name ?? 'Lapangan dihapus' }}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Jadwal tercatat</strong>
+                                            <span>{{ $booking->booking_date->format('d/m/Y') }} · {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }} WIB</span>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-light border small" role="note">
+                                        Gunakan untuk mencatat jam pemakaian sebenarnya setelah selesai. Total sewa lapangan akan dihitung ulang mengikuti tarif pada tanggal dan jam baru. Pembayaran yang sudah dicatat tidak berubah; bentrok dengan booking lain akan ditolak.
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-sm-4">
+                                            <label class="form-label" for="scheduleCorrectionDate{{ $booking->id }}">Tanggal</label>
+                                            <input class="form-control" type="date" id="scheduleCorrectionDate{{ $booking->id }}" name="booking_date"
+                                                max="{{ now(\App\Models\CourtBooking::TIMEZONE)->toDateString() }}"
+                                                value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $booking->booking_date->toDateString() }}" required>
+                                            @if($scheduleCorrectionOldInput && $errors->has('booking_date'))<div class="text-danger small mt-1">{{ $errors->first('booking_date') }}</div>@endif
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="form-label" for="scheduleCorrectionStart{{ $booking->id }}">Jam mulai</label>
+                                            <input class="form-control" type="time" id="scheduleCorrectionStart{{ $booking->id }}" name="time_start" step="60"
+                                                value="{{ $scheduleCorrectionOldInput ? old('time_start') : substr($booking->time_start, 0, 5) }}" required>
+                                            @if($scheduleCorrectionOldInput && $errors->has('time_start'))<div class="text-danger small mt-1">{{ $errors->first('time_start') }}</div>@endif
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <label class="form-label" for="scheduleCorrectionEnd{{ $booking->id }}">Jam selesai</label>
+                                            <input class="form-control" type="time" id="scheduleCorrectionEnd{{ $booking->id }}" name="time_end" step="60"
+                                                value="{{ $scheduleCorrectionOldInput ? old('time_end') : substr($booking->time_end, 0, 5) }}" required>
+                                            @if($scheduleCorrectionOldInput && $errors->has('time_end'))<div class="text-danger small mt-1">{{ $errors->first('time_end') }}</div>@endif
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label class="form-label" for="scheduleCorrectionReason{{ $booking->id }}">Alasan koreksi <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="scheduleCorrectionReason{{ $booking->id }}" name="reason" rows="3" maxlength="500"
+                                            placeholder="Contoh: pertandingan molor, penggunaan aktual sampai pukul 17.00" required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
+                                        @if($scheduleCorrectionOldInput && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
+                                    </div>
+                                    @if($scheduleCorrectionOldInput && $errors->has('booking'))
+                                        <div class="alert alert-danger mt-3 mb-0">{{ $errors->first('booking') }}</div>
+                                    @endif
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
+                                    <button type="submit" class="btn btn-dark"><i class="bi bi-clock-history me-1" aria-hidden="true"></i>Simpan koreksi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endforeach
     </main>
 
@@ -2401,6 +2520,17 @@
                     if (modal && window.bootstrap?.Modal) {
                         window.bootstrap.Modal.getOrCreateInstance(modal).show();
                     }
+                });
+            </script>
+        @endpush
+    @endif
+
+    @if((string) old('_schedule_edit_booking_id', '') !== '' && $errors->hasAny(['booking_date', 'time_start', 'time_end', 'reason', 'booking']))
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const modal = document.getElementById('bookingScheduleCorrection{{ old('_schedule_edit_booking_id') }}');
+                    if (modal && window.bootstrap?.Modal) window.bootstrap.Modal.getOrCreateInstance(modal).show();
                 });
             </script>
         @endpush

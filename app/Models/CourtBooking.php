@@ -101,6 +101,11 @@ class CourtBooking extends Model
         return $this->hasMany(CourtBookingPaymentAudit::class, 'court_booking_id')->orderBy('created_at')->orderBy('id');
     }
 
+    public function scheduleAudits(): HasMany
+    {
+        return $this->hasMany(CourtBookingScheduleAudit::class, 'court_booking_id')->orderBy('created_at')->orderBy('id');
+    }
+
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');
@@ -132,6 +137,7 @@ class CourtBooking extends Model
     public function getPaymentMethodLabelAttribute(): string
     {
         return match ($this->payment_method) {
+            'none' => 'Belum dibayar',
             'cash' => 'Tunai',
             'qris' => 'QRIS',
             default => 'Transfer bank',

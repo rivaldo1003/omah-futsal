@@ -157,9 +157,7 @@ class CourtBookingAvailabilityService
     public function slotAvailability(Court $court, string $date, string $start, string $end, bool $includeMatchDetails = true): array
     {
         $slotStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
-        if ($slotStart->lessThanOrEqualTo(now(CourtBooking::TIMEZONE))) {
-            return ['status' => 'past', 'display_name' => null, 'match_details' => null];
-        }
+        $hasPassed = $slotStart->lessThanOrEqualTo(now(CourtBooking::TIMEZONE));
 
         $booking = $this->bookingConflict($court, $date, $start, $end);
         if ($booking) {
@@ -192,6 +190,10 @@ class CourtBookingAvailabilityService
         $memberName = $this->memberScheduleNameForSlot($court, $date, $start, $end);
         if ($memberName !== null) {
             return ['status' => 'member', 'display_name' => $memberName, 'match_details' => null];
+        }
+
+        if ($hasPassed) {
+            return ['status' => 'past_available', 'display_name' => null, 'match_details' => null];
         }
 
         return ['status' => 'available', 'display_name' => null, 'match_details' => null];

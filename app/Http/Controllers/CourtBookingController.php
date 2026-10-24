@@ -225,13 +225,13 @@ class CourtBookingController extends Controller
                 $end = $start->copy()->addMinutes($duration);
                 $offset = $opening->diffInMinutes($start, false);
 
+                if ($start->lessThanOrEqualTo(Carbon::now(CourtBooking::TIMEZONE))) {
+                    throw ValidationException::withMessages(['time_start' => 'Slot yang waktunya sudah lewat tidak dapat dipesan secara online. Pilih jadwal yang akan datang.']);
+                }
+
                 if ($start->lessThan($opening) || $end->greaterThan($closing) || $offset < 0 || $offset % $slotDuration !== 0) {
                     throw ValidationException::withMessages(['time_start' => 'Jam booking tidak sesuai dengan jadwal lapangan. Silakan pilih slot yang tersedia.']);
                 }
-                if ($start->lessThanOrEqualTo(now(CourtBooking::TIMEZONE))) {
-                    throw ValidationException::withMessages(['time_start' => 'Jam yang dipilih sudah lewat. Silakan pilih jam lain.']);
-                }
-
                 $startTime = $start->format('H:i:s');
                 $endTime = $end->format('H:i:s');
                 if ($availability->bookingConflict($court, $validated['booking_date'], $startTime, $endTime)) {

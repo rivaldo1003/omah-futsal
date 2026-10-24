@@ -115,8 +115,8 @@ class CourtWalkInOrderController extends Controller
             'team_name' => ['required', 'string', 'max:120'],
             'customer_phone' => ['required', 'string', 'min:8', 'max:30', 'regex:/^[0-9+().\s-]+$/'],
             'customer_email' => ['nullable', 'email', 'max:255'],
-            'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'qris'])],
-            'amount_received' => ['required', 'numeric', 'gt:0', 'max:9999999999.99'],
+            'payment_method' => ['required', Rule::in(['none', 'cash', 'bank_transfer', 'qris'])],
+            'amount_received' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
             'rental_items' => ['nullable', 'array'],
@@ -134,7 +134,7 @@ class CourtWalkInOrderController extends Controller
             'customer_phone' => trim($validated['customer_phone']),
             'customer_email' => $validated['customer_email'] ?? null,
             'payment_method' => $validated['payment_method'],
-            'amount_received' => round((float) $validated['amount_received'], 2),
+            'amount_received' => round((float) ($validated['amount_received'] ?? 0), 2),
             'payment_reference' => $validated['payment_reference'] ?? null,
             'admin_note' => $validated['admin_note'] ?? null,
             'rental_items' => $rentalSelections,
@@ -192,7 +192,12 @@ class CourtWalkInOrderController extends Controller
                     throw ValidationException::withMessages(['rental_items' => 'Total transaksi melebihi batas yang dapat disimpan. Kurangi jumlah perlengkapan.']);
                 }
 
-                $amountReceived = round((float) $validated['amount_received'], 2);
+                $amountReceived = round((float) ($validated['amount_received'] ?? 0), 2);
+                if ($amountReceived > 0 && $validated['payment_method'] === 'none') {
+                    throw ValidationException::withMessages([
+                        'payment_method' => 'Pilih metode pembayaran jika ada nominal yang diterima.',
+                    ]);
+                }
                 if ($amountReceived > $amount) {
                     throw ValidationException::withMessages([
                         'amount_received' => 'Nominal diterima tidak boleh melebihi total tagihan Rp '.number_format($amount, 0, ',', '.').'.',
@@ -214,11 +219,11 @@ class CourtWalkInOrderController extends Controller
                     'team_name' => trim($validated['team_name']),
                     'customer_phone' => trim($validated['customer_phone']),
                     'customer_email' => $validated['customer_email'] ?? null,
-                    'payment_method' => $validated['payment_method'],
+                    'payment_method' => $amountReceived > 0 ? $validated['payment_method'] : 'none',
                     'source' => 'walk_in',
                     'created_by' => auth()->id(),
-                    'payment_reference' => $validated['payment_reference'] ?? null,
-                    'payment_instructions_snapshot' => $this->paymentReceiptNote($validated['payment_method']),
+                    'payment_reference' => $amountReceived > 0 ? ($validated['payment_reference'] ?? null) : null,
+                    'payment_instructions_snapshot' => $amountReceived > 0 ? $this->paymentReceiptNote($validated['payment_method']) : null,
                     'status' => CourtBooking::STATUS_CONFIRMED,
                     'verified_by' => auth()->id(),
                     'verified_at' => $now,
@@ -238,25 +243,27 @@ class CourtWalkInOrderController extends Controller
                     ]);
                 }
 
-                $booking->payments()->create([
-                    'amount' => $amountReceived,
-                    'verified_amount' => $amountReceived,
-                    'stage' => $amountReceived >= $amount
-                        ? CourtBookingPayment::STAGE_FULL
-                        : CourtBookingPayment::STAGE_DEPOSIT,
-                    'payment_method' => $validated['payment_method'],
-                    'payment_reference' => $validated['payment_reference'] ?? null,
-                    'status' => CourtBookingPayment::STATUS_CONFIRMED,
-                    'note' => ($availableRange['is_instant'] ?? false)
-                        ? 'Booking mulai sekarang; biaya lapangan mengikuti tarif penuh satu slot '.$availableRange['slot_minutes'].' menit. '.($amountReceived >= $amount ? 'Pembayaran lunas diterima.' : 'DP diterima saat booking walk-in.')
-                        : ($amountReceived >= $amount
-                        ? 'Pembayaran lunas diterima saat booking walk-in.'
-                        : 'DP diterima saat booking walk-in.'),
-                    'recorded_by' => auth()->id(),
-                    'verified_by' => auth()->id(),
-                    'recorded_at' => $now,
-                    'verified_at' => $now,
-                ]);
+                if ($amountReceived > 0) {
+                    $booking->payments()->create([
+                        'amount' => $amountReceived,
+                        'verified_amount' => $amountReceived,
+                        'stage' => $amountReceived >= $amount
+                            ? CourtBookingPayment::STAGE_FULL
+                            : CourtBookingPayment::STAGE_DEPOSIT,
+                        'payment_method' => $validated['payment_method'],
+                        'payment_reference' => $validated['payment_reference'] ?? null,
+                        'status' => CourtBookingPayment::STATUS_CONFIRMED,
+                        'note' => ($availableRange['is_instant'] ?? false)
+                            ? 'Booking mulai sekarang; biaya lapangan mengikuti tarif penuh satu slot '.$availableRange['slot_minutes'].' menit. '.($amountReceived >= $amount ? 'Pembayaran lunas diterima.' : 'DP diterima saat booking walk-in.')
+                            : ($amountReceived >= $amount
+                                ? 'Pembayaran lunas diterima saat booking walk-in.'
+                                : 'DP diterima saat booking walk-in.'),
+                        'recorded_by' => auth()->id(),
+                        'verified_by' => auth()->id(),
+                        'recorded_at' => $now,
+                        'verified_at' => $now,
+                    ]);
+                }
 
                 return $booking;
             }, 3);
@@ -272,9 +279,11 @@ class CourtWalkInOrderController extends Controller
             ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
             ->sum('verified_amount');
         $balance = max(0, round((float) $booking->amount - $receivedAmount, 2));
-        $successMessage = $balance > 0
+        $successMessage = $receivedAmount <= 0
+            ? 'Booking walk-in berhasil dikonfirmasi tanpa pembayaran awal. Sisa tagihan Rp '.number_format($balance, 0, ',', '.').' dapat dicatat kemudian.'
+            : ($balance > 0
             ? 'Booking walk-in terkonfirmasi. DP Rp '.number_format($receivedAmount, 0, ',', '.').' tercatat; sisa tagihan Rp '.number_format($balance, 0, ',', '.').'.'
-            : 'Booking walk-in berhasil dicatat sebagai lunas dan terkonfirmasi.';
+            : 'Booking walk-in berhasil dicatat sebagai lunas dan terkonfirmasi.');
 
         return redirect()->route('admin.court-bookings.index', ['date' => $booking->booking_date->toDateString()])
             ->with('success', $successMessage);
@@ -537,12 +546,14 @@ class CourtWalkInOrderController extends Controller
             $end = $cursor->copy()->addMinutes($slotMinutes);
             $startTime = $cursor->format('H:i:s');
             $endTime = $end->format('H:i:s');
-            $status = $availability->slotStatus($court, $date, $startTime, $endTime);
+            $slotAvailability = $availability->slotAvailability($court, $date, $startTime, $endTime);
             $slots[] = [
                 'start' => $cursor->format('H:i'),
                 'end' => $end->format('H:i'),
                 'starts_at' => Carbon::parse($date.' '.$startTime, CourtBooking::TIMEZONE)->toIso8601String(),
-                'status' => $status,
+                'status' => $slotAvailability['status'],
+                'display_name' => $slotAvailability['display_name'],
+                'match_details' => $slotAvailability['match_details'],
                 'amount' => $pricing->amountForRange($court, $startTime, $slotMinutes, $date),
             ];
             $cursor = $end;
@@ -557,11 +568,11 @@ class CourtWalkInOrderController extends Controller
         $slotMinutes = 30;
         $ranges = [];
         foreach ($slots as $startIndex => $slot) {
-            if ($slot['status'] !== 'available') {
+            if (!in_array($slot['status'], ['available', 'past_available'], true)) {
                 continue;
             }
 
-            for ($endIndex = $startIndex; $endIndex < count($slots) && $slots[$endIndex]['status'] === 'available'; $endIndex++) {
+            for ($endIndex = $startIndex; $endIndex < count($slots) && in_array($slots[$endIndex]['status'], ['available', 'past_available'], true); $endIndex++) {
                 $duration = ($endIndex - $startIndex + 1) * $slotMinutes;
                 $start = $slot['start'];
                 $end = $slots[$endIndex]['end'];
