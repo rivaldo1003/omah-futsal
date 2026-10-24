@@ -826,6 +826,7 @@
                                 if (in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name'])) {
                                     $slotAriaLabel .= ', '.$displayNameLabel.trim($slot['display_name']);
                                 }
+                                $rentalAvailabilityJson = json_encode($slot['rental_availability']);
                             @endphp
                             @if($slot['status'] === 'available' && $hasPaymentOption)
                                 <x-court-booking-slot status="available" class="js-book-slot"
@@ -836,7 +837,7 @@
                                     data-start="{{ $slot['start'] }}" data-end="{{ $slot['end'] }}"
                                     data-duration="{{ $slot['duration'] }}"
                                     data-amount-cents="{{ (int) round((float) $slot['amount'] * 100) }}"
-                                    data-rental-availability='@json($slot['rental_availability'])'
+                                    data-rental-availability="{{ $rentalAvailabilityJson }}"
                                     aria-label="{{ $slotAriaLabel }}" aria-describedby="bookingSelectionHelp" aria-pressed="false">
                                     Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot
                                 </x-court-booking-slot>
