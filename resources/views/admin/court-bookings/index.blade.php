@@ -1373,7 +1373,7 @@
                                             @endif
                                         @endif
                                     </div>
-                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->scheduleAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
+                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->scheduleAudits->isNotEmpty() || $booking->backdateAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
                                         <details class="booking-row-details">
                                             <summary>
                                                 <span>Rincian transaksi</span>
@@ -1496,6 +1496,18 @@
                                                     ({{ (int) data_get($scheduleAfter, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleAfter, 'amount'), 0, ',', '.') }}.
                                                 </div>
                                                 <div class="small text-secondary mb-2">Alasan: {{ $scheduleAudit->reason }}</div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if($booking->backdateAudits->isNotEmpty())
+                                        <div class="border-top mt-3 pt-2">
+                                            <div class="small fw-semibold mb-2">Riwayat pencatatan booking tanggal lampau</div>
+                                            @foreach($booking->backdateAudits as $backdateAudit)
+                                                <div class="small">
+                                                    Dicatat {{ $backdateAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
+                                                    · {{ $backdateAudit->admin_name_snapshot ?? $backdateAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                </div>
+                                                <div class="small text-secondary mb-2">Alasan: {{ $backdateAudit->reason }}</div>
                                             @endforeach
                                         </div>
                                     @endif

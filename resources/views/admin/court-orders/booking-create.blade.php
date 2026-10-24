@@ -3,6 +3,7 @@
 @section('title', 'Buat Booking Walk-in')
 
 @section('styles')
+    @include('components.court-booking-slot-styles')
     <style>
         .walk-in-admin-page {
             --walk-in-ink: #111111;
@@ -174,6 +175,58 @@
             color: var(--walk-in-muted) !important;
         }
 
+        .walk-in-filter-fields {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: start;
+            gap: 20px 24px;
+        }
+
+        .walk-in-filter-field {
+            min-width: 0;
+        }
+
+        .walk-in-filter-field .form-text {
+            margin-top: 7px;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        .walk-in-filter-footer {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px 20px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--walk-in-line-soft);
+        }
+
+        .walk-in-filter-footer p {
+            margin: 0;
+            color: var(--walk-in-muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        @media (max-width: 767.98px) {
+            .walk-in-filter-fields {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 16px;
+            }
+
+            .walk-in-filter-footer {
+                align-items: stretch;
+                flex-direction: column;
+                gap: 14px;
+            }
+
+            .walk-in-filter-footer .btn {
+                width: 100%;
+            }
+        }
+
         .walk-in-admin-page .alert {
             padding: 14px 18px;
             margin-bottom: 16px;
@@ -263,167 +316,6 @@
         .walk-in-legend-mark.instant {
             border: 2px solid var(--walk-in-success);
             background: var(--walk-in-white);
-        }
-
-        .walk-in-slot-grid {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-        }
-
-        .walk-in-slot {
-            display: flex;
-            min-width: 0;
-            min-height: 80px;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 4px;
-            padding: 14px 16px;
-            border: 1px solid var(--walk-in-line);
-            border-radius: 8px;
-            background: var(--walk-in-white);
-            color: var(--walk-in-ink);
-            text-align: left;
-        }
-
-        button.walk-in-slot {
-            cursor: pointer;
-        }
-
-        .walk-in-slot.is-available {
-            transition: background-color 150ms ease-out, border-color 150ms ease-out;
-        }
-
-        .walk-in-slot.is-available.is-instant {
-            border-color: var(--walk-in-success);
-            background: #f0f8f4;
-        }
-
-        .walk-in-slot.is-available.is-instant .walk-in-slot-time,
-        .walk-in-slot.is-available.is-instant .walk-in-slot-copy {
-            color: var(--walk-in-success);
-        }
-
-        .walk-in-slot-time {
-            color: inherit;
-            font-size: 16px;
-            font-weight: 500;
-            font-variant-numeric: tabular-nums;
-        }
-
-        .walk-in-slot-copy {
-            color: var(--walk-in-muted);
-            font-size: 13px;
-            line-height: 1.35;
-        }
-
-        .walk-in-slot.is-available:hover:not(.is-selected) {
-            border-color: var(--walk-in-charcoal);
-            background: var(--walk-in-cloud);
-        }
-
-        .walk-in-slot.is-available.is-past-available {
-            border-color: #a6a6a8;
-            background: #f3f3f3;
-            color: #3f464b;
-        }
-
-        .walk-in-slot.is-available.is-past-available:hover:not(.is-selected) {
-            border-color: var(--walk-in-success);
-            background: #e7f1eb;
-            color: var(--walk-in-success);
-        }
-
-        .walk-in-slot.is-available:focus-visible {
-            outline: 2px solid var(--walk-in-ink);
-            outline-offset: 2px;
-        }
-
-        .walk-in-slot.is-selected,
-        .walk-in-slot.is-selected:hover,
-        .walk-in-slot.is-selected:focus-visible {
-            border: 2px solid var(--walk-in-success);
-            background: var(--walk-in-success);
-            color: var(--walk-in-white);
-        }
-
-        .walk-in-slot.is-selected .walk-in-slot-copy {
-            color: var(--walk-in-white);
-            font-weight: 600;
-        }
-
-        .walk-in-slot.is-selected .walk-in-slot-time {
-            font-weight: 700;
-        }
-
-        .walk-in-slot.is-pending {
-            border-color: #f0dfbd;
-            background: #fff6e7;
-            color: var(--walk-in-warning);
-        }
-
-        .walk-in-slot.is-pending .walk-in-slot-copy {
-            color: var(--walk-in-warning);
-        }
-
-        .walk-in-slot.is-booked {
-            border-color: var(--walk-in-line-soft);
-            background: var(--walk-in-cloud);
-            color: var(--walk-in-charcoal);
-        }
-
-        .walk-in-slot.is-booked .walk-in-slot-copy {
-            color: var(--walk-in-charcoal);
-        }
-
-        .walk-in-slot.is-match {
-            border-color: #a9c9ea;
-            background: #eaf3ff;
-            color: #174a7d;
-            cursor: pointer;
-        }
-
-        .walk-in-slot.is-match .walk-in-slot-copy {
-            width: fit-content;
-            padding: 2px 7px;
-            border: 1px solid #b6d4f2;
-            border-radius: 4px;
-            background: #dcecff;
-            color: #164f84;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .walk-in-slot.is-inspectable {
-            cursor: pointer;
-        }
-
-        .walk-in-slot.is-inspectable:hover,
-        .walk-in-slot.is-inspectable:focus-visible {
-            border-color: var(--walk-in-charcoal);
-        }
-
-        .walk-in-slot.is-inspectable:focus-visible {
-            outline: 2px solid var(--walk-in-ink);
-            outline-offset: 2px;
-        }
-
-        .walk-in-slot.is-inspectable .walk-in-slot-copy {
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .walk-in-slot.is-match.is-inspectable:hover,
-        .walk-in-slot.is-match.is-inspectable:focus-visible {
-            border-color: #6e9fce;
-            background: #dcecff;
-        }
-
-        .walk-in-slot.is-match.is-inspectable:focus-visible {
-            outline-color: #3478c4;
         }
 
         .walk-in-detail-modal .modal-content {
@@ -524,27 +416,6 @@
             color: var(--walk-in-ink);
             font-size: 14px;
             font-weight: 500;
-        }
-
-        .walk-in-slot.is-member {
-            border-color: #c9bee9;
-            background: #f0edfa;
-            color: #493b73;
-        }
-
-        .walk-in-slot.is-member .walk-in-slot-copy {
-            color: #5d4b8d;
-        }
-
-        .walk-in-slot.is-past {
-            border-style: dashed;
-            background: var(--walk-in-white);
-            color: var(--walk-in-muted);
-        }
-
-        .walk-in-slot:disabled {
-            opacity: 1;
-            cursor: not-allowed;
         }
 
         .walk-in-selection {
@@ -690,16 +561,6 @@
                 text-align: left;
             }
 
-            .walk-in-slot-grid {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                gap: 8px;
-            }
-
-            .walk-in-slot {
-                min-height: 72px;
-                padding: 10px 12px;
-            }
-
             .walk-in-detail-modal .modal-header,
             .walk-in-detail-modal .modal-footer,
             .walk-in-detail-modal .modal-body {
@@ -759,13 +620,14 @@
         </div>
         <div class="card-body">
             <input type="hidden" name="manual_request_key" value="{{ $requestKey }}">
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-md-4">
+            <div class="walk-in-filter-fields">
+                <div class="walk-in-filter-field">
                     <label class="form-label" for="walkInDate">Tanggal booking</label>
                     <input class="form-control" type="date" id="walkInDate" name="date" value="{{ $date }}"
-                        min="{{ $todayDate }}" max="{{ $maxDate }}" required>
+                        min="{{ $minimumDate }}" max="{{ $maxDate }}" required>
+                    <div class="form-text">Admin dapat mencatat tanggal hingga 30 hari ke belakang.</div>
                 </div>
-                <div class="col-12 col-md-4">
+                <div class="walk-in-filter-field">
                     <label class="form-label" for="walkInCourt">Lapangan</label>
                     <select class="form-select" id="walkInCourt" name="court_id" required>
                         <option value="">Pilih lapangan</option>
@@ -777,8 +639,8 @@
                     </select>
                 </div>
             </div>
-            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mt-3">
-                <span class="small text-secondary">Pilih tanggal dan lapangan untuk memeriksa slot yang tersedia.</span>
+            <div class="walk-in-filter-footer">
+                <p>Jadwal yang tersedia akan ditampilkan setelah tanggal dan lapangan dipilih.</p>
                 <button class="btn {{ $selectedRange ? 'btn-outline-secondary' : 'btn-primary' }}" type="submit"><i
                         class="bi bi-arrow-repeat" aria-hidden="true"></i>Tampilkan jadwal</button>
             </div>
@@ -827,7 +689,7 @@
                 sudah lewat tetap dapat dicatat untuk administrasi; booking aktif, jadwal member, dan pertandingan tetap
                 mengunci slot. Untuk slot yang sedang berjalan, admin juga dapat memilih mulai sekarang jika masih tersisa
                 sedikitnya 30 menit.</p>
-            <div class="walk-in-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
+            <div class="court-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
                 @php
                     $slotStatusLabels = [
                         'available' => 'Tersedia',
@@ -864,28 +726,33 @@
                     $isSelectedSlot = $selectedRange && ($instantRange
                         ? $selectedRange['value'] === $instantRange['value']
                         : (!($selectedRange['is_instant'] ?? false) && $slotStartMinutes >= $selectedStartMinutes && $slotEndMinutes <= $selectedEndMinutes));
+                    $isSelectableSlot = in_array($slot['status'], ['available', 'past_available'], true) || $instantRange;
+                    $slotAppearance = $isSelectableSlot ? 'available' : $slot['status'];
+                    $slotExtraClasses = 'walk-in-slot';
+                    if ($slot['status'] === 'past_available') $slotExtraClasses .= ' is-past-available';
+                    if ($instantRange) $slotExtraClasses .= ' is-instant';
+                    if ($isSelectedSlot) $slotExtraClasses .= ' is-selected';
                 @endphp
-                @if(in_array($slot['status'], ['available', 'past_available'], true) || $instantRange)
-                    <button type="button"
-                        class="walk-in-slot is-available{{ $slot['status'] === 'past_available' ? ' is-past-available' : '' }}{{ $instantRange ? ' is-instant' : '' }}{{ $isSelectedSlot ? ' is-selected' : '' }}"
+                @if($isSelectableSlot)
+                    <x-court-booking-slot :status="$slotAppearance" :class="$slotExtraClasses"
+                        :time-label="$instantRange ? 'Mulai sekarang · sampai '.$slot['end'] : $slot['start'].'–'.$slot['end']"
                         data-start="{{ $instantRange['start'] ?? $slot['start'] }}" data-end="{{ $slot['end'] }}"
                         data-starts-at="{{ $instantRange['starts_at'] ?? $slot['starts_at'] }}"
                         data-time-passed="{{ $slot['status'] === 'past_available' ? 'true' : 'false' }}"
                         data-amount="{{ $instantRange['amount'] ?? $slot['amount'] }}"
                         data-range-value="{{ $instantRange['value'] ?? ($slot['start'] . '|' . $slot['end']) }}"
-                        data-instant="{{ $instantRange ? 'true' : 'false' }}" @if($instantRange)
-                            data-slot-minutes="{{ $instantRange['slot_minutes'] }}"
-                            data-ends-at="{{ $instantRange['ends_at'] }}"
-                        data-last-start-at="{{ $instantRange['last_start_at'] }}" @endif
+                        data-instant="{{ $instantRange ? 'true' : 'false' }}"
+                        data-slot-minutes="{{ $instantRange['slot_minutes'] ?? '' }}"
+                        data-ends-at="{{ $instantRange['ends_at'] ?? '' }}"
+                        data-last-start-at="{{ $instantRange['last_start_at'] ?? '' }}"
                         aria-pressed="{{ $isSelectedSlot ? 'true' : 'false' }}">
-                        <span
-                            class="walk-in-slot-time">{{ $instantRange ? 'Mulai sekarang · sampai ' . $slot['end'] : $slot['start'] . '–' . $slot['end'] }}</span>
-                        <span class="walk-in-slot-copy">{{ $slot['status'] === 'past_available' ? 'Waktu lewat · ' : '' }}Rp
+                        {{ $slot['status'] === 'past_available' ? 'Waktu lewat · ' : '' }}Rp
                             {{ number_format($instantRange['amount'] ?? $slot['amount'], 0, ',', '.') }} ·
-                            {{ $instantRange ? 'Tarif penuh ' . $instantRange['slot_minutes'] . ' menit' : ($isSelectedSlot ? 'Dipilih' : 'Pilih slot') }}</span>
-                    </button>
+                            {{ $instantRange ? 'Tarif penuh ' . $instantRange['slot_minutes'] . ' menit' : ($isSelectedSlot ? 'Dipilih' : 'Pilih slot') }}
+                    </x-court-booking-slot>
                 @elseif($slot['status'] === 'match' && filled($slot['match_details']))
-                    <button type="button" class="walk-in-slot is-match is-inspectable js-walk-in-slot-detail"
+                    <x-court-booking-slot status="match" class="walk-in-slot slot-button--inspect js-walk-in-slot-detail"
+                        :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
                         data-detail-kind="Pertandingan"
                         data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
                         data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
@@ -894,16 +761,14 @@
                         data-detail-time="{{ $slot['start'] }}–{{ $slot['end'] }}" aria-haspopup="dialog"
                         aria-controls="walkInSlotDetailModal"
                         aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
-                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
-                        <span class="walk-in-slot-copy">
-                            <i class="bi bi-calendar-event me-1" aria-hidden="true"></i>Jadwal pertandingan
-                            <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
-                        </span>
-                    </button>
+                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                        <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
+                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                    </x-court-booking-slot>
                 @elseif(in_array($slot['status'], ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
                 @php($slotNamePrefix = $slot['status'] === 'member' ? 'Member: ' : 'Tim: ')
-                    <button type="button"
-                        class="walk-in-slot is-{{ $slot['status'] }} is-inspectable js-walk-in-slot-detail"
+                    <x-court-booking-slot :status="$slot['status']" class="walk-in-slot slot-button--inspect js-walk-in-slot-detail"
+                        :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
                         data-detail-kind="{{ $slot['status'] === 'member' ? 'Member' : 'Tim' }}"
                         data-detail-name="{{ trim($slot['display_name']) }}" data-detail-status="{{ $slot['status'] }}"
                         data-detail-court="{{ $selectedCourt->name }}"
@@ -911,19 +776,18 @@
                         data-detail-time="{{ $slot['start'] }}–{{ $slot['end'] }}" aria-haspopup="dialog"
                         aria-controls="walkInSlotDetailModal"
                         aria-label="Lihat detail {{ $slotNamePrefix . trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
-                        <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
-                        <span class="walk-in-slot-copy">
-                            {{ $slotNamePrefix . trim($slot['display_name']) }}
-                            <i class="bi bi-chevron-right ms-1" aria-hidden="true"></i>
+                        <span class="slot-status-copy slot-occupant-copy" title="{{ $slotNamePrefix.trim($slot['display_name']) }}">
+                            {{ $slotNamePrefix.trim($slot['display_name']) }}
                         </span>
-                    </button>
+                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                    </x-court-booking-slot>
                 @else
-                <button type="button" class="walk-in-slot is-{{ $slot['status'] }}" disabled
-                    aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $slotStatusLabels[$slot['status']] }}">
-                    <span class="walk-in-slot-time">{{ $slot['start'] }}–{{ $slot['end'] }}</span>
-                    <span class="walk-in-slot-copy"><i class="bi {{ $slotIcons[$slot['status']] }} me-1"
-                            aria-hidden="true"></i>{{ $slotStatusLabels[$slot['status']] }}</span>
-                </button>
+                    <x-court-booking-slot :status="$slot['status']" :time-label="$slot['start'].'–'.$slot['end']"
+                        :disabled="true"
+                        aria-label="{{ $slot['start'] }} sampai {{ $slot['end'] }}: {{ $slotStatusLabels[$slot['status']] }}">
+                        <i class="bi {{ $slotIcons[$slot['status']] }}" aria-hidden="true"></i>
+                        <span class="slot-status-copy">{{ $slotStatusLabels[$slot['status']] }}</span>
+                    </x-court-booking-slot>
                 @endif
                 @endforeach
             </div>
@@ -1028,6 +892,22 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
+                        @if($date < $todayDate)
+                            <div class="col-12">
+                                <div class="alert alert-warning mb-0" role="note">
+                                    <strong>Pencatatan booking tanggal lampau.</strong>
+                                    Alasan wajib dicatat. Jadwal tetap diperiksa agar tidak berbenturan dengan booking, pertandingan, atau jadwal member.
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label" for="walkInBackdateReason">Alasan pencatatan terlambat <span class="text-danger">*</span></label>
+                                <textarea class="form-control" id="walkInBackdateReason" name="backdate_reason" rows="2" maxlength="500"
+                                    placeholder="Contoh: Booking walk-in kemarin baru dilaporkan oleh petugas hari ini." required>{{ old('backdate_reason') }}</textarea>
+                                @if($errors->has('backdate_reason'))
+                                    <div class="text-danger small mt-1">{{ $errors->first('backdate_reason') }}</div>
+                                @endif
+                            </div>
+                        @endif
                         <div class="col-12 col-md-3">
                             <label class="form-label" for="walkInName">Nama pelanggan</label>
                             <input class="form-control" id="walkInName" name="customer_name" maxlength="120"
@@ -1220,7 +1100,7 @@
             const scheduleForm = document.getElementById('walkInSlotForm');
             if (!scheduleForm) return;
 
-            const slots = [...scheduleForm.querySelectorAll('.walk-in-slot.is-available')];
+            const slots = [...scheduleForm.querySelectorAll('.walk-in-slot.available')];
             const rangeInput = document.getElementById('walkInRange');
             const continueButton = document.getElementById('walkInContinue');
             const summary = document.getElementById('walkInSelectionSummary');
@@ -1370,7 +1250,7 @@
                 slots.forEach((slot) => {
                     if (slot.dataset.instant === 'true' && !slot.disabled && Date.parse(slot.dataset.lastStartAt) < now) {
                         slot.disabled = true;
-                        slot.classList.remove('is-available', 'is-selected');
+                        slot.classList.remove('available', 'is-selected');
                         slot.classList.add('is-past');
                         slot.setAttribute('aria-pressed', 'false');
                         slot.querySelector('.walk-in-slot-copy').textContent = 'Batas pemesanan lewat';

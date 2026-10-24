@@ -51,7 +51,7 @@ class CourtBookingController extends Controller
         ]);
 
         $bookings = CourtBooking::query()
-            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
+            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'backdateAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
             ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where(function ($bookingStatus) use ($status) {
                     $bookingStatus->where('status', $status);

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Court;
 use App\Models\CourtBooking;
+use App\Models\CourtBookingBackdateAudit;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
@@ -22,6 +23,8 @@ use Illuminate\Validation\ValidationException;
 
 class CourtWalkInOrderController extends Controller
 {
+    private const MAX_BACKDATE_DAYS = 30;
+
     public function createBooking(
         Request $request,
         CourtBookingAvailabilityService $availability,
@@ -31,8 +34,9 @@ class CourtWalkInOrderController extends Controller
         $this->ensureAdmin();
 
         $today = Carbon::today(CourtBooking::TIMEZONE);
+        $minimumDate = $today->copy()->subDays(self::MAX_BACKDATE_DAYS);
         $filters = $request->validate([
-            'date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.$today->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
+            'date' => ['nullable', 'date_format:Y-m-d', 'after_or_equal:'.$minimumDate->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
             'court_id' => ['nullable', 'integer', Rule::exists('courts', 'id')],
             'range' => ['nullable', 'regex:/^(?:now|\d{2}:\d{2})\|\d{2}:\d{2}$/'],
             'manual_request_key' => ['nullable', 'uuid'],
@@ -83,6 +87,7 @@ class CourtWalkInOrderController extends Controller
         return view('admin.court-orders.booking-create', [
             'date' => $date,
             'todayDate' => $today->toDateString(),
+            'minimumDate' => $minimumDate->toDateString(),
             'maxDate' => $today->copy()->addDays(60)->toDateString(),
             'courts' => $courts,
             'selectedCourt' => $selectedCourt,
@@ -106,9 +111,15 @@ class CourtWalkInOrderController extends Controller
         $this->ensureAdmin();
 
         $today = Carbon::today(CourtBooking::TIMEZONE);
-        $validated = $request->validate([
+        $minimumDate = $today->copy()->subDays(self::MAX_BACKDATE_DAYS);
+        $requestedDate = $request->input('booking_date');
+        $isBackdated = is_string($requestedDate)
+            && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $requestedDate) === 1
+            && $requestedDate < $today->toDateString();
+
+        $rules = [
             'court_id' => ['required', 'integer', 'exists:courts,id'],
-            'booking_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$today->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
+            'booking_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$minimumDate->toDateString(), 'before_or_equal:'.$today->copy()->addDays(60)->toDateString()],
             'range' => ['required', 'regex:/^(?:now|\d{2}:\d{2})\|\d{2}:\d{2}$/'],
             'manual_request_key' => ['required', 'uuid'],
             'customer_name' => ['required', 'string', 'max:120'],
@@ -119,8 +130,13 @@ class CourtWalkInOrderController extends Controller
             'amount_received' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
+            'backdate_reason' => [$isBackdated ? 'required' : 'nullable', 'string', 'max:500'],
             'rental_items' => ['nullable', 'array'],
             'rental_items.*' => ['required', 'integer', 'min:0', 'max:65535'],
+        ];
+        $validated = $request->validate($rules, [
+            'booking_date.after_or_equal' => 'Tanggal booking lampau maksimal '.self::MAX_BACKDATE_DAYS.' hari dari hari ini.',
+            'backdate_reason.required' => 'Alasan pencatatan tanggal lampau wajib diisi.',
         ]);
 
         $rentalSelections = $this->normalizeRentalSelections($validated['rental_items'] ?? []);
@@ -137,6 +153,7 @@ class CourtWalkInOrderController extends Controller
             'amount_received' => round((float) ($validated['amount_received'] ?? 0), 2),
             'payment_reference' => $validated['payment_reference'] ?? null,
             'admin_note' => $validated['admin_note'] ?? null,
+            'backdate_reason' => $isBackdated ? trim($validated['backdate_reason']) : null,
             'rental_items' => $rentalSelections,
         ]);
 
@@ -149,7 +166,7 @@ class CourtWalkInOrderController extends Controller
         }
 
         try {
-            $booking = DB::transaction(function () use ($validated, $rentalSelections, $availability, $pricing, $inventory, $fingerprint) {
+            $booking = DB::transaction(function () use ($validated, $rentalSelections, $availability, $pricing, $inventory, $fingerprint, $isBackdated) {
                 $court = $availability->lockCourt((int) $validated['court_id']);
                 if (!$court || !$court->is_active) {
                     throw ValidationException::withMessages(['court_id' => 'Lapangan ini sedang tidak menerima booking. Pilih lapangan aktif.']);
@@ -262,6 +279,15 @@ class CourtWalkInOrderController extends Controller
                         'verified_by' => auth()->id(),
                         'recorded_at' => $now,
                         'verified_at' => $now,
+                    ]);
+                }
+
+                if ($isBackdated) {
+                    CourtBookingBackdateAudit::query()->create([
+                        'court_booking_id' => $booking->id,
+                        'admin_id' => auth()->id(),
+                        'admin_name_snapshot' => auth()->user()?->name,
+                        'reason' => trim($validated['backdate_reason']),
                     ]);
                 }
 

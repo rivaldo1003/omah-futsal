@@ -106,6 +106,11 @@ class CourtBooking extends Model
         return $this->hasMany(CourtBookingScheduleAudit::class, 'court_booking_id')->orderBy('created_at')->orderBy('id');
     }
 
+    public function backdateAudits(): HasMany
+    {
+        return $this->hasMany(CourtBookingBackdateAudit::class, 'court_booking_id')->orderBy('created_at')->orderBy('id');
+    }
+
     public function verifiedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'verified_by');

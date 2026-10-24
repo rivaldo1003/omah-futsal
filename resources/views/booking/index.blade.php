@@ -9,6 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     @include('home.partials.styles')
+    @include('components.court-booking-slot-styles')
     <style>
         .booking-page {
             padding-top: 38px;
@@ -139,263 +140,6 @@
             max-width: 62%;
             text-align: right;
             line-height: 1.4;
-        }
-
-        .slot-list {
-            display: grid;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-            gap: 10px;
-            padding: 16px 20px 20px;
-        }
-
-        .slot-button {
-            position: relative;
-            isolation: isolate;
-            overflow: hidden;
-            min-height: 72px;
-            text-align: left;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            background: var(--v3-card);
-            color: var(--text-primary);
-            padding: 11px 13px;
-            transition: border-color 150ms ease, background-color 150ms ease;
-        }
-
-        .slot-button .slot-pitch-markings {
-            position: absolute;
-            z-index: 0;
-            inset: 7px;
-            display: block;
-            margin: 0;
-            opacity: .13;
-            pointer-events: none;
-        }
-
-        .slot-pitch-boundary {
-            position: absolute;
-            inset: 0;
-            border: 1px solid currentColor;
-            border-radius: 4px;
-        }
-
-        .slot-pitch-midline {
-            position: absolute;
-            top: 0;
-            bottom: 0;
-            left: 50%;
-            border-left: 1px solid currentColor;
-        }
-
-        .slot-pitch-center-circle {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 25px;
-            aspect-ratio: 1;
-            border: 1px solid currentColor;
-            border-radius: 50%;
-            transform: translate(-50%, -50%);
-        }
-
-        .slot-pitch-penalty-area {
-            position: absolute;
-            top: 22%;
-            bottom: 22%;
-            width: 11%;
-            border: 1px solid currentColor;
-        }
-
-        .slot-pitch-penalty-area--left {
-            left: 0;
-            border-left: 0;
-        }
-
-        .slot-pitch-penalty-area--right {
-            right: 0;
-            border-right: 0;
-        }
-
-        .slot-button strong {
-            position: relative;
-            z-index: 1;
-            display: block;
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .slot-button>span:not(.slot-pitch-markings) {
-            position: relative;
-            z-index: 1;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            margin-top: 4px;
-            color: var(--text-secondary);
-            font-size: 12px;
-        }
-
-        .slot-button .slot-status-copy {
-            display: inline;
-            margin: 0;
-            color: inherit;
-            font: inherit;
-        }
-
-        .slot-button .slot-occupant-copy {
-            display: inline-block;
-            min-width: 0;
-            max-width: 100%;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-weight: 650;
-        }
-
-        .slot-button.available {
-            border-color: #9bbca8;
-            background: var(--success-subtle);
-            color: var(--success);
-            cursor: pointer;
-        }
-
-        .slot-button.available:hover {
-            border-color: var(--success);
-            background: #dceee3;
-        }
-
-        .slot-button.available:focus-visible {
-            outline: 2px solid var(--v3-neon-green);
-            outline-offset: 2px;
-        }
-
-        .slot-button.available .slot-pitch-markings {
-            opacity: .18;
-        }
-
-        .slot-button.pending {
-            border-color: rgba(255, 183, 0, .28);
-            background: rgba(255, 183, 0, .055);
-            color: #f7d77b;
-            cursor: not-allowed;
-        }
-
-        .slot-button.pending>span:not(.slot-pitch-markings) {
-            color: #f1ce73;
-        }
-
-        .slot-button.pending .slot-pitch-markings {
-            opacity: .18;
-        }
-
-        .slot-button.unavailable {
-            border-color: #303846;
-            background: #0d121a;
-            color: #a3acb8;
-            cursor: not-allowed;
-            opacity: 1;
-        }
-
-        .slot-button.booked {
-            border-color: #c7d1dc;
-            background: #edf1f5;
-            color: #344254;
-            cursor: not-allowed;
-            opacity: 1;
-        }
-
-        .slot-button.booked>span:not(.slot-pitch-markings) {
-            color: #5c6b7b;
-        }
-
-        .slot-button.match {
-            border-color: #a9c9ea;
-            background: #eaf3ff;
-            color: #174a7d;
-            cursor: not-allowed;
-            opacity: 1;
-        }
-
-        .slot-button.match>span:not(.slot-pitch-markings) {
-            color: #315e89;
-        }
-
-        .slot-button .slot-status-badge--match {
-            display: inline-flex;
-            align-items: center;
-            width: fit-content;
-            padding: 2px 7px;
-            border: 1px solid #b6d4f2;
-            border-radius: 4px;
-            background: #dcecff;
-            color: #164f84;
-            font-size: 10px;
-            font-weight: 700;
-            line-height: 1.4;
-        }
-
-        .slot-button.past {
-            border-style: dashed;
-            border-color: #a6a6a8;
-            background: #eeeeee;
-            color: #555557;
-            cursor: not-allowed;
-            opacity: 1;
-        }
-
-        .slot-button.past>span:not(.slot-pitch-markings) {
-            color: var(--text-muted);
-        }
-
-        .slot-button.member {
-            border-color: #c9bee9;
-            background: #f0edfa;
-            color: #493b73;
-            cursor: not-allowed;
-            opacity: 1;
-        }
-
-        .slot-button.member>span:not(.slot-pitch-markings) {
-            color: #5d4b8d;
-        }
-
-        .slot-button--inspect {
-            width: 100%;
-            cursor: pointer !important;
-            text-align: left;
-            transition: border-color 150ms ease, box-shadow 150ms ease;
-        }
-
-        .slot-button--inspect:hover {
-            border-color: currentColor;
-            box-shadow: 0 2px 8px rgb(21 31 44 / 10%);
-        }
-
-        .slot-button--inspect:focus-visible {
-            outline: 3px solid #278451;
-            outline-offset: 2px;
-        }
-
-        .slot-button--inspect>span:not(.slot-pitch-markings) {
-            justify-content: space-between;
-        }
-
-        .slot-inspect-icon {
-            flex: 0 0 auto;
-            margin-left: auto;
-            opacity: .72;
-        }
-
-        .slot-button.selected .slot-pitch-markings,
-        .slot-button.available[aria-pressed="true"] .slot-pitch-markings {
-            opacity: .22;
-        }
-
-        .slot-button.selected,
-        .slot-button.available[aria-pressed="true"] {
-            border-color: var(--success);
-            background: #dceee3;
-            box-shadow: inset 0 0 0 1px var(--success);
         }
 
         .booking-selection-help {
@@ -873,12 +617,6 @@
                 flex-direction: column;
             }
 
-            .slot-list {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-                padding: 13px;
-                gap: 8px;
-            }
-
             .court-head {
                 padding: 15px;
             }
@@ -1053,7 +791,7 @@
                     </span>
                 </header>
                 @if(count($schedule['slots']))
-                    <div class="slot-list">
+                    <div class="court-slot-grid">
                         @foreach($schedule['slots'] as $slot)
                             @php
                                 $slotDisplayStatus = $slot['status'];
@@ -1090,7 +828,8 @@
                                 }
                             @endphp
                             @if($slot['status'] === 'available' && $hasPaymentOption)
-                                <button type="button" class="slot-button available js-book-slot"
+                                <x-court-booking-slot status="available" class="js-book-slot"
+                                    :time-label="$slot['start'].'–'.$slot['end']"
                                     data-court-id="{{ $schedule['court']->id }}" data-court-name="{{ $schedule['court']->name }}"
                                     data-date="{{ $date->toDateString() }}" data-date-label="{{ $date->translatedFormat('l, d F Y') }}"
                                     data-request-key="{{ $slot['request_key'] }}" data-starts-at="{{ $slot['starts_at'] }}"
@@ -1099,18 +838,11 @@
                                     data-amount-cents="{{ (int) round((float) $slot['amount'] * 100) }}"
                                     data-rental-availability='@json($slot['rental_availability'])'
                                     aria-label="{{ $slotAriaLabel }}" aria-describedby="bookingSelectionHelp" aria-pressed="false">
-                                    <span class="slot-pitch-markings" aria-hidden="true">
-                                        <span class="slot-pitch-boundary"></span>
-                                        <span class="slot-pitch-midline"></span>
-                                        <span class="slot-pitch-center-circle"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
-                                    </span>
-                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
-                                    <span>Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot</span>
-                                </button>
+                                    Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot
+                                </x-court-booking-slot>
                             @elseif($slotDisplayStatus === 'match' && filled($slot['match_details']))
-                                <button type="button" class="slot-button slot-button--inspect match js-slot-detail"
+                                <x-court-booking-slot status="match" class="slot-button--inspect js-slot-detail"
+                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
                                     data-detail-kind="Pertandingan"
                                     data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
                                     data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
@@ -1120,22 +852,13 @@
                                     data-detail-status="match" aria-haspopup="dialog" aria-controls="slotDetailModal"
                                     title="Klik untuk melihat detail pertandingan"
                                     aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}">
-                                    <span class="slot-pitch-markings" aria-hidden="true">
-                                        <span class="slot-pitch-boundary"></span>
-                                        <span class="slot-pitch-midline"></span>
-                                        <span class="slot-pitch-center-circle"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
-                                    </span>
-                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
-                                    <span>
-                                        <i class="bi bi-calendar-event" aria-hidden="true"></i>
-                                        <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
-                                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
-                                    </span>
-                                </button>
+                                    <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                                    <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
+                                    <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                                </x-court-booking-slot>
                             @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
-                                <button type="button" class="slot-button slot-button--inspect {{ $slotDisplayStatus }} js-slot-detail"
+                                <x-court-booking-slot :status="$slotDisplayStatus" class="slot-button--inspect js-slot-detail"
+                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
                                     data-detail-kind="{{ $slotDisplayStatus === 'member' ? 'Member' : 'Tim' }}"
                                     data-detail-name="{{ trim($slot['display_name']) }}"
                                     data-detail-court="{{ $schedule['court']->name }}"
@@ -1144,45 +867,17 @@
                                     data-detail-status="{{ $slotDisplayStatus }}" aria-haspopup="dialog"
                                     aria-controls="slotDetailModal" title="Klik untuk melihat detail jadwal"
                                     aria-label="Lihat detail {{ $displayNameLabel.trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
-                                    <span class="slot-pitch-markings" aria-hidden="true">
-                                        <span class="slot-pitch-boundary"></span>
-                                        <span class="slot-pitch-midline"></span>
-                                        <span class="slot-pitch-center-circle"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
+                                    <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
+                                        {{ $displayNameLabel.trim($slot['display_name']) }}
                                     </span>
-                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
-                                    <span>
-                                        <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
-                                            {{ $displayNameLabel.trim($slot['display_name']) }}
-                                        </span>
-                                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
-                                    </span>
-                                </button>
+                                    <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                                </x-court-booking-slot>
                             @else
-                                <button type="button" class="slot-button {{ $slotDisplayStatus }}" disabled
-                                    aria-label="{{ $slotAriaLabel }}">
-                                    <span class="slot-pitch-markings" aria-hidden="true">
-                                        <span class="slot-pitch-boundary"></span>
-                                        <span class="slot-pitch-midline"></span>
-                                        <span class="slot-pitch-center-circle"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
-                                        <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
-                                    </span>
-                                    <strong>{{ $slot['start'] }}–{{ $slot['end'] }}</strong>
-                                    <span>
-                                        <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
-                                        @if(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
-                                            <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
-                                                {{ $displayNameLabel.trim($slot['display_name']) }}
-                                            </span>
-                                        @elseif($slotDisplayStatus === 'match')
-                                            <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
-                                        @else
-                                            <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
-                                        @endif
-                                    </span>
-                                </button>
+                                <x-court-booking-slot :status="$slotDisplayStatus" :time-label="$slot['start'].'–'.$slot['end']"
+                                    :disabled="true" aria-label="{{ $slotAriaLabel }}">
+                                    <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
+                                    <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
+                                </x-court-booking-slot>
                             @endif
                         @endforeach
                     </div>
