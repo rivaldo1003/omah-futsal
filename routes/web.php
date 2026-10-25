@@ -235,7 +235,11 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/member-schedules/{schedule}/booking', [AdminCourtBookingController::class, 'storeMemberBooking'])->name('member-schedules.booking.store');
         Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
+        Route::post('/reports/daily/review', [AdminCourtBookingController::class, 'reviewDailyReport'])->name('reports.daily-review.store');
         Route::get('/reports/team-hours', [AdminCourtBookingController::class, 'teamHoursReport'])->name('reports.team-hours');
+        Route::post('/tournament-rentals', [AdminCourtBookingController::class, 'storeTournamentRental'])->name('tournament-rentals.store');
+        Route::put('/tournament-rentals/{rental}', [AdminCourtBookingController::class, 'updateTournamentRental'])->name('tournament-rentals.update');
+        Route::post('/tournament-rentals/{rental}/cancel', [AdminCourtBookingController::class, 'cancelTournamentRental'])->name('tournament-rentals.cancel');
         Route::put('/reports/daily/revenue', [AdminCourtBookingController::class, 'updateDailyRevenue'])->name('reports.daily-revenue.update');
         Route::post('/reports/daily/revenue-entries', [AdminCourtBookingController::class, 'storeDailyRevenueEntry'])->name('reports.daily-revenue-entries.store');
         Route::put('/reports/daily/revenue-entries/{entry}', [AdminCourtBookingController::class, 'updateDailyRevenueEntry'])->name('reports.daily-revenue-entries.update');

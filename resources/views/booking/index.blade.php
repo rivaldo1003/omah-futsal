@@ -103,6 +103,10 @@
             background: #3478c4;
         }
 
+        .legend-dot.tournament-rental {
+            background: #7059a8;
+        }
+
         .legend-dot.past {
             background: #a6a6a8;
         }
@@ -429,6 +433,12 @@
             color: #164f84;
         }
 
+        .slot-detail-status--tournament-rental {
+            border-color: #d6caec;
+            background: #e9e1f7;
+            color: #4c3b79;
+        }
+
         .slot-detail-status--member {
             border-color: #c9bee9;
             background: #f0edfa;
@@ -744,6 +754,7 @@
             <span class="legend-item"><span class="legend-dot"></span> Tersedia</span>
             <span class="legend-item"><span class="legend-dot booked"></span> Booking terisi</span>
             <span class="legend-item"><span class="legend-dot match"></span> Jadwal pertandingan</span>
+            <span class="legend-item"><span class="legend-dot tournament-rental"></span> Sewa turnamen</span>
             <span class="legend-item"><span class="legend-dot member"></span> Jadwal member</span>
             <span class="legend-item"><span class="legend-dot pending"></span> Sedang diproses</span>
             <span class="legend-item"><span class="legend-dot past"></span> Waktu sudah lewat</span>
@@ -806,6 +817,7 @@
                                     'pending' => 'Sedang diproses',
                                     'booked' => 'Sudah terisi',
                                     'match' => 'Jadwal pertandingan',
+                                    'tournament_rental' => 'Sewa turnamen',
                                     'member' => 'Jadwal member',
                                     'past' => 'Waktu sudah lewat',
                                     'unavailable' => 'Booking online belum dibuka',
@@ -814,6 +826,7 @@
                                     'pending' => 'bi-hourglass-split',
                                     'booked' => 'bi-calendar2-check',
                                     'match' => 'bi-calendar-event',
+                                    'tournament_rental' => 'bi-trophy',
                                     'member' => 'bi-person-lock',
                                     'past' => 'bi-clock-history',
                                     'unavailable' => 'bi-info-circle',
@@ -855,6 +868,23 @@
                                     aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}">
                                     <i class="bi bi-calendar-event" aria-hidden="true"></i>
                                     <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
+                                    <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                                </x-court-booking-slot>
+                            @elseif($slotDisplayStatus === 'tournament_rental' && filled($slot['tournament_rental_details']))
+                                <x-court-booking-slot status="tournament_rental" class="slot-button--inspect js-slot-detail"
+                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
+                                    data-detail-kind="Sewa turnamen"
+                                    data-detail-name="{{ $slot['tournament_rental_details']['tournament_name'] }}"
+                                    data-detail-rental-start="{{ $slot['tournament_rental_details']['rental_start'] }}"
+                                    data-detail-rental-end="{{ $slot['tournament_rental_details']['rental_end'] }}"
+                                    data-detail-court="{{ $schedule['court']->name }}"
+                                    data-detail-date="{{ $date->translatedFormat('l, d F Y') }}"
+                                    data-detail-start="{{ $slot['start'] }}" data-detail-end="{{ $slot['end'] }}"
+                                    data-detail-status="tournament_rental" aria-haspopup="dialog" aria-controls="slotDetailModal"
+                                    title="Klik untuk melihat detail sewa turnamen"
+                                    aria-label="Lihat detail sewa turnamen {{ $slot['tournament_rental_details']['tournament_name'] }}">
+                                    <i class="bi bi-trophy" aria-hidden="true"></i>
+                                    <span class="slot-status-copy slot-status-badge--tournament-rental">Sewa turnamen</span>
                                     <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
                                 </x-court-booking-slot>
                             @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
@@ -918,6 +948,10 @@
                         <div id="slotDetailCompetitionFact" hidden>
                             <dt>Turnamen / kompetisi</dt>
                             <dd id="slotDetailCompetition"></dd>
+                        </div>
+                        <div id="slotDetailRentalFact" hidden>
+                            <dt>Rentang sewa turnamen</dt>
+                            <dd id="slotDetailRentalPeriod"></dd>
                         </div>
                         <div>
                             <dt>Lapangan</dt>
@@ -1334,6 +1368,11 @@
                 className: 'slot-detail-status--match',
                 note: 'Lapangan digunakan untuk pertandingan ini dan tidak tersedia untuk booking umum.',
             },
+            tournament_rental: {
+                label: 'Sewa turnamen',
+                className: 'slot-detail-status--tournament-rental',
+                note: 'Rentang sewa ini dicatat untuk satu penyewa turnamen. Waktu jeda termasuk dalam durasi sewa.',
+            },
             member: {
                 label: 'Jadwal member',
                 className: 'slot-detail-status--member',
@@ -1355,6 +1394,11 @@
                 const competitionFact = document.getElementById('slotDetailCompetitionFact');
                 competitionFact.hidden = button.dataset.detailStatus !== 'match';
                 document.getElementById('slotDetailCompetition').textContent = button.dataset.detailCompetition || '';
+                const rentalFact = document.getElementById('slotDetailRentalFact');
+                rentalFact.hidden = button.dataset.detailStatus !== 'tournament_rental';
+                document.getElementById('slotDetailRentalPeriod').textContent = button.dataset.detailRentalStart && button.dataset.detailRentalEnd
+                    ? `${button.dataset.detailRentalStart}–${button.dataset.detailRentalEnd} · termasuk jeda`
+                    : '';
 
                 const status = document.getElementById('slotDetailStatus');
                 status.className = `slot-detail-status ${detail.className}`;

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Court;
 use App\Models\CourtBooking;
+use App\Models\CourtTournamentRental;
 use App\Models\CourtMemberSchedule;
 use App\Models\Game;
 use Carbon\Carbon;
@@ -59,9 +60,10 @@ class CourtBookingAvailabilityService
             ->first();
     }
 
-    public function matchConflict(Court $court, string $date, string $start, string $end): bool
+    public function matchConflict(Court $court, string $date, string $start, string $end, ?int $ignoreTournamentId = null): bool
     {
-        return $this->matchingGameQuery($court, $date, $start, $end)->exists();
+        return $this->matchingGameQuery($court, $date, $start, $end, $ignoreTournamentId)->exists()
+            || $this->tournamentRentalConflict($court, $date, $start, $end, null, $ignoreTournamentId);
     }
 
     public function matchForSlot(Court $court, string $date, string $start, string $end): ?Game
@@ -71,7 +73,49 @@ class CourtBookingAvailabilityService
             ->first();
     }
 
-    private function matchingGameQuery(Court $court, string $date, string $start, string $end): Builder
+    public function tournamentRentalForSlot(Court $court, string $date, string $start, string $end): ?CourtTournamentRental
+    {
+        return $this->tournamentRentalQuery($court, $date, $start, $end)
+            ->with('tournament:id,name')
+            ->orderBy('time_start')
+            ->orderBy('id')
+            ->first();
+    }
+
+    public function tournamentRentalConflict(
+        Court $court,
+        string $date,
+        string $start,
+        string $end,
+        ?int $ignoreRentalId = null,
+        ?int $ignoreTournamentId = null,
+    ): bool {
+        return $this->tournamentRentalQuery($court, $date, $start, $end)
+            ->when($ignoreRentalId, fn ($query, $id) => $query->whereKeyNot($id))
+            ->when($ignoreTournamentId, fn ($query, $id) => $query->where(function ($linked) use ($id) {
+                $linked->whereNull('tournament_id')->orWhere('tournament_id', '!=', $id);
+            }))
+            ->exists();
+    }
+
+    private function tournamentRentalQuery(Court $court, string $date, string $start, string $end)
+    {
+        $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
+        $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt->addDay();
+        }
+
+        return CourtTournamentRental::query()
+            ->where('court_id', $court->id)
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->whereDate('rental_date', '>=', $startAt->copy()->subDay()->toDateString())
+            ->whereDate('rental_date', '<=', $endAt->toDateString())
+            ->whereRaw('TIMESTAMP(rental_date, time_start) < ?', [$endAt->format('Y-m-d H:i:s')])
+            ->whereRaw("(CASE WHEN time_end <= time_start THEN DATE_ADD(TIMESTAMP(rental_date, time_end), INTERVAL 1 DAY) ELSE TIMESTAMP(rental_date, time_end) END) > ?", [$startAt->format('Y-m-d H:i:s')]);
+    }
+
+    private function matchingGameQuery(Court $court, string $date, string $start, string $end, ?int $ignoreTournamentId = null): Builder
     {
         $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
@@ -85,6 +129,9 @@ class CourtBookingAvailabilityService
             ->whereDate('match_date', '<=', $endAt->toDateString())
             ->whereRaw('LOWER(TRIM(venue)) = ?', [mb_strtolower(trim($court->name))])
             ->where('status', '!=', 'postponed')
+            ->when($ignoreTournamentId, fn ($query, $id) => $query->where(function ($linked) use ($id) {
+                $linked->whereNull('tournament_id')->orWhere('tournament_id', '!=', $id);
+            }))
             ->whereRaw('TIMESTAMP(match_date, time_start) < ?', [$endAt->format('Y-m-d H:i:s')])
             ->whereRaw("(CASE WHEN time_end <= time_start THEN DATE_ADD(TIMESTAMP(match_date, time_end), INTERVAL 1 DAY) ELSE TIMESTAMP(match_date, time_end) END) > ?", [$startAt->format('Y-m-d H:i:s')])
             ->orderBy('match_date')
@@ -163,7 +210,7 @@ class CourtBookingAvailabilityService
         return $this->slotAvailability($court, $date, $start, $end, false)['status'];
     }
 
-    /** @return array{status: string, display_name: ?string, match_details: ?array{competition_name: string, home_team: string, away_team: string}} */
+    /** @return array{status: string, display_name: ?string, match_details: ?array{competition_name: string, home_team: string, away_team: string}, tournament_rental_details: ?array{tournament_name: string, rental_start: string, rental_end: string}} */
     public function slotAvailability(Court $court, string $date, string $start, string $end, bool $includeMatchDetails = true): array
     {
         $slotStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
@@ -180,11 +227,14 @@ class CourtBookingAvailabilityService
                 // customer's personal name, phone number, or email here.
                 'display_name' => filled($booking->team_name) ? trim($booking->team_name) : null,
                 'match_details' => null,
+                'tournament_rental_details' => null,
             ];
         }
 
         $match = $includeMatchDetails ? $this->matchForSlot($court, $date, $start, $end) : null;
-        $hasMatchConflict = $match !== null || (!$includeMatchDetails && $this->matchConflict($court, $date, $start, $end));
+        // Keep a fixture's detail badge distinct from a tournament-wide rental
+        // block, even when callers skip loading match relations for the slot grid.
+        $hasMatchConflict = $match !== null || (!$includeMatchDetails && $this->matchingGameQuery($court, $date, $start, $end)->exists());
         if ($hasMatchConflict) {
             return [
                 'status' => 'match',
@@ -194,19 +244,34 @@ class CourtBookingAvailabilityService
                     'home_team' => $match->homeTeam?->name ?: 'TBA',
                     'away_team' => $match->awayTeam?->name ?: 'TBA',
                 ] : null,
+                'tournament_rental_details' => null,
+            ];
+        }
+
+        $tournamentRental = $this->tournamentRentalForSlot($court, $date, $start, $end);
+        if ($tournamentRental) {
+            return [
+                'status' => 'tournament_rental',
+                'display_name' => $tournamentRental->tournament_name_snapshot,
+                'match_details' => null,
+                'tournament_rental_details' => [
+                    'tournament_name' => $tournamentRental->tournament_name_snapshot,
+                    'rental_start' => substr((string) $tournamentRental->time_start, 0, 5),
+                    'rental_end' => substr((string) $tournamentRental->time_end, 0, 5),
+                ],
             ];
         }
 
         $memberName = $this->memberScheduleNameForSlot($court, $date, $start, $end);
         if ($memberName !== null) {
-            return ['status' => 'member', 'display_name' => $memberName, 'match_details' => null];
+            return ['status' => 'member', 'display_name' => $memberName, 'match_details' => null, 'tournament_rental_details' => null];
         }
 
         if ($hasPassed) {
-            return ['status' => 'past_available', 'display_name' => null, 'match_details' => null];
+            return ['status' => 'past_available', 'display_name' => null, 'match_details' => null, 'tournament_rental_details' => null];
         }
 
-        return ['status' => 'available', 'display_name' => null, 'match_details' => null];
+        return ['status' => 'available', 'display_name' => null, 'match_details' => null, 'tournament_rental_details' => null];
     }
 
     public function lockCourt(int $courtId): ?Court

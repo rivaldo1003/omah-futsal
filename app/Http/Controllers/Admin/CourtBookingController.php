@@ -12,10 +12,12 @@ use App\Models\CourtBookingRentalAddition;
 use App\Models\CourtBookingSetting;
 use App\Models\CourtDailyRevenue;
 use App\Models\CourtDailyRevenueEntry;
+use App\Models\CourtDailyReportReview;
 use App\Models\CourtMemberSchedule;
 use App\Models\CourtMemberScheduleDayOff;
 use App\Models\CourtBookingPaymentAudit;
 use App\Models\CourtBookingFundSettlement;
+use App\Models\CourtTournamentRental;
 use App\Models\Game;
 use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
@@ -580,6 +582,13 @@ class CourtBookingController extends Controller
             'date' => ['nullable', 'date_format:Y-m-d'],
         ]);
         $reportDate = $filters['date'] ?? CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString();
+        $reportMonthStart = CarbonImmutable::parse($reportDate, CourtBooking::TIMEZONE)->startOfMonth();
+        $reportMonthEnd = $reportMonthStart->endOfMonth();
+        $dailyReconciliation = $this->dailyReportReconciliationProgress(
+            $reportMonthStart->toDateString(),
+            $reportMonthEnd->toDateString(),
+            CarbonImmutable::today(CourtBooking::TIMEZONE),
+        );
 
         $dailyBookings = CourtBooking::query()
             ->with(['court', 'cancelledBy', 'payments', 'rentalAdditions.verifiedBy', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
@@ -684,9 +693,172 @@ class CourtBookingController extends Controller
             'dailyTotalIncome',
             'dailyIncomeByPaymentMethod',
             'dailyOutstandingBalance',
+            'dailyReconciliation',
+            'reportMonthStart',
+            'reportMonthEnd',
             'tournaments',
             'courts',
         ));
+    }
+
+    public function reviewDailyReport(Request $request)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            'operating_date' => ['required', 'date_format:Y-m-d'],
+        ]);
+        $operatingDate = $validated['operating_date'];
+        $today = CarbonImmutable::today(CourtBooking::TIMEZONE);
+
+        if (CarbonImmutable::parse($operatingDate, CourtBooking::TIMEZONE)->greaterThan($today)) {
+            throw ValidationException::withMessages([
+                'operating_date' => 'Laporan tanggal mendatang belum dapat dicocokkan.',
+            ]);
+        }
+
+        if (! CourtDailyRevenue::query()->where('operating_date', $operatingDate)->exists()) {
+            throw ValidationException::withMessages([
+                'operating_date' => 'Simpan catatan parkir dan toko terlebih dahulu. Jika tidak ada pemasukan, simpan nilai Rp 0.',
+            ]);
+        }
+
+        $progress = $this->dailyReportReconciliationProgress($operatingDate, $operatingDate, $today);
+        $day = $progress['days'][0] ?? null;
+        abort_unless($day, 404);
+
+        $now = now();
+        DB::table('court_daily_report_reviews')->upsert([[
+            'operating_date' => $operatingDate,
+            'snapshot_hash' => $day['snapshot_hash'],
+            'reviewed_by' => auth()->id(),
+            'reviewed_by_name_snapshot' => auth()->user()?->name,
+            'reviewed_at' => $now,
+            'created_at' => $now,
+            'updated_at' => $now,
+        ]], ['operating_date'], [
+            'snapshot_hash',
+            'reviewed_by',
+            'reviewed_by_name_snapshot',
+            'reviewed_at',
+            'updated_at',
+        ]);
+
+        return redirect()->route('admin.court-bookings.reports.daily', ['date' => $operatingDate])
+            ->with('success', 'Laporan harian ditandai sudah dicocokkan. Jika datanya berubah, statusnya otomatis meminta pemeriksaan ulang.');
+    }
+
+    /**
+     * Build month rows and a data fingerprint so edits made after reconciliation
+     * are visible instead of leaving a stale "complete" marker.
+     */
+    private function dailyReportReconciliationProgress(string $fromDate, string $toDate, CarbonImmutable $today): array
+    {
+        $bookingsByDate = CourtBooking::query()
+            ->with(['payments', 'rentalAdditions', 'fundSettlements'])
+            ->whereBetween('booking_date', [$fromDate, $toDate])
+            ->orderBy('booking_date')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (CourtBooking $booking): string => $booking->booking_date->toDateString());
+        $rentalOrdersByDate = CourtRentalOrder::query()
+            ->with('lines')
+            ->whereBetween('rental_date', [$fromDate, $toDate])
+            ->orderBy('rental_date')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (CourtRentalOrder $order): string => $order->rental_date->toDateString());
+        $dailyRevenuesByDate = CourtDailyRevenue::query()
+            ->whereBetween('operating_date', [$fromDate, $toDate])
+            ->get()
+            ->keyBy(fn (CourtDailyRevenue $revenue): string => $revenue->operating_date->toDateString());
+        $revenueEntriesByDate = CourtDailyRevenueEntry::withTrashed()
+            ->whereBetween('operating_date', [$fromDate, $toDate])
+            ->orderBy('operating_date')
+            ->orderBy('id')
+            ->get()
+            ->groupBy(fn (CourtDailyRevenueEntry $entry): string => $entry->operating_date->toDateString());
+        $reviewsByDate = CourtDailyReportReview::query()
+            ->with('reviewedBy')
+            ->whereBetween('operating_date', [$fromDate, $toDate])
+            ->get()
+            ->keyBy(fn (CourtDailyReportReview $review): string => $review->operating_date->toDateString());
+
+        $days = [];
+        $start = CarbonImmutable::parse($fromDate, CourtBooking::TIMEZONE)->startOfDay();
+        $end = CarbonImmutable::parse($toDate, CourtBooking::TIMEZONE)->startOfDay();
+
+        for ($date = $start; $date->lessThanOrEqualTo($end); $date = $date->addDay()) {
+            $dateKey = $date->toDateString();
+            $bookings = $bookingsByDate->get($dateKey, collect());
+            $rentalOrders = $rentalOrdersByDate->get($dateKey, collect());
+            $dailyRevenue = $dailyRevenuesByDate->get($dateKey);
+            $allOtherEntries = $revenueEntriesByDate->get($dateKey, collect());
+            $activeOtherEntries = $allOtherEntries->whereNull('deleted_at');
+            $review = $reviewsByDate->get($dateKey);
+
+            $bookingIncome = 0.0;
+            foreach ($bookings as $booking) {
+                if ($booking->status === CourtBooking::STATUS_CONFIRMED) {
+                    $bookingIncome += (float) $booking->payments
+                        ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+                        ->sum(fn ($payment) => $payment->recognized_amount);
+                    $bookingIncome += (float) $booking->rentalAdditions
+                        ->whereNotNull('confirmed_at')
+                        ->sum('amount');
+                } elseif ($booking->status === CourtBooking::STATUS_CANCELLED) {
+                    $bookingIncome += (float) $booking->fundSettlements
+                        ->where('type', CourtBookingFundSettlement::TYPE_RETAINED)
+                        ->whereNull('voided_at')
+                        ->sum('amount');
+                }
+            }
+
+            $snapshot = [
+                'bookings' => $bookings->map(fn (CourtBooking $booking): array => $booking->toArray())->values()->all(),
+                'rental_orders' => $rentalOrders->map(fn (CourtRentalOrder $order): array => $order->toArray())->values()->all(),
+                'daily_revenue' => $dailyRevenue?->toArray(),
+                'other_revenue_entries' => $allOtherEntries->map(fn (CourtDailyRevenueEntry $entry): array => $entry->toArray())->values()->all(),
+            ];
+            $snapshotHash = hash('sha256', json_encode(
+                $snapshot,
+                JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION | JSON_INVALID_UTF8_SUBSTITUTE | JSON_THROW_ON_ERROR,
+            ));
+
+            $isFuture = $date->greaterThan($today);
+            $isCurrent = $review && hash_equals((string) $review->snapshot_hash, $snapshotHash);
+            $status = $isFuture ? 'upcoming' : ($isCurrent ? 'matched' : ($review ? 'changed' : 'unchecked'));
+
+            $days[] = [
+                'date' => $dateKey,
+                'label' => $date->locale('id')->translatedFormat('d M Y'),
+                'booking_count' => $bookings->count(),
+                'booking_income' => round($bookingIncome, 2),
+                'rental_income' => round((float) $rentalOrders
+                    ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
+                    ->sum('amount'), 2),
+                'parking_income' => round((float) ($dailyRevenue?->parking_income ?? 0), 2),
+                'shop_income' => round((float) ($dailyRevenue?->shop_income ?? 0), 2),
+                'has_daily_revenue' => (bool) $dailyRevenue,
+                'other_income' => round((float) $activeOtherEntries->sum('amount'), 2),
+                'other_income_count' => $activeOtherEntries->count(),
+                'status' => $status,
+                'snapshot_hash' => $snapshotHash,
+                'reviewed_at' => $review?->reviewed_at,
+                'reviewed_by' => $review?->reviewedBy?->name ?? $review?->reviewed_by_name_snapshot,
+            ];
+        }
+
+        $dueDays = collect($days)->where('status', '!=', 'upcoming');
+        $reviewedDays = $dueDays->where('status', 'matched')->count();
+        $totalDueDays = $dueDays->count();
+
+        return [
+            'days' => $days,
+            'reviewed_days' => $reviewedDays,
+            'total_due_days' => $totalDueDays,
+            'remaining_days' => max(0, $totalDueDays - $reviewedDays),
+            'percentage' => $totalDueDays > 0 ? (int) round($reviewedDays / $totalDueDays * 100) : 0,
+        ];
     }
 
     public function teamHoursReport(Request $request)
@@ -712,25 +884,19 @@ class CourtBookingController extends Controller
             ]);
         }
 
-        $earliestBookingDate = CourtBooking::query()->min('booking_date');
-        $earliestTournamentMatchDate = DB::table('matches')
-            ->whereNotNull('tournament_id')
-            ->where('status', 'completed')
-            ->where('is_cancelled', false)
-            ->whereNotNull('match_date')
-            ->whereNotNull('time_start')
-            ->whereNotNull('time_end')
-            ->whereNotNull('team_home_id')
-            ->whereNotNull('team_away_id')
-            ->min('match_date');
-        $earliestUsageDate = collect([$earliestBookingDate, $earliestTournamentMatchDate])
+        $earliestBookingDate = CourtBooking::query()
+            ->where('status', CourtBooking::STATUS_CONFIRMED)
+            ->whereNotNull('team_name')
+            ->whereRaw("TRIM(team_name) <> ''")
+            ->min('booking_date');
+        $earliestTournamentRentalDate = CourtTournamentRental::query()
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->min('rental_date');
+        $firstYearWithActivity = collect([$earliestBookingDate, $earliestTournamentRentalDate])
             ->filter()
-            ->sort()
-            ->first();
-        $firstYearWithUsage = $earliestUsageDate
-            ? (int) CarbonImmutable::parse($earliestUsageDate, CourtBooking::TIMEZONE)->format('Y')
-            : $currentYear;
-        $firstYearOption = min($firstYearWithUsage, $currentYear);
+            ->map(fn ($date) => (int) CarbonImmutable::parse($date, CourtBooking::TIMEZONE)->format('Y'))
+            ->min() ?? $currentYear;
+        $firstYearOption = min($firstYearWithActivity, $currentYear);
         $yearOptions = collect(range($currentYear, $firstYearOption));
 
         $bookingGroups = CourtBooking::query()
@@ -761,8 +927,6 @@ class CourtBookingController extends Controller
                 'team_name' => $displayName,
                 'booking_count' => 0,
                 'booking_minutes' => 0,
-                'match_count' => 0,
-                'match_minutes' => 0,
                 'total_minutes' => 0,
             ];
             if (strcasecmp($displayName, $teamTotals[$key]['team_name']) < 0) {
@@ -772,75 +936,6 @@ class CourtBookingController extends Controller
             $teamTotals[$key]['booking_minutes'] += (int) $bookingGroup->booking_minutes;
             $teamTotals[$key]['total_minutes'] += (int) $bookingGroup->booking_minutes;
         }
-
-        $completedMatchCount = 0;
-        $matchQuery = DB::table('matches')
-            ->join('teams as home_team', 'home_team.id', '=', 'matches.team_home_id')
-            ->join('teams as away_team', 'away_team.id', '=', 'matches.team_away_id')
-            ->whereNotNull('matches.tournament_id')
-            ->where('matches.status', 'completed')
-            ->where('matches.is_cancelled', false)
-            ->whereNotNull('matches.match_date')
-            ->whereNotNull('matches.time_start')
-            ->whereNotNull('matches.time_end')
-            ->whereNotNull('matches.team_home_id')
-            ->whereNotNull('matches.team_away_id')
-            ->when($fromDate, fn ($query) => $query->whereDate('matches.match_date', '>=', $fromDate))
-            ->whereDate('matches.match_date', '<=', $toDate)
-            ->select([
-                'matches.id',
-                'matches.match_date',
-                'matches.time_start',
-                'matches.time_end',
-                'home_team.name as home_team_name',
-                'away_team.name as away_team_name',
-            ]);
-
-        $matchQuery->chunkById(500, function ($matches) use (&$teamTotals, &$completedMatchCount, $normalizeTeamName): void {
-            foreach ($matches as $match) {
-                $startAt = CarbonImmutable::parse(
-                    (string) $match->match_date.' '.(string) $match->time_start,
-                    CourtBooking::TIMEZONE,
-                );
-                $endAt = CarbonImmutable::parse(
-                    (string) $match->match_date.' '.(string) $match->time_end,
-                    CourtBooking::TIMEZONE,
-                );
-                if (!$endAt->greaterThan($startAt)) {
-                    continue;
-                }
-
-                $durationMinutes = (int) floor(($endAt->getTimestamp() - $startAt->getTimestamp()) / 60);
-                if ($durationMinutes < 1 || $durationMinutes > 1440) {
-                    continue;
-                }
-
-                $completedMatchCount++;
-                $countedTeamsInMatch = [];
-                foreach ([
-                    (string) $match->home_team_name,
-                    (string) $match->away_team_name,
-                ] as $teamName) {
-                    $key = $normalizeTeamName($teamName);
-                    if ($key === '' || isset($countedTeamsInMatch[$key])) {
-                        continue;
-                    }
-                    $countedTeamsInMatch[$key] = true;
-
-                    $teamTotals[$key] ??= [
-                        'team_name' => trim($teamName),
-                        'booking_count' => 0,
-                        'booking_minutes' => 0,
-                        'match_count' => 0,
-                        'match_minutes' => 0,
-                        'total_minutes' => 0,
-                    ];
-                    $teamTotals[$key]['match_count']++;
-                    $teamTotals[$key]['match_minutes'] += $durationMinutes;
-                    $teamTotals[$key]['total_minutes'] += $durationMinutes;
-                }
-            }
-        }, 'matches.id', 'id');
 
         $teamRows = collect(array_values($teamTotals))
             ->sort(function (array $left, array $right): int {
@@ -864,17 +959,258 @@ class CourtBookingController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
+        $tournamentRentalRows = CourtTournamentRental::query()
+            ->with(['court:id,name', 'tournament:id,name'])
+            ->orderByDesc('rental_date')
+            ->orderByDesc('time_start')
+            ->orderByDesc('id');
+        $activeTournamentRentals = (clone $tournamentRentalRows)
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED);
+        $tournamentRentalCount = (clone $activeTournamentRentals)->count();
+        $tournamentRentalMinutes = (int) (clone $activeTournamentRentals)->sum('duration_minutes');
+        $tournamentRentals = $tournamentRentalRows
+            ->paginate(20, ['*'], 'tournament_page')
+            ->withQueryString();
+        $currentTime = CarbonImmutable::now(CourtBooking::TIMEZONE);
+        $tournamentRentals->getCollection()->transform(function (CourtTournamentRental $rental) use ($currentTime) {
+            $displayStatus = $rental->status;
+            if ($displayStatus === CourtTournamentRental::STATUS_SCHEDULED) {
+                $startAt = CarbonImmutable::parse($rental->rental_date->toDateString().' '.$rental->time_start, CourtBooking::TIMEZONE);
+                $endAt = CarbonImmutable::parse($rental->rental_date->toDateString().' '.$rental->time_end, CourtBooking::TIMEZONE);
+                if (!$endAt->greaterThan($startAt)) {
+                    $endAt = $endAt->addDay();
+                }
+                if ($endAt->lessThanOrEqualTo($currentTime)) {
+                    $displayStatus = CourtTournamentRental::STATUS_COMPLETED;
+                }
+            }
+            $rental->setAttribute('display_status', $displayStatus);
+
+            return $rental;
+        });
+
         return view('admin.court-bookings.team-hours', [
             'teams' => $teams,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
             'selectedYear' => $selectedYear,
             'yearOptions' => $yearOptions,
+            'courts' => Court::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']),
+            'tournaments' => Tournament::query()->orderByDesc('start_date')->orderBy('name')->get(['id', 'name', 'start_date']),
+            'tournamentRentals' => $tournamentRentals,
+            'tournamentRentalCount' => $tournamentRentalCount,
+            'tournamentRentalMinutes' => $tournamentRentalMinutes,
             'teamCount' => (int) $teamCount,
             'confirmedBookingCount' => $confirmedBookingCount,
-            'completedMatchCount' => $completedMatchCount,
             'totalTeamMinutes' => $totalTeamMinutes,
         ]);
+    }
+
+    public function storeTournamentRental(Request $request, CourtBookingAvailabilityService $availability)
+    {
+        $this->ensureAdmin();
+        $rental = $this->persistTournamentRental(null, $this->validateTournamentRental($request), $availability);
+
+        return back()->with('success', 'Sesi sewa turnamen '.$rental->tournament_name_snapshot.' berhasil dicatat. Durasi jeda termasuk dalam jam sewa.');
+    }
+
+    public function updateTournamentRental(
+        Request $request,
+        CourtTournamentRental $rental,
+        CourtBookingAvailabilityService $availability,
+    ) {
+        $this->ensureAdmin();
+        if ($rental->status === CourtTournamentRental::STATUS_CANCELLED) {
+            throw ValidationException::withMessages(['tournament_rental' => 'Sesi sewa yang dibatalkan tidak dapat diedit. Catat sesi baru jika diperlukan.']);
+        }
+
+        $rental = $this->persistTournamentRental($rental, $this->validateTournamentRental($request), $availability);
+
+        return back()->with('success', 'Sesi sewa turnamen berhasil diperbarui.');
+    }
+
+    public function cancelTournamentRental(Request $request, CourtTournamentRental $rental)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            'cancellation_reason' => ['required', 'string', 'max:500'],
+        ]);
+
+        DB::transaction(function () use ($rental, $validated): void {
+            $lockedRental = CourtTournamentRental::query()->whereKey($rental->id)->lockForUpdate()->firstOrFail();
+            if ($lockedRental->status === CourtTournamentRental::STATUS_CANCELLED) {
+                return;
+            }
+
+            $lockedRental->update([
+                'status' => CourtTournamentRental::STATUS_CANCELLED,
+                'cancelled_by' => auth()->id(),
+                'cancelled_at' => CarbonImmutable::now(CourtBooking::TIMEZONE),
+                'cancellation_reason' => trim($validated['cancellation_reason']),
+                'updated_by' => auth()->id(),
+            ]);
+        });
+
+        return back()->with('success', 'Sesi sewa turnamen dibatalkan. Catatan tetap tersimpan dan slotnya dilepas.');
+    }
+
+    private function validateTournamentRental(Request $request): array
+    {
+        return $request->validate([
+            'court_id' => ['required', 'integer', Rule::exists('courts', 'id')],
+            'tournament_id' => ['nullable', 'integer', Rule::exists('tournaments', 'id')],
+            'tournament_name_snapshot' => ['nullable', 'required_without:tournament_id', 'string', 'max:150'],
+            'rental_date' => ['required', 'date_format:Y-m-d'],
+            'time_start' => ['required', 'date_format:H:i'],
+            'time_end' => ['required', 'date_format:H:i'],
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+        ], [
+            'tournament_name_snapshot.required_without' => 'Pilih turnamen atau isi nama turnamen.',
+        ]);
+    }
+
+    private function persistTournamentRental(
+        ?CourtTournamentRental $rental,
+        array $validated,
+        CourtBookingAvailabilityService $availability,
+    ): CourtTournamentRental {
+        return DB::transaction(function () use ($rental, $validated, $availability): CourtTournamentRental {
+            $court = $availability->lockCourt((int) $validated['court_id']);
+            if (!$court) {
+                throw ValidationException::withMessages(['court_id' => 'Lapangan tidak ditemukan.']);
+            }
+
+            $lockedRental = $rental
+                ? CourtTournamentRental::query()->whereKey($rental->id)->lockForUpdate()->firstOrFail()
+                : new CourtTournamentRental;
+            if ($lockedRental->exists && $lockedRental->status === CourtTournamentRental::STATUS_CANCELLED) {
+                throw ValidationException::withMessages(['tournament_rental' => 'Sesi sewa yang dibatalkan tidak dapat diedit.']);
+            }
+
+            $startAt = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $validated['rental_date'].' '.$validated['time_start'],
+                CourtBooking::TIMEZONE,
+            );
+            $endAt = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $validated['rental_date'].' '.$validated['time_end'],
+                CourtBooking::TIMEZONE,
+            );
+            if (!$startAt || !$endAt) {
+                throw ValidationException::withMessages(['time_end' => 'Tanggal dan jam sewa tidak valid.']);
+            }
+            if (!$endAt->greaterThan($startAt)) {
+                $endAt = $endAt->addDay();
+            }
+
+            $durationMinutes = intdiv($endAt->getTimestamp() - $startAt->getTimestamp(), 60);
+            if ($durationMinutes < 30 || $durationMinutes > 1440 || $durationMinutes % 30 !== 0) {
+                throw ValidationException::withMessages(['time_end' => 'Durasi sewa harus kelipatan 30 menit dan maksimal 24 jam.']);
+            }
+
+            $openingAt = CarbonImmutable::parse($validated['rental_date'].' '.$court->opening_time, CourtBooking::TIMEZONE);
+            $closingAt = CarbonImmutable::parse($validated['rental_date'].' '.$court->closing_time, CourtBooking::TIMEZONE);
+            if (!$closingAt->greaterThan($openingAt)) {
+                $closingAt = $closingAt->addDay();
+            }
+            if ($startAt->lessThan($openingAt) || $endAt->greaterThan($closingAt)) {
+                throw ValidationException::withMessages([
+                    'time_start' => 'Rentang sewa harus berada di dalam jam operasional lapangan.',
+                ]);
+            }
+
+            $tournament = filled($validated['tournament_id'] ?? null)
+                ? Tournament::query()->findOrFail((int) $validated['tournament_id'])
+                : null;
+            $tournamentId = $tournament?->id;
+            $tournamentName = $tournament?->name ?: trim((string) ($validated['tournament_name_snapshot'] ?? ''));
+            if ($tournamentName === '') {
+                throw ValidationException::withMessages(['tournament_name_snapshot' => 'Nama turnamen wajib diisi.']);
+            }
+
+            $date = $validated['rental_date'];
+            $start = $validated['time_start'].':00';
+            $end = $validated['time_end'].':00';
+            if ($availability->bookingConflict($court, $date, $start, $end)) {
+                throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan booking lapangan yang sudah tercatat.']);
+            }
+            if ($availability->memberScheduleConflict($court, $date, $start, $end)) {
+                throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan jadwal member.']);
+            }
+            if ($availability->matchConflict($court, $date, $start, $end, $tournamentId)) {
+                throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan pertandingan lain di lapangan ini.']);
+            }
+            if ($availability->tournamentRentalConflict(
+                $court,
+                $date,
+                $start,
+                $end,
+                $lockedRental->exists ? (int) $lockedRental->id : null,
+            )) {
+                throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan sesi sewa turnamen lain.']);
+            }
+
+            $this->assertTournamentMatchesFitRental($tournamentId, $court, $startAt, $endAt);
+
+            $lockedRental->fill([
+                'court_id' => $court->id,
+                'tournament_id' => $tournamentId,
+                'tournament_name_snapshot' => $tournamentName,
+                'rental_date' => $date,
+                'time_start' => $start,
+                'time_end' => $end,
+                'duration_minutes' => $durationMinutes,
+                'status' => $endAt->lessThanOrEqualTo(CarbonImmutable::now(CourtBooking::TIMEZONE))
+                    ? CourtTournamentRental::STATUS_COMPLETED
+                    : CourtTournamentRental::STATUS_SCHEDULED,
+                'admin_note' => filled($validated['admin_note'] ?? null) ? trim($validated['admin_note']) : null,
+                'created_by' => $lockedRental->exists ? $lockedRental->created_by : auth()->id(),
+                'updated_by' => auth()->id(),
+                'cancelled_by' => null,
+                'cancelled_at' => null,
+                'cancellation_reason' => null,
+            ])->save();
+
+            return $lockedRental;
+        }, 3);
+    }
+
+    private function assertTournamentMatchesFitRental(
+        ?int $tournamentId,
+        Court $court,
+        CarbonImmutable $rentalStart,
+        CarbonImmutable $rentalEnd,
+    ): void {
+        if (!$tournamentId) {
+            return;
+        }
+
+        $matches = Game::query()
+            ->where('tournament_id', $tournamentId)
+            ->whereRaw('LOWER(TRIM(venue)) = ?', [mb_strtolower(trim($court->name))])
+            ->where('is_cancelled', false)
+            ->where('status', '!=', 'postponed')
+            ->whereDate('match_date', '>=', $rentalStart->toDateString())
+            ->whereDate('match_date', '<=', $rentalEnd->toDateString())
+            ->whereNotNull('time_start')
+            ->whereNotNull('time_end')
+            ->get(['match_date', 'time_start', 'time_end']);
+
+        foreach ($matches as $match) {
+            $matchStart = CarbonImmutable::parse($match->match_date->toDateString().' '.$match->time_start, CourtBooking::TIMEZONE);
+            $matchEnd = CarbonImmutable::parse($match->match_date->toDateString().' '.$match->time_end, CourtBooking::TIMEZONE);
+            if (!$matchEnd->greaterThan($matchStart)) {
+                $matchEnd = $matchEnd->addDay();
+            }
+
+            if ($matchStart->lessThan($rentalEnd) && $matchEnd->greaterThan($rentalStart)
+                && ($matchStart->lessThan($rentalStart) || $matchEnd->greaterThan($rentalEnd))) {
+                throw ValidationException::withMessages([
+                    'time_start' => 'Rentang sewa harus mencakup jadwal pertandingan '.$matchStart->format('H:i').'–'.$matchEnd->format('H:i').'.',
+                ]);
+            }
+        }
     }
 
     public function settings()
@@ -1201,7 +1537,7 @@ class CourtBookingController extends Controller
             throw ValidationException::withMessages(['booking_date' => 'Jadwal ini bentrok dengan booking lapangan yang sudah tercatat.']);
         }
         if ($availability->matchConflict($schedule->court, $date, $timeStart, $timeEnd)) {
-            throw ValidationException::withMessages(['booking_date' => 'Jadwal ini bentrok dengan pertandingan yang sudah dijadwalkan.']);
+            throw ValidationException::withMessages(['booking_date' => 'Jadwal ini bentrok dengan pertandingan atau sesi sewa turnamen.']);
         }
         $otherMember = $availability->memberScheduleNameForSlot(
             $schedule->court,
@@ -1350,7 +1686,7 @@ class CourtBookingController extends Controller
                 ->firstOrFail();
             if ($availability->bookingConflict($court, $date, $lockedSchedule->time_start, $lockedSchedule->time_end)
                 || $availability->matchConflict($court, $date, $lockedSchedule->time_start, $lockedSchedule->time_end)) {
-                throw ValidationException::withMessages(['off_date' => 'Tanggal libur tidak dapat dihapus karena slot tersebut sudah dipakai booking atau pertandingan.']);
+                throw ValidationException::withMessages(['off_date' => 'Tanggal libur tidak dapat dihapus karena slot tersebut sudah dipakai booking, pertandingan, atau sesi sewa turnamen.']);
             }
             $lockedDayOff->delete();
         }, 3);
@@ -1980,7 +2316,7 @@ class CourtBookingController extends Controller
                 $lockedBooking->time_start,
                 $lockedBooking->time_end,
             )) {
-                throw ValidationException::withMessages(['booking' => 'Jadwal bertabrakan dengan booking atau pertandingan lain. Periksa jadwal sebelum mengonfirmasi.']);
+                throw ValidationException::withMessages(['booking' => 'Jadwal bertabrakan dengan booking, pertandingan, atau sesi sewa turnamen. Periksa jadwal sebelum mengonfirmasi.']);
             }
 
             $payment = $lockedBooking->payments()
@@ -2400,7 +2736,7 @@ class CourtBookingController extends Controller
         }
 
         if ($willBeActive && $this->recurringScheduleHasBookingsOrMatches($validated)) {
-            throw ValidationException::withMessages(['time_start' => 'Jadwal member bertabrakan dengan booking atau pertandingan yang sudah tercatat pada rentang tanggal tersebut.']);
+            throw ValidationException::withMessages(['time_start' => 'Jadwal member bertabrakan dengan booking, pertandingan, atau sesi sewa turnamen pada rentang tanggal tersebut.']);
         }
 
         return $validated + ['is_active' => $request->boolean('is_active')];

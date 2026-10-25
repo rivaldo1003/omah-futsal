@@ -580,6 +580,7 @@ class CourtWalkInOrderController extends Controller
                 'status' => $slotAvailability['status'],
                 'display_name' => $slotAvailability['display_name'],
                 'match_details' => $slotAvailability['match_details'],
+                'tournament_rental_details' => $slotAvailability['tournament_rental_details'],
                 'amount' => $pricing->amountForRange($court, $startTime, $slotMinutes, $date),
             ];
             $cursor = $end;

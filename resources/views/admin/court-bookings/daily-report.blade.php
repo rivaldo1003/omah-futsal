@@ -155,6 +155,181 @@
             margin-bottom: 40px;
         }
 
+        .daily-reconciliation {
+            padding: 20px 22px;
+            margin-bottom: 32px;
+            border: 1px solid var(--report-line-soft);
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .daily-reconciliation-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px 24px;
+        }
+
+        .daily-reconciliation h2 {
+            margin: 0 0 5px;
+            color: var(--report-ink);
+            font-size: 18px;
+            font-weight: 500;
+        }
+
+        .daily-reconciliation p {
+            max-width: 75ch;
+            margin: 0;
+            color: var(--report-muted);
+            font-size: 13px;
+        }
+
+        .daily-reconciliation-progress-label {
+            color: var(--report-ink) !important;
+            font-size: 14px !important;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .daily-reconciliation-progress {
+            height: 6px;
+            overflow: hidden;
+            margin: 16px 0 14px;
+            border-radius: 9999px;
+            background: #e8e8e8;
+        }
+
+        .daily-reconciliation-progress > span {
+            display: block;
+            height: 100%;
+            border-radius: inherit;
+            background: var(--report-success);
+            transition: width 180ms ease-out;
+        }
+
+        .daily-reconciliation details > summary {
+            width: fit-content;
+            color: var(--report-charcoal);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .daily-reconciliation-table-wrap {
+            overflow-x: auto;
+            margin-top: 12px;
+            border-top: 1px solid var(--report-line-soft);
+        }
+
+        .daily-reconciliation-table {
+            min-width: 820px;
+            margin: 0;
+            color: var(--report-ink);
+            font-size: 13px;
+            --bs-table-bg: transparent;
+        }
+
+        .daily-reconciliation-table th {
+            padding: 11px 10px;
+            border-bottom: 1px solid var(--report-line);
+            color: var(--report-muted);
+            font-size: 12px;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .daily-reconciliation-table td {
+            padding: 11px 10px;
+            border-bottom: 1px solid var(--report-line-soft);
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .daily-reconciliation-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .daily-reconciliation-table .is-selected td {
+            background: #f5f5f5;
+        }
+
+        .daily-reconciliation-table .reconciliation-amount {
+            font-variant-numeric: tabular-nums;
+            text-align: right;
+        }
+
+        .reconciliation-state {
+            display: inline-flex;
+            align-items: center;
+            min-height: 27px;
+            padding: 4px 9px;
+            border-radius: 9999px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .reconciliation-state--matched {
+            background: #e7f2ec;
+            color: var(--report-success);
+        }
+
+        .reconciliation-state--changed {
+            background: #f5f1e5;
+            color: #67510c;
+        }
+
+        .reconciliation-state--unchecked,
+        .reconciliation-state--upcoming {
+            background: var(--report-cloud);
+            color: var(--report-charcoal);
+        }
+
+        .daily-reconciliation-status small {
+            display: block;
+            margin-top: 3px;
+            color: var(--report-muted);
+            font-size: 11px;
+        }
+
+        .daily-reconciliation-open {
+            color: var(--report-ink);
+            font-size: 13px;
+            font-weight: 500;
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .daily-reconciliation-action {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px 24px;
+            padding: 18px 0;
+            margin: 28px 0 32px;
+            border-block: 1px solid var(--report-line-soft);
+        }
+
+        .daily-reconciliation-action h2 {
+            margin: 0 0 4px;
+            color: var(--report-ink);
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .daily-reconciliation-action p {
+            margin: 0;
+            color: var(--report-muted);
+            font-size: 13px;
+        }
+
+        .daily-reconciliation-action .btn:disabled {
+            border-color: var(--report-line-soft);
+            background: var(--report-cloud);
+            color: var(--report-muted);
+        }
+
         .daily-income-methods {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -599,6 +774,24 @@
                 margin-bottom: 32px;
             }
 
+            .daily-reconciliation {
+                padding: 18px 14px;
+            }
+
+            .daily-reconciliation-header {
+                display: block;
+            }
+
+            .daily-reconciliation-progress-label {
+                display: block;
+                margin-top: 10px !important;
+            }
+
+            .daily-reconciliation-action,
+            .daily-reconciliation-action .btn {
+                width: 100%;
+            }
+
             .daily-income-methods {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
                 margin-bottom: 30px;
@@ -669,9 +862,13 @@
 @section('content')
     @php
         $formatRupiah = fn ($amount) => 'Rp ' . number_format((float) $amount, 0, ',', '.');
+        $selectedDayReconciliation = collect($dailyReconciliation['days'])->firstWhere('date', $reportDate);
+        $pendingReconciliationDays = collect($dailyReconciliation['days'])
+            ->filter(fn ($day) => in_array($day['status'], ['unchecked', 'changed'], true))
+            ->values();
     @endphp
 
-    <main class="booking-daily-report">
+    <main class="booking-daily-report" id="dailyReportTop">
         <header class="daily-report-header">
             <div>
                 <h1>Laporan Operasional Harian</h1>
@@ -707,6 +904,102 @@
                 <a class="btn btn-outline-secondary" href="{{ route('admin.court-bookings.reports.daily') }}">Hari ini</a>
             </div>
         </form>
+
+        <section class="daily-reconciliation" aria-labelledby="dailyReconciliationTitle">
+            <div class="daily-reconciliation-header">
+                <div>
+                    <h2 id="dailyReconciliationTitle">Progres pencatatan · {{ $reportMonthStart->locale('id')->translatedFormat('F Y') }}</h2>
+                    <p>Cocokkan angka laporan tiap tanggal dengan catatan Excel. Tanggal mendatang tidak dihitung sebagai pekerjaan yang tertunda.</p>
+                </div>
+                <p class="daily-reconciliation-progress-label">
+                    @if($dailyReconciliation['total_due_days'] > 0)
+                        {{ $dailyReconciliation['reviewed_days'] }} dari {{ $dailyReconciliation['total_due_days'] }} tanggal sudah dicocokkan
+                        @if($dailyReconciliation['remaining_days'] > 0)
+                            · {{ $dailyReconciliation['remaining_days'] }} belum selesai
+                        @endif
+                    @else
+                        Belum ada tanggal yang perlu dicocokkan
+                    @endif
+                </p>
+            </div>
+            <div class="daily-reconciliation-progress" role="progressbar" aria-label="Progres pencocokan laporan bulan ini"
+                aria-valuemin="0" aria-valuemax="100" aria-valuenow="{{ $dailyReconciliation['percentage'] }}">
+                <span style="width: {{ $dailyReconciliation['percentage'] }}%"></span>
+            </div>
+            @if($pendingReconciliationDays->isNotEmpty())
+                <p class="mb-3">
+                    Belum selesai: {{ $pendingReconciliationDays->take(6)->pluck('label')->implode(', ') }}
+                    @if($pendingReconciliationDays->count() > 6)
+                        dan {{ $pendingReconciliationDays->count() - 6 }} tanggal lainnya
+                    @endif
+                </p>
+            @endif
+            <details>
+                <summary>Lihat rincian {{ count($dailyReconciliation['days']) }} tanggal · booking dan pemasukan yang sudah dicatat</summary>
+                <div class="daily-reconciliation-table-wrap" role="region" aria-label="Progres pencatatan per tanggal; gulir mendatar untuk melihat semua kolom" tabindex="0">
+                    <table class="table daily-reconciliation-table align-middle">
+                        <caption class="visually-hidden">Jumlah booking dan pemasukan yang tercatat serta status pencocokan tiap tanggal.</caption>
+                        <thead>
+                            <tr>
+                                <th scope="col">Tanggal</th>
+                                <th scope="col">Jumlah booking</th>
+                                <th scope="col" class="text-end">Pemasukan booking</th>
+                                <th scope="col" class="text-end">Parkir</th>
+                                <th scope="col" class="text-end">Toko</th>
+                                <th scope="col" class="text-end">Sewa alat</th>
+                                <th scope="col" class="text-end">Pemasukan lain</th>
+                                <th scope="col">Pencocokan</th>
+                                <th scope="col">Laporan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach($dailyReconciliation['days'] as $day)
+                                @php
+                                    $statusLabel = match ($day['status']) {
+                                        'matched' => 'Sudah dicocokkan',
+                                        'changed' => 'Data berubah · cek ulang',
+                                        'upcoming' => 'Belum waktunya',
+                                        default => 'Belum dicocokkan',
+                                    };
+                                    $statusClass = match ($day['status']) {
+                                        'matched' => 'matched',
+                                        'changed' => 'changed',
+                                        'upcoming' => 'upcoming',
+                                        default => 'unchecked',
+                                    };
+                                @endphp
+                                <tr @class(['is-selected' => $day['date'] === $reportDate])>
+                                    <td><strong>{{ $day['label'] }}</strong></td>
+                                    <td>{{ number_format($day['booking_count']) }} booking</td>
+                                    <td class="reconciliation-amount">{{ $formatRupiah($day['booking_income']) }}</td>
+                                    <td class="reconciliation-amount">
+                                        @if($day['has_daily_revenue']){{ $formatRupiah($day['parking_income']) }}@else<span class="text-secondary">Belum diinput</span>@endif
+                                    </td>
+                                    <td class="reconciliation-amount">
+                                        @if($day['has_daily_revenue']){{ $formatRupiah($day['shop_income']) }}@else<span class="text-secondary">Belum diinput</span>@endif
+                                    </td>
+                                    <td class="reconciliation-amount">{{ $formatRupiah($day['rental_income']) }}</td>
+                                    <td class="reconciliation-amount">
+                                        {{ $formatRupiah($day['other_income']) }}
+                                        <small>{{ $day['other_income_count'] }} catatan</small>
+                                    </td>
+                                    <td class="daily-reconciliation-status">
+                                        <span class="reconciliation-state reconciliation-state--{{ $statusClass }}">{{ $statusLabel }}</span>
+                                        @if($day['reviewed_at'])
+                                            <small>
+                                                Dicek {{ $day['reviewed_at']->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M, H:i') }} WIB
+                                                @if($day['reviewed_by']) · {{ $day['reviewed_by'] }}@endif
+                                            </small>
+                                        @endif
+                                    </td>
+                                    <td><a class="daily-reconciliation-open" href="{{ route('admin.court-bookings.reports.daily', ['date' => $day['date']]) }}#dailyReportTop">Buka</a></td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </details>
+        </section>
 
         <section class="daily-report-overview" aria-label="Ringkasan laporan {{ $reportDate }}">
             <div class="daily-report-total">
@@ -1077,6 +1370,48 @@
                     </tbody>
                 </table>
             </div>
+        </section>
+
+        <section class="daily-reconciliation-action" aria-labelledby="dailyReconciliationActionTitle">
+            <div>
+                <h2 id="dailyReconciliationActionTitle">
+                    @if($selectedDayReconciliation['status'] === 'matched')
+                        Laporan tanggal ini sudah dicocokkan
+                    @elseif($selectedDayReconciliation['status'] === 'changed')
+                        Data berubah sejak pemeriksaan terakhir
+                    @elseif($selectedDayReconciliation['status'] === 'upcoming')
+                        Tanggal ini belum dapat dicocokkan
+                    @else
+                        Tandai laporan setelah dicocokkan
+                    @endif
+                </h2>
+                <p>
+                    @if($selectedDayReconciliation['status'] === 'upcoming')
+                        Pencocokan tersedia setelah tanggal operasional berlangsung.
+                    @elseif(!$selectedDayReconciliation['has_daily_revenue'])
+                        Simpan pemasukan parkir dan toko untuk tanggal ini, termasuk Rp 0 bila tidak ada pemasukan, sebelum menandainya selesai.
+                    @else
+                        Setelah angka booking, parkir, toko, sewa alat, dan pemasukan lain cocok dengan Excel, tandai tanggal ini selesai.
+                        Perubahan data sesudahnya akan meminta pemeriksaan ulang.
+                    @endif
+                </p>
+            </div>
+            @if($selectedDayReconciliation['status'] === 'upcoming')
+                <button class="btn btn-primary" type="button" disabled>Belum dapat dicocokkan</button>
+            @elseif(!$selectedDayReconciliation['has_daily_revenue'])
+                <a class="btn btn-primary" href="#dailyRevenueEntryTitle">
+                    <i class="bi bi-pencil-square" aria-hidden="true"></i>Isi parkir dan toko
+                </a>
+            @else
+                <form method="POST" action="{{ route('admin.court-bookings.reports.daily-review.store') }}">
+                    @csrf
+                    <input type="hidden" name="operating_date" value="{{ $reportDate }}">
+                    <button class="btn btn-primary" type="submit">
+                        <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                        {{ $selectedDayReconciliation['status'] === 'matched' ? 'Perbarui pemeriksaan' : 'Tandai sudah dicocokkan' }}
+                    </button>
+                </form>
+            @endif
         </section>
 
         @foreach($dailyBookings as $dailyBooking)

@@ -235,6 +235,31 @@
         line-height: 1.4;
     }
 
+    .slot-button.tournament_rental {
+        border-color: #c9b9e7;
+        background: #f1edfa;
+        color: #4c3b79;
+        cursor: not-allowed;
+    }
+
+    .slot-button.tournament_rental > span:not(.slot-pitch-markings) {
+        color: #5e4b8c;
+    }
+
+    .slot-button .slot-status-badge--tournament-rental {
+        display: inline-flex;
+        align-items: center;
+        width: fit-content;
+        padding: 2px 7px;
+        border: 1px solid #d6caec;
+        border-radius: 4px;
+        background: #e9e1f7;
+        color: #4c3b79;
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
     .slot-button.past,
     .slot-button.is-past {
         border-style: dashed;

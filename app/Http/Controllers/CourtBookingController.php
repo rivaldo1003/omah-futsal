@@ -80,6 +80,7 @@ class CourtBookingController extends Controller
                     'status' => $slotAvailability['status'],
                     'display_name' => $slotAvailability['display_name'],
                     'match_details' => $slotAvailability['match_details'],
+                    'tournament_rental_details' => $slotAvailability['tournament_rental_details'],
                     'amount' => $pricing->amountForRange($court, $startTime, $duration, $date->toDateString()),
                     'duration' => $duration,
                     'request_key' => (string) Str::uuid(),
@@ -238,7 +239,7 @@ class CourtBookingController extends Controller
                     throw ValidationException::withMessages(['time_start' => 'Slot baru saja dipesan. Silakan pilih jadwal lain.']);
                 }
                 if ($availability->matchConflict($court, $validated['booking_date'], $startTime, $endTime)) {
-                    throw ValidationException::withMessages(['time_start' => 'Lapangan memiliki pertandingan pada jam tersebut. Silakan pilih jadwal lain.']);
+                    throw ValidationException::withMessages(['time_start' => 'Slot termasuk jadwal pertandingan atau rentang sewa turnamen. Silakan pilih jadwal lain.']);
                 }
                 if ($availability->memberScheduleConflict($court, $validated['booking_date'], $startTime, $endTime)) {
                     throw ValidationException::withMessages(['time_start' => 'Slot tersebut dialokasikan untuk jadwal member. Silakan pilih waktu lain.']);

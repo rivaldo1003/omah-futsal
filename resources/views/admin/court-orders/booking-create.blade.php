@@ -305,6 +305,10 @@
             background: #3478c4;
         }
 
+        .walk-in-legend-mark.tournament-rental {
+            background: #7059a8;
+        }
+
         .walk-in-legend-mark.member {
             background: #7762b5;
         }
@@ -392,6 +396,12 @@
             border-color: #b6d4f2;
             background: #dcecff;
             color: #164f84;
+        }
+
+        .walk-in-detail-status--tournament-rental {
+            border-color: #d6caec;
+            background: #e9e1f7;
+            color: #4c3b79;
         }
 
         .walk-in-detail-note {
@@ -679,6 +689,7 @@
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark booked"></span>Booking terisi</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark match"></span>Jadwal
                     pertandingan</span>
+                <span class="walk-in-legend-item"><span class="walk-in-legend-mark tournament-rental"></span>Sewa turnamen</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark member"></span>Jadwal member</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark past"></span>Waktu lewat · tetap bisa dipilih</span>
                 <span class="walk-in-legend-item"><span class="walk-in-legend-mark instant"></span>Mulai sekarang ·
@@ -686,8 +697,8 @@
             </div>
 
             <p class="small text-secondary mb-3">Pilih satu slot atau beberapa slot berurutan. Slot kosong yang waktunya
-                sudah lewat tetap dapat dicatat untuk administrasi; booking aktif, jadwal member, dan pertandingan tetap
-                mengunci slot. Untuk slot yang sedang berjalan, admin juga dapat memilih mulai sekarang jika masih tersisa
+                sudah lewat tetap dapat dicatat untuk administrasi; booking aktif, jadwal member, pertandingan, dan sesi sewa
+                turnamen tetap mengunci slot. Untuk slot yang sedang berjalan, admin juga dapat memilih mulai sekarang jika masih tersisa
                 sedikitnya 30 menit.</p>
             <div class="court-slot-grid" role="group" aria-label="Jadwal slot {{ $selectedCourt->name }}">
                 @php
@@ -697,6 +708,7 @@
                         'pending' => 'Sedang diproses',
                         'booked' => 'Sudah terisi',
                         'match' => 'Jadwal pertandingan',
+                        'tournament_rental' => 'Sewa turnamen',
                         'member' => 'Jadwal member',
                         'past' => 'Waktu sudah lewat',
                     ];
@@ -705,6 +717,7 @@
                         'pending' => 'bi-hourglass-split',
                         'booked' => 'bi-calendar2-check',
                         'match' => 'bi-calendar-event',
+                        'tournament_rental' => 'bi-trophy',
                         'member' => 'bi-person-lock',
                         'past' => 'bi-clock-history',
                     ];
@@ -763,6 +776,22 @@
                         aria-label="Lihat detail pertandingan {{ $slot['match_details']['home_team'] }} melawan {{ $slot['match_details']['away_team'] }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
                         <i class="bi bi-calendar-event" aria-hidden="true"></i>
                         <span class="slot-status-copy slot-status-badge--match">Jadwal pertandingan</span>
+                        <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
+                    </x-court-booking-slot>
+                @elseif($slot['status'] === 'tournament_rental' && filled($slot['tournament_rental_details']))
+                    <x-court-booking-slot status="tournament_rental" class="walk-in-slot slot-button--inspect js-walk-in-slot-detail"
+                        :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
+                        data-detail-kind="Sewa turnamen"
+                        data-detail-name="{{ $slot['tournament_rental_details']['tournament_name'] }}"
+                        data-detail-rental-start="{{ $slot['tournament_rental_details']['rental_start'] }}"
+                        data-detail-rental-end="{{ $slot['tournament_rental_details']['rental_end'] }}"
+                        data-detail-status="tournament_rental" data-detail-court="{{ $selectedCourt->name }}"
+                        data-detail-date="{{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}"
+                        data-detail-time="{{ $slot['start'] }}–{{ $slot['end'] }}" aria-haspopup="dialog"
+                        aria-controls="walkInSlotDetailModal"
+                        aria-label="Lihat detail sewa turnamen {{ $slot['tournament_rental_details']['tournament_name'] }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
+                        <i class="bi bi-trophy" aria-hidden="true"></i>
+                        <span class="slot-status-copy slot-status-badge--tournament-rental">Sewa turnamen</span>
                         <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
                     </x-court-booking-slot>
                 @elseif(in_array($slot['status'], ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
@@ -828,6 +857,10 @@
                             <div id="walkInSlotDetailCompetitionFact" hidden>
                                 <dt>Turnamen / kompetisi</dt>
                                 <dd id="walkInSlotDetailCompetition"></dd>
+                            </div>
+                            <div id="walkInSlotDetailRentalFact" hidden>
+                                <dt>Rentang sewa turnamen</dt>
+                                <dd id="walkInSlotDetailRentalPeriod"></dd>
                             </div>
                             <div>
                                 <dt>Lapangan</dt>
@@ -1069,6 +1102,11 @@
                     className: 'walk-in-detail-status--match',
                     note: 'Lapangan digunakan untuk pertandingan ini dan tidak tersedia untuk booking umum.',
                 },
+                tournament_rental: {
+                    label: 'Sewa turnamen',
+                    className: 'walk-in-detail-status--tournament-rental',
+                    note: 'Rentang sewa ini dicatat untuk satu penyewa turnamen. Waktu jeda termasuk dalam durasi sewa.',
+                },
             };
 
             document.querySelectorAll('.js-walk-in-slot-detail').forEach((button) => {
@@ -1086,6 +1124,11 @@
                     const competitionFact = document.getElementById('walkInSlotDetailCompetitionFact');
                     competitionFact.hidden = button.dataset.detailStatus !== 'match';
                     document.getElementById('walkInSlotDetailCompetition').textContent = button.dataset.detailCompetition || '';
+                    const rentalFact = document.getElementById('walkInSlotDetailRentalFact');
+                    rentalFact.hidden = button.dataset.detailStatus !== 'tournament_rental';
+                    document.getElementById('walkInSlotDetailRentalPeriod').textContent = button.dataset.detailRentalStart && button.dataset.detailRentalEnd
+                        ? `${button.dataset.detailRentalStart}–${button.dataset.detailRentalEnd} · termasuk jeda`
+                        : '';
 
                     const status = document.getElementById('walkInSlotDetailStatus');
                     status.className = `walk-in-detail-status ${detail.className}`;
