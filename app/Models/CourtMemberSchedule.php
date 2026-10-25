@@ -29,4 +29,9 @@ class CourtMemberSchedule extends Model
     {
         return $this->hasMany(CourtMemberScheduleDayOff::class);
     }
+
+    public function bookings(): HasMany
+    {
+        return $this->hasMany(CourtBooking::class, 'court_member_schedule_id');
+    }
 }

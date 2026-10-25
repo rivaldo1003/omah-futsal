@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Court;
 use App\Models\CourtBooking;
+use App\Models\CourtBookingBackdateAudit;
 use App\Models\CourtBookingScheduleAudit;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtBookingRentalAddition;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\HeaderUtils;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
@@ -505,6 +507,312 @@ class CourtBookingController extends Controller
             'memberNames',
             'memberScheduleGroups',
         ));
+    }
+
+    public function createMemberBooking(
+        Request $request,
+        CourtMemberSchedule $schedule,
+        CourtBookingAvailabilityService $availability,
+        CourtPricingService $pricing,
+    ) {
+        $this->ensureAdmin();
+        $schedule->loadMissing(['court', 'daysOff']);
+
+        $today = CarbonImmutable::today(CourtBooking::TIMEZONE);
+        $minimumDate = $today->subDays(30);
+        $maximumDate = $today->addDays(60);
+        $daysUntilSchedule = ((int) $schedule->day_of_week - $today->dayOfWeek + 7) % 7;
+        $defaultDate = $today->addDays($daysUntilSchedule)->toDateString();
+        $query = $request->validate(['date' => ['nullable', 'date_format:Y-m-d']]);
+        $date = $query['date'] ?? $defaultDate;
+        $dateError = null;
+        $occurrence = null;
+        $amount = null;
+        $booking = null;
+
+        if ($date < $minimumDate->toDateString() || $date > $maximumDate->toDateString()) {
+            $dateError = 'Tanggal transaksi member dibatasi dari 30 hari yang lalu sampai 60 hari mendatang.';
+        } else {
+            $booking = $this->activeMemberOccurrence($schedule, $date);
+            if (!$booking) {
+                try {
+                    $occurrence = $this->assertMemberScheduleOccurrence($schedule, $date, $availability);
+                    $amount = $pricing->amountForRange(
+                        $schedule->court,
+                        $occurrence['time_start'],
+                        $occurrence['duration_minutes'],
+                        $date,
+                    );
+                } catch (ValidationException $exception) {
+                    $dateError = collect($exception->errors())->flatten()->first();
+                }
+            }
+        }
+
+        return view('admin.court-bookings.member-booking-create', [
+            'schedule' => $schedule,
+            'date' => $date,
+            'todayDate' => $today->toDateString(),
+            'minimumDate' => $minimumDate->toDateString(),
+            'maximumDate' => $maximumDate->toDateString(),
+            'occurrence' => $occurrence,
+            'amount' => $amount,
+            'booking' => $booking,
+            'dateError' => $dateError,
+            'weekdayLabel' => ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'][(int) $schedule->day_of_week] ?? 'Hari tidak diketahui',
+            'requestKey' => (string) Str::uuid(),
+            'isBackdated' => $date < $today->toDateString(),
+        ]);
+    }
+
+    public function storeMemberBooking(
+        Request $request,
+        CourtMemberSchedule $schedule,
+        CourtBookingAvailabilityService $availability,
+        CourtPricingService $pricing,
+    ) {
+        $this->ensureAdmin();
+
+        $today = CarbonImmutable::today(CourtBooking::TIMEZONE);
+        $minimumDate = $today->subDays(30)->toDateString();
+        $maximumDate = $today->addDays(60)->toDateString();
+        $requestedDate = $request->input('booking_date');
+        $isBackdated = is_string($requestedDate)
+            && preg_match('/\A\d{4}-\d{2}-\d{2}\z/', $requestedDate) === 1
+            && $requestedDate < $today->toDateString();
+
+        $validated = $request->validate([
+            'booking_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$minimumDate, 'before_or_equal:'.$maximumDate],
+            'member_booking_request_key' => ['required', 'uuid'],
+            'amount_received' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'payment_method' => ['required', Rule::in(['none', 'cash', 'bank_transfer', 'qris'])],
+            'payment_reference' => ['nullable', 'string', 'max:100'],
+            'admin_note' => ['nullable', 'string', 'max:1000'],
+            'backdate_reason' => [$isBackdated ? 'required' : 'nullable', 'string', 'max:500'],
+        ], [
+            'booking_date.after_or_equal' => 'Tanggal pencatatan member maksimal 30 hari yang lalu.',
+            'backdate_reason.required' => 'Alasan pencatatan tanggal lampau wajib diisi.',
+        ]);
+
+        $amountReceived = round((float) ($validated['amount_received'] ?? 0), 2);
+        if ($amountReceived > 0 && $validated['payment_method'] === 'none') {
+            throw ValidationException::withMessages(['payment_method' => 'Pilih metode pembayaran jika ada nominal yang diterima.']);
+        }
+
+        $fingerprint = hash('sha256', json_encode([
+            'type' => 'member_schedule_booking',
+            'schedule_id' => (int) $schedule->id,
+            'booking_date' => $validated['booking_date'],
+            'amount_received' => $amountReceived,
+            'payment_method' => $validated['payment_method'],
+            'payment_reference' => $validated['payment_reference'] ?? null,
+            'admin_note' => $validated['admin_note'] ?? null,
+            'backdate_reason' => $isBackdated ? trim($validated['backdate_reason']) : null,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+
+        $previousRequest = CourtBooking::query()
+            ->where('idempotency_key', $validated['member_booking_request_key'])
+            ->first();
+        if ($previousRequest) {
+            if (!hash_equals((string) $previousRequest->request_fingerprint, $fingerprint)) {
+                throw ValidationException::withMessages(['booking_date' => 'Kunci transaksi ini sudah dipakai untuk data berbeda. Muat ulang halaman dan coba lagi.']);
+            }
+
+            return redirect()->route('admin.court-bookings.index', ['date' => $previousRequest->booking_date->toDateString()])
+                ->with('success', 'Transaksi member ini sudah tercatat sebelumnya. Tidak ada transaksi duplikat yang dibuat.');
+        }
+
+        $booking = DB::transaction(function () use ($schedule, $validated, $availability, $pricing, $amountReceived, $fingerprint, $isBackdated): CourtBooking {
+            $lockedCourt = $availability->lockCourt((int) $schedule->court_id);
+            if (!$lockedCourt) {
+                throw ValidationException::withMessages(['booking_date' => 'Lapangan pada jadwal member ini sudah tidak tersedia.']);
+            }
+
+            $lockedSchedule = CourtMemberSchedule::query()
+                ->whereKey($schedule->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+            if ((int) $lockedSchedule->court_id !== (int) $lockedCourt->id) {
+                throw ValidationException::withMessages(['booking_date' => 'Jadwal member berubah. Muat ulang halaman sebelum mencatat transaksi.']);
+            }
+
+            $existingRequest = CourtBooking::query()
+                ->where('idempotency_key', $validated['member_booking_request_key'])
+                ->lockForUpdate()
+                ->first();
+            if ($existingRequest) {
+                if (!hash_equals((string) $existingRequest->request_fingerprint, $fingerprint)) {
+                    throw ValidationException::withMessages(['booking_date' => 'Kunci transaksi ini sudah dipakai untuk data berbeda. Muat ulang halaman dan coba lagi.']);
+                }
+
+                return $existingRequest;
+            }
+
+            if ($this->activeMemberOccurrence($lockedSchedule, $validated['booking_date'])) {
+                throw ValidationException::withMessages(['booking_date' => 'Transaksi untuk jadwal member pada tanggal ini sudah pernah dicatat. Buka booking yang sudah ada untuk melihat pembayaran.']);
+            }
+
+            $occurrence = $this->assertMemberScheduleOccurrence($lockedSchedule, $validated['booking_date'], $availability);
+            $amount = $pricing->amountForRange(
+                $lockedCourt,
+                $occurrence['time_start'],
+                $occurrence['duration_minutes'],
+                $validated['booking_date'],
+            );
+            if ($amountReceived > $amount) {
+                throw ValidationException::withMessages([
+                    'amount_received' => 'Nominal diterima tidak boleh melebihi total tagihan Rp '.number_format($amount, 0, ',', '.').'.',
+                ]);
+            }
+
+            $now = now(CourtBooking::TIMEZONE);
+            $booking = CourtBooking::query()->create([
+                'public_token' => (string) Str::uuid(),
+                'idempotency_key' => $validated['member_booking_request_key'],
+                'request_fingerprint' => $fingerprint,
+                'court_id' => $lockedCourt->id,
+                'court_member_schedule_id' => $lockedSchedule->id,
+                'booking_date' => $validated['booking_date'],
+                'time_start' => $occurrence['time_start'].':00',
+                'time_end' => $occurrence['time_end'].':00',
+                'duration_minutes' => $occurrence['duration_minutes'],
+                'amount' => $amount,
+                'team_name' => trim($lockedSchedule->member_name),
+                'customer_name' => trim($lockedSchedule->member_name),
+                'customer_phone' => null,
+                'customer_email' => null,
+                'payment_method' => $amountReceived > 0 ? $validated['payment_method'] : 'none',
+                'source' => 'member',
+                'created_by' => auth()->id(),
+                'payment_reference' => $amountReceived > 0 ? ($validated['payment_reference'] ?? null) : null,
+                'payment_instructions_snapshot' => $amountReceived > 0 ? 'Pembayaran member dicatat dan diverifikasi langsung oleh admin.' : null,
+                'status' => CourtBooking::STATUS_CONFIRMED,
+                'verified_by' => auth()->id(),
+                'verified_at' => $now,
+                'confirmed_at' => $now,
+                'admin_note' => $validated['admin_note'] ?? null,
+            ]);
+
+            if ($amountReceived > 0) {
+                $booking->payments()->create([
+                    'amount' => $amountReceived,
+                    'verified_amount' => $amountReceived,
+                    'stage' => $amountReceived >= $amount
+                        ? CourtBookingPayment::STAGE_FULL
+                        : CourtBookingPayment::STAGE_DEPOSIT,
+                    'payment_method' => $validated['payment_method'],
+                    'payment_reference' => $validated['payment_reference'] ?? null,
+                    'status' => CourtBookingPayment::STATUS_CONFIRMED,
+                    'note' => $amountReceived >= $amount
+                        ? 'Pembayaran booking member diterima lunas dan dicatat oleh admin.'
+                        : 'DP booking member diterima dan dicatat oleh admin.',
+                    'recorded_by' => auth()->id(),
+                    'verified_by' => auth()->id(),
+                    'recorded_at' => $now,
+                    'verified_at' => $now,
+                ]);
+            }
+
+            if ($isBackdated) {
+                CourtBookingBackdateAudit::query()->create([
+                    'court_booking_id' => $booking->id,
+                    'admin_id' => auth()->id(),
+                    'admin_name_snapshot' => auth()->user()?->name,
+                    'reason' => trim($validated['backdate_reason']),
+                ]);
+            }
+
+            return $booking;
+        }, 3);
+
+        $confirmedPayments = (float) $booking->payments()
+            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+            ->sum('verified_amount');
+        $balance = max(0, round((float) $booking->amount - $confirmedPayments, 2));
+        $message = $confirmedPayments <= 0
+            ? 'Booking member tercatat. Belum ada pembayaran yang diterima; sisa tagihan Rp '.number_format($balance, 0, ',', '.').'.'
+            : ($balance > 0
+                ? 'Booking member tercatat. Pembayaran Rp '.number_format($confirmedPayments, 0, ',', '.').' diterima; sisa tagihan Rp '.number_format($balance, 0, ',', '.').'.'
+                : 'Booking member tercatat dan sudah lunas.');
+
+        return redirect()->route('admin.court-bookings.index', ['date' => $booking->booking_date->toDateString()])
+            ->with('success', $message);
+    }
+
+    private function activeMemberOccurrence(CourtMemberSchedule $schedule, string $date): ?CourtBooking
+    {
+        return CourtBooking::query()
+            ->where('court_member_schedule_id', $schedule->id)
+            ->whereDate('booking_date', $date)
+            ->where(function ($query): void {
+                $query->whereIn('status', [CourtBooking::STATUS_PENDING_REVIEW, CourtBooking::STATUS_CONFIRMED])
+                    ->orWhere(function ($awaiting) {
+                        $awaiting->where('status', CourtBooking::STATUS_AWAITING_PAYMENT)
+                            ->where('expires_at', '>', now());
+                    });
+            })
+            ->with('payments')
+            ->latest('id')
+            ->first();
+    }
+
+    private function assertMemberScheduleOccurrence(
+        CourtMemberSchedule $schedule,
+        string $date,
+        CourtBookingAvailabilityService $availability,
+    ): array {
+        $day = CarbonImmutable::parse($date, CourtBooking::TIMEZONE);
+        if ($day->dayOfWeek !== (int) $schedule->day_of_week) {
+            throw ValidationException::withMessages(['booking_date' => 'Tanggal yang dipilih bukan hari rutin jadwal member ini.']);
+        }
+        if (($schedule->starts_on && $day->lt($schedule->starts_on)) || ($schedule->ends_on && $day->gt($schedule->ends_on))) {
+            $validity = collect([
+                $schedule->starts_on ? 'mulai '.$schedule->starts_on->translatedFormat('d M Y') : null,
+                $schedule->ends_on ? 'sampai '.$schedule->ends_on->translatedFormat('d M Y') : null,
+            ])->filter()->implode(' ');
+            $validityText = $validity !== '' ? ' Jadwal ini berlaku '.$validity.'.' : '';
+
+            throw ValidationException::withMessages([
+                'booking_date' => 'Tanggal yang dipilih tidak termasuk masa berlaku jadwal member.'.$validityText,
+            ]);
+        }
+        if ($schedule->daysOff()->whereDate('off_date', $date)->exists()) {
+            throw ValidationException::withMessages(['booking_date' => 'Tanggal ini sudah ditandai sebagai hari libur jadwal member.']);
+        }
+        if ($day->greaterThanOrEqualTo(CarbonImmutable::today(CourtBooking::TIMEZONE)) && !$schedule->is_active) {
+            throw ValidationException::withMessages(['booking_date' => 'Jadwal member sedang dijeda, sehingga tanggal hari ini atau mendatang tidak dapat dicatat.']);
+        }
+
+        $timeStart = substr((string) $schedule->time_start, 0, 5);
+        $timeEnd = substr((string) $schedule->time_end, 0, 5);
+        $startAt = CarbonImmutable::parse($date.' '.$timeStart, CourtBooking::TIMEZONE);
+        $endAt = CarbonImmutable::parse($date.' '.$timeEnd, CourtBooking::TIMEZONE);
+        if ($endAt->lessThanOrEqualTo($startAt)) {
+            $endAt = $endAt->addDay();
+        }
+
+        if ($availability->bookingConflict($schedule->court, $date, $timeStart, $timeEnd)) {
+            throw ValidationException::withMessages(['booking_date' => 'Jadwal ini bentrok dengan booking lapangan yang sudah tercatat.']);
+        }
+        if ($availability->matchConflict($schedule->court, $date, $timeStart, $timeEnd)) {
+            throw ValidationException::withMessages(['booking_date' => 'Jadwal ini bentrok dengan pertandingan yang sudah dijadwalkan.']);
+        }
+        $otherMember = $availability->memberScheduleNameForSlot(
+            $schedule->court,
+            $date,
+            $timeStart,
+            $timeEnd,
+            (int) $schedule->id,
+        );
+        if ($otherMember !== null) {
+            throw ValidationException::withMessages(['booking_date' => 'Jadwal ini juga bertabrakan dengan jadwal member '. $otherMember .'.']);
+        }
+
+        return [
+            'time_start' => $timeStart,
+            'time_end' => $timeEnd,
+            'duration_minutes' => (int) (($endAt->getTimestamp() - $startAt->getTimestamp()) / 60),
+        ];
     }
 
     public function storeMemberSchedule(Request $request)

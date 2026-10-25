@@ -1295,6 +1295,10 @@
                                     ? max(0, round($bookingFundsReceived - $settledFundAmount, 2))
                                     : 0;
                                 $pendingPayment = $booking->payments->firstWhere('status', \App\Models\CourtBookingPayment::STATUS_PENDING_REVIEW);
+                                $waPhone = preg_replace('/\D+/', '', (string) $booking->customer_phone);
+                                $waPhone = $waPhone === ''
+                                    ? null
+                                    : (str_starts_with($waPhone, '0') ? '62' . substr($waPhone, 1) : (str_starts_with($waPhone, '8') ? '62' . $waPhone : $waPhone));
                                 $remainingAmount = in_array($booking->status, ['confirmed', 'pending_review', 'awaiting_payment'], true)
                                     ? max(0, (float) $booking->amount - $paidAmount)
                                     : null;
@@ -1315,10 +1319,10 @@
                                             <span>{{ $booking->duration_label }}</span>
                                         </div>
                                         <div class="booking-booking-code">Booking #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        @if($booking->source === 'walk_in')
+                                        @if(in_array($booking->source, ['walk_in', 'member'], true))
                                             <div class="booking-cell-secondary">
-                                                <span class="badge text-bg-light border">Walk-in</span>
-                                                <span>{{ $booking->createdBy?->name }}</span>
+                                                <span class="badge text-bg-light border">{{ $booking->source === 'member' ? 'Member' : 'Walk-in' }}</span>
+                                                @if($booking->createdBy)<span>{{ $booking->createdBy->name }}</span>@endif
                                             </div>
                                         @endif
                                     </div>
@@ -1326,12 +1330,12 @@
                                 <td class="booking-customer-cell">
                                     <div class="booking-cell-stack">
                                         <div class="booking-cell-primary">{{ $booking->customer_name }}</div>
-                                    @php
-                                        $waPhone = preg_replace('/\D+/', '', $booking->customer_phone);
-                                        $waPhone = str_starts_with($waPhone, '0') ? '62' . substr($waPhone, 1) : (str_starts_with($waPhone, '8') ? '62' . $waPhone : $waPhone);
-                                    @endphp
-                                    <a href="https://wa.me/{{ $waPhone }}" target="_blank"
-                                        rel="noopener" class="booking-customer-phone">{{ $booking->customer_phone }}</a>
+                                    @if($booking->customer_phone && $waPhone)
+                                        <a href="https://wa.me/{{ $waPhone }}" target="_blank"
+                                            rel="noopener" class="booking-customer-phone">{{ $booking->customer_phone }}</a>
+                                    @elseif($booking->source === 'member')
+                                        <div class="booking-cell-secondary">Terdaftar dari jadwal member</div>
+                                    @endif
                                     @if($booking->customer_email)
                                         <div class="booking-cell-secondary booking-customer-email">{{ $booking->customer_email }}</div>
                                     @endif
@@ -1665,7 +1669,7 @@
                                             </form>
                                         @endif
                                     @endif
-                                    @if(in_array($booking->status, ['pending_review', 'confirmed', 'rejected', 'cancelled'], true))
+                                    @if($waPhone && in_array($booking->status, ['pending_review', 'confirmed', 'rejected', 'cancelled'], true))
                                         @php
                                             $bookingCode = str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT);
                                             $bookingUrl = route('booking.show', $booking->public_token);

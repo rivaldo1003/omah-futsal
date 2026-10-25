@@ -97,7 +97,13 @@ class CourtBookingAvailabilityService
         return $this->memberScheduleNameForSlot($court, $date, $start, $end) !== null;
     }
 
-    public function memberScheduleNameForSlot(Court $court, string $date, string $start, string $end): ?string
+    public function memberScheduleNameForSlot(
+        Court $court,
+        string $date,
+        string $start,
+        string $end,
+        ?int $ignoreScheduleId = null,
+    ): ?string
     {
         $startAt = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
         $endAt = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
@@ -123,6 +129,10 @@ class CourtBookingAvailabilityService
         $schedules = $this->memberScheduleCache[$cacheKey];
 
         foreach ($schedules as $schedule) {
+            if ($ignoreScheduleId !== null && (int) $schedule->id === $ignoreScheduleId) {
+                continue;
+            }
+
             $baseDate = (int) $schedule->day_of_week === Carbon::parse($dates[0], CourtBooking::TIMEZONE)->dayOfWeek
                 ? $dates[0]
                 : $dates[1];

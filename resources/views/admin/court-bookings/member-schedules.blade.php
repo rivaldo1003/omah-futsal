@@ -850,6 +850,11 @@
                                 <div class="court-member-schedule-row-header">
                                     <p class="court-member-schedule-detail-heading">Pengaturan jadwal</p>
                                     <div class="court-member-schedule-row-controls">
+                                        <a class="btn btn-primary"
+                                            href="{{ route('admin.court-bookings.member-schedules.booking.create', $schedule) }}">
+                                            <i class="bi bi-cash-coin" aria-hidden="true"></i>
+                                            Catat booking member
+                                        </a>
                                         <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
                                             data-bs-target="#{{ $editScheduleModalId }}">
                                             <i class="bi bi-pencil" aria-hidden="true"></i>

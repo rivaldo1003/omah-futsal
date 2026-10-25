@@ -26,6 +26,7 @@ class CourtBooking extends Model
         'idempotency_key',
         'request_fingerprint',
         'court_id',
+        'court_member_schedule_id',
         'booking_date',
         'time_start',
         'time_end',
@@ -74,6 +75,11 @@ class CourtBooking extends Model
     public function court(): BelongsTo
     {
         return $this->belongsTo(Court::class);
+    }
+
+    public function memberSchedule(): BelongsTo
+    {
+        return $this->belongsTo(CourtMemberSchedule::class, 'court_member_schedule_id');
     }
 
     public function rentalLines(): HasMany

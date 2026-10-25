@@ -231,6 +231,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::prefix('court-bookings')->name('court-bookings.')->group(function () {
         Route::get('/', [AdminCourtBookingController::class, 'index'])->name('index');
         Route::get('/member-schedules', [AdminCourtBookingController::class, 'memberSchedules'])->name('member-schedules.index');
+        Route::get('/member-schedules/{schedule}/booking', [AdminCourtBookingController::class, 'createMemberBooking'])->name('member-schedules.booking.create');
+        Route::post('/member-schedules/{schedule}/booking', [AdminCourtBookingController::class, 'storeMemberBooking'])->name('member-schedules.booking.store');
         Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
         Route::get('/reports/team-hours', [AdminCourtBookingController::class, 'teamHoursReport'])->name('reports.team-hours');
