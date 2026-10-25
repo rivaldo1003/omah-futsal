@@ -774,6 +774,9 @@
                         <input class="form-control" id="memberScheduleEndsOn" name="ends_on" type="date">
                     </div>
                 </div>
+                <small class="court-member-schedule-field-help mb-3">
+                    Masa berlaku menentukan periode jadwal rutin. Pemakaian pada tanggal tertentu tetap dicatat terpisah melalui <strong>Catat booking member</strong>.
+                </small>
 
                 <div class="court-member-schedule-note-field">
                     <div>
@@ -1021,6 +1024,9 @@
                                                         value="{{ $editScheduleOld('ends_on', $schedule->ends_on?->toDateString()) }}">
                                                 </div>
                                             </div>
+                                            <small class="court-member-schedule-field-help mb-3">
+                                                Masa berlaku menentukan periode jadwal rutin. Pemakaian pada tanggal tertentu tetap dicatat terpisah melalui <strong>Catat booking member</strong>.
+                                            </small>
 
                                             <div class="mb-3">
                                                 <label class="form-label" for="{{ $editScheduleModalId }}Notes">Catatan</label>

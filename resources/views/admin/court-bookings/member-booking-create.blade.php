@@ -122,6 +122,23 @@
         }
         .member-booking-field-help { display: block; margin-top: 6px; color: var(--mb-muted); font-size: 12px; line-height: 1.45; }
         .member-booking-date-actions { display: flex; align-items: flex-end; }
+        .member-booking-date-pending {
+            margin-top: 12px;
+            padding: 11px 14px;
+            border: 1px solid #ead9a7;
+            border-radius: 6px;
+            background: #fff9e8;
+            color: #725100;
+            font-size: 13px;
+        }
+        .member-booking-date-pending[hidden] { display: none; }
+        .member-booking-date-confirmation {
+            display: block;
+            margin: 0 0 12px;
+            border-color: var(--mb-line-soft);
+            background: var(--mb-soft);
+            color: var(--mb-charcoal);
+        }
         .member-booking-price {
             display: flex;
             align-items: center;
@@ -209,7 +226,7 @@
                     <h3>Pilih tanggal pemakaian</h3>
                     <p>Pilih salah satu tanggal yang masuk ke periode jadwal rutin ini.</p>
                 </div>
-                <form method="GET" action="{{ route('admin.court-bookings.member-schedules.booking.create', $schedule) }}" class="member-booking-date-form">
+                <form id="memberBookingDateForm" method="GET" action="{{ route('admin.court-bookings.member-schedules.booking.create', $schedule) }}" class="member-booking-date-form">
                     <div>
                         <label class="form-label" for="memberBookingDate">Tanggal pemakaian</label>
                         <input class="form-control" id="memberBookingDate" name="date" type="date" value="{{ $date }}"
@@ -222,6 +239,9 @@
                         </button>
                     </div>
                 </form>
+                <div class="member-booking-date-pending" id="memberBookingDatePending" role="status" hidden>
+                    Tanggal berubah. Tekan <strong>Tampilkan tanggal</strong> untuk memuat jadwal dan tarif sebelum menyimpan.
+                </div>
 
                 @if($dateError)
                     <div class="member-booking-alert mt-3" role="alert">{{ $dateError }}</div>
@@ -254,10 +274,14 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('admin.court-bookings.member-schedules.booking.store', $schedule) }}" class="mt-4">
+                    <form id="memberBookingForm" method="POST" action="{{ route('admin.court-bookings.member-schedules.booking.store', $schedule) }}" class="mt-4" data-applied-date="{{ $date }}">
                         @csrf
                         <input type="hidden" name="booking_date" value="{{ $date }}">
                         <input type="hidden" name="member_booking_request_key" value="{{ old('member_booking_request_key', $requestKey) }}">
+
+                        <div class="member-booking-date-pending member-booking-date-confirmation" id="memberBookingDateConfirmation" role="note">
+                            Tanggal yang akan dicatat: <strong>{{ \Carbon\CarbonImmutable::parse($date)->locale('id')->translatedFormat('l, d F Y') }}</strong>
+                        </div>
 
                         <div class="member-booking-price">
                             <span>Total tagihan sesuai tarif tanggal tersebut</span>
@@ -310,7 +334,7 @@
 
                         <div class="member-booking-actions">
                             <a class="btn btn-outline-secondary" href="{{ route('admin.court-bookings.member-schedules.index') }}">Batal</a>
-                            <button class="btn btn-primary" type="submit">
+                            <button id="memberBookingSubmit" class="btn btn-primary" type="submit">
                                 <i class="bi bi-check2" aria-hidden="true"></i> Simpan booking member
                             </button>
                         </div>
@@ -322,6 +346,33 @@
 
     <script>
         (() => {
+            const dateForm = document.getElementById('memberBookingDateForm');
+            const dateInput = document.getElementById('memberBookingDate');
+            const pendingNotice = document.getElementById('memberBookingDatePending');
+            const bookingForm = document.getElementById('memberBookingForm');
+            const bookingSubmit = document.getElementById('memberBookingSubmit');
+
+            if (dateForm && dateInput && pendingNotice && bookingForm && bookingSubmit) {
+                const appliedDate = bookingForm.dataset.appliedDate;
+                const syncDateState = () => {
+                    const hasUnappliedDate = dateInput.value !== appliedDate;
+                    pendingNotice.hidden = !hasUnappliedDate;
+                    bookingSubmit.disabled = hasUnappliedDate;
+                    bookingSubmit.setAttribute('aria-disabled', String(hasUnappliedDate));
+                };
+
+                dateInput.addEventListener('input', syncDateState);
+                dateInput.addEventListener('change', syncDateState);
+                bookingForm.addEventListener('submit', (event) => {
+                    if (dateInput.value !== appliedDate) {
+                        event.preventDefault();
+                        pendingNotice.hidden = false;
+                        dateForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                });
+                syncDateState();
+            }
+
             const display = document.getElementById('memberAmountReceivedDisplay');
             const raw = document.getElementById('memberAmountReceived');
             if (!display || !raw) return;
