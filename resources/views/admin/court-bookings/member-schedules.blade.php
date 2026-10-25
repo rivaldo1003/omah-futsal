@@ -594,6 +594,34 @@
             padding: 22px;
         }
 
+        /* The form wraps the modal sections, so make it the scrollable flex column. */
+        .court-member-edit-modal .modal-content {
+            max-height: calc(100vh - 2rem);
+            max-height: calc(100dvh - 2rem);
+            overflow: hidden;
+        }
+
+        .court-member-edit-modal form {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .court-member-edit-modal .modal-header,
+        .court-member-edit-modal .modal-footer {
+            flex: 0 0 auto;
+        }
+
+        .court-member-edit-modal .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
         .court-member-day-off-modal .modal-title,
         .court-member-edit-modal .modal-title {
             color: var(--settings-ink);
