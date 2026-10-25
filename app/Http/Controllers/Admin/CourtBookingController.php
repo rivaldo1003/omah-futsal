@@ -2774,20 +2774,23 @@ class CourtBookingController extends Controller
             throw ValidationException::withMessages(['time_start' => 'Jadwal ini bertabrakan dengan jadwal member rutin lain di lapangan dan hari yang sama.']);
         }
 
-        if ($willBeActive && $this->recurringScheduleHasBookingsOrMatches($validated)) {
-            throw ValidationException::withMessages(['time_start' => 'Jadwal member bertabrakan dengan booking, pertandingan, atau sesi sewa turnamen pada rentang tanggal tersebut.']);
+        $recurringConflict = $willBeActive
+            ? $this->recurringScheduleConflictMessage($validated, $schedule?->id)
+            : null;
+        if ($recurringConflict !== null) {
+            throw ValidationException::withMessages(['time_start' => $recurringConflict]);
         }
 
         return $validated + ['is_active' => $request->boolean('is_active')];
     }
 
-    private function recurringScheduleHasBookingsOrMatches(array $schedule): bool
+    private function recurringScheduleConflictMessage(array $schedule, ?int $ignoreMemberScheduleId = null): ?string
     {
         $today = CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString();
         $firstDate = max($today, $schedule['starts_on'] ?? $today);
         $lastDate = $schedule['ends_on'] ?? '9999-12-31';
         if ($firstDate > $lastDate) {
-            return false;
+            return null;
         }
 
         $previousWeekday = ((int) $schedule['day_of_week'] + 6) % 7;
@@ -2796,6 +2799,10 @@ class CourtBookingController extends Controller
             ->where('court_id', $schedule['court_id'])
             ->whereDate('booking_date', '>=', $firstQueryDate)
             ->when($lastDate !== '9999-12-31', fn ($query) => $query->whereDate('booking_date', '<=', $lastDate))
+            ->when($ignoreMemberScheduleId, fn ($query, $scheduleId) => $query->where(function ($linked) use ($scheduleId): void {
+                $linked->whereNull('court_member_schedule_id')
+                    ->orWhere('court_member_schedule_id', '!=', $scheduleId);
+            }))
             ->where(function ($query) use ($schedule, $previousWeekday): void {
                 $query->where(function ($sameDay) use ($schedule): void {
                     $sameDay->whereRaw('DAYOFWEEK(booking_date) = ?', [(int) $schedule['day_of_week'] + 1])
@@ -2811,13 +2818,39 @@ class CourtBookingController extends Controller
                 $query->whereIn('status', [CourtBooking::STATUS_PENDING_REVIEW, CourtBooking::STATUS_CONFIRMED])
                     ->orWhere(fn ($pending) => $pending->where('status', CourtBooking::STATUS_AWAITING_PAYMENT)->where('expires_at', '>', now()));
             })
-            ->exists();
+            ->orderBy('booking_date')
+            ->first(['id', 'booking_date', 'time_start', 'time_end']);
         if ($bookingConflict) {
-            return true;
+            return 'Bentrok dengan booking #'.str_pad((string) $bookingConflict->id, 6, '0', STR_PAD_LEFT)
+                .' pada '.$bookingConflict->booking_date->format('d/m/Y').' pukul '
+                .substr((string) $bookingConflict->time_start, 0, 5).'-'.substr((string) $bookingConflict->time_end, 0, 5).'.';
+        }
+
+        $tournamentRentalConflict = CourtTournamentRental::query()
+            ->where('court_id', $schedule['court_id'])
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->whereDate('rental_date', '>=', $firstQueryDate)
+            ->when($lastDate !== '9999-12-31', fn ($query) => $query->whereDate('rental_date', '<=', $lastDate))
+            ->where(function ($query) use ($schedule, $previousWeekday): void {
+                $query->where(function ($sameDay) use ($schedule): void {
+                    $sameDay->whereRaw('DAYOFWEEK(rental_date) = ?', [(int) $schedule['day_of_week'] + 1])
+                        ->where('time_start', '<', $schedule['time_end'])
+                        ->where('time_end', '>', $schedule['time_start']);
+                })->orWhere(function ($overnight) use ($schedule, $previousWeekday): void {
+                    $overnight->whereRaw('DAYOFWEEK(rental_date) = ?', [$previousWeekday + 1])
+                        ->whereColumn('time_end', '<=', 'time_start')
+                        ->where('time_end', '>', $schedule['time_start']);
+                });
+            })
+            ->orderBy('rental_date')
+            ->first(['rental_date', 'time_start', 'time_end']);
+        if ($tournamentRentalConflict) {
+            return 'Bentrok dengan sesi sewa turnamen pada '.$tournamentRentalConflict->rental_date->format('d/m/Y')
+                .' pukul '.substr((string) $tournamentRentalConflict->time_start, 0, 5).'-'.substr((string) $tournamentRentalConflict->time_end, 0, 5).'.';
         }
 
         $courtName = Court::query()->whereKey($schedule['court_id'])->value('name');
-        return Game::query()
+        $matchConflict = Game::query()
             ->publiclyVisible()
             ->whereRaw('LOWER(TRIM(venue)) = ?', [mb_strtolower(trim((string) $courtName))])
             ->whereDate('match_date', '>=', $firstQueryDate)
@@ -2835,7 +2868,15 @@ class CourtBookingController extends Controller
                         ->where('time_end', '>', $schedule['time_start']);
                 });
             })
-            ->exists();
+            ->orderBy('match_date')
+            ->first(['match_date', 'time_start', 'time_end']);
+
+        if ($matchConflict) {
+            return 'Bentrok dengan pertandingan pada '.$matchConflict->match_date->format('d/m/Y')
+                .' pukul '.substr((string) $matchConflict->time_start, 0, 5).'-'.substr((string) $matchConflict->time_end, 0, 5).'.';
+        }
+
+        return null;
     }
 
     private function ensureAdmin(): void
