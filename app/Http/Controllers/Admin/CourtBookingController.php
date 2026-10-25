@@ -2803,9 +2803,10 @@ class CourtBookingController extends Controller
                 $linked->whereNull('court_member_schedule_id')
                     ->orWhere('court_member_schedule_id', '!=', $scheduleId);
             }))
-            ->where(function ($query) use ($schedule, $previousWeekday): void {
-                $query->where(function ($sameDay) use ($schedule): void {
-                    $sameDay->whereRaw('DAYOFWEEK(booking_date) = ?', [(int) $schedule['day_of_week'] + 1])
+            ->where(function ($query) use ($schedule, $previousWeekday, $firstDate): void {
+                $query->where(function ($sameDay) use ($schedule, $firstDate): void {
+                    $sameDay->whereDate('booking_date', '>=', $firstDate)
+                        ->whereRaw('DAYOFWEEK(booking_date) = ?', [(int) $schedule['day_of_week'] + 1])
                         ->where('time_start', '<', $schedule['time_end'])
                         ->where('time_end', '>', $schedule['time_start']);
                 })->orWhere(function ($overnight) use ($schedule, $previousWeekday): void {
@@ -2831,9 +2832,10 @@ class CourtBookingController extends Controller
             ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
             ->whereDate('rental_date', '>=', $firstQueryDate)
             ->when($lastDate !== '9999-12-31', fn ($query) => $query->whereDate('rental_date', '<=', $lastDate))
-            ->where(function ($query) use ($schedule, $previousWeekday): void {
-                $query->where(function ($sameDay) use ($schedule): void {
-                    $sameDay->whereRaw('DAYOFWEEK(rental_date) = ?', [(int) $schedule['day_of_week'] + 1])
+            ->where(function ($query) use ($schedule, $previousWeekday, $firstDate): void {
+                $query->where(function ($sameDay) use ($schedule, $firstDate): void {
+                    $sameDay->whereDate('rental_date', '>=', $firstDate)
+                        ->whereRaw('DAYOFWEEK(rental_date) = ?', [(int) $schedule['day_of_week'] + 1])
                         ->where('time_start', '<', $schedule['time_end'])
                         ->where('time_end', '>', $schedule['time_start']);
                 })->orWhere(function ($overnight) use ($schedule, $previousWeekday): void {
@@ -2857,9 +2859,10 @@ class CourtBookingController extends Controller
             ->when($lastDate !== '9999-12-31', fn ($query) => $query->whereDate('match_date', '<=', $lastDate))
             ->where('status', '!=', 'postponed')
             ->whereNotNull('time_start')->whereNotNull('time_end')
-            ->where(function ($query) use ($schedule, $previousWeekday): void {
-                $query->where(function ($sameDay) use ($schedule): void {
-                    $sameDay->whereRaw('DAYOFWEEK(match_date) = ?', [(int) $schedule['day_of_week'] + 1])
+            ->where(function ($query) use ($schedule, $previousWeekday, $firstDate): void {
+                $query->where(function ($sameDay) use ($schedule, $firstDate): void {
+                    $sameDay->whereDate('match_date', '>=', $firstDate)
+                        ->whereRaw('DAYOFWEEK(match_date) = ?', [(int) $schedule['day_of_week'] + 1])
                         ->where('time_start', '<', $schedule['time_end'])
                         ->where('time_end', '>', $schedule['time_start']);
                 })->orWhere(function ($overnight) use ($schedule, $previousWeekday): void {
