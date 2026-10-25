@@ -1279,12 +1279,7 @@
                                     ->where('status', \App\Models\CourtBookingRentalAddition::STATUS_PENDING_REVIEW)
                                     ->count();
                                 $bookingStart = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_start, \App\Models\CourtBooking::TIMEZONE);
-                                $bookingEnd = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE);
-                                if ($bookingEnd->lessThanOrEqualTo($bookingStart)) {
-                                    $bookingEnd->addDay();
-                                }
-                                $canCorrectSchedule = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED
-                                    && $bookingEnd->lessThanOrEqualTo(now(\App\Models\CourtBooking::TIMEZONE));
+                                $canCorrectSchedule = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED;
                                 $paidAmount = (float) $booking->payments->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)->sum(fn($payment) => $payment->recognized_amount);
                                 $paidRentalAdditionAmount = $booking->status === \App\Models\CourtBooking::STATUS_CANCELLED
                                     ? (float) $booking->rentalAdditions->whereNotNull('confirmed_at')->sum('amount')
@@ -1636,7 +1631,7 @@
                                     @if($canCorrectSchedule)
                                         <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="modal"
                                             data-bs-target="#bookingScheduleCorrection{{ $booking->id }}" aria-haspopup="dialog">
-                                            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Koreksi jadwal
+                                            <i class="bi bi-clock-history me-1" aria-hidden="true"></i>Koreksi tanggal/jam
                                         </button>
                                     @endif
                                     @if($remainingAmount > 0 && $booking->status === 'confirmed')
@@ -2376,13 +2371,11 @@
 
             @php
                 $scheduleCorrectionOldInput = (string) old('_schedule_edit_booking_id', '') === (string) $booking->id;
-                $scheduleCorrectionEnd = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE);
-                $scheduleCorrectionStart = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_start, \App\Models\CourtBooking::TIMEZONE);
-                if ($scheduleCorrectionEnd->lessThanOrEqualTo($scheduleCorrectionStart)) {
-                    $scheduleCorrectionEnd->addDay();
-                }
-                $canShowScheduleCorrection = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED
-                    && $scheduleCorrectionEnd->lessThanOrEqualTo(now(\App\Models\CourtBooking::TIMEZONE));
+                $canShowScheduleCorrection = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED;
+                $correctionToday = now(\App\Models\CourtBooking::TIMEZONE)->toDateString();
+                $correctionDefaultDate = $booking->booking_date->toDateString() <= $correctionToday
+                    ? $booking->booking_date->toDateString()
+                    : '';
             @endphp
             @if($canShowScheduleCorrection)
                 <div class="modal fade booking-payment-modal" id="bookingScheduleCorrection{{ $booking->id }}"
@@ -2395,8 +2388,8 @@
                                 <input type="hidden" name="_schedule_edit_booking_id" value="{{ $booking->id }}">
                                 <div class="modal-header">
                                     <div>
-                                        <div class="booking-payment-modal-kicker">KOREKSI PEMAKAIAN · BOOKING #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        <h2 class="modal-title" id="bookingScheduleCorrectionTitle{{ $booking->id }}">Koreksi jadwal booking</h2>
+                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingScheduleCorrectionTitle{{ $booking->id }}">Koreksi tanggal dan jam</h2>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                 </div>
@@ -2412,14 +2405,15 @@
                                         </div>
                                     </div>
                                     <div class="alert alert-light border small" role="note">
-                                        Gunakan untuk mencatat jam pemakaian sebenarnya setelah selesai. Total sewa lapangan akan dihitung ulang mengikuti tarif pada tanggal dan jam baru. Pembayaran yang sudah dicatat tidak berubah; bentrok dengan booking lain akan ditolak.
+                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total dan pembayaran tetap. Jika jam atau durasi berubah, total dihitung ulang. Semua koreksi dicatat di riwayat; jadwal yang bentrok akan ditolak.
                                     </div>
                                     <div class="row g-3">
                                         <div class="col-sm-4">
                                             <label class="form-label" for="scheduleCorrectionDate{{ $booking->id }}">Tanggal</label>
                                             <input class="form-control" type="date" id="scheduleCorrectionDate{{ $booking->id }}" name="booking_date"
-                                                max="{{ now(\App\Models\CourtBooking::TIMEZONE)->toDateString() }}"
-                                                value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $booking->booking_date->toDateString() }}" required>
+                                                max="{{ $correctionToday }}"
+                                                value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $correctionDefaultDate }}" required>
+                                            @if(!$scheduleCorrectionOldInput && $correctionDefaultDate === '')<div class="form-text">Pilih tanggal pemakaian sebenarnya; booking ini saat ini tercatat pada tanggal mendatang.</div>@endif
                                             @if($scheduleCorrectionOldInput && $errors->has('booking_date'))<div class="text-danger small mt-1">{{ $errors->first('booking_date') }}</div>@endif
                                         </div>
                                         <div class="col-sm-4">
@@ -2438,7 +2432,7 @@
                                     <div class="mt-3">
                                         <label class="form-label" for="scheduleCorrectionReason{{ $booking->id }}">Alasan koreksi <span class="text-danger">*</span></label>
                                         <textarea class="form-control" id="scheduleCorrectionReason{{ $booking->id }}" name="reason" rows="3" maxlength="500"
-                                            placeholder="Contoh: pertandingan molor, penggunaan aktual sampai pukul 17.00" required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
+                                            placeholder="Contoh: tanggal salah dicatat; seharusnya 1 Oktober 2026" required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
                                         @if($scheduleCorrectionOldInput && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
                                     </div>
                                     @if($scheduleCorrectionOldInput && $errors->has('booking'))
