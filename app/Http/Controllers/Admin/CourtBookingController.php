@@ -765,7 +765,10 @@ class CourtBookingController extends Controller
         if ($day->dayOfWeek !== (int) $schedule->day_of_week) {
             throw ValidationException::withMessages(['booking_date' => 'Tanggal yang dipilih bukan hari rutin jadwal member ini.']);
         }
-        if (($schedule->starts_on && $day->lt($schedule->starts_on)) || ($schedule->ends_on && $day->gt($schedule->ends_on))) {
+        $occurrenceDate = $day->toDateString();
+        $startsOn = $schedule->starts_on?->toDateString();
+        $endsOn = $schedule->ends_on?->toDateString();
+        if (($startsOn && $occurrenceDate < $startsOn) || ($endsOn && $occurrenceDate > $endsOn)) {
             $validity = collect([
                 $schedule->starts_on ? 'mulai '.$schedule->starts_on->translatedFormat('d M Y') : null,
                 $schedule->ends_on ? 'sampai '.$schedule->ends_on->translatedFormat('d M Y') : null,
@@ -909,7 +912,10 @@ class CourtBookingController extends Controller
             if ($day->dayOfWeek !== (int) $lockedSchedule->day_of_week) {
                 throw ValidationException::withMessages(['off_date' => 'Tanggal libur harus berada pada hari rutin jadwal member ini.']);
             }
-            if (($lockedSchedule->starts_on && $day->lt($lockedSchedule->starts_on)) || ($lockedSchedule->ends_on && $day->gt($lockedSchedule->ends_on))) {
+            $offDate = $day->toDateString();
+            $startsOn = $lockedSchedule->starts_on?->toDateString();
+            $endsOn = $lockedSchedule->ends_on?->toDateString();
+            if (($startsOn && $offDate < $startsOn) || ($endsOn && $offDate > $endsOn)) {
                 throw ValidationException::withMessages(['off_date' => 'Tanggal libur berada di luar masa berlaku jadwal.']);
             }
 
