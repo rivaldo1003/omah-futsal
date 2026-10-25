@@ -81,6 +81,132 @@
             grid-template-columns: repeat(3, minmax(0, 1fr));
         }
 
+        .revenue-method-panel {
+            margin: -4px 0 24px;
+            border-block: 1px solid var(--revenue-line);
+        }
+
+        .revenue-method-panel h2 {
+            margin: 0;
+            padding: 15px 0 11px;
+            color: var(--revenue-muted);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .revenue-method-summary {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .revenue-method-summary > div {
+            min-width: 0;
+            padding: 12px 18px 16px 0;
+        }
+
+        .revenue-method-summary > div + div {
+            padding-left: 18px;
+            border-left: 1px solid var(--revenue-line);
+        }
+
+        .revenue-method-summary span {
+            display: block;
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
+        .revenue-method-summary strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--revenue-ink);
+            font-size: 19px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .revenue-month-summary {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border-bottom: 1px solid var(--revenue-line);
+        }
+
+        .revenue-month-summary > div {
+            min-width: 0;
+            padding: 17px 22px;
+        }
+
+        .revenue-month-summary > div + div {
+            border-left: 1px solid var(--revenue-line);
+        }
+
+        .revenue-month-summary span {
+            display: block;
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
+        .revenue-month-summary strong {
+            display: block;
+            margin-top: 3px;
+            font-size: 21px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .revenue-month-filter {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .revenue-month-filter label {
+            display: block;
+            margin-bottom: 5px;
+            color: var(--revenue-muted);
+            font-size: 12px;
+        }
+
+        .revenue-month-filter .form-control {
+            width: 190px;
+            min-height: 42px;
+            border: 1px solid #cacacb;
+            border-radius: 9999px;
+            box-shadow: none;
+        }
+
+        .revenue-month-filter .form-control:focus {
+            border-color: var(--revenue-ink);
+            box-shadow: 0 0 0 3px rgb(17 17 17 / 10%);
+        }
+
+        .revenue-month-filter .btn-primary {
+            background: var(--revenue-ink);
+            color: #ffffff;
+        }
+
+        .revenue-month-filter .btn-primary:hover {
+            background: #39393b;
+            color: #ffffff;
+        }
+
+        .revenue-month-table tfoot th,
+        .revenue-month-table tfoot td {
+            border-top: 1px solid #c9c9c9;
+            font-weight: 500;
+        }
+
+        .revenue-month-table tfoot tr:last-child {
+            background: #f5f5f5;
+        }
+
+        .revenue-month-note {
+            margin: 0;
+            padding: 13px 22px 17px;
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
         .revenue-total,
         .revenue-source {
             min-width: 0;
@@ -160,6 +286,10 @@
             color: var(--revenue-muted);
             font-size: 14px;
             line-height: 1.5;
+        }
+
+        .revenue-month-header {
+            align-items: center;
         }
 
         .revenue-table {
@@ -290,6 +420,45 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
 
+            .revenue-method-summary {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .revenue-month-summary {
+                grid-template-columns: 1fr;
+            }
+
+            .revenue-month-summary > div + div {
+                border-top: 1px solid var(--revenue-line);
+                border-left: 0;
+            }
+
+            .revenue-month-header {
+                align-items: stretch;
+            }
+
+            .revenue-month-filter {
+                width: 100%;
+            }
+
+            .revenue-month-filter .field,
+            .revenue-month-filter .form-control {
+                width: 100%;
+            }
+
+            .revenue-month-filter .btn {
+                flex: 1 1 auto;
+            }
+
+            .revenue-method-summary > div:nth-child(odd) {
+                padding-left: 0;
+                border-left: 0;
+            }
+
+            .revenue-method-summary > div:nth-child(n + 3) {
+                border-top: 1px solid var(--revenue-line);
+            }
+
             .revenue-source:nth-child(2n) {
                 border-left: 0;
             }
@@ -345,6 +514,22 @@
                 padding: 18px 16px;
             }
 
+            .revenue-method-summary > div {
+                padding-inline: 10px;
+            }
+
+            .revenue-month-summary > div {
+                padding: 15px 16px;
+            }
+
+            .revenue-month-note {
+                padding-inline: 16px;
+            }
+
+            .revenue-method-summary > div:nth-child(odd) {
+                padding-left: 0;
+            }
+
             .revenue-total strong {
                 font-size: 28px;
             }
@@ -378,11 +563,121 @@
             </nav>
         </header>
 
+        <section class="report-panel" aria-labelledby="monthlyRevenueTitle">
+            <header class="report-panel-header revenue-month-header">
+                <div>
+                    <h2 id="monthlyRevenueTitle">Rekap pemasukan bulanan</h2>
+                    <p>{{ $selectedMonthLabel }} · Booking publik, walk-in, dan member yang pembayarannya tercatat, serta parkir, toko, sewa perlengkapan, dan pemasukan lain.</p>
+                </div>
+                <form class="revenue-month-filter" method="GET" action="{{ route('admin.court-bookings.revenue') }}">
+                    <div class="field">
+                        <label for="revenueMonth">Pilih bulan</label>
+                        <input class="form-control" id="revenueMonth" name="month" type="month" value="{{ $selectedMonth }}" max="{{ now(\App\Models\CourtBooking::TIMEZONE)->format('Y-m') }}" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-calendar-check" aria-hidden="true"></i>Tampilkan</button>
+                </form>
+            </header>
+
+            <div class="revenue-month-summary" aria-label="Ringkasan penerimaan bulan {{ $selectedMonthLabel }}">
+                <div>
+                    <span>Total penerimaan bruto</span>
+                    <strong>Rp {{ number_format($monthlyGrossReceipts, 0, ',', '.') }}</strong>
+                </div>
+                <div>
+                    <span>Refund booking tercatat</span>
+                    <strong>Rp {{ number_format($monthlyRefundTotal, 0, ',', '.') }}</strong>
+                </div>
+                <div>
+                    <span>Penerimaan setelah refund</span>
+                    <strong>Rp {{ number_format($monthlyNetReceipts, 0, ',', '.') }}</strong>
+                </div>
+            </div>
+
+            @php
+                $monthlyCategoryLabels = [
+                    'booking' => 'Booking lapangan',
+                    'rental_additions' => 'Tambahan perlengkapan booking',
+                    'standalone_rentals' => 'Sewa perlengkapan mandiri',
+                    'parking' => 'Parkir',
+                    'shop' => 'Toko',
+                    'other' => 'Sponsor / pemasukan lain',
+                ];
+                $monthlyMethodLabels = [
+                    'cash' => 'Tunai',
+                    'transfer' => 'Transfer',
+                    'qris' => 'QRIS',
+                    'unclassified' => 'Belum dirinci',
+                ];
+            @endphp
+            <div class="table-responsive">
+                <table class="table align-middle revenue-table revenue-month-table">
+                    <caption class="visually-hidden">Penerimaan dan refund berdasarkan sumber serta metode pembayaran untuk {{ $selectedMonthLabel }}.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Sumber transaksi</th>
+                            @foreach($monthlyMethodLabels as $methodLabel)
+                                <th scope="col" class="text-end">{{ $methodLabel }}</th>
+                            @endforeach
+                            <th scope="col" class="text-end">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($monthlyCategoryLabels as $category => $categoryLabel)
+                            @php
+                                $categoryTotal = array_sum($monthlyIncomeByCategory[$category]);
+                            @endphp
+                            <tr>
+                                <th scope="row">{{ $categoryLabel }}</th>
+                                @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                    <td class="text-end revenue-money">Rp {{ number_format($monthlyIncomeByCategory[$category][$method], 0, ',', '.') }}</td>
+                                @endforeach
+                                <td class="text-end revenue-money"><strong>Rp {{ number_format($categoryTotal, 0, ',', '.') }}</strong></td>
+                            </tr>
+                        @endforeach
+                        @php
+                            $refundRowTotal = array_sum($monthlyIncomeByCategory['refunds']);
+                        @endphp
+                        <tr>
+                            <th scope="row">Refund booking</th>
+                            @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                @php
+                                    $refundAmount = $monthlyIncomeByCategory['refunds'][$method];
+                                @endphp
+                                <td class="text-end revenue-money">{{ $refundAmount > 0 ? '− ' : '' }}Rp {{ number_format($refundAmount, 0, ',', '.') }}</td>
+                            @endforeach
+                            <td class="text-end revenue-money"><strong>{{ $refundRowTotal > 0 ? '− ' : '' }}Rp {{ number_format($refundRowTotal, 0, ',', '.') }}</strong></td>
+                        </tr>
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th scope="row">Penerimaan bruto</th>
+                            @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                <td class="text-end revenue-money">Rp {{ number_format($monthlyIncomingByMethod[$method], 0, ',', '.') }}</td>
+                            @endforeach
+                            <td class="text-end revenue-money">Rp {{ number_format($monthlyGrossReceipts, 0, ',', '.') }}</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Setelah refund</th>
+                            @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                @php
+                                    $netAmount = $monthlyNetByMethod[$method];
+                                @endphp
+                                <td class="text-end revenue-money">{{ $netAmount < 0 ? '− ' : '' }}Rp {{ number_format(abs($netAmount), 0, ',', '.') }}</td>
+                            @endforeach
+                            <td class="text-end revenue-money">{{ $monthlyNetReceipts < 0 ? '− ' : '' }}Rp {{ number_format(abs($monthlyNetReceipts), 0, ',', '.') }}</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+            <p class="revenue-month-note">Pembayaran booking masuk ke bulan saat dicatat; refund mengurangi arus kas pada bulan saat pengembalian dicatat. Parkir, toko, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Perlengkapan yang dibayar dalam transaksi booking tetap termasuk pada baris booking, sedangkan tambahan dan sewa perlengkapan terpisah tampil pada baris masing-masing. Data lama yang belum memiliki metode pembayaran masuk ke “Belum dirinci”. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+        </section>
+
         <section class="report-panel revenue-overview" aria-label="Total pemasukan tercatat">
             <div class="revenue-total">
                 <span class="revenue-label">Total pemasukan tercatat</span>
                 <strong>Rp {{ number_format($totalIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Pemasukan yang diakui setelah refund dan dana pembatalan belum diputuskan dipisahkan.</span>
+                <span class="revenue-caption">Pemasukan yang diakui setelah refund dan dana pembatalan belum diputuskan
+                    dipisahkan.</span>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Pemasukan booking diakui</span>
@@ -392,7 +687,8 @@
             <div class="revenue-source">
                 <span class="revenue-label">Pembayaran booking bruto</span>
                 <strong>Rp {{ number_format($grossBookingPayments, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Seluruh pembayaran terverifikasi</span>
+                <span class="revenue-caption">Termasuk pembayaran dari booking yang kemudian dibatalkan. Nilai ini
+                    hanya catatan bruto, bukan tambahan ke total pemasukan.</span>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Refund tercatat</span>
@@ -431,6 +727,23 @@
             </div>
         </section>
 
+        <section class="revenue-method-panel" aria-labelledby="revenueMethodTitle">
+            <h2 id="revenueMethodTitle">Pemasukan diakui berdasarkan metode pembayaran</h2>
+            <div class="revenue-method-summary">
+                @foreach([
+                    'cash' => 'Tunai',
+                    'transfer' => 'Transfer',
+                    'qris' => 'QRIS',
+                    'unclassified' => 'Belum dirinci',
+                ] as $method => $label)
+                    <div>
+                        <span>{{ $label }}</span>
+                        <strong>Rp {{ number_format($incomeByPaymentMethod[$method] ?? 0, 0, ',', '.') }}</strong>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+
         <section class="report-panel" aria-labelledby="rentalIncomeTitle">
             <header class="report-panel-header">
                 <div>
@@ -453,11 +766,13 @@
                             <tr>
                                 <th scope="row">{{ $itemIncome->name }}</th>
                                 <td class="text-end">{{ number_format((int) $itemIncome->quantity) }}</td>
-                                <td class="text-end revenue-money">Rp {{ number_format((float) $itemIncome->income, 0, ',', '.') }}</td>
+                                <td class="text-end revenue-money">Rp
+                                    {{ number_format((float) $itemIncome->income, 0, ',', '.') }}</td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="3" class="text-center text-secondary py-4">Belum ada sewa perlengkapan yang dikonfirmasi.</td>
+                                <td colspan="3" class="text-center text-secondary py-4">Belum ada sewa perlengkapan yang
+                                    dikonfirmasi.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -469,7 +784,8 @@
             <header class="report-panel-header">
                 <div>
                     <h2 id="bookingActivityTitle">Aktivitas transaksi per bulan</h2>
-                    <p>12 bulan terakhir ({{ $chartStart->format('m/Y') }}–{{ $chartEnd->format('m/Y') }}). Grafik mengikuti booking aktif dan biaya pembatalan yang dicatat ditahan.</p>
+                    <p>12 bulan terakhir ({{ $chartStart->format('m/Y') }}–{{ $chartEnd->format('m/Y') }}). Grafik mengikuti
+                        booking aktif dan biaya pembatalan yang dicatat ditahan.</p>
                 </div>
                 @if($busiestMonths)
                     <div class="revenue-peak">
@@ -482,9 +798,9 @@
                 @if($maximumMonthlyBookings > 0)
                     @php
                         $chartMonths = collect($monthlyBookingChart)->values();
-                        $activeIndex = (int) $chartMonths->search(fn ($month) => (int) $month['booking_count'] === (int) $maximumMonthlyBookings);
+                        $activeIndex = (int) $chartMonths->search(fn($month) => (int) $month['booking_count'] === (int) $maximumMonthlyBookings);
                         $activeMonth = $chartMonths[$activeIndex];
-                        $chartPayload = $chartMonths->map(fn ($month) => [
+                        $chartPayload = $chartMonths->map(fn($month) => [
                             'label' => $month['label'],
                             'year' => (string) $month['year'],
                             'booking_count' => (int) $month['booking_count'],
@@ -507,15 +823,18 @@
                         <div class="revenue-chart-summary" aria-live="polite" aria-atomic="true">
                             <div>
                                 <span>Bulan dipilih</span>
-                                <strong data-chart-readout="label">{{ $activeMonth['label'] }} {{ $activeMonth['year'] }}</strong>
+                                <strong data-chart-readout="label">{{ $activeMonth['label'] }}
+                                    {{ $activeMonth['year'] }}</strong>
                             </div>
                             <div>
                                 <span>Transaksi terkonfirmasi</span>
-                                <strong data-chart-readout="count">{{ number_format((int) $activeMonth['booking_count']) }}</strong>
+                                <strong
+                                    data-chart-readout="count">{{ number_format((int) $activeMonth['booking_count']) }}</strong>
                             </div>
                             <div>
                                 <span>Pembayaran booking dan sewa</span>
-                                <strong data-chart-readout="value">Rp {{ number_format($activeMonth['booking_value'], 0, ',', '.') }}</strong>
+                                <strong data-chart-readout="value">Rp
+                                    {{ number_format($activeMonth['booking_value'], 0, ',', '.') }}</strong>
                             </div>
                         </div>
                     </figure>
@@ -539,7 +858,8 @@
                                     <tr>
                                         <th scope="row">{{ $month['label'] }} {{ $month['year'] }}</th>
                                         <td class="text-end">{{ number_format($month['booking_count']) }}</td>
-                                        <td class="text-end revenue-money">Rp {{ number_format($month['booking_value'], 0, ',', '.') }}</td>
+                                        <td class="text-end revenue-money">Rp
+                                            {{ number_format($month['booking_value'], 0, ',', '.') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

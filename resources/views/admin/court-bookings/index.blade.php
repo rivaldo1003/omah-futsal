@@ -1187,18 +1187,19 @@
 
                     document.querySelectorAll('[data-fund-settlement-form]').forEach((form) => {
                         const type = form.querySelector('[data-fund-settlement-type]');
-                        const paymentFields = form.querySelector('[data-fund-refund-fields]');
                         const paymentMethod = form.querySelector('[name="payment_method"]');
-                        const syncRefundFields = () => {
+                        const paymentLabel = form.querySelector('[data-fund-method-label]');
+                        const syncPaymentMethod = () => {
                             const isRefund = type?.value === 'refund';
-                            paymentFields?.classList.toggle('d-none', !isRefund);
-                            if (paymentMethod) {
-                                paymentMethod.required = isRefund;
-                                paymentMethod.disabled = !isRefund;
+                            if (paymentMethod) paymentMethod.required = true;
+                            if (paymentLabel) {
+                                paymentLabel.textContent = isRefund
+                                    ? 'Metode pengembalian'
+                                    : 'Metode pembayaran asal dana';
                             }
                         };
-                        type?.addEventListener('change', syncRefundFields);
-                        syncRefundFields();
+                        type?.addEventListener('change', syncPaymentMethod);
+                        syncPaymentMethod();
                     });
                 })();
             </script>
@@ -1837,17 +1838,16 @@
                                             value="{{ $fundSettlementOldInput ? old('amount') : (int) $bookingFundAvailable }}" data-rupiah-input required>
                                         <input type="hidden" name="amount" value="{{ $fundSettlementOldInput ? preg_replace('/\D+/', '', (string) old('amount')) : (int) $bookingFundAvailable }}" data-rupiah-value>
                                     </div>
-                                    <div data-fund-refund-fields>
-                                        <label class="form-label" for="fundSettlementMethod{{ $booking->id }}">Metode pengembalian</label>
-                                        <select class="form-select mb-3" id="fundSettlementMethod{{ $booking->id }}" name="payment_method">
-                                            <option value="cash" @selected($fundSettlementOldInput && old('payment_method') === 'cash')>Tunai</option>
-                                            <option value="bank_transfer" @selected(!$fundSettlementOldInput || old('payment_method') === 'bank_transfer')>Transfer bank</option>
-                                            <option value="qris" @selected($fundSettlementOldInput && old('payment_method') === 'qris')>QRIS</option>
-                                        </select>
-                                        <label class="form-label" for="fundSettlementReference{{ $booking->id }}">Nomor referensi (opsional)</label>
-                                        <input class="form-control mb-3" id="fundSettlementReference{{ $booking->id }}" name="reference" maxlength="100"
-                                            value="{{ $fundSettlementOldInput ? old('reference') : '' }}" placeholder="Nomor transaksi refund">
-                                    </div>
+                                    <label class="form-label" for="fundSettlementMethod{{ $booking->id }}" data-fund-method-label>Metode pengembalian</label>
+                                    <select class="form-select mb-3" id="fundSettlementMethod{{ $booking->id }}" name="payment_method" required>
+                                        <option value="cash" @selected($fundSettlementOldInput && old('payment_method') === 'cash')>Tunai</option>
+                                        <option value="bank_transfer" @selected(!$fundSettlementOldInput || old('payment_method') === 'bank_transfer')>Transfer bank</option>
+                                        <option value="qris" @selected($fundSettlementOldInput && old('payment_method') === 'qris')>QRIS</option>
+                                        <option value="unclassified" @selected($fundSettlementOldInput && old('payment_method') === 'unclassified')>Belum dirinci</option>
+                                    </select>
+                                    <label class="form-label" for="fundSettlementReference{{ $booking->id }}">Nomor referensi (opsional)</label>
+                                    <input class="form-control mb-3" id="fundSettlementReference{{ $booking->id }}" name="reference" maxlength="100"
+                                        value="{{ $fundSettlementOldInput ? old('reference') : '' }}" placeholder="Nomor transaksi penyelesaian dana">
                                     <label class="form-label" for="fundSettlementReason{{ $booking->id }}">Alasan / catatan audit</label>
                                     <textarea class="form-control" id="fundSettlementReason{{ $booking->id }}" name="reason" rows="3" maxlength="500" required
                                         placeholder="Contoh: dana dikembalikan penuh melalui transfer bank">{{ $fundSettlementOldInput ? old('reason') : '' }}</textarea>

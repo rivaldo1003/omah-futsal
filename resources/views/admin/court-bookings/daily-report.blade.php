@@ -144,8 +144,46 @@
             box-shadow: 0 0 0 3px rgba(17, 17, 17, .1);
         }
 
+        .daily-report-filter small {
+            display: block;
+            margin-top: 5px;
+            color: var(--report-muted);
+            font-size: 12px;
+        }
+
         .daily-report-overview {
             margin-bottom: 40px;
+        }
+
+        .daily-income-methods {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            margin: -18px 0 36px;
+            border-block: 1px solid var(--report-line-soft);
+        }
+
+        .daily-income-method {
+            min-width: 0;
+            padding: 14px 18px;
+        }
+
+        .daily-income-method + .daily-income-method {
+            border-left: 1px solid var(--report-line-soft);
+        }
+
+        .daily-income-method span {
+            display: block;
+            color: var(--report-muted);
+            font-size: 13px;
+        }
+
+        .daily-income-method strong {
+            display: block;
+            margin-top: 3px;
+            color: var(--report-ink);
+            font-size: 18px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
         }
 
         .daily-revenue-entry {
@@ -178,9 +216,28 @@
 
         .daily-revenue-form {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             align-items: end;
             gap: 12px;
+        }
+
+        .daily-income-group {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px 12px;
+            min-width: 0;
+            padding: 0;
+            margin: 0;
+            border: 0;
+        }
+
+        .daily-income-group legend {
+            float: none;
+            width: auto;
+            margin-bottom: 10px;
+            color: var(--report-ink);
+            font-size: 15px;
+            font-weight: 500;
         }
 
         .daily-revenue-form .form-label {
@@ -222,10 +279,14 @@
 
         .daily-other-income-form {
             display: grid;
-            grid-template-columns: minmax(160px, 1fr) minmax(150px, .8fr) minmax(180px, 1.3fr) auto;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             align-items: end;
             gap: 12px;
             margin-bottom: 18px;
+        }
+
+        .daily-other-income-form .daily-income-note {
+            grid-column: span 2;
         }
 
         .daily-other-income-table input {
@@ -243,6 +304,7 @@
             .daily-other-income-panel { padding: 18px 14px; }
             .daily-other-income-form { grid-template-columns: 1fr 1fr; }
             .daily-other-income-form .btn { grid-column: 1 / -1; width: 100%; }
+            .daily-other-income-form .daily-income-note { grid-column: 1 / -1; }
         }
 
         .daily-revenue-form .form-control:focus {
@@ -537,6 +599,19 @@
                 margin-bottom: 32px;
             }
 
+            .daily-income-methods {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                margin-bottom: 30px;
+            }
+
+            .daily-income-method:nth-child(odd) {
+                border-left: 0;
+            }
+
+            .daily-income-method:nth-child(n + 3) {
+                border-top: 1px solid var(--report-line-soft);
+            }
+
             .daily-revenue-entry {
                 grid-template-columns: 1fr;
                 gap: 16px;
@@ -545,6 +620,11 @@
 
             .daily-revenue-form {
                 grid-template-columns: 1fr 1fr;
+            }
+
+            .daily-income-group {
+                grid-template-columns: 1fr;
+                grid-column: 1 / -1;
             }
 
             .daily-revenue-form .btn {
@@ -618,6 +698,7 @@
             <div>
                 <label class="form-label" for="operationsDate">Tanggal operasional</label>
                 <input class="form-control" type="date" id="operationsDate" name="date" value="{{ $reportDate }}" required>
+                <small>Booking ditampilkan berdasarkan tanggal pemakaian. Pilih tanggal sebelumnya untuk membuka riwayat.</small>
             </div>
             <div class="daily-report-filter-actions">
                 <button class="btn btn-primary" type="submit">
@@ -682,6 +763,20 @@
             </div>
         </section>
 
+        <section class="daily-income-methods" aria-label="Pemasukan diakui menurut metode pembayaran">
+            @foreach([
+                'cash' => 'Tunai',
+                'transfer' => 'Transfer',
+                'qris' => 'QRIS',
+                'unclassified' => 'Belum dirinci',
+            ] as $method => $label)
+                <div class="daily-income-method">
+                    <span>{{ $label }}</span>
+                    <strong>Rp {{ number_format($dailyIncomeByPaymentMethod[$method] ?? 0, 0, ',', '.') }}</strong>
+                </div>
+            @endforeach
+        </section>
+
         <section class="daily-revenue-entry" aria-labelledby="dailyRevenueEntryTitle">
             <div>
                 <h2 id="dailyRevenueEntryTitle">Pemasukan harian di luar booking</h2>
@@ -700,19 +795,22 @@
                 @csrf
                 @method('PUT')
                 <input type="hidden" name="operating_date" value="{{ $reportDate }}">
-
-                <div>
-                    <label class="form-label" for="dailyParkingIncome">Parkir (Rp)</label>
-                    <input class="form-control" id="dailyParkingIncome" name="parking_income" type="text"
-                        inputmode="numeric" autocomplete="off" data-daily-rupiah
-                        value="{{ $formatRupiah(old('parking_income', $dailyParkingIncome)) }}" required>
-                </div>
-                <div>
-                    <label class="form-label" for="dailyShopIncome">Toko (Rp)</label>
-                    <input class="form-control" id="dailyShopIncome" name="shop_income" type="text"
-                        inputmode="numeric" autocomplete="off" data-daily-rupiah
-                        value="{{ $formatRupiah(old('shop_income', $dailyShopIncome)) }}" required>
-                </div>
+                @foreach(['parking' => 'Parkir', 'shop' => 'Toko'] as $source => $sourceLabel)
+                    <fieldset class="daily-income-group">
+                        <legend>{{ $sourceLabel }}</legend>
+                        @foreach(['cash' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS', 'unclassified' => 'Belum dirinci'] as $method => $methodLabel)
+                            @php
+                                $field = "{$source}_{$method}_income";
+                            @endphp
+                            <div>
+                                <label class="form-label" for="daily{{ ucfirst($source) }}{{ ucfirst($method) }}">{{ $methodLabel }} (Rp)</label>
+                                <input class="form-control" id="daily{{ ucfirst($source) }}{{ ucfirst($method) }}" name="{{ $field }}" type="text"
+                                    inputmode="numeric" autocomplete="off" data-daily-rupiah
+                                    value="{{ $formatRupiah(old($field, $dailyRevenue?->{$field} ?? 0)) }}" required>
+                            </div>
+                        @endforeach
+                    </fieldset>
+                @endforeach
                 <button class="btn btn-primary" type="submit">
                     <i class="bi bi-check2" aria-hidden="true"></i>Simpan pemasukan
                 </button>
@@ -721,7 +819,7 @@
 
         <section class="daily-other-income-panel" aria-labelledby="dailyOtherIncomeTitle">
             <h2 id="dailyOtherIncomeTitle">Pemasukan lain</h2>
-            <p>Catat sumber di luar booking, parkir, dan toko, seperti sponsor atau pemasukan kegiatan. Setiap catatan dapat dikoreksi atau dihapus.</p>
+            <p>Catat pemasukan selain booking, parkir, dan toko. Untuk biaya sewa turnamen, pilih turnamen serta lapangan agar catatannya mudah dilacak. Jadwal pertandingan sendiri tidak otomatis dihitung sebagai pembayaran. Jangan catat ulang jika pembayarannya sudah tercatat pada booking lapangan.</p>
 
             <form class="daily-other-income-form" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.store') }}">
                 @csrf
@@ -735,6 +833,33 @@
                     <input class="form-control" id="otherIncomeAmount" name="amount" type="text" inputmode="numeric" autocomplete="off" data-daily-rupiah placeholder="Rp 0" required>
                 </div>
                 <div>
+                    <label class="form-label" for="otherIncomeMethod">Metode pembayaran</label>
+                    <select class="form-select" id="otherIncomeMethod" name="payment_method" required>
+                        <option value="cash">Tunai</option>
+                        <option value="bank_transfer">Transfer</option>
+                        <option value="qris">QRIS</option>
+                        <option value="unclassified">Belum dirinci</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="otherIncomeTournament">Turnamen (opsional)</label>
+                    <select class="form-select" id="otherIncomeTournament" name="tournament_id">
+                        <option value="">Tidak terkait turnamen</option>
+                        @foreach($tournaments as $tournament)
+                            <option value="{{ $tournament->id }}">{{ $tournament->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="otherIncomeCourt">Lapangan (opsional)</label>
+                    <select class="form-select" id="otherIncomeCourt" name="court_id">
+                        <option value="">Pilih lapangan</option>
+                        @foreach($courts as $court)
+                            <option value="{{ $court->id }}">{{ $court->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="daily-income-note">
                     <label class="form-label" for="otherIncomeNote">Catatan</label>
                     <input class="form-control" id="otherIncomeNote" name="note" maxlength="500" placeholder="Opsional">
                 </div>
@@ -743,12 +868,18 @@
 
             <div class="table-responsive daily-other-income-table">
                 <table class="table align-middle mb-0">
-                    <thead><tr><th>Sumber</th><th>Nominal</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                    <thead><tr><th>Sumber / keterkaitan</th><th>Nominal</th><th>Metode</th><th>Turnamen</th><th>Lapangan</th><th>Catatan</th><th>Aksi</th></tr></thead>
                     <tbody>
                     @forelse($dailyRevenueEntries as $entry)
                         <tr>
-                            <td><label class="visually-hidden" for="otherIncomeTitle{{ $entry->id }}">Sumber pemasukan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTitle{{ $entry->id }}" name="title" maxlength="120" value="{{ $entry->title }}" required></td>
+                            <td><label class="visually-hidden" for="otherIncomeTitle{{ $entry->id }}">Sumber pemasukan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTitle{{ $entry->id }}" name="title" maxlength="120" value="{{ $entry->title }}" required>
+                                @if($entry->tournament)<div class="small text-secondary">{{ $entry->tournament->name }}</div>@endif</td>
                             <td><label class="visually-hidden" for="otherIncomeAmount{{ $entry->id }}">Nominal diterima</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeAmount{{ $entry->id }}" name="amount" type="text" inputmode="numeric" autocomplete="off" data-daily-rupiah value="{{ $formatRupiah($entry->amount) }}" required></td>
+                            <td><label class="visually-hidden" for="otherIncomeMethod{{ $entry->id }}">Metode pembayaran</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeMethod{{ $entry->id }}" name="payment_method" required>
+                                @foreach(['cash' => 'Tunai', 'bank_transfer' => 'Transfer', 'qris' => 'QRIS', 'unclassified' => 'Belum dirinci'] as $method => $methodLabel)<option value="{{ $method }}" @selected($entry->payment_method === $method)>{{ $methodLabel }}</option>@endforeach
+                            </select></td>
+                            <td><label class="visually-hidden" for="otherIncomeTournament{{ $entry->id }}">Turnamen</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTournament{{ $entry->id }}" name="tournament_id"><option value="">Tidak terkait</option>@foreach($tournaments as $tournament)<option value="{{ $tournament->id }}" @selected((int) $entry->tournament_id === (int) $tournament->id)>{{ $tournament->name }}</option>@endforeach</select></td>
+                            <td><label class="visually-hidden" for="otherIncomeCourt{{ $entry->id }}">Lapangan</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeCourt{{ $entry->id }}" name="court_id"><option value="">Tidak terkait</option>@foreach($courts as $court)<option value="{{ $court->id }}" @selected((int) $entry->court_id === (int) $court->id)>{{ $court->name }}</option>@endforeach</select></td>
                             <td><label class="visually-hidden" for="otherIncomeNote{{ $entry->id }}">Catatan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeNote{{ $entry->id }}" name="note" maxlength="500" value="{{ $entry->note }}" placeholder="Catatan opsional"></td>
                             <td>
                                 <div class="daily-entry-actions">
@@ -764,8 +895,43 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-secondary">Belum ada pemasukan lain untuk tanggal ini.</td></tr>
+                        <tr><td colspan="7" class="text-secondary">Belum ada pemasukan lain untuk tanggal ini.</td></tr>
                     @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="daily-report-table" aria-labelledby="dailyMatchesTitle">
+            <header class="daily-report-table-header">
+                <div>
+                    <h2 id="dailyMatchesTitle">Jadwal pertandingan {{ \Carbon\CarbonImmutable::parse($reportDate)->locale('id')->translatedFormat('d F Y') }}</h2>
+                    <p>Jadwal turnamen menandai penggunaan lapangan. Pembayarannya dicatat terpisah pada pemasukan lain.</p>
+                </div>
+                <span class="daily-report-table-count">{{ number_format($dailyMatches->count()) }} pertandingan</span>
+            </header>
+            <div class="daily-report-table-wrap" role="region" aria-label="Daftar pertandingan harian" tabindex="0">
+                <table class="table align-middle">
+                    <caption class="visually-hidden">Daftar pertandingan dan turnamen pada tanggal operasional terpilih.</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Turnamen / jenis</th>
+                            <th scope="col">Pertandingan</th>
+                            <th scope="col">Lapangan</th>
+                            <th scope="col">Jam</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($dailyMatches as $dailyMatch)
+                            <tr>
+                                <td>{{ $dailyMatch->tournament?->name ?? 'Pertandingan persahabatan' }}</td>
+                                <td>{{ $dailyMatch->homeTeam?->name ?? 'TBA' }} vs {{ $dailyMatch->awayTeam?->name ?? 'TBA' }}</td>
+                                <td>{{ $dailyMatch->venue ?: 'Lapangan belum ditentukan' }}</td>
+                                <td class="text-nowrap">{{ $dailyMatch->time_start ? substr($dailyMatch->time_start, 0, 5) : 'Jam belum ditentukan' }}@if($dailyMatch->time_end)–{{ substr($dailyMatch->time_end, 0, 5) }}@endif</td>
+                            </tr>
+                        @empty
+                            <tr><td colspan="4" class="daily-report-empty">Tidak ada jadwal pertandingan pada tanggal ini.</td></tr>
+                        @endforelse
                     </tbody>
                 </table>
             </div>

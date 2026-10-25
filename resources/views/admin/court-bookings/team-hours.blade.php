@@ -69,15 +69,23 @@
         }
 
         .team-hours-filter {
-            display: flex;
-            flex-wrap: wrap;
-            align-items: flex-end;
-            gap: 14px;
             padding: 18px 20px;
             margin-bottom: 18px;
         }
 
-        .team-hours-filter .field {
+        .team-hours-year-form,
+        .team-hours-custom-form {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            gap: 14px;
+        }
+
+        .team-hours-year-form .field {
+            width: min(100%, 260px);
+        }
+
+        .team-hours-custom-form .field {
             width: min(100%, 220px);
         }
 
@@ -89,16 +97,36 @@
             font-weight: 500;
         }
 
-        .team-hours-filter .form-control {
+        .team-hours-filter .form-control,
+        .team-hours-filter .form-select {
             min-height: 42px;
             border-color: #cacacb;
             border-radius: 9999px;
             box-shadow: none;
         }
 
-        .team-hours-filter .form-control:focus {
+        .team-hours-filter .form-control:focus,
+        .team-hours-filter .form-select:focus {
             border-color: var(--team-ink);
             box-shadow: 0 0 0 3px rgb(17 17 17 / 10%);
+        }
+
+        .team-hours-custom-details {
+            margin-top: 16px;
+            padding-top: 14px;
+            border-top: 1px solid var(--team-line);
+        }
+
+        .team-hours-custom-details summary {
+            width: fit-content;
+            color: #39393b;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .team-hours-custom-form {
+            margin-top: 14px;
         }
 
         .team-hours-summary {
@@ -206,7 +234,7 @@
         <header class="team-hours-header">
             <div>
                 <h1>Jam booking per tim</h1>
-                <p>Akumulasi durasi booking yang sudah dikonfirmasi. Booking batal, kedaluwarsa, dan menunggu verifikasi tidak dihitung.</p>
+                <p>Rekap durasi booking terkonfirmasi per tim. Booking member ikut dihitung setelah admin mencatat pemakaian pada tanggalnya; jadwal rutin yang belum dicatat tidak masuk.</p>
             </div>
             <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.daily') }}">
                 <i class="bi bi-clipboard-data" aria-hidden="true"></i>Laporan operasional
@@ -217,18 +245,36 @@
             <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
         @endif
 
-        <form class="team-hours-filter" method="GET" action="{{ route('admin.court-bookings.reports.team-hours') }}">
-            <div class="field">
-                <label for="teamHoursFrom">Dari tanggal</label>
-                <input class="form-control" type="date" id="teamHoursFrom" name="from" value="{{ $fromDate }}" max="{{ $toDate }}">
-            </div>
-            <div class="field">
-                <label for="teamHoursTo">Sampai tanggal</label>
-                <input class="form-control" type="date" id="teamHoursTo" name="to" value="{{ $toDate }}" min="{{ $fromDate }}" required>
-            </div>
-            <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i>Terapkan</button>
-            <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.team-hours') }}">Semua riwayat</a>
-        </form>
+        <section class="team-hours-filter" aria-label="Filter periode laporan">
+            <form class="team-hours-year-form" method="GET" action="{{ route('admin.court-bookings.reports.team-hours') }}">
+                <div class="field">
+                    <label for="teamHoursYear">Tahun laporan</label>
+                    <select class="form-select" id="teamHoursYear" name="year" required>
+                        <option value="" disabled @selected($selectedYear === null)>Pilih tahun</option>
+                        @foreach($yearOptions as $yearOption)
+                            <option value="{{ $yearOption }}" @selected($selectedYear === (int) $yearOption)>{{ $yearOption }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <button class="btn btn-primary" type="submit"><i class="bi bi-calendar-check" aria-hidden="true"></i>Tampilkan tahun</button>
+                <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.team-hours') }}">Semua riwayat</a>
+            </form>
+
+            <details class="team-hours-custom-details" @if(!$selectedYear && request()->hasAny(['from', 'to'])) open @endif>
+                <summary>Gunakan rentang tanggal khusus</summary>
+                <form class="team-hours-custom-form" method="GET" action="{{ route('admin.court-bookings.reports.team-hours') }}">
+                    <div class="field">
+                        <label for="teamHoursFrom">Dari tanggal</label>
+                        <input class="form-control" type="date" id="teamHoursFrom" name="from" value="{{ $fromDate }}" max="{{ $toDate }}">
+                    </div>
+                    <div class="field">
+                        <label for="teamHoursTo">Sampai tanggal</label>
+                        <input class="form-control" type="date" id="teamHoursTo" name="to" value="{{ $toDate }}" min="{{ $fromDate }}" required>
+                    </div>
+                    <button class="btn btn-primary" type="submit"><i class="bi bi-funnel" aria-hidden="true"></i>Terapkan rentang</button>
+                </form>
+            </details>
+        </section>
 
         <section class="team-hours-summary" aria-label="Ringkasan durasi booking">
             <div>
@@ -249,7 +295,9 @@
             <header>
                 <h2 id="teamHoursTableTitle">Rincian per tim</h2>
                 <span>
-                    @if($fromDate)
+                    @if($selectedYear)
+                        Tahun kalender {{ $selectedYear }}
+                    @elseif($fromDate)
                         {{ \Carbon\CarbonImmutable::parse($fromDate)->locale('id')->translatedFormat('d M Y') }} –
                     @else
                         Sejak awal –

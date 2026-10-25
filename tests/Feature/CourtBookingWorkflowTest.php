@@ -5,9 +5,13 @@ namespace Tests\Feature;
 use App\Models\Court;
 use App\Models\CourtBooking;
 use App\Models\CourtBookingPayment;
+use App\Models\CourtBookingFundSettlement;
 use App\Models\CourtBookingSetting;
+use App\Models\CourtDailyRevenue;
+use App\Models\CourtDailyRevenueEntry;
 use App\Models\CourtMemberSchedule;
 use App\Models\CourtRentalItem;
+use App\Models\CourtRentalOrder;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Schema\Blueprint;
@@ -561,6 +565,215 @@ class CourtBookingWorkflowTest extends TestCase
         $this->get('/sewa-perlengkapan')->assertRedirect(route('booking.index'));
     }
 
+    public function test_daily_and_revenue_reports_show_old_bookings_tournament_income_and_method_totals(): void
+    {
+        $admin = $this->createAdmin();
+        $date = '2026-10-01';
+        $tournamentId = \Illuminate\Support\Facades\DB::table('tournaments')->insertGetId(['name' => 'OFS Cup']);
+        $homeTeamId = \Illuminate\Support\Facades\DB::table('teams')->insertGetId(['name' => 'Bayu FC']);
+        $awayTeamId = \Illuminate\Support\Facades\DB::table('teams')->insertGetId(['name' => 'Garuda FC']);
+        \Illuminate\Support\Facades\DB::table('matches')->insert([
+            'match_date' => $date,
+            'time_start' => '18:00:00',
+            'time_end' => '19:00:00',
+            'team_home_id' => $homeTeamId,
+            'team_away_id' => $awayTeamId,
+            'tournament_id' => $tournamentId,
+            'venue' => $this->court->name,
+            'status' => 'upcoming',
+            'is_cancelled' => false,
+        ]);
+
+        $activeBooking = CourtBooking::query()->create([
+            'public_token' => (string) Str::uuid(),
+            'court_id' => $this->court->id,
+            'booking_date' => $date,
+            'time_start' => '20:00:00',
+            'time_end' => '21:30:00',
+            'duration_minutes' => 90,
+            'amount' => 80000,
+            'team_name' => 'Tim Transfer',
+            'customer_name' => 'Pelanggan A',
+            'customer_phone' => '081234567890',
+            'payment_method' => 'bank_transfer',
+            'source' => 'walk_in',
+            'status' => CourtBooking::STATUS_CONFIRMED,
+        ]);
+        $activeBooking->payments()->create([
+            'amount' => 80000,
+            'verified_amount' => 80000,
+            'stage' => CourtBookingPayment::STAGE_FULL,
+            'payment_method' => 'bank_transfer',
+            'status' => CourtBookingPayment::STATUS_CONFIRMED,
+            'recorded_at' => now(),
+            'verified_at' => now(),
+        ]);
+
+        $cancelledBooking = CourtBooking::query()->create([
+            'public_token' => (string) Str::uuid(),
+            'court_id' => $this->court->id,
+            'booking_date' => $date,
+            'time_start' => '21:30:00',
+            'time_end' => '22:00:00',
+            'duration_minutes' => 30,
+            'amount' => 30000,
+            'team_name' => 'Tim Refund',
+            'customer_name' => 'Pelanggan B',
+            'customer_phone' => '081234567891',
+            'payment_method' => 'cash',
+            'source' => 'walk_in',
+            'status' => CourtBooking::STATUS_CANCELLED,
+        ]);
+        $cancelledBooking->payments()->create([
+            'amount' => 20000,
+            'verified_amount' => 20000,
+            'stage' => CourtBookingPayment::STAGE_DEPOSIT,
+            'payment_method' => 'cash',
+            'status' => CourtBookingPayment::STATUS_CONFIRMED,
+            'recorded_at' => now(),
+            'verified_at' => now(),
+        ]);
+        $cancelledBooking->fundSettlements()->create([
+            'request_key' => (string) Str::uuid(),
+            'type' => CourtBookingFundSettlement::TYPE_REFUND,
+            'amount' => 20000,
+            'payment_method' => 'cash',
+            'reason' => 'Refund penuh',
+            'recorded_by' => $admin->id,
+            'recorded_at' => now(),
+        ]);
+
+        CourtRentalOrder::query()->create([
+            'rental_date' => $date,
+            'time_start' => '18:00:00',
+            'time_end' => '19:00:00',
+            'rental_mode' => 'scheduled',
+            'amount' => 20000,
+            'payment_method' => 'qris',
+            'status' => CourtRentalOrder::STATUS_CONFIRMED,
+        ]);
+
+        CourtDailyRevenue::query()->create([
+            'operating_date' => $date,
+            'parking_income' => 5000,
+            'parking_cash_income' => 3000,
+            'parking_transfer_income' => 2000,
+            'parking_qris_income' => 0,
+            'parking_unclassified_income' => 0,
+            'shop_income' => 5000,
+            'shop_cash_income' => 0,
+            'shop_transfer_income' => 0,
+            'shop_qris_income' => 5000,
+            'shop_unclassified_income' => 0,
+        ]);
+        CourtDailyRevenueEntry::query()->create([
+            'operating_date' => $date,
+            'title' => 'Sewa lapangan turnamen',
+            'amount' => 100000,
+            'payment_method' => 'cash',
+            'tournament_id' => $tournamentId,
+            'court_id' => $this->court->id,
+            'updated_by' => $admin->id,
+        ]);
+        CourtDailyRevenueEntry::query()->create([
+            'operating_date' => $date,
+            'title' => 'Sponsor',
+            'amount' => 50000,
+            'payment_method' => 'bank_transfer',
+            'updated_by' => $admin->id,
+        ]);
+
+        $this->actingAs($admin)
+            ->get(route('admin.court-bookings.reports.daily', ['date' => $date]))
+            ->assertOk()
+            ->assertSee('Tim Transfer')
+            ->assertSee('Jadwal pertandingan')
+            ->assertSee('OFS Cup')
+            ->assertSee('Bayu FC vs Garuda FC')
+            ->assertSee('Pemasukan diakui menurut metode pembayaran')
+            ->assertSee('Rp 103.000')
+            ->assertSee('Rp 132.000')
+            ->assertSee('Rp 25.000')
+            ->assertSee('Rp 260.000');
+
+        $this->actingAs($admin)
+            ->get(route('admin.court-bookings.revenue'))
+            ->assertOk()
+            ->assertSee('Pemasukan diakui berdasarkan metode pembayaran')
+            ->assertSee('Rp 103.000')
+            ->assertSee('Rp 132.000')
+            ->assertSee('Rp 25.000')
+            ->assertSee('Rp 260.000');
+    }
+
+    public function test_team_hours_report_includes_recorded_member_and_walk_in_bookings_for_selected_year(): void
+    {
+        $admin = $this->createAdmin();
+
+        foreach ([
+            ['Rivers FC', 'member', CourtBooking::STATUS_CONFIRMED, '2026-02-01', 90],
+            ['Rivers FC', 'walk_in', CourtBooking::STATUS_CONFIRMED, '2026-07-01', 60],
+            ['Rivers FC', 'walk_in', CourtBooking::STATUS_CANCELLED, '2026-08-01', 120],
+            ['Tim Tidak Aktif', 'public', CourtBooking::STATUS_AWAITING_PAYMENT, '2026-09-01', 30],
+            ['Rivers FC', 'walk_in', CourtBooking::STATUS_CONFIRMED, '2025-12-31', 180],
+        ] as [$teamName, $source, $status, $date, $duration]) {
+            CourtBooking::query()->create([
+                'public_token' => (string) Str::uuid(),
+                'court_id' => $this->court->id,
+                'booking_date' => $date,
+                'time_start' => '14:00:00',
+                'time_end' => '15:00:00',
+                'duration_minutes' => $duration,
+                'amount' => 300000,
+                'team_name' => $teamName,
+                'customer_name' => $teamName,
+                'customer_phone' => '081234567890',
+                'payment_method' => $source === 'member' ? 'none' : 'cash',
+                'source' => $source,
+                'status' => $status,
+            ]);
+        }
+
+        $this->actingAs($admin)
+            ->get(route('admin.court-bookings.reports.team-hours', ['year' => 2026]))
+            ->assertOk()
+            ->assertSee('Tahun kalender 2026')
+            ->assertSee('Rivers FC')
+            ->assertSee('2 jam 30 menit')
+            ->assertDontSee('Tim Tidak Aktif');
+    }
+
+    public function test_daily_revenue_inputs_save_method_totals_without_losing_legacy_split(): void
+    {
+        $admin = $this->createAdmin();
+
+        $this->actingAs($admin)
+            ->put(route('admin.court-bookings.reports.daily-revenue.update'), [
+                'operating_date' => '2026-10-01',
+                'parking_cash_income' => 'Rp 100.000',
+                'parking_transfer_income' => 'Rp 25.000',
+                'parking_qris_income' => '0',
+                'parking_unclassified_income' => 'Rp 50.000',
+                'shop_cash_income' => '0',
+                'shop_transfer_income' => 'Rp 60.000',
+                'shop_qris_income' => 'Rp 40.000',
+                'shop_unclassified_income' => '0',
+            ])
+            ->assertRedirect(route('admin.court-bookings.reports.daily', ['date' => '2026-10-01']))
+            ->assertSessionHasNoErrors();
+
+        $this->assertDatabaseHas('court_daily_revenues', [
+            'operating_date' => '2026-10-01',
+            'parking_income' => 175000,
+            'parking_cash_income' => 100000,
+            'parking_transfer_income' => 25000,
+            'parking_unclassified_income' => 50000,
+            'shop_income' => 100000,
+            'shop_transfer_income' => 60000,
+            'shop_qris_income' => 40000,
+        ]);
+    }
+
     private function createPublicBooking(array $overrides = []): CourtBooking
     {
         $payload = $this->publicBookingPayload($overrides);
@@ -615,11 +828,22 @@ class CourtBookingWorkflowTest extends TestCase
         Schema::create('matches', function (Blueprint $table): void {
             $table->id();
             $table->date('match_date')->nullable();
+            $table->unsignedBigInteger('tournament_id')->nullable();
+            $table->unsignedBigInteger('team_home_id')->nullable();
+            $table->unsignedBigInteger('team_away_id')->nullable();
             $table->string('venue')->nullable();
             $table->string('status')->default('upcoming');
             $table->boolean('is_cancelled')->default(false);
             $table->time('time_start')->nullable();
             $table->time('time_end')->nullable();
+        });
+        Schema::create('tournaments', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
+        });
+        Schema::create('teams', function (Blueprint $table): void {
+            $table->id();
+            $table->string('name');
         });
         Schema::create('news_articles', function (Blueprint $table): void {
             $table->id();
@@ -825,7 +1049,43 @@ class CourtBookingWorkflowTest extends TestCase
             $table->date('operating_date')->unique();
             $table->decimal('parking_income', 12, 2)->default(0);
             $table->decimal('shop_income', 12, 2)->default(0);
+            foreach (['parking', 'shop'] as $source) {
+                foreach (['cash', 'transfer', 'qris', 'unclassified'] as $method) {
+                    $table->decimal("{$source}_{$method}_income", 12, 2)->default(0);
+                }
+            }
             $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamps();
+        });
+        Schema::create('court_daily_revenue_entries', function (Blueprint $table): void {
+            $table->id();
+            $table->date('operating_date');
+            $table->string('title', 120);
+            $table->decimal('amount', 12, 2);
+            $table->string('payment_method', 30)->default('unclassified');
+            $table->unsignedBigInteger('tournament_id')->nullable();
+            $table->unsignedBigInteger('court_id')->nullable();
+            $table->string('note', 500)->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+        Schema::create('court_booking_fund_settlements', function (Blueprint $table): void {
+            $table->id();
+            $table->unsignedBigInteger('court_booking_id');
+            $table->uuid('request_key')->unique();
+            $table->string('type');
+            $table->decimal('amount', 12, 2);
+            $table->string('payment_method')->nullable();
+            $table->string('reference')->nullable();
+            $table->string('reason');
+            $table->unsignedBigInteger('recorded_by')->nullable();
+            $table->string('recorded_by_name_snapshot')->nullable();
+            $table->timestamp('recorded_at')->nullable();
+            $table->unsignedBigInteger('voided_by')->nullable();
+            $table->string('voided_by_name_snapshot')->nullable();
+            $table->timestamp('voided_at')->nullable();
+            $table->string('void_reason')->nullable();
             $table->timestamps();
         });
     }

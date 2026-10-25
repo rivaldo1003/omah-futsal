@@ -9,6 +9,7 @@ class CourtBookingFundSettlement extends Model
 {
     public const TYPE_REFUND = 'refund';
     public const TYPE_RETAINED = 'retained';
+    public const PAYMENT_METHOD_UNCLASSIFIED = 'unclassified';
 
     protected $fillable = [
         'court_booking_id',
@@ -63,6 +64,7 @@ class CourtBookingFundSettlement extends Model
             'cash' => 'Tunai',
             'bank_transfer' => 'Transfer bank',
             'qris' => 'QRIS',
+            self::PAYMENT_METHOD_UNCLASSIFIED => 'Belum dirinci',
             default => null,
         };
     }

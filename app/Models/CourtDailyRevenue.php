@@ -11,6 +11,14 @@ class CourtDailyRevenue extends Model
         'operating_date',
         'parking_income',
         'shop_income',
+        'parking_cash_income',
+        'parking_transfer_income',
+        'parking_qris_income',
+        'parking_unclassified_income',
+        'shop_cash_income',
+        'shop_transfer_income',
+        'shop_qris_income',
+        'shop_unclassified_income',
         'updated_by',
     ];
 
@@ -18,6 +26,14 @@ class CourtDailyRevenue extends Model
         'operating_date' => 'date:Y-m-d',
         'parking_income' => 'decimal:2',
         'shop_income' => 'decimal:2',
+        'parking_cash_income' => 'decimal:2',
+        'parking_transfer_income' => 'decimal:2',
+        'parking_qris_income' => 'decimal:2',
+        'parking_unclassified_income' => 'decimal:2',
+        'shop_cash_income' => 'decimal:2',
+        'shop_transfer_income' => 'decimal:2',
+        'shop_qris_income' => 'decimal:2',
+        'shop_unclassified_income' => 'decimal:2',
     ];
 
     public function updatedBy(): BelongsTo
