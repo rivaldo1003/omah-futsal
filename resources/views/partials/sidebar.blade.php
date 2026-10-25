@@ -371,7 +371,7 @@
 
             <a class="nav-link {{ request()->routeIs('admin.court-bookings.reports.team-hours') ? 'active' : '' }}"
                 href="{{ route('admin.court-bookings.reports.team-hours') }}">
-                <i class="bi bi-hourglass-split"></i> Jam booking per tim
+                <i class="bi bi-hourglass-split"></i> Jam lapangan per tim
             </a>
 
             <a class="nav-link {{ request()->routeIs('admin.court-bookings.revenue') ? 'active' : '' }}"

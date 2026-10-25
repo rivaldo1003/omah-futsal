@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Jam Booking per Tim')
+@section('title', 'Jam Lapangan per Tim')
 
 @push('styles')
     <style>
@@ -131,7 +131,7 @@
 
         .team-hours-summary {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             margin-bottom: 20px;
         }
 
@@ -211,6 +211,30 @@
             text-align: center;
         }
 
+        .team-hours-breakdown {
+            display: grid;
+            gap: 3px;
+            min-width: 130px;
+        }
+
+        .team-hours-breakdown strong {
+            color: var(--team-ink);
+            font-weight: 600;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .team-hours-breakdown span {
+            color: var(--team-muted);
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .team-hours-note {
+            margin: 14px 20px 18px;
+            color: var(--team-muted);
+            font-size: 13px;
+        }
+
         @media (max-width: 700px) {
             .team-hours-summary {
                 grid-template-columns: 1fr;
@@ -225,6 +249,10 @@
             .team-hours-table th {
                 padding: 12px;
             }
+
+            .team-hours-note {
+                margin-inline: 12px;
+            }
         }
     </style>
 @endpush
@@ -233,8 +261,8 @@
     <main class="team-hours-page">
         <header class="team-hours-header">
             <div>
-                <h1>Jam booking per tim</h1>
-                <p>Rekap durasi booking terkonfirmasi per tim. Booking member ikut dihitung setelah admin mencatat pemakaian pada tanggalnya; jadwal rutin yang belum dicatat tidak masuk.</p>
+                <h1>Jam lapangan per tim</h1>
+                <p>Rekap booking terkonfirmasi dan pertandingan turnamen yang selesai. Jeda antarlaga tidak masuk hitungan.</p>
             </div>
             <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.daily') }}">
                 <i class="bi bi-clipboard-data" aria-hidden="true"></i>Laporan operasional
@@ -276,9 +304,9 @@
             </details>
         </section>
 
-        <section class="team-hours-summary" aria-label="Ringkasan durasi booking">
+        <section class="team-hours-summary" aria-label="Ringkasan jam lapangan per tim">
             <div>
-                <span>Tim dengan booking terkonfirmasi</span>
+                <span>Tim dengan aktivitas tercatat</span>
                 <strong>{{ number_format($teamCount) }}</strong>
             </div>
             <div>
@@ -286,8 +314,12 @@
                 <strong>{{ number_format($confirmedBookingCount) }}</strong>
             </div>
             <div>
-                <span>Total waktu lapangan terbooking</span>
-                <strong>{{ intdiv($confirmedMinutes, 60) }} jam {{ $confirmedMinutes % 60 }} menit</strong>
+                <span>Pertandingan turnamen selesai</span>
+                <strong>{{ number_format($completedMatchCount) }}</strong>
+            </div>
+            <div>
+                <span>Akumulasi jam seluruh tim</span>
+                <strong>{{ intdiv($totalTeamMinutes, 60) }} jam {{ $totalTeamMinutes % 60 }} menit</strong>
             </div>
         </section>
 
@@ -307,24 +339,35 @@
             </header>
             <div class="table-responsive">
                 <table class="table align-middle">
-                    <caption class="visually-hidden">Jumlah booking dan total durasi terkonfirmasi untuk setiap tim.</caption>
+                    <caption class="visually-hidden">Durasi booking terkonfirmasi dan pertandingan turnamen selesai untuk setiap tim, beserta totalnya.</caption>
                     <thead>
                         <tr>
                             <th scope="col">Nama tim</th>
-                            <th scope="col" class="team-hours-number">Jumlah booking</th>
+                            <th scope="col" class="team-hours-number">Booking lapangan</th>
+                            <th scope="col" class="team-hours-number">Pertandingan turnamen</th>
                             <th scope="col" class="team-hours-number">Total durasi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($teams as $team)
-                            @php($minutes = (int) $team->total_minutes)
                             <tr>
                                 <th scope="row" class="text-dark">{{ $team->team_name }}</th>
-                                <td class="team-hours-number">{{ number_format((int) $team->booking_count) }}</td>
-                                <td class="team-hours-number"><strong>{{ intdiv($minutes, 60) }} jam {{ $minutes % 60 }} menit</strong></td>
+                                <td class="team-hours-number">
+                                    <div class="team-hours-breakdown">
+                                        <strong>{{ intdiv((int) $team->booking_minutes, 60) }} jam {{ (int) $team->booking_minutes % 60 }} menit</strong>
+                                        <span>{{ number_format((int) $team->booking_count) }} booking</span>
+                                    </div>
+                                </td>
+                                <td class="team-hours-number">
+                                    <div class="team-hours-breakdown">
+                                        <strong>{{ intdiv((int) $team->match_minutes, 60) }} jam {{ (int) $team->match_minutes % 60 }} menit</strong>
+                                        <span>{{ number_format((int) $team->match_count) }} pertandingan</span>
+                                    </div>
+                                </td>
+                                <td class="team-hours-number"><strong>{{ intdiv((int) $team->total_minutes, 60) }} jam {{ (int) $team->total_minutes % 60 }} menit</strong></td>
                             </tr>
                         @empty
-                            <tr><td class="team-hours-empty" colspan="3">Belum ada booking terkonfirmasi pada periode ini.</td></tr>
+                            <tr><td class="team-hours-empty" colspan="4">Belum ada booking terkonfirmasi atau pertandingan turnamen selesai pada periode ini.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -332,6 +375,7 @@
             @if($teams->hasPages())
                 <div class="p-3">{{ $teams->links() }}</div>
             @endif
+            <p class="team-hours-note">Jam pertandingan dihitung dari selisih waktu mulai dan selesai pada fixture berstatus selesai. Jeda antarpertandingan tidak dihitung. Durasi setiap laga ditambahkan ke masing-masing tim yang bertanding, sedangkan pemasukan turnamen tetap dicatat manual di laporan operasional. Booking member baru masuk setelah admin mencatat pemakaiannya.</p>
         </section>
     </main>
 @endsection

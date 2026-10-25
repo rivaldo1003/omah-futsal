@@ -1063,6 +1063,13 @@ class GameController extends Controller
             return redirect()->back()->with('error', $this->drawManagedMatchDeletionMessage());
         }
 
+        if ($match->tournament_id && $match->status === 'completed' && !(bool) $match->is_cancelled) {
+            return redirect()->back()->with(
+                'error',
+                'Pertandingan turnamen yang sudah selesai tidak dapat dihapus karena durasinya masuk ke riwayat jam tim. Koreksi jadwal atau hasil pertandingan jika ada data yang keliru.',
+            );
+        }
+
         try {
             DB::transaction(function () use ($match) {
                 $tournament = $match->tournament;

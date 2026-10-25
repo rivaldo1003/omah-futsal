@@ -1349,6 +1349,18 @@ class TournamentController extends Controller
     // Delete tournament
     public function destroy(Tournament $tournament)
     {
+        $hasCompletedMatches = $tournament->matches()
+            ->where('status', 'completed')
+            ->where('is_cancelled', false)
+            ->exists();
+
+        if ($hasCompletedMatches) {
+            return redirect()->back()->with(
+                'error',
+                'Turnamen ini memiliki pertandingan selesai yang menjadi riwayat jam tim. Turnamen tidak dapat dihapus; simpan sebagai riwayat dan ubah statusnya menjadi Selesai.',
+            );
+        }
+
         try {
             // Hapus file logo dan banner jika ada
             if ($tournament->logo && Storage::disk('public')->exists($tournament->logo)) {

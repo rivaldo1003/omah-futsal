@@ -25,6 +25,7 @@ use App\Services\CourtPricingService;
 use App\Services\CourtRentalInventoryService;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
@@ -712,33 +713,156 @@ class CourtBookingController extends Controller
         }
 
         $earliestBookingDate = CourtBooking::query()->min('booking_date');
-        $firstYearWithBookings = $earliestBookingDate
-            ? (int) CarbonImmutable::parse($earliestBookingDate)->format('Y')
+        $earliestTournamentMatchDate = DB::table('matches')
+            ->whereNotNull('tournament_id')
+            ->where('status', 'completed')
+            ->where('is_cancelled', false)
+            ->whereNotNull('match_date')
+            ->whereNotNull('time_start')
+            ->whereNotNull('time_end')
+            ->whereNotNull('team_home_id')
+            ->whereNotNull('team_away_id')
+            ->min('match_date');
+        $earliestUsageDate = collect([$earliestBookingDate, $earliestTournamentMatchDate])
+            ->filter()
+            ->sort()
+            ->first();
+        $firstYearWithUsage = $earliestUsageDate
+            ? (int) CarbonImmutable::parse($earliestUsageDate, CourtBooking::TIMEZONE)->format('Y')
             : $currentYear;
-        $firstYearOption = min($firstYearWithBookings, $currentYear);
+        $firstYearOption = min($firstYearWithUsage, $currentYear);
         $yearOptions = collect(range($currentYear, $firstYearOption));
 
-        $baseQuery = CourtBooking::query()
+        $bookingGroups = CourtBooking::query()
             ->where('status', CourtBooking::STATUS_CONFIRMED)
             ->whereNotNull('team_name')
             ->whereRaw("TRIM(team_name) <> ''")
             ->when($fromDate, fn ($query) => $query->whereDate('booking_date', '>=', $fromDate))
-            ->whereDate('booking_date', '<=', $toDate);
-
-        $teamCount = (clone $baseQuery)
-            ->selectRaw('COUNT(DISTINCT LOWER(TRIM(team_name))) as team_count')
-            ->first()?->team_count ?? 0;
-        $summary = (clone $baseQuery)
-            ->selectRaw('COUNT(*) as booking_count, COALESCE(SUM(duration_minutes), 0) as total_minutes')
-            ->first();
-
-        $teams = (clone $baseQuery)
-            ->selectRaw('LOWER(TRIM(team_name)) as team_key, MIN(TRIM(team_name)) as team_name, COUNT(*) as booking_count, SUM(duration_minutes) as total_minutes')
+            ->whereDate('booking_date', '<=', $toDate)
+            ->selectRaw('LOWER(TRIM(team_name)) as team_key, MIN(TRIM(team_name)) as team_name, COUNT(*) as booking_count, COALESCE(SUM(duration_minutes), 0) as booking_minutes')
             ->groupBy('team_key')
-            ->orderByDesc('total_minutes')
-            ->orderBy('team_name')
-            ->paginate(30)
-            ->withQueryString();
+            ->get();
+
+        $normalizeTeamName = static function (string $name): string {
+            $name = trim($name);
+            $normalized = preg_replace('/\\s+/u', ' ', $name);
+
+            return mb_strtolower($normalized ?? $name, 'UTF-8');
+        };
+        $teamTotals = [];
+        foreach ($bookingGroups as $bookingGroup) {
+            $key = $normalizeTeamName((string) $bookingGroup->team_name);
+            if ($key === '') {
+                continue;
+            }
+
+            $displayName = trim((string) $bookingGroup->team_name);
+            $teamTotals[$key] ??= [
+                'team_name' => $displayName,
+                'booking_count' => 0,
+                'booking_minutes' => 0,
+                'match_count' => 0,
+                'match_minutes' => 0,
+                'total_minutes' => 0,
+            ];
+            if (strcasecmp($displayName, $teamTotals[$key]['team_name']) < 0) {
+                $teamTotals[$key]['team_name'] = $displayName;
+            }
+            $teamTotals[$key]['booking_count'] += (int) $bookingGroup->booking_count;
+            $teamTotals[$key]['booking_minutes'] += (int) $bookingGroup->booking_minutes;
+            $teamTotals[$key]['total_minutes'] += (int) $bookingGroup->booking_minutes;
+        }
+
+        $completedMatchCount = 0;
+        $matchQuery = DB::table('matches')
+            ->join('teams as home_team', 'home_team.id', '=', 'matches.team_home_id')
+            ->join('teams as away_team', 'away_team.id', '=', 'matches.team_away_id')
+            ->whereNotNull('matches.tournament_id')
+            ->where('matches.status', 'completed')
+            ->where('matches.is_cancelled', false)
+            ->whereNotNull('matches.match_date')
+            ->whereNotNull('matches.time_start')
+            ->whereNotNull('matches.time_end')
+            ->whereNotNull('matches.team_home_id')
+            ->whereNotNull('matches.team_away_id')
+            ->when($fromDate, fn ($query) => $query->whereDate('matches.match_date', '>=', $fromDate))
+            ->whereDate('matches.match_date', '<=', $toDate)
+            ->select([
+                'matches.id',
+                'matches.match_date',
+                'matches.time_start',
+                'matches.time_end',
+                'home_team.name as home_team_name',
+                'away_team.name as away_team_name',
+            ]);
+
+        $matchQuery->chunkById(500, function ($matches) use (&$teamTotals, &$completedMatchCount, $normalizeTeamName): void {
+            foreach ($matches as $match) {
+                $startAt = CarbonImmutable::parse(
+                    (string) $match->match_date.' '.(string) $match->time_start,
+                    CourtBooking::TIMEZONE,
+                );
+                $endAt = CarbonImmutable::parse(
+                    (string) $match->match_date.' '.(string) $match->time_end,
+                    CourtBooking::TIMEZONE,
+                );
+                if (!$endAt->greaterThan($startAt)) {
+                    continue;
+                }
+
+                $durationMinutes = (int) floor(($endAt->getTimestamp() - $startAt->getTimestamp()) / 60);
+                if ($durationMinutes < 1 || $durationMinutes > 1440) {
+                    continue;
+                }
+
+                $completedMatchCount++;
+                $countedTeamsInMatch = [];
+                foreach ([
+                    (string) $match->home_team_name,
+                    (string) $match->away_team_name,
+                ] as $teamName) {
+                    $key = $normalizeTeamName($teamName);
+                    if ($key === '' || isset($countedTeamsInMatch[$key])) {
+                        continue;
+                    }
+                    $countedTeamsInMatch[$key] = true;
+
+                    $teamTotals[$key] ??= [
+                        'team_name' => trim($teamName),
+                        'booking_count' => 0,
+                        'booking_minutes' => 0,
+                        'match_count' => 0,
+                        'match_minutes' => 0,
+                        'total_minutes' => 0,
+                    ];
+                    $teamTotals[$key]['match_count']++;
+                    $teamTotals[$key]['match_minutes'] += $durationMinutes;
+                    $teamTotals[$key]['total_minutes'] += $durationMinutes;
+                }
+            }
+        }, 'matches.id', 'id');
+
+        $teamRows = collect(array_values($teamTotals))
+            ->sort(function (array $left, array $right): int {
+                return ($right['total_minutes'] <=> $left['total_minutes'])
+                    ?: strcasecmp($left['team_name'], $right['team_name']);
+            })
+            ->values();
+        $teamCount = $teamRows->count();
+        $confirmedBookingCount = (int) $teamRows->sum('booking_count');
+        $totalTeamMinutes = (int) $teamRows->sum('total_minutes');
+        $currentPage = LengthAwarePaginator::resolveCurrentPage();
+        $pageTeamRows = $teamRows
+            ->forPage($currentPage, 30)
+            ->map(static fn (array $team): object => (object) $team)
+            ->values();
+        $teams = new LengthAwarePaginator(
+            $pageTeamRows,
+            $teamRows->count(),
+            30,
+            $currentPage,
+            ['path' => $request->url(), 'query' => $request->query()],
+        );
 
         return view('admin.court-bookings.team-hours', [
             'teams' => $teams,
@@ -747,8 +871,9 @@ class CourtBookingController extends Controller
             'selectedYear' => $selectedYear,
             'yearOptions' => $yearOptions,
             'teamCount' => (int) $teamCount,
-            'confirmedBookingCount' => (int) ($summary->booking_count ?? 0),
-            'confirmedMinutes' => (int) ($summary->total_minutes ?? 0),
+            'confirmedBookingCount' => $confirmedBookingCount,
+            'completedMatchCount' => $completedMatchCount,
+            'totalTeamMinutes' => $totalTeamMinutes,
         ]);
     }
 
