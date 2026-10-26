@@ -30,6 +30,18 @@ jobs:
         run: |
           npm run build
           grep -q '"resources/js/admin/court-bookings-chart.js"' public/build/manifest.json
+          mkdir -p build/assets
+          cp -R public/build/assets/. build/assets/
+          node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+
+          const manifest = JSON.parse(fs.readFileSync('public/build/manifest.json', 'utf8'));
+          const chart = manifest['resources/js/admin/court-bookings-chart.js'];
+          if (!chart?.file || !fs.existsSync(`build/${chart.file}`)) {
+            throw new Error('The court booking chart asset is missing from the public document root build directory.');
+          }
+          console.log(`Validated public chart asset: build/${chart.file}`);
+          NODE
 
       - name: 🚀 Sync Files via FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
@@ -79,6 +91,8 @@ jobs:
             storage/**
             public/
             public/**
+            build/
+            build/**
             vendor/
             vendor/**
             README.md
