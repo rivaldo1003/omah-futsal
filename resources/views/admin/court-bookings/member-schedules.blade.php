@@ -934,11 +934,11 @@
 
                                 <div class="court-member-schedule-exceptions">
                                     <div class="court-member-schedule-exceptions-heading">
-                                        <h5>Tanggal libur</h5>
+                                        <h5>Pengecualian tanggal</h5>
                                         <button class="btn btn-outline-secondary" type="button" data-bs-toggle="modal"
                                             data-bs-target="#{{ $dayOffModalId }}">
                                             <i class="bi bi-calendar-plus" aria-hidden="true"></i>
-                                            Jadwalkan tanggal libur
+                                            Catat pengecualian tanggal
                                         </button>
                                     </div>
 
@@ -1084,22 +1084,22 @@
                                         action="{{ route('admin.court-bookings.member-schedules.days-off.store', $schedule) }}">
                                         @csrf
                                         <div class="modal-header">
-                                            <h3 class="modal-title" id="{{ $dayOffModalId }}Title">Jadwalkan tanggal libur</h3>
+                                            <h3 class="modal-title" id="{{ $dayOffModalId }}Title">Catat pengecualian jadwal</h3>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal"
                                                 aria-label="Tutup"></button>
                                         </div>
                                         <div class="modal-body">
                                             <p class="mb-3">
                                                 {{ $schedule->member_name }} biasanya memakai lapangan {{ strtolower($dayLabel) }}.
-                                                Pilih tanggal ketika jadwal rutin ini libur.
+                                                Pilih tanggal ketika jadwal rutin ini tidak digunakan.
                                             </p>
-                                            <label class="form-label" for="{{ $dayOffModalId }}Date">Tanggal libur</label>
+                                            <label class="form-label" for="{{ $dayOffModalId }}Date">Tanggal pengecualian</label>
                                             <input class="form-control" id="{{ $dayOffModalId }}Date" type="date" name="off_date"
-                                                min="{{ now('Asia/Jakarta')->toDateString() }}" required>
+                                                required>
                                             <p class="court-member-day-off-help">
                                                 Tanggal harus jatuh pada hari {{ strtolower($dayLabel) }} dan masuk masa berlaku
-                                                jadwal.
-                                                Pada tanggal itu, slot kembali tersedia untuk booking umum.
+                                                jadwal. Tanggal lampau dapat dicatat untuk merapikan riwayat. Pada tanggal itu,
+                                                slot rutin dilepas; tulis alasan agar perubahan mudah ditelusuri.
                                             </p>
                                             <div class="mt-3">
                                                 <label class="form-label" for="{{ $dayOffModalId }}Note">Catatan</label>
@@ -1110,7 +1110,7 @@
                                         <div class="modal-footer">
                                             <button class="btn btn-outline-secondary" type="button"
                                                 data-bs-dismiss="modal">Batal</button>
-                                            <button class="btn btn-primary" type="submit">Simpan tanggal libur</button>
+                                            <button class="btn btn-primary" type="submit">Simpan pengecualian</button>
                                         </div>
                                     </form>
                                 </div>

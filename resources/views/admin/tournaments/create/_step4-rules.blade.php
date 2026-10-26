@@ -1,4 +1,4 @@
-<!-- Step 4: Match Rules -->
+<!-- Langkah 4: Aturan pertandingan -->
                     <div class="step-content" id="step4" style="display: {{ $currentStep == 4 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -58,7 +58,7 @@
                                             </div>
                                             <div class="form-group" id="extraTimeField"
                                                 style="display: {{ old('extra_time_enabled', $tournamentData['extra_time_enabled'] ?? true) ? 'block' : 'none' }};">
-                                                <label for="extra_time" class="form-label">Durasi per babak extra time
+                                                <label for="extra_time" class="form-label">Durasi per babak waktu tambahan
                                                     (menit)</label>
                                                 <input type="number"
                                                     class="form-control @error('extra_time') is-invalid @enderror"
@@ -66,7 +66,7 @@
                                                     value="{{ old('extra_time', $tournamentData['extra_time'] ?? 10) }}"
                                                     min="0" max="30"
                                                     {{ old('type', $tournamentData['type'] ?? '') === 'league' ? 'disabled' : '' }}>
-                                                <div class="form-text">Dimainkan jika skor seri di knockout</div>
+                                                <div class="form-text">Dimainkan jika skor tetap seri pada sistem gugur.</div>
                                                 @error('extra_time')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
@@ -78,7 +78,7 @@
                                 <div class="settings-section" id="pointsSettings"
                                     style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'none' : 'block' }};">
                                     <h6><i class="bi bi-flag"></i> Sistem Poin</h6>
-                                    <small class="text-secondary d-block mb-2">Dipakai untuk klasemen fase liga/grup. Tidak relevan untuk knockout (cup) — pemenang ditentukan langsung dari hasil pertandingan.</small>
+                                    <small class="text-secondary d-block mb-2">Dipakai untuk klasemen liga atau grup. Tidak digunakan pada sistem gugur karena pemenang ditentukan dari hasil pertandingan.</small>
                                     <div class="row">
                                         <div class="col-md-3">
                                             <div class="form-group">
@@ -121,7 +121,7 @@
                                         </div>
                                         <div class="col-md-3">
                                             <div class="form-group">
-                                                <label for="points_no_show" class="form-label">No show</label>
+                                                <label for="points_no_show" class="form-label">Tidak hadir</label>
                                                 <input type="number"
                                                     class="form-control @error('points_no_show') is-invalid @enderror"
                                                     id="points_no_show" name="points_no_show"
@@ -136,26 +136,26 @@
                                 </div>
 
                                 <div class="settings-section" id="tiebreakerSettings" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'block' : 'none' }};">
-                                    <h6>Penentuan peringkat (tie-breakers) — Group Stage</h6>
-                                    <small class="text-secondary d-block mb-3">Urutan menentukan prioritas klasemen saat poin tim sama. Seret item untuk mengubah urutan.</small>
+                                    <h6>Urutan penentu peringkat grup</h6>
+                                    <small class="text-secondary d-block mb-3">Urutan ini menentukan peringkat saat poin tim sama. Seret aturan untuk mengubah prioritas.</small>
 
                                     <div class="tie-preset">
-                                        <small class="text-secondary">Template cepat:</small>
+                                        <small class="text-secondary">Pilihan cepat:</small>
                                         <button type="button" class="btn-preset preset-btn" data-preset="gd_first">Selisih gol dulu</button>
-                                        <button type="button" class="btn-preset preset-btn" data-preset="h2h_first">Head-to-head dulu</button>
+                                        <button type="button" class="btn-preset preset-btn" data-preset="h2h_first">Hasil pertemuan langsung</button>
                                         <button type="button" class="btn-preset preset-btn" data-preset="fifa">Standar FIFA</button>
                                         <button type="button" class="btn-preset preset-btn" data-preset="goals_first">Produktivitas gol dulu</button>
-                                        <button type="button" class="btn-preset" id="resetTieBreakers">Reset</button>
+                                        <button type="button" class="btn-preset" id="resetTieBreakers">Atur ulang</button>
                                     </div>
 
                                     <div id="tie-breakers-container">
                                         @php
                                             $tieBreakerOptions = [
                                                 'points' => 'Poin',
-                                                'head_to_head' => 'Head-to-head',
+                                                'head_to_head' => 'Hasil pertemuan langsung',
                                                 'goal_difference' => 'Selisih gol',
-                                                'goals_scored' => 'Gol mencetak',
-                                                'fair_play' => 'Fair play',
+                                                'goals_scored' => 'Jumlah gol',
+                                                'fair_play' => 'Poin fair play',
                                                 'penalty' => 'Adu penalti',
                                             ];
 
@@ -185,9 +185,9 @@
                                         @endforeach
                                     </div>
                                     <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="add-rule">
-                                        <i class="bi bi-plus-circle me-1"></i> Tambah Aturan
+                                        <i class="bi bi-plus-circle me-1"></i> Tambah aturan
                                     </button>
-                                    <small class="text-secondary d-block mt-2">Urutan ini juga dipakai untuk penentuan juara dan runner-up di halaman Home.</small>
+                                    <small class="text-secondary d-block mt-2">Urutan ini juga dipakai untuk menentukan juara dan peringkat kedua pada halaman utama.</small>
                                 </div>
 
                                 <div class="settings-section">

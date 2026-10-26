@@ -17,9 +17,9 @@
                                     @php
                                         $type = old('type', $tournamentData['type'] ?? '');
                                         $typeNames = [
-                                            'league' => 'League',
-                                            'knockout' => 'Knockout',
-                                            'group_knockout' => 'Group + Knockout'
+                                            'league' => 'Liga',
+                                            'knockout' => 'Sistem gugur',
+                                            'group_knockout' => 'Grup dan sistem gugur'
                                         ];
                                     @endphp
                                     {{ $typeNames[$type] ?? 'Belum dipilih' }}

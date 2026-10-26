@@ -1,16 +1,16 @@
-<!-- Step 5: Review -->
+<!-- Langkah 5: Tinjau turnamen -->
                     <div class="step-content" id="step5" style="display: {{ $currentStep == 5 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
                                 <h5>
                                     <i class="bi bi-eye"></i>
-                                    Review & Buat Turnamen
+                                    Tinjau dan buat turnamen
                                 </h5>
                             </div>
                             <div class="card-body">
                                 <div class="tournament-preview">
                                     <h4 class="review-name" id="reviewName">
-                                        {{ old('name', $tournamentData['name'] ?? 'Ofs Champions League 2025') }}
+                                        {{ old('name', $tournamentData['name'] ?? 'Belum ada nama') }}
                                     </h4>
 
                                     <dl class="review-list">
@@ -30,9 +30,9 @@
                                             <dd id="reviewType">
                                                 @php
                                                     $typeNames = [
-                                                        'league' => 'League',
-                                                        'knockout' => 'Knockout',
-                                                        'group_knockout' => 'Group + Knockout'
+                                                        'league' => 'Liga',
+                                                        'knockout' => 'Sistem gugur',
+                                                        'group_knockout' => 'Grup dan sistem gugur'
                                                     ];
                                                     $selectedType = old('type', $tournamentData['type'] ?? '');
                                                 @endphp
@@ -52,13 +52,13 @@
                                         <div class="review-row">
                                             <dt>Lokasi</dt>
                                             <dd id="reviewLocation">
-                                                {{ old('location', $tournamentData['location'] ?? '—') }}
+                                                {{ old('location', $tournamentData['location'] ?? 'Belum ditentukan') }}
                                             </dd>
                                         </div>
                                         <div class="review-row">
                                             <dt>Penyelenggara</dt>
                                             <dd id="reviewOrganizer">
-                                                {{ old('organizer', $tournamentData['organizer'] ?? '—') }}
+                                                {{ old('organizer', $tournamentData['organizer'] ?? 'Belum ditentukan') }}
                                             </dd>
                                         </div>
                                     </dl>

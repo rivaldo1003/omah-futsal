@@ -1,4 +1,4 @@
-<!-- Step 2: Pilih Tim -->
+<!-- Langkah 2: Pilih tim -->
                     <div class="step-content" id="step2" style="display: {{ $currentStep == 2 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -14,7 +14,7 @@
                                     <div class="team-picker-search">
                                         <i class="bi bi-search"></i>
                                         <input type="text" id="team_search" class="form-control"
-                                            placeholder="Cari nama tim atau coach...">
+                                            placeholder="Cari nama tim atau pelatih..." aria-label="Cari tim">
                                     </div>
                                     <div class="team-picker-counter">
                                         <div class="counter-box">
@@ -34,7 +34,7 @@
 
                                 <div class="team-picker-hint" id="teamPickerHint">
                                     <i class="bi bi-info-circle"></i>
-                                    <span>Klik kartu tim untuk memilih / membatalkan.</span>
+                                    <span>Pilih atau batalkan tim dengan menekan kartunya.</span>
                                 </div>
 
                                 <!-- Grid kartu tim -->
@@ -64,7 +64,7 @@
                                                     @if($team->coach_name)
                                                         <i class="bi bi-person"></i> {{ $team->coach_name }}
                                                     @else
-                                                        <span class="text-muted">Tanpa coach</span>
+                                                        <span class="text-muted">Pelatih belum diisi</span>
                                                     @endif
                                                 </span>
                                             </span>
@@ -99,7 +99,7 @@
                                 <!-- Preview Bagan Knockout (hanya untuk tipe knockout) -->
                                 <div class="settings-section" id="bracketPreviewSection"
                                     style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'block' : 'none' }};">
-                                    <h6><i class="bi bi-diagram-3"></i> Preview Bagan Knockout</h6>
+                                    <h6><i class="bi bi-diagram-3"></i> Pratinjau bagan sistem gugur</h6>
                                     <div class="bracket-preview" id="bracketPreview">
                                         <div class="bracket-preview-empty">
                                             <i class="bi bi-diagram-3"></i>
@@ -108,7 +108,7 @@
                                     </div>
                                     <div class="bracket-preview-legend">
                                         <span class="legend-item"><span class="legend-dot legend-team"></span> Tim</span>
-                                        <span class="legend-item"><span class="legend-dot legend-bye"></span> Bye (lolos otomatis)</span>
+                                        <span class="legend-item"><span class="legend-dot legend-bye"></span> Lolos otomatis</span>
                                         <span class="legend-item"><span class="legend-dot legend-tbd"></span> Menunggu pemenang</span>
                                     </div>
                                 </div>

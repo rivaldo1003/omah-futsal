@@ -1,24 +1,37 @@
 {{-- CSS & dependensi halaman buat turnamen --}}
 <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
 <style>
-:root {
-            --primary: var(--text-primary);
-            --secondary: var(--accent);
-            --secondary-light: var(--accent-hover);
-            --accent: #c01c28;
-            --accent-light: #e5484d;
-            --success: #1E7A46;
-            --success-light: #F0F9F4;
-            --warning: #B45309;
-            --warning-light: #FDF6EC;
-            --info: var(--accent);
-            --light: var(--surface);
-            --dark: var(--text-primary);
-            --gray: var(--text-secondary);
-            --gray-light: #B4B4B8;
-            --border-color: var(--border);
-            --transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
-        }.page-header {
+.admin-tournament-create {
+            --text-primary: #111111;
+            --text-secondary: #707072;
+            --bg: #f5f5f5;
+            --bg-card: #ffffff;
+            --surface: #f5f5f5;
+            --border: #e5e5e5;
+            --primary: #111111;
+            --secondary: #39393b;
+            --secondary-light: #4b4b4d;
+            --accent: #111111;
+            --accent-light: #39393b;
+            --accent-hover: #39393b;
+            --success: #007d48;
+            --success-light: #edf7f2;
+            --warning: #6b5b36;
+            --warning-light: #f5f5f5;
+            --danger: #b42318;
+            --info: #39393b;
+            --light: #f5f5f5;
+            --dark: #111111;
+            --gray: #707072;
+            --gray-light: #9e9ea0;
+            --border-color: #e5e5e5;
+            --transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+            max-width: 1540px;
+            margin-inline: auto;
+            color: #111111;
+        }
+
+.page-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -1467,5 +1480,836 @@
             padding: 40px 20px;
             color: var(--text-secondary);
             font-size: 13px;
+        }
+
+        /* Halaman pembuatan turnamen: panel datar, kontrol konsisten, dan satu alur yang jelas. */
+        .admin-tournament-create .page-header {
+            align-items: flex-end;
+            gap: 20px;
+            margin-bottom: 24px;
+        }
+
+        .admin-tournament-create .page-heading {
+            min-width: 0;
+        }
+
+        .admin-tournament-create .page-header h1 {
+            margin: 0 0 7px;
+            color: #111111;
+            font-size: clamp(27px, 2.3vw, 32px);
+            font-weight: 600;
+            letter-spacing: -0.035em;
+            line-height: 1.15;
+        }
+
+        .admin-tournament-create .page-subtitle {
+            max-width: 720px;
+            margin: 0;
+            color: #707072;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        .admin-tournament-create .btn-back {
+            min-height: 44px;
+            height: auto;
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 30px;
+            background: #f5f5f5;
+            color: #111111;
+            white-space: nowrap;
+            transition: background-color .15s ease, color .15s ease;
+        }
+
+        .admin-tournament-create .btn-back:hover {
+            border-color: transparent;
+            background: #eaeaec;
+            color: #111111;
+        }
+
+        .admin-tournament-create .wizard-progress {
+            display: block;
+            margin-bottom: 24px;
+            padding: 18px 20px 14px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .step-indicator {
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            align-items: start;
+            gap: 12px;
+            margin: 0;
+        }
+
+        .admin-tournament-create .step-indicator::before {
+            position: absolute;
+            z-index: 0;
+            top: 17px;
+            right: 10%;
+            left: 10%;
+            height: 1px;
+            background: #e5e5e5;
+            content: "";
+        }
+
+        .admin-tournament-create .step {
+            z-index: 1;
+            min-width: 0;
+            gap: 7px;
+        }
+
+        .admin-tournament-create .step::before {
+            display: none;
+        }
+
+        .admin-tournament-create .step-circle {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #cacacb;
+            background: #ffffff;
+            color: #707072;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .step.active .step-circle {
+            border-color: #111111;
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .admin-tournament-create .step.completed .step-circle {
+            border-color: #007d48;
+            background: #007d48;
+            color: #ffffff;
+        }
+
+        .admin-tournament-create .step-label {
+            max-width: 100%;
+            margin: 0;
+            color: #707072;
+            font-size: 12px;
+            font-weight: 500;
+            line-height: 1.35;
+            text-align: center;
+        }
+
+        .admin-tournament-create .step.active .step-label {
+            color: #111111;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .tournament-workspace {
+            align-items: flex-start;
+        }
+
+        .admin-tournament-create .tournament-form-column,
+        .admin-tournament-create .tournament-summary-column {
+            min-width: 0;
+        }
+
+        .admin-tournament-create .tournament-summary-column > .card {
+            position: sticky;
+            top: 20px;
+        }
+
+        .admin-tournament-create .card {
+            margin-bottom: 0;
+            overflow: hidden;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .card-header {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            padding: 16px 22px;
+            border-bottom: 1px solid #e5e5e5;
+            background: #ffffff;
+            color: #111111;
+        }
+
+        .admin-tournament-create .card-header h5 {
+            margin: 0;
+            color: #111111;
+            font-size: 17px;
+            font-weight: 600;
+            line-height: 1.35;
+        }
+
+        .admin-tournament-create .card-header h5 i {
+            color: #707072;
+            font-size: 16px;
+        }
+
+        .admin-tournament-create .card-body {
+            padding: 24px;
+        }
+
+        .admin-tournament-create .form-group {
+            margin-bottom: 20px;
+        }
+
+        .admin-tournament-create .form-label {
+            margin-bottom: 7px;
+            color: #39393b;
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.4;
+        }
+
+        .admin-tournament-create .form-label > i {
+            color: #707072;
+            font-size: 14px;
+        }
+
+        .admin-tournament-create .form-control,
+        .admin-tournament-create .form-select,
+        .admin-tournament-create .select2-container--default .select2-selection--multiple {
+            min-height: 44px;
+            padding: 9px 12px;
+            border: 1px solid #cacacb;
+            border-radius: 8px;
+            background-color: #ffffff;
+            color: #111111;
+            font-size: 14px;
+            box-shadow: none;
+            transition: border-color .15s ease, background-color .15s ease;
+        }
+
+        .admin-tournament-create textarea.form-control {
+            min-height: 104px;
+            resize: vertical;
+        }
+
+        .admin-tournament-create .form-control:focus,
+        .admin-tournament-create .form-select:focus,
+        .admin-tournament-create .select2-container--default.select2-container--focus .select2-selection--multiple {
+            padding: 8px 11px;
+            border: 2px solid #111111;
+            outline: none;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .form-control::placeholder {
+            color: #8a8a8c;
+            opacity: 1;
+        }
+
+        .admin-tournament-create .form-text,
+        .admin-tournament-create .group-hint {
+            margin-top: 6px;
+            padding-left: 0;
+            color: #707072;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .admin-tournament-create .form-text i {
+            color: inherit;
+        }
+
+        .admin-tournament-create .is-invalid,
+        .admin-tournament-create .form-control.is-invalid,
+        .admin-tournament-create .form-select.is-invalid {
+            border-color: #b42318 !important;
+        }
+
+        .admin-tournament-create .form-control.is-invalid:focus,
+        .admin-tournament-create .form-select.is-invalid:focus {
+            border-width: 2px;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .invalid-feedback {
+            margin-top: 6px;
+            color: #b42318;
+            font-size: 12px;
+        }
+
+        .admin-tournament-create .form-check-input {
+            width: 18px;
+            height: 18px;
+            margin-top: .15em;
+            border-color: #9e9ea0;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .form-check-input:checked {
+            border-color: #111111;
+            background-color: #111111;
+        }
+
+        .admin-tournament-create .form-check-input:focus {
+            border-color: #111111;
+            box-shadow: 0 0 0 2px #ffffff, 0 0 0 3px #111111;
+        }
+
+        .admin-tournament-create .btn,
+        .admin-tournament-create .step-btn,
+        .admin-tournament-create .btn-preset {
+            min-height: 44px;
+            padding: 10px 18px;
+            border: 0;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.2;
+            box-shadow: none;
+            transition: background-color .15s ease, color .15s ease, border-color .15s ease;
+        }
+
+        .admin-tournament-create .btn-primary,
+        .admin-tournament-create .step-btn.next {
+            min-height: 48px;
+            padding-inline: 22px;
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .admin-tournament-create .btn-primary:hover,
+        .admin-tournament-create .step-btn.next:hover {
+            background: #39393b;
+            color: #ffffff;
+        }
+
+        .admin-tournament-create .step-btn.prev,
+        .admin-tournament-create .btn-outline-secondary,
+        .admin-tournament-create .btn-preset {
+            background: #f5f5f5;
+            color: #111111;
+        }
+
+        .admin-tournament-create .step-btn.prev:hover,
+        .admin-tournament-create .btn-outline-secondary:hover,
+        .admin-tournament-create .btn-preset:hover {
+            border-color: transparent;
+            background: #eaeaec;
+            color: #111111;
+        }
+
+        .admin-tournament-create .btn-outline-primary {
+            background: #f5f5f5;
+            color: #111111;
+        }
+
+        .admin-tournament-create .btn-outline-primary:hover {
+            background: #eaeaec;
+            color: #111111;
+        }
+
+        .admin-tournament-create .btn-outline-danger {
+            background: #fff7f6;
+            color: #b42318;
+        }
+
+        .admin-tournament-create .btn-outline-danger:hover {
+            background: #fce9e7;
+            color: #8f1c13;
+        }
+
+        .admin-tournament-create .btn-preset.active {
+            border-color: transparent;
+            background: #111111;
+            color: #ffffff;
+        }
+
+        .admin-tournament-create .step-navigation {
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #e5e5e5;
+        }
+
+        .admin-tournament-create #createBtn {
+            min-height: 48px;
+            border-radius: 30px;
+            font-size: 14px;
+        }
+
+        .admin-tournament-create .settings-section {
+            margin: 24px 0 0;
+            padding: 20px 0 0;
+            border: 0;
+            border-top: 1px solid #e5e5e5;
+            border-radius: 0;
+            background: transparent;
+        }
+
+        .admin-tournament-create .settings-section h6 {
+            margin-bottom: 16px;
+            color: #111111;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .settings-section h6 i {
+            color: #707072;
+        }
+
+        .admin-tournament-create .file-upload-container {
+            min-height: 136px;
+            padding: 20px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #f5f5f5;
+            color: #39393b;
+            text-align: left;
+        }
+
+        .admin-tournament-create .file-upload-container:hover {
+            border-color: #9e9ea0;
+            background: #f5f5f5;
+        }
+
+        .admin-tournament-create .file-upload-container > i {
+            display: block;
+            margin-bottom: 10px;
+            color: #39393b;
+            font-size: 20px;
+        }
+
+        .admin-tournament-create .file-upload-container p {
+            margin-bottom: 4px !important;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .file-upload-container small {
+            color: #707072 !important;
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .admin-tournament-create .file-preview {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .file-preview img,
+        .admin-tournament-create .review-media,
+        .admin-tournament-create .review-banner {
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            object-fit: contain;
+        }
+
+        .admin-tournament-create .step-content .alert {
+            padding: 14px 16px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #f5f5f5;
+            color: #39393b;
+        }
+
+        .admin-tournament-create .step-content .alert-success {
+            border-color: #cce7d8;
+            background: #edf7f2;
+            color: #00643b;
+        }
+
+        .admin-tournament-create .step-content .alert-danger {
+            border-color: #f0c9c5;
+            background: #fff7f6;
+            color: #a5281d;
+        }
+
+        .admin-tournament-create .team-picker-header {
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .admin-tournament-create .team-picker-search {
+            max-width: 440px;
+        }
+
+        .admin-tournament-create .team-picker-search .form-control {
+            padding-left: 42px;
+            border-radius: 24px;
+        }
+
+        .admin-tournament-create .team-picker-counter {
+            gap: 0;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .team-picker-counter .counter-box {
+            min-width: 80px;
+            padding: 7px 12px;
+            border: 0;
+            border-left: 1px solid #e5e5e5;
+            border-radius: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .team-picker-counter .counter-box:first-child {
+            border-left: 0;
+        }
+
+        .admin-tournament-create .team-picker-counter .counter-num {
+            color: #111111;
+            font-size: 18px;
+        }
+
+        .admin-tournament-create .team-picker-counter .counter-lbl {
+            color: #707072;
+            font-size: 11px;
+        }
+
+        .admin-tournament-create .team-picker-hint {
+            margin-bottom: 16px;
+            padding: 10px 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 6px;
+            background: #f5f5f5;
+            color: #39393b;
+            font-size: 13px;
+        }
+
+        .admin-tournament-create .team-picker-grid {
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+            gap: 10px;
+        }
+
+        .admin-tournament-create .team-pick-card {
+            min-height: 68px;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #111111;
+            text-align: left;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .team-pick-card:hover {
+            border-color: #9e9ea0;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .team-pick-card.is-selected {
+            border: 2px solid #111111;
+            padding: 11px;
+            background: #f5f5f5;
+        }
+
+        .admin-tournament-create .team-pick-card.is-disabled {
+            background: #f5f5f5;
+        }
+
+        .admin-tournament-create .team-pick-card .team-pick-check {
+            top: 50%;
+            right: 10px;
+            width: 20px;
+            height: 20px;
+            transform: translateY(-50%);
+            background: #111111;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .team-pick-card.is-selected .team-pick-check {
+            display: flex;
+        }
+
+        .admin-tournament-create .team-pick-name {
+            padding-right: 24px;
+            color: #111111;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .team-pick-coach {
+            color: #707072;
+            font-size: 12px;
+        }
+
+        .admin-tournament-create .team-pick-logo,
+        .admin-tournament-create .team-logo-placeholder {
+            border-color: #e5e5e5;
+            border-radius: 6px;
+            background: #f5f5f5;
+            color: #39393b;
+        }
+
+        .admin-tournament-create .team-picker-empty {
+            min-height: 100px;
+            padding: 24px 16px;
+            color: #707072;
+        }
+
+        .admin-tournament-create .group-container,
+        .admin-tournament-create .available-teams-container {
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #f5f5f5;
+        }
+
+        .admin-tournament-create .available-teams-container {
+            min-height: 120px;
+            padding: 16px;
+        }
+
+        .admin-tournament-create .group-container.drop-active {
+            border-color: #111111;
+            border-style: solid;
+            background: #f5f5f5;
+        }
+
+        .admin-tournament-create .group-header {
+            margin: -1px -1px 0;
+            border-radius: 8px 8px 0 0;
+            background: #f5f5f5;
+            color: #111111;
+        }
+
+        .admin-tournament-create .draggable-item,
+        .admin-tournament-create .team-card {
+            border-color: #e5e5e5;
+            border-radius: 6px;
+            background: #ffffff;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .team-card.available,
+        .admin-tournament-create .team-card.assigned {
+            border-color: #e5e5e5;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .draggable-item:hover,
+        .admin-tournament-create .team-card:hover {
+            border-color: #9e9ea0;
+        }
+
+        .admin-tournament-create .tournament-preview,
+        .admin-tournament-create .preview-item,
+        .admin-tournament-create .stat-box {
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+            box-shadow: none;
+        }
+
+        .admin-tournament-create .tournament-preview {
+            margin-bottom: 20px;
+            padding: 18px;
+        }
+
+        .admin-tournament-create .review-name {
+            margin-bottom: 14px;
+            color: #111111;
+            font-size: 18px;
+            line-height: 1.35;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-tournament-create .review-row {
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            border-color: #e5e5e5;
+        }
+
+        .admin-tournament-create .review-row dt {
+            width: 98px;
+            color: #707072;
+            font-size: 12px;
+        }
+
+        .admin-tournament-create .review-row dd {
+            min-width: 0;
+            color: #111111;
+            font-size: 13px;
+            font-weight: 500;
+            overflow-wrap: anywhere;
+        }
+
+        .admin-tournament-create .sidebar-section {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-color: #e5e5e5;
+        }
+
+        .admin-tournament-create .section-label {
+            color: #39393b;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .admin-tournament-create .group-summary {
+            border-color: #e5e5e5;
+            color: #707072;
+        }
+
+        .admin-tournament-create .badge,
+        .admin-tournament-create .team-status {
+            border-radius: 30px;
+        }
+
+        .admin-tournament-create .bg-primary {
+            background: #111111 !important;
+        }
+
+        .admin-tournament-create .bracket-preview {
+            border-color: #e5e5e5;
+            border-radius: 8px;
+            background: #ffffff;
+        }
+
+        .admin-tournament-create .bracket-round-title {
+            color: #39393b;
+        }
+
+        .admin-tournament-create .bracket-slot,
+        .admin-tournament-create .bracket-team-knockout,
+        .admin-tournament-create .bracket-team {
+            border-color: #e5e5e5;
+            background: #ffffff;
+            color: #39393b;
+        }
+
+        .admin-tournament-create .bracket-slot.slot-bye,
+        .admin-tournament-create .bracket-slot.slot-tbd,
+        .admin-tournament-create .bracket-team.empty,
+        .admin-tournament-create .bracket-team-knockout.empty {
+            background: #f5f5f5;
+            color: #707072;
+        }
+
+        .admin-tournament-create .legend-team,
+        .admin-tournament-create .legend-bye {
+            background: #e5e5e5;
+        }
+
+        .admin-tournament-create .step-content.step3-league,
+        .admin-tournament-create .step-content.step3-knockout,
+        .admin-tournament-create .step-content.step3-group {
+            display: none;
+        }
+
+        .admin-tournament-create .step-content[id^="step3"] {
+            transition: none;
+        }
+
+        @media (max-width: 991.98px) {
+            .admin-tournament-create .tournament-summary-column > .card {
+                position: static;
+            }
+
+            .admin-tournament-create .tournament-summary-column {
+                order: 2;
+            }
+        }
+
+        @media (max-width: 767.98px) {
+            .admin-tournament-create .page-header {
+                align-items: flex-start;
+                flex-direction: column;
+                margin-bottom: 20px;
+            }
+
+            .admin-tournament-create .page-header h1 {
+                font-size: 27px;
+            }
+
+            .admin-tournament-create .wizard-progress {
+                margin-bottom: 18px;
+                padding: 14px 12px 12px;
+            }
+
+            .admin-tournament-create .step-indicator {
+                gap: 5px;
+            }
+
+            .admin-tournament-create .step-indicator::before {
+                top: 15px;
+                right: 9%;
+                left: 9%;
+            }
+
+            .admin-tournament-create .step-circle {
+                width: 32px;
+                height: 32px;
+                font-size: 12px;
+            }
+
+            .admin-tournament-create .step-label {
+                font-size: 10px;
+                overflow-wrap: anywhere;
+            }
+
+            .admin-tournament-create .card-header {
+                min-height: 54px;
+                padding: 14px 16px;
+            }
+
+            .admin-tournament-create .card-body {
+                padding: 18px 16px;
+            }
+
+            .admin-tournament-create .step-navigation {
+                align-items: stretch;
+                flex-wrap: wrap;
+            }
+
+            .admin-tournament-create .step-navigation > * {
+                flex: 1 1 auto;
+                justify-content: center;
+            }
+
+            .admin-tournament-create .team-picker-header {
+                align-items: stretch;
+                flex-direction: column;
+            }
+
+            .admin-tournament-create .team-picker-search {
+                max-width: none;
+            }
+
+            .admin-tournament-create .team-picker-counter {
+                width: 100%;
+                justify-content: stretch;
+            }
+
+            .admin-tournament-create .team-picker-counter .counter-box {
+                flex: 1 1 0;
+                min-width: 0;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .admin-tournament-create .page-header h1 {
+                font-size: 25px;
+            }
+
+            .admin-tournament-create .step-label {
+                font-size: 10px;
+                line-height: 1.2;
+                overflow-wrap: normal;
+            }
+
+            .admin-tournament-create .review-row dt {
+                width: 82px;
+            }
+
+            .admin-tournament-create .step-navigation > * {
+                width: 100%;
+            }
         }
     </style>

@@ -253,6 +253,114 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .team-usage-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 0;
+            border: 0;
+            background: transparent;
+            color: var(--team-ink);
+            font: inherit;
+            font-weight: 600;
+            text-align: left;
+            cursor: pointer;
+        }
+
+        .team-usage-toggle:hover .team-usage-toggle-name {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .team-usage-toggle:focus-visible {
+            border-radius: 2px;
+            outline: 2px solid var(--team-ink);
+            outline-offset: 4px;
+        }
+
+        .team-usage-toggle-icon {
+            color: var(--team-muted);
+            font-size: 12px;
+            transition: transform .15s ease;
+        }
+
+        .team-usage-toggle[aria-expanded="true"] .team-usage-toggle-icon {
+            transform: rotate(180deg);
+        }
+
+        .team-usage-toggle-hint {
+            display: block;
+            margin-top: 3px;
+            color: var(--team-muted);
+            font-size: 11px;
+            font-weight: 400;
+        }
+
+        .team-usage-table .team-usage-details-row[hidden] {
+            display: none !important;
+        }
+
+        .team-usage-table .team-usage-details-row > td {
+            padding: 0 20px 16px !important;
+            border-top: 0;
+            background: #fafafa;
+        }
+
+        .team-usage-history {
+            border-top: 1px solid var(--team-line);
+        }
+
+        .team-usage-history-heading {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 12px 0 8px;
+        }
+
+        .team-usage-history-heading strong {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .team-usage-history-heading span,
+        .team-usage-history-empty {
+            color: var(--team-muted);
+            font-size: 12px;
+        }
+
+        .team-usage-history-item {
+            display: grid;
+            grid-template-columns: 1fr 1.1fr 1fr 1.15fr .8fr;
+            gap: 12px;
+            padding: 11px 0;
+            border-top: 1px solid var(--team-line);
+        }
+
+        .team-usage-history-item > div {
+            min-width: 0;
+        }
+
+        .team-usage-history-item span {
+            display: block;
+            margin-bottom: 2px;
+            color: var(--team-muted);
+            font-size: 11px;
+        }
+
+        .team-usage-history-item strong {
+            display: block;
+            overflow-wrap: anywhere;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .team-usage-history-item small {
+            display: block;
+            color: var(--team-muted);
+            font-size: 11px;
+        }
+
         .team-hours-mobile-label {
             display: none;
         }
@@ -492,6 +600,13 @@
                 border-bottom: 1px solid var(--team-line);
             }
 
+            .team-usage-table tbody tr.team-usage-details-row {
+                display: block;
+                padding: 0 15px 12px;
+                border-bottom: 1px solid var(--team-line);
+                background: #fafafa;
+            }
+
             .team-usage-table tbody tr:last-child {
                 border-bottom: 0;
             }
@@ -501,6 +616,12 @@
                 min-width: 0;
                 padding: 0;
                 border: 0;
+            }
+
+            .team-usage-table tbody tr.team-usage-details-row > td {
+                display: block;
+                padding: 0 !important;
+                background: transparent;
             }
 
             .team-usage-table .team-usage-name { grid-area: name; }
@@ -514,6 +635,29 @@
                 display: flex;
                 flex-wrap: wrap;
                 gap: 2px 12px;
+            }
+
+            .team-usage-history-item {
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "date duration"
+                    "court court"
+                    "time category";
+                align-items: start;
+                gap: 8px 12px;
+            }
+
+            .team-usage-history-item .history-date { grid-area: date; }
+            .team-usage-history-item .history-court { grid-area: court; }
+            .team-usage-history-item .history-time { grid-area: time; }
+            .team-usage-history-item .history-category { grid-area: category; }
+            .team-usage-history-item .history-duration {
+                grid-area: duration;
+                text-align: right;
+            }
+
+            .team-usage-history-item .history-duration strong {
+                white-space: nowrap;
             }
 
             .team-hours-mobile-label {
@@ -727,8 +871,20 @@
                     </thead>
                     <tbody>
                         @forelse($teams as $team)
+                            @php
+                                $historyId = 'teamUsageDetails-'.md5($team->team_key);
+                                $usageDetails = $teamUsageDetails[$team->team_key] ?? [];
+                            @endphp
                             <tr>
-                                <th scope="row" class="text-dark team-usage-name">{{ $team->team_name }}</th>
+                                <th scope="row" class="text-dark team-usage-name">
+                                    <button class="team-usage-toggle" type="button" aria-expanded="false"
+                                        aria-controls="{{ $historyId }}" data-team-usage-toggle>
+                                        <span class="team-usage-toggle-name">{{ $team->team_name }}</span>
+                                        <i class="bi bi-chevron-down team-usage-toggle-icon" aria-hidden="true"></i>
+                                        <span class="visually-hidden">Tampilkan riwayat pemakaian</span>
+                                    </button>
+                                    <span class="team-usage-toggle-hint">Klik untuk melihat rincian</span>
+                                </th>
                                 <td class="team-hours-number team-usage-count">
                                     <span class="team-hours-mobile-label" aria-hidden="true">Jumlah transaksi</span>
                                     <div class="team-hours-breakdown">
@@ -743,6 +899,43 @@
                                 <td class="team-hours-number team-usage-duration">
                                     <span class="team-hours-mobile-label" aria-hidden="true">Total durasi</span>
                                     <strong>{{ intdiv((int) $team->total_minutes, 60) }} jam {{ (int) $team->total_minutes % 60 }} menit</strong>
+                                </td>
+                            </tr>
+                            <tr class="team-usage-details-row" id="{{ $historyId }}" hidden>
+                                <td colspan="3">
+                                    <div class="team-usage-history">
+                                        <div class="team-usage-history-heading">
+                                            <strong>Riwayat pemakaian</strong>
+                                            <span>{{ number_format(count($usageDetails)) }} transaksi · mengikuti filter tanggal</span>
+                                        </div>
+                                        @forelse($usageDetails as $detail)
+                                            <article class="team-usage-history-item">
+                                                <div class="history-date">
+                                                    <span>Tanggal</span>
+                                                    <strong>{{ \Carbon\CarbonImmutable::parse($detail['date'])->locale('id')->translatedFormat('d M Y') }}</strong>
+                                                </div>
+                                                <div class="history-court">
+                                                    <span>Lapangan</span>
+                                                    <strong>{{ $detail['court_name'] }}</strong>
+                                                </div>
+                                                <div class="history-time">
+                                                    <span>Jam</span>
+                                                    <strong>{{ $detail['time_start'] }}–{{ $detail['time_end'] }}</strong>
+                                                </div>
+                                                <div class="history-category">
+                                                    <span>Jenis transaksi</span>
+                                                    <strong>{{ $detail['category'] }}</strong>
+                                                    <small>{{ $detail['reference'] }}</small>
+                                                </div>
+                                                <div class="history-duration">
+                                                    <span>Durasi</span>
+                                                    <strong>{{ intdiv((int) $detail['duration_minutes'], 60) }} jam {{ (int) $detail['duration_minutes'] % 60 }} menit</strong>
+                                                </div>
+                                            </article>
+                                        @empty
+                                            <p class="team-usage-history-empty mb-0">Tidak ada rincian pada periode ini.</p>
+                                        @endforelse
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -942,6 +1135,21 @@
     @push('scripts')
     <script>
         (() => {
+            document.querySelectorAll('[data-team-usage-toggle]').forEach((button) => {
+                button.addEventListener('click', () => {
+                    const details = document.getElementById(button.getAttribute('aria-controls'));
+                    if (!details) return;
+
+                    const expanded = button.getAttribute('aria-expanded') === 'true';
+                    details.hidden = expanded;
+                    button.setAttribute('aria-expanded', String(!expanded));
+                    const label = button.querySelector('.visually-hidden');
+                    if (label) label.textContent = expanded
+                        ? 'Tampilkan riwayat pemakaian'
+                        : 'Sembunyikan riwayat pemakaian';
+                });
+            });
+
             const rentalModal = document.getElementById('tournamentRentalModal');
             const rentalForm = rentalModal?.querySelector('form');
             const methodInput = document.getElementById('tournamentRentalMethod');

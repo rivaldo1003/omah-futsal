@@ -33,7 +33,7 @@
                 
                 // Update review section
                 document.getElementById('reviewLogoContainer').innerHTML = 
-                    `<img src="${e.target.result}" alt="Tournament Logo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
+                    `<img src="${e.target.result}" alt="Logo turnamen" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
             };
             reader.readAsDataURL(file);
         } else {
@@ -57,7 +57,7 @@
                 
                 // Update review section
                 document.getElementById('reviewBannerContainer').innerHTML = 
-                    `<img src="${e.target.result}" alt="Tournament Banner" style="max-width: 300px; max-height: 150px; border-radius: 8px;">`;
+                    `<img src="${e.target.result}" alt="Banner turnamen" style="max-width: 300px; max-height: 150px; border-radius: 8px;">`;
             };
             reader.readAsDataURL(file);
         } else {
@@ -69,7 +69,7 @@
     function updateLogoPreview(imageSrc) {
         const previewContainer = document.getElementById('previewLogoContainer');
         if (previewContainer) {
-            previewContainer.innerHTML = `<img src="${imageSrc}" alt="Tournament Logo" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
+            previewContainer.innerHTML = `<img src="${imageSrc}" alt="Logo turnamen" style="max-width: 150px; max-height: 150px; border-radius: 8px;">`;
         }
     }
 
@@ -80,9 +80,9 @@
     }
 
     function formatDate(dateString) {
-        if (!dateString) return '-- -- ----';
+        if (!dateString) return 'Belum ditentukan';
         const date = parseDateOnly(dateString);
-        return new Intl.DateTimeFormat('en-US', {
+        return new Intl.DateTimeFormat('id-ID', {
             day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC'
         }).format(date);
     }
@@ -93,9 +93,9 @@
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle"></i>
             <div>
-                <strong>Validation Error:</strong> ${message}
+                <strong>Periksa kembali:</strong> ${message}
             </div>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Tutup"></button>
         </div>
         `;
 
@@ -121,22 +121,22 @@
 
         if (step === 1) {
             if (!$('#name').val()) {
-                showError('Please enter tournament name', $('#name'));
+                showError('Masukkan nama turnamen.', $('#name'));
                 isValid = false;
             }
 
             if (!$('#start_date').val()) {
-                showError('Please select start date', $('#start_date'));
+                showError('Pilih tanggal mulai turnamen.', $('#start_date'));
                 isValid = false;
             }
 
             if (!$('#end_date').val()) {
-                showError('Please select end date', $('#end_date'));
+                showError('Pilih tanggal selesai turnamen.', $('#end_date'));
                 isValid = false;
             }
 
             if (!$('#type').val()) {
-                showError('Please select tournament type', $('#type'));
+                showError('Pilih format turnamen.', $('#type'));
                 isValid = false;
             }
         }
@@ -144,10 +144,10 @@
         if (step === 2) {
             const selectedTeams = $('#teams').val() || [];
             if (!selectedTeams || selectedTeams.length === 0) {
-                showError('Please select at least one team');
+                showError('Pilih setidaknya satu tim.');
                 isValid = false;
             } else if (selectedTeams.length < 2) {
-                showError('Please select at least 2 tim');
+                showError('Pilih setidaknya dua tim.');
                 isValid = false;
             }
             
@@ -155,7 +155,7 @@
             if (tournamentType === 'knockout') {
                 const bracketSize = parseInt($('#knockout_teams').val()) || 8;
                 if (selectedTeams.length > 64) {
-                    showError('Turnamen knockout mendukung maksimal 64 tim. Kurangi tim yang dipilih.');
+                    showError('Format sistem gugur mendukung maksimal 64 tim. Kurangi tim yang dipilih.');
                     isValid = false;
                 } else if (selectedTeams.length > bracketSize) {
                     showError(`Kapasitas ${bracketSize} tim terlalu kecil untuk ${selectedTeams.length} tim. Naikkan kapasitas bagan.`);
@@ -170,13 +170,13 @@
                 const minTeams = groupsCount * 2; // Minimal 2 tim per group
                 
                 if (selectedTeams.length < minTeams) {
-                    showError(`For ${groupsCount} groups, you need at least ${minTeams} tim (2 tim per group)`);
+                    showError(`Untuk ${groupsCount} grup, pilih setidaknya ${minTeams} tim (minimal dua tim per grup).`);
                     isValid = false;
                 }
                 
                 const maxTeams = groupsCount * timPerGroup;
                 if (selectedTeams.length > maxTeams) {
-                    showError(`Maximum tim for ${groupsCount} groups with ${timPerGroup} tim per group is ${maxTeams}`);
+                    showError(`Maksimal ${maxTeams} tim untuk ${groupsCount} grup dengan ${timPerGroup} tim per grup.`);
                     isValid = false;
                 }
             }
@@ -187,7 +187,7 @@
                 if (groupsCount > 1) {
                     const minTeams = groupsCount * 2;
                     if (selectedTeams.length < minTeams) {
-                        showError(`For ${groupsCount} groups league, you need at least ${minTeams} tim`);
+                        showError(`Untuk ${groupsCount} grup liga, pilih setidaknya ${minTeams} tim.`);
                         isValid = false;
                     }
                 }
@@ -210,7 +210,7 @@
                 const totalTeams = Object.keys(teamsData).length;
 
                 if (assignedTeams === 0) {
-                    showError('Please assign tim to groups. You can use "Bagi otomatis" button.');
+                    showError('Masukkan tim ke grup. Anda juga dapat menggunakan tombol “Bagi otomatis”.');
                     isValid = false;
                 } else if (assignedTeams < totalTeams) {
                     // **HANYA WARNING, bukan error**
@@ -220,7 +220,7 @@
                 // Validasi jumlah groups
                 const groupsCount = parseInt($('#groups_count_assign').val()) || 2;
                 if (groupsCount < 1 || groupsCount > 8) {
-                    showError('Number of groups must be between 1 and 8');
+                    showError('Jumlah grup harus antara 1 dan 8.');
                     isValid = false;
                 }
             }
@@ -248,7 +248,7 @@
             
             if (!isConfirmed) {
                 // Tampilkan error jika checkbox tidak dicentang
-                showError('You must confirm that all information is correct before creating tournament.');
+                showError('Pastikan semua informasi sudah benar sebelum membuat turnamen.');
                 return false;
             }
             
@@ -286,11 +286,11 @@
 
     // Fungsi untuk update preview
     function updatePreview() {
-        const name = $('#name').val() || '--';
+        const name = $('#name').val() || 'Belum ada nama';
         const startDate = $('#start_date').val();
         const endDate = $('#end_date').val();
-        const location = $('#location').val() || '--';
-        const organizer = $('#organizer').val() || '--';
+        const location = $('#location').val() || 'Belum ditentukan';
+        const organizer = $('#organizer').val() || 'Belum ditentukan';
         const type = $('#type').val() || 'league';
         const selectedTeams = $('#teams').val() || [];
         const teamCount = selectedTeams.length;
@@ -330,12 +330,12 @@
         $('#quickTotalMatches').text(matchCount);
 
         const typeNames = {
-            'league': 'League',
-            'knockout': 'Knockout',
-            'group_knockout': 'Group + Knockout'
+            'league': 'Liga',
+            'knockout': 'Sistem gugur',
+            'group_knockout': 'Grup dan sistem gugur'
         };
 
-        $('#previewTournamentType').text(typeNames[type] || '--');
+        $('#previewTournamentType').text(typeNames[type] || 'Belum ditentukan');
 
         if (startDate && endDate) {
             const start = parseDateOnly(startDate);
@@ -347,7 +347,7 @@
             
             // Update review dates
             $('#reviewDates').text(
-                `${formatDate(startDate)} to ${formatDate(endDate)}`
+                `${formatDate(startDate)} sampai ${formatDate(endDate)}`
             );
         } else {
             $('#previewDurationDays').text('0 hari');
@@ -356,7 +356,7 @@
         
         // Update review sections
         $('#reviewName').text(name);
-        $('#reviewType').text(typeNames[type] || 'Select Type');
+        $('#reviewType').text(typeNames[type] || 'Belum ditentukan');
         $('#reviewTeams').text(teamCount + ' tim');
         $('#reviewMatches').text(matchCount + ' pertandingan');
         $('#reviewLocation').text(location);
@@ -539,7 +539,7 @@
         const byes = actualBracketSize - selectedTeams;
 
         if (byes > 0) {
-            infoEl.textContent = `${selectedTeams} tim → bracket aktual ${actualBracketSize} slot dengan ${byes} BYE otomatis (kapasitas ${capacity}).`;
+            infoEl.textContent = `${selectedTeams} tim → bagan ${actualBracketSize} slot dengan ${byes} tim lolos otomatis (kapasitas ${capacity}).`;
         } else {
             infoEl.textContent = `${selectedTeams} tim mengisi penuh bracket aktual ${actualBracketSize} slot (kapasitas ${capacity}).`;
         }
@@ -646,10 +646,10 @@
         const roundNames = {
             1: 'Final',
             2: 'Semifinal',
-            4: 'Quarter-Final',
-            8: 'Round of 16',
-            16: 'Round of 32',
-            32: 'Round of 64'
+            4: 'Perempat final',
+            8: 'Babak 16 besar',
+            16: 'Babak 32 besar',
+            32: 'Babak 64 besar'
         };
 
         let html = '';
@@ -657,7 +657,7 @@
         let slotCursor = 0;
 
         for (let r = 1; r <= totalRounds; r++) {
-            const roundName = roundNames[matchesInRound] || ('Round ' + r);
+            const roundName = roundNames[matchesInRound] || ('Babak ' + r);
             html += `<div class="bracket-round">
                 <div class="bracket-round-title">${roundName}</div>
                 <div class="bracket-matches">`;
@@ -692,7 +692,7 @@
             return `<div class="bracket-slot slot-tbd"><span class="slot-name">Slot ${slot.slot}</span></div>`;
         }
         if (slot.bye) {
-            return '<div class="bracket-slot slot-bye"><i class="bi bi-arrow-right-circle"></i><span class="slot-name">BYE</span></div>';
+            return '<div class="bracket-slot slot-bye"><i class="bi bi-arrow-right-circle"></i><span class="slot-name">Lolos otomatis</span></div>';
         }
         const logo = slot.logo ? `<img src="${slot.logo}" class="slot-logo" alt="">` : '';
         return `<div class="bracket-slot">${logo}<span class="slot-name" title="${slot.name}">${slot.name}</span></div>`;
@@ -900,7 +900,7 @@
         const unassignedTeams = Object.values(teamsData).filter(team => !team.assigned);
 
         if (unassignedTeams.length === 0) {
-            container.html('<div class="text-center text-muted py-4">All tim have been assigned to groups</div>');
+            container.html('<div class="text-center text-muted py-4">Semua tim sudah dimasukkan ke grup.</div>');
             return;
         }
 
@@ -1142,7 +1142,7 @@
         const confirmCheckbox = document.getElementById('confirmTournament');
         if (!confirmCheckbox || !confirmCheckbox.checked) {
             e.preventDefault();
-            showError('You must confirm that all information is correct before creating tournament.');
+            showError('Pastikan semua informasi sudah benar sebelum membuat turnamen.');
             
             // Scroll ke checkbox
             confirmCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1234,7 +1234,7 @@ $(document).on('click', 'button[type="submit"]', function() {
     if (currentStep === 5 && buttonValue === 'create') {
         const confirmCheckbox = document.getElementById('confirmTournament');
         if (!confirmCheckbox || !confirmCheckbox.checked) {
-            showError('You must confirm that all information is correct before creating tournament.');
+            showError('Pastikan semua informasi sudah benar sebelum membuat turnamen.');
             confirmCheckbox.scrollIntoView({ behavior: 'smooth', block: 'center' });
             confirmCheckbox.focus();
             return false;
@@ -1271,11 +1271,11 @@ $(document).on('click', 'button[type="submit"]', function() {
         
         // Update step 3 label saat awal load
         const step3Labels = {
-            'league': 'Setup League',
-            'knockout': 'Setup Bracket',
-            'group_knockout': 'Groups'
+            'league': 'Liga',
+            'knockout': 'Bagan',
+            'group_knockout': 'Grup'
         };
-        $('#step3Label').text(step3Labels[tournamentType] || 'Groups');
+        $('#step3Label').text(step3Labels[tournamentType] || 'Grup');
         
         // Jika di step 3, tampilkan konten yang sesuai
         if ({{ $currentStep }} == 3) {
@@ -1436,11 +1436,11 @@ $(document).on('click', 'button[type="submit"]', function() {
         
         // Update step 3 label
         const step3Labels = {
-            'league': 'Setup League',
-            'knockout': 'Setup Bracket',
-            'group_knockout': 'Groups'
+            'league': 'Liga',
+            'knockout': 'Bagan',
+            'group_knockout': 'Grup'
         };
-        $('#step3Label').text(step3Labels[selectedType] || 'Groups');
+        $('#step3Label').text(step3Labels[selectedType] || 'Grup');
         
         // Perbarui batas maks tim pada picker
         refreshTeamPickerState();
@@ -1477,24 +1477,24 @@ $(document).on('click', 'button[type="submit"]', function() {
         if (currentStep < 5) {
             let nextText = '';
             if (currentStep == 1) {
-                nextText = 'Pilih Tim';
+                nextText = 'Pilih tim';
             } else if (currentStep == 2) {
                 if (tournamentType === 'league') {
-                    nextText = 'Setup League';
+                    nextText = 'Pengaturan liga';
                 } else if (tournamentType === 'knockout') {
-                    nextText = 'Setup Bracket';
+                    nextText = 'Pengaturan bagan';
                 } else if (tournamentType === 'group_knockout') {
-                    nextText = 'Groups';
+                    nextText = 'Pengaturan grup';
                 } else {
-                    nextText = 'Setup';
+                    nextText = 'Pengaturan';
                 }
             } else if (currentStep == 3) {
-                nextText = 'Match Rules';
+                nextText = 'Aturan pertandingan';
             } else if (currentStep == 4) {
-                nextText = 'Review';
+                nextText = 'Tinjau turnamen';
             }
             
-            $('#nextBtn span').html(`Next: ${nextText}`);
+            $('#nextBtn span').text(`Lanjut: ${nextText}`);
         }
     }
 
@@ -1543,10 +1543,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     const tieBreakerLabels = {
         'points': 'Poin',
-        'head_to_head': 'Head-to-head',
+        'head_to_head': 'Hasil pertemuan langsung',
         'goal_difference': 'Selisih gol',
-        'goals_scored': 'Gol mencetak',
-        'fair_play': 'Fair play',
+        'goals_scored': 'Jumlah gol',
+        'fair_play': 'Poin fair play',
         'penalty': 'Adu penalti'
     };
 

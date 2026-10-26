@@ -1,4 +1,4 @@
-<!-- Step 1: Basic Info -->
+<!-- Langkah 1: Informasi dasar -->
                     <div class="step-content" id="step1" style="display: {{ $currentStep == 1 ? 'block' : 'none' }};">
                         <div class="card">
                             <div class="card-header">
@@ -15,7 +15,7 @@
                                             <strong>Sukses!</strong> {{ session('success') }}
                                         </div>
                                         <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                                            aria-label="Tutup"></button>
                                     </div>
                                 @endif
 
@@ -31,7 +31,7 @@
                                             </ul>
                                         </div>
                                         <button type="button" class="btn-close" data-bs-dismiss="alert"
-                                            aria-label="Close"></button>
+                                            aria-label="Tutup"></button>
                                     </div>
                                 @endif
 
@@ -46,7 +46,7 @@
                                             <input type="text" class="form-control @error('name') is-invalid @enderror"
                                                 id="name" name="name"
                                                 value="{{ old('name', $tournamentData['name'] ?? '') }}" required
-                                                placeholder="e.g., Ofs Champions League 2025">
+                                                placeholder="Contoh: OFS Champions League 2026">
                                             @error('name')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -61,7 +61,7 @@
                                             <input type="text" class="form-control @error('slug') is-invalid @enderror"
                                                 id="slug" name="slug"
                                                 value="{{ old('slug', $tournamentData['slug'] ?? '') }}"
-                                                placeholder="Auto-generates from name">
+                                                placeholder="Dibuat otomatis dari nama turnamen">
                                             @error('slug')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -72,11 +72,11 @@
                                 <div class="form-group">
                                     <label for="description" class="form-label">
                                         <i class="bi bi-text-paragraph"></i>
-                                        Description
+                                        Deskripsi
                                     </label>
                                     <textarea class="form-control @error('description') is-invalid @enderror"
                                         id="description" name="description" rows="3"
-                                        placeholder="Brief description of the tournament">{{ old('description', $tournamentData['description'] ?? '') }}</textarea>
+                                        placeholder="Ceritakan secara singkat tentang turnamen ini">{{ old('description', $tournamentData['description'] ?? '') }}</textarea>
                                     @error('description')
                                         <div class="invalid-feedback">{{ $message }}</div>
                                     @enderror
@@ -124,13 +124,13 @@
                                         <div class="form-group">
                                             <label for="location" class="form-label">
                                                 <i class="bi bi-geo-alt"></i>
-                                                Location
+                                                Lokasi
                                             </label>
                                             <input type="text"
                                                 class="form-control @error('location') is-invalid @enderror"
                                                 id="location" name="location"
                                                 value="{{ old('location', $tournamentData['location'] ?? '') }}"
-                                                placeholder="e.g., Gor Ofs">
+                                                placeholder="Contoh: GOR OFS">
                                             @error('location')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -140,13 +140,13 @@
                                         <div class="form-group">
                                             <label for="organizer" class="form-label">
                                                 <i class="bi bi-building"></i>
-                                                Organizer
+                                                Penyelenggara
                                             </label>
                                             <input type="text"
                                                 class="form-control @error('organizer') is-invalid @enderror"
                                                 id="organizer" name="organizer"
                                                 value="{{ old('organizer', $tournamentData['organizer'] ?? '') }}"
-                                                placeholder="e.g., OFs Sports Club">
+                                                placeholder="Contoh: OFS Futsal Center">
                                             @error('organizer')
                                                 <div class="invalid-feedback">{{ $message }}</div>
                                             @enderror
@@ -160,20 +160,20 @@
                                         <div class="form-group">
                                             <label for="logo" class="form-label">
                                                 <i class="bi bi-image"></i>
-                                                Tournament Logo
+                                                Logo turnamen
                                             </label>
                                             <div class="file-upload-container" onclick="document.getElementById('logo').click()">
                                                 <i class="bi bi-cloud-upload"></i>
-                                                <p class="mb-2">Click to upload logo</p>
-                                                <small class="text-muted">Recommended: Square image, max 2MB, PNG/JPG format</small>
+                                                <p class="mb-2">Pilih berkas logo</p>
+                                                <small class="text-muted">Gunakan gambar persegi, maksimal 2 MB, format PNG atau JPG.</small>
                                                 <input type="file" class="form-control d-none @error('logo') is-invalid @enderror" 
-                                                       id="logo" name="logo" accept="image/*" onchange="previewLogo(event)">
+                                                       id="logo" name="logo" accept="image/*" onchange="previewLogo(event)" aria-label="Pilih berkas logo turnamen">
                                                 @error('logo')
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="file-preview" id="logoPreviewContainer" style="display: none;">
-                                                <img id="logoPreview" alt="Logo Preview">
+                                                <img id="logoPreview" alt="Pratinjau logo turnamen">
                                                 <div class="file-name" id="logoFileName"></div>
                                             </div>
                                         </div>
@@ -182,20 +182,20 @@
                                         <div class="form-group">
                                             <label for="banner" class="form-label">
                                                 <i class="bi bi-image-fill"></i>
-                                                Tournament Banner
+                                                Banner turnamen
                                             </label>
                                             <div class="file-upload-container" onclick="document.getElementById('banner').click()">
                                                 <i class="bi bi-cloud-upload"></i>
-                                                <p class="mb-2">Click to upload banner</p>
-                                                <small class="text-muted">Recommended: Wide image (16:9), max 5MB, PNG/JPG format</small>
+                                                <p class="mb-2">Pilih berkas banner</p>
+                                                <small class="text-muted">Gunakan gambar landscape 16:9, maksimal 5 MB, format PNG atau JPG.</small>
                                                 <input type="file" class="form-control d-none @error('banner') is-invalid @enderror" 
-                                                       id="banner" name="banner" accept="image/*" onchange="previewBanner(event)">
+                                                       id="banner" name="banner" accept="image/*" onchange="previewBanner(event)" aria-label="Pilih berkas banner turnamen">
                                                 @error('banner')
                                                     <div class="invalid-feedback d-block">{{ $message }}</div>
                                                 @enderror
                                             </div>
                                             <div class="file-preview" id="bannerPreviewContainer" style="display: none;">
-                                                <img id="bannerPreview" alt="Banner Preview">
+                                                <img id="bannerPreview" alt="Pratinjau banner turnamen">
                                                 <div class="file-name" id="bannerFileName"></div>
                                             </div>
                                         </div>
@@ -211,10 +211,10 @@
                                                 <span class="required">*</span>
                                             </label>
                                             <select class="form-select @error('type') is-invalid @enderror" id="type" name="type" required>
-                                                <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Select tournament format</option>
-                                                <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>League (Round Robin)</option>
-                                                <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Knockout (Cup)</option>
-                                                <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Group Stage + Knockout</option>
+                                                <option value="" disabled {{ old('type', $tournamentData['type'] ?? '') ? '' : 'selected' }}>Pilih format turnamen</option>
+                                                <option value="league" {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'selected' : '' }}>Liga (setiap tim bertemu)</option>
+                                                <option value="knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'selected' : '' }}>Sistem gugur</option>
+                                                <option value="group_knockout" {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'selected' : '' }}>Grup dan sistem gugur</option>
                                             </select>
                                             @error('type')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -230,10 +230,10 @@
                                             </label>
                                             <select class="form-select @error('status') is-invalid @enderror"
                                                 id="status" name="status" required>
-                                                <option value="upcoming" {{ (old('status', $tournamentData['status'] ?? '') == 'upcoming') ? 'selected' : '' }}>Upcoming</option>
-                                                <option value="ongoing" {{ (old('status', $tournamentData['status'] ?? '') == 'ongoing') ? 'selected' : '' }}>Ongoing</option>
-                                                <option value="completed" {{ (old('status', $tournamentData['status'] ?? '') == 'completed') ? 'selected' : '' }}>Completed</option>
-                                                <option value="cancelled" {{ (old('status', $tournamentData['status'] ?? '') == 'cancelled') ? 'selected' : '' }}>Cancelled</option>
+                                                <option value="upcoming" {{ (old('status', $tournamentData['status'] ?? '') == 'upcoming') ? 'selected' : '' }}>Akan datang</option>
+                                                <option value="ongoing" {{ (old('status', $tournamentData['status'] ?? '') == 'ongoing') ? 'selected' : '' }}>Berlangsung</option>
+                                                <option value="completed" {{ (old('status', $tournamentData['status'] ?? '') == 'completed') ? 'selected' : '' }}>Selesai</option>
+                                                <option value="cancelled" {{ (old('status', $tournamentData['status'] ?? '') == 'cancelled') ? 'selected' : '' }}>Dibatalkan</option>
                                             </select>
                                             @error('status')
                                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -242,10 +242,10 @@
                                     </div>
                                 </div>
 
-                                <!-- Group Stage Configuration -->
+                                <!-- Pengaturan grup -->
                                 <div id="groupSettings" class="settings-section"
                                     style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'group_knockout') ? 'block' : 'none' }};">
-                                    <h6><i class="bi bi-grid-3x3"></i> Group Stage Configuration</h6>
+                                    <h6><i class="bi bi-grid-3x3"></i> Pengaturan grup</h6>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -303,7 +303,7 @@
 
                                 <!-- Konfigurasi League -->
                                 <div id="leagueSettings" class="settings-section" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'league') ? 'block' : 'none' }};">
-                                    <h6><i class="bi bi-trophy"></i> Konfigurasi League</h6>
+                                    <h6><i class="bi bi-trophy"></i> Pengaturan liga</h6>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
@@ -312,35 +312,35 @@
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('league_rounds') is-invalid @enderror" id="league_rounds" name="league_rounds">
-                                                    <option value="1" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 1) ? 'selected' : '' }}>Single Round</option>
-                                                    <option value="2" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 2) ? 'selected' : '' }}>Double Round</option>
+                                                    <option value="1" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 1) ? 'selected' : '' }}>Satu putaran</option>
+                                                    <option value="2" {{ (old('league_rounds', $tournamentData['league_rounds'] ?? 1) == 2) ? 'selected' : '' }}>Dua putaran</option>
                                                 </select>
                                                 @error('league_rounds')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Single round: Each team plays once. Double round: Each team plays home and away.
+                                                    Satu putaran: setiap tim bertemu sekali. Dua putaran: setiap tim bertemu dua kali.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="league_standings_type" class="form-label">
-                                                    Standings Tiebreaker
+                                                    Penentu peringkat liga
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('league_standings_type') is-invalid @enderror" id="league_standings_type" name="league_standings_type">
-                                                    <option value="total_points" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'total_points') ? 'selected' : '' }}>Total Points</option>
-                                                    <option value="head_to_head" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'head_to_head') ? 'selected' : '' }}>Head-to-Head</option>
-                                                    <option value="goal_difference" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'goal_difference') ? 'selected' : '' }}>Goal Difference</option>
+                                                    <option value="total_points" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'total_points') ? 'selected' : '' }}>Jumlah poin</option>
+                                                    <option value="head_to_head" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'head_to_head') ? 'selected' : '' }}>Hasil pertemuan langsung</option>
+                                                    <option value="goal_difference" {{ (old('league_standings_type', $tournamentData['league_standings_type'] ?? 'total_points') == 'goal_difference') ? 'selected' : '' }}>Selisih gol</option>
                                                 </select>
                                                 @error('league_standings_type')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    How to break ties when tim have equal points
+                                                    Cara menentukan peringkat jika tim memiliki poin yang sama.
                                                 </div>
                                             </div>
                                         </div>
@@ -351,25 +351,25 @@
                                     </div>
                                 </div>
 
-                                <!-- Knockout Settings -->
+                                <!-- Pengaturan sistem gugur -->
                                 <div id="knockoutSettings" class="settings-section" style="display: {{ (old('type', $tournamentData['type'] ?? '') == 'knockout') ? 'block' : 'none' }};">
-                                    <h6><i class="bi bi-trophy"></i> Knockout (Cup) Configuration</h6>
+                                    <h6><i class="bi bi-trophy"></i> Pengaturan sistem gugur</h6>
                                     <div class="row">
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="knockout_format" class="form-label">
-                                                    Tournament Format
+                                                    Format turnamen
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('knockout_format') is-invalid @enderror" id="knockout_format" name="knockout_format">
-                                                    <option value="single_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'single_elimination') ? 'selected' : '' }}>Single Elimination</option>
+                                                    <option value="single_elimination" {{ (old('knockout_format', $tournamentData['knockout_format'] ?? 'single_elimination') == 'single_elimination') ? 'selected' : '' }}>Sistem gugur tunggal</option>
                                                 </select>
                                                 @error('knockout_format')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Single elimination: tim yang kalah langsung tersingkir.
+                                                    Tim yang kalah langsung tersingkir dari turnamen.
                                                 </div>
                                             </div>
                                         </div>
@@ -392,7 +392,7 @@
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Ini batas maksimal peserta. Bracket aktual menyesuaikan jumlah tim ke ukuran pangkat dua terkecil yang cukup; tim mendapat BYE bila diperlukan. Contoh: 27 dari kapasitas 64 memakai bracket 32 dengan 5 BYE.
+                                                    Ini batas maksimal peserta. Bagan menyesuaikan jumlah tim ke kapasitas pangkat dua terkecil yang cukup. Sebagian tim dapat langsung lolos ke babak berikutnya. Contoh: 27 dari kapasitas 64 memakai bagan 32 slot dengan 5 tim lolos otomatis.
                                                 </div>
                                             </div>
                                         </div>
@@ -401,27 +401,27 @@
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label for="knockout_seeding" class="form-label">
-                                                    Metode Seeding
+                                                    Metode penempatan tim
                                                     <span class="required">*</span>
                                                 </label>
                                                 <select class="form-select @error('knockout_seeding') is-invalid @enderror" id="knockout_seeding" name="knockout_seeding">
-                                                    <option value="random" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'random') ? 'selected' : '' }}>Random Draw</option>
-                                                    <option value="ranked" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'ranked') ? 'selected' : '' }}>Ranked Seeding</option>
-                                                    <option value="manual" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'manual') ? 'selected' : '' }}>Manual Assignment</option>
+                                                    <option value="random" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'random') ? 'selected' : '' }}>Undian acak</option>
+                                                    <option value="ranked" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'ranked') ? 'selected' : '' }}>Unggulan</option>
+                                                    <option value="manual" {{ (old('knockout_seeding', $tournamentData['knockout_seeding'] ?? 'random') == 'manual') ? 'selected' : '' }}>Urutan manual</option>
                                                 </select>
                                                 @error('knockout_seeding')
                                                     <div class="invalid-feedback">{{ $message }}</div>
                                                 @enderror
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Random: undian acak. Ranked: unggulan tersebar merata. Manual: urutan tim saat didaftarkan.
+                                                    Acak: tim diundi. Unggulan: tim unggulan disebar merata. Manual: mengikuti urutan pendaftaran tim.
                                                 </div>
                                             </div>
                                         </div>
                                         <div class="col-md-6">
                                             <div class="form-group">
                                                 <label class="form-label">
-                                                    Bye (otomatis)
+                                                    Lolos otomatis
                                                 </label>
                                                 <div class="form-control d-flex align-items-center" style="background:#f8fafc;">
                                                     <i class="bi bi-magic me-2"></i>
@@ -429,7 +429,7 @@
                                                 </div>
                                                 <div class="form-text">
                                                     <i class="bi bi-info-circle"></i>
-                                                    Bye = tim yang langsung lolos ke ronde berikutnya tanpa bertanding. Dihitung dari <strong>ukuran bagan &minus; jumlah tim terdaftar</strong>.
+                                                    Tim lolos otomatis langsung maju ke babak berikutnya tanpa bertanding. Jumlahnya dihitung dari <strong>kapasitas bagan dikurangi jumlah tim terdaftar</strong>.
                                                 </div>
                                             </div>
                                         </div>
@@ -442,7 +442,7 @@
                                     <label class="form-check-label fw-semibold" for="knockout_third_place">
                                         Aktifkan laga perebutan juara 3/4
                                     </label>
-                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pemenangnya menjadi juara 3; tim yang kalah menjadi juara 4. Ronde ini hanya muncul di bracket jika diaktifkan.</div>
+                                    <div class="form-text">Dua tim yang kalah di semifinal bertanding. Pemenangnya menjadi juara 3 dan tim lainnya menjadi juara 4. Pertandingan ini masuk ke bagan jika diaktifkan.</div>
                                 </div>
                             </div>
                         </div>

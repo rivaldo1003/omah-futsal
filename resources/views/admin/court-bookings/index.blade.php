@@ -758,6 +758,27 @@
             box-shadow: none;
         }
 
+        .booking-discount-modal .modal-content>form {
+            display: flex;
+            flex: 1 1 auto;
+            flex-direction: column;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .booking-discount-modal .modal-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            overflow-y: auto;
+            overscroll-behavior: contain;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .booking-discount-modal .modal-footer {
+            flex: 0 0 auto;
+            gap: 10px;
+        }
+
         .booking-payment-modal .modal-header,
         .booking-payment-modal .modal-footer {
             padding: 20px 24px;
@@ -1029,6 +1050,21 @@
                 padding: 18px 16px;
             }
 
+            .booking-discount-modal .modal-header,
+            .booking-discount-modal .modal-body {
+                padding: 16px;
+            }
+
+            .booking-discount-modal .modal-footer {
+                padding: 12px 16px;
+            }
+
+            .booking-discount-modal .modal-footer .btn {
+                flex: 1 1 0;
+                min-width: 0;
+                white-space: nowrap;
+            }
+
             .booking-proof-modal .modal-dialog {
                 margin: 8px;
             }
@@ -1063,6 +1099,13 @@
 
             .booking-admin-page .btn {
                 min-height: 44px;
+            }
+        }
+
+        @media (max-width: 359.98px) {
+            .booking-discount-modal .modal-footer .btn {
+                padding-inline: 8px;
+                font-size: 13px;
             }
         }
 
@@ -1326,7 +1369,8 @@
                             <tr>
                                 <td class="booking-schedule-cell">
                                     <div class="booking-cell-stack">
-                                        <div class="booking-cell-primary">{{ $booking->court?->name ?? 'Lapangan dihapus' }}</div>
+                                        <div class="booking-cell-primary">{{ $booking->court?->name ?? 'Lapangan dihapus' }}
+                                        </div>
                                         <div class="booking-cell-secondary">
                                             {{ $booking->booking_date->translatedFormat('D, d M Y') }}
                                         </div>
@@ -1334,10 +1378,12 @@
                                             <strong>{{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }}</strong>
                                             <span>{{ $booking->duration_label }}</span>
                                         </div>
-                                        <div class="booking-booking-code">Booking #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <div class="booking-booking-code">Booking
+                                            #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
                                         @if(in_array($booking->source, ['walk_in', 'member'], true))
                                             <div class="booking-cell-secondary">
-                                                <span class="badge text-bg-light border">{{ $booking->source === 'member' ? 'Member' : 'Walk-in' }}</span>
+                                                <span
+                                                    class="badge text-bg-light border">{{ $booking->source === 'member' ? 'Member' : 'Walk-in' }}</span>
                                                 @if($booking->createdBy)<span>{{ $booking->createdBy->name }}</span>@endif
                                             </div>
                                         @endif
@@ -1346,15 +1392,17 @@
                                 <td class="booking-customer-cell">
                                     <div class="booking-cell-stack">
                                         <div class="booking-cell-primary">{{ $booking->customer_name }}</div>
-                                    @if($booking->customer_phone && $waPhone)
-                                        <a href="https://wa.me/{{ $waPhone }}" target="_blank"
-                                            rel="noopener" class="booking-customer-phone">{{ $booking->customer_phone }}</a>
-                                    @elseif($booking->source === 'member')
-                                        <div class="booking-cell-secondary">Terdaftar dari jadwal member</div>
-                                    @endif
-                                    @if($booking->customer_email)
-                                        <div class="booking-cell-secondary booking-customer-email">{{ $booking->customer_email }}</div>
-                                    @endif
+                                        @if($booking->customer_phone && $waPhone)
+                                            <a href="https://wa.me/{{ $waPhone }}" target="_blank" rel="noopener"
+                                                class="booking-customer-phone">{{ $booking->customer_phone }}</a>
+                                        @elseif($booking->source === 'member')
+                                            <div class="booking-cell-secondary">Terdaftar dari jadwal member</div>
+                                        @endif
+                                        @if($booking->customer_email)
+                                            <div class="booking-cell-secondary booking-customer-email">
+                                                {{ $booking->customer_email }}
+                                            </div>
+                                        @endif
                                         <div class="booking-customer-team">
                                             <span>Tim</span>
                                             <strong>{{ $booking->team_name ?: 'Belum dicatat' }}</strong>
@@ -1368,34 +1416,44 @@
                                             <strong>Rp {{ number_format((float) $booking->amount, 0, ',', '.') }}</strong>
                                         </div>
                                         @if((float) ($booking->discount_amount ?? 0) > 0)
-                                            <div class="small text-secondary mt-1">Harga awal Rp {{ number_format((float) ($booking->subtotal_amount ?? ($booking->amount + $booking->discount_amount)), 0, ',', '.') }} · Diskon Rp {{ number_format((float) $booking->discount_amount, 0, ',', '.') }}{{ $booking->discount_reason ? ' · '.$booking->discount_reason : '' }}</div>
+                                            <div class="small text-secondary mt-1">Harga awal Rp
+                                                {{ number_format((float) ($booking->subtotal_amount ?? ($booking->amount + $booking->discount_amount)), 0, ',', '.') }}
+                                                · Diskon Rp
+                                                {{ number_format((float) $booking->discount_amount, 0, ',', '.') }}{{ $booking->discount_reason ? ' · ' . $booking->discount_reason : '' }}
+                                            </div>
                                         @endif
                                         <div class="booking-payment-balance">
                                             <div>
                                                 <span>Diterima</span>
                                                 <strong>Rp {{ number_format($paidAmount, 0, ',', '.') }}</strong>
                                             </div>
-                                    @if($remainingAmount !== null)
+                                            @if($remainingAmount !== null)
                                                 <div>
                                                     <span>Sisa tagihan</span>
                                                     <strong>Rp {{ number_format($remainingAmount, 0, ',', '.') }}</strong>
                                                 </div>
-                                    @endif
+                                            @endif
                                         </div>
                                         <div class="booking-payment-method">{{ $booking->payment_method_label }}</div>
                                         @if($booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED && $bookingRefundAmount > 0)
-                                            <div class="small text-secondary mt-1">Refund tercatat: Rp {{ number_format($bookingRefundAmount, 0, ',', '.') }}</div>
+                                            <div class="small text-secondary mt-1">Refund tercatat: Rp
+                                                {{ number_format($bookingRefundAmount, 0, ',', '.') }}
+                                            </div>
                                         @endif
                                         @if($booking->status === \App\Models\CourtBooking::STATUS_CANCELLED && $bookingFundsReceived > 0)
-                                            <div class="small mt-2 {{ $unresolvedCancelledFunds > 0 ? 'text-warning-emphasis' : 'text-success' }}">
+                                            <div
+                                                class="small mt-2 {{ $unresolvedCancelledFunds > 0 ? 'text-warning-emphasis' : 'text-success' }}">
                                                 @if($unresolvedCancelledFunds > 0)
-                                                    Dana batal belum diputuskan: Rp {{ number_format($unresolvedCancelledFunds, 0, ',', '.') }}
+                                                    Dana batal belum diputuskan: Rp
+                                                    {{ number_format($unresolvedCancelledFunds, 0, ',', '.') }}
                                                 @else
                                                     Penyelesaian dana tercatat: Rp {{ number_format($settledFundAmount, 0, ',', '.') }}
                                                 @endif
                                             </div>
                                             @if($paidRentalAdditionAmount > 0)
-                                                <div class="small text-secondary">Termasuk tambahan perlengkapan terbayar Rp {{ number_format($paidRentalAdditionAmount, 0, ',', '.') }}</div>
+                                                <div class="small text-secondary">Termasuk tambahan perlengkapan terbayar Rp
+                                                    {{ number_format($paidRentalAdditionAmount, 0, ',', '.') }}
+                                                </div>
                                             @endif
                                         @endif
                                     </div>
@@ -1404,280 +1462,342 @@
                                             <summary>
                                                 <span>Rincian transaksi</span>
                                                 @if($pendingReviewAdditionCount > 0)
-                                                    <span class="booking-row-details-attention">{{ $pendingReviewAdditionCount }} tambahan perlu diverifikasi</span>
+                                                    <span class="booking-row-details-attention">{{ $pendingReviewAdditionCount }}
+                                                        tambahan perlu diverifikasi</span>
                                                 @endif
                                             </summary>
                                             <div class="booking-row-details-content">
-                                    @if($booking->status === \App\Models\CourtBooking::STATUS_CANCELLED)
-                                        <div class="small mb-2">
-                                            <strong>Pembatalan:</strong>
-                                            {{ $booking->cancelled_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                            · dicatat oleh {{ $booking->cancelled_by_name_snapshot ?? $booking->cancelledBy?->name ?? 'Admin tidak diketahui' }}
-                                            @if($booking->admin_note)<br><span class="text-secondary">Alasan: {{ $booking->admin_note }}</span>@endif
-                                        </div>
-                                    @endif
-                                    @foreach($booking->payments as $payment)
-                                        <div class="small text-secondary">{{ $payment->stage_label }} ·
-                                            {{ $payment->payment_method_label }} · {{ $payment->status_label }}
-                                        </div>
-                                        <div
-                                            class="small {{ $payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED ? 'text-success' : 'text-secondary' }}">
-                                            @if($payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
-                                                Nominal terverifikasi: Rp {{ number_format($payment->recognized_amount, 0, ',', '.') }}
-                                            @elseif($payment->claimed_amount !== null)
-                                                Klaim pelanggan: Rp {{ number_format((float) $payment->claimed_amount, 0, ',', '.') }}
-                                            @elseif($payment->status === \App\Models\CourtBookingPayment::STATUS_REJECTED)
-                                                Nominal tidak terverifikasi
-                                            @else
-                                                Nominal menunggu pemeriksaan admin
-                                            @endif
-                                        </div>
-                                        @if($payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED && $payment->claimed_amount !== null && abs((float) $payment->claimed_amount - (float) $payment->verified_amount) >= 0.01)
-                                            <div class="small text-secondary">Klaim awal: Rp
-                                                {{ number_format((float) $payment->claimed_amount, 0, ',', '.') }} · Catatan:
-                                                {{ $payment->note ?: 'Tidak ada catatan' }}
-                                            </div>
-                                        @endif
-                                        @if($payment->payment_reference)
-                                        <div class="small text-secondary">Ref: {{ $payment->payment_reference }}</div>@endif
-                                        @if(in_array($booking->status, [\App\Models\CourtBooking::STATUS_CONFIRMED, \App\Models\CourtBooking::STATUS_CANCELLED], true) && $payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
-                                            <div class="d-flex flex-wrap gap-2 mt-2">
-                                                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="modal"
-                                                    data-bs-target="#bookingPaymentCorrection{{ $booking->id }}{{ $payment->id }}">
-                                                    <i class="bi bi-pencil" aria-hidden="true"></i> Koreksi pembayaran
-                                                </button>
-                                                @if($booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED)
-                                                <button class="btn btn-sm btn-outline-danger" type="button" data-bs-toggle="modal"
-                                                    data-bs-target="#bookingPaymentUnverify{{ $booking->id }}{{ $payment->id }}">
-                                                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Batalkan verifikasi
-                                                </button>
+                                                @if($booking->status === \App\Models\CourtBooking::STATUS_CANCELLED)
+                                                    <div class="small mb-2">
+                                                        <strong>Pembatalan:</strong>
+                                                        {{ $booking->cancelled_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                        WIB
+                                                        · dicatat oleh
+                                                        {{ $booking->cancelled_by_name_snapshot ?? $booking->cancelledBy?->name ?? 'Admin tidak diketahui' }}
+                                                        @if($booking->admin_note)<br><span class="text-secondary">Alasan:
+                                                        {{ $booking->admin_note }}</span>@endif
+                                                    </div>
                                                 @endif
-                                            </div>
-                                        @endif
-                                    @endforeach
-                                    @if($booking->fundSettlements->isNotEmpty())
-                                        <div class="border-top mt-3 pt-2">
-                                            <div class="small fw-semibold mb-2">Riwayat penyelesaian dana booking</div>
-                                            @foreach($booking->fundSettlements as $settlement)
-                                                <div class="small {{ $settlement->voided_at ? 'text-secondary text-decoration-line-through' : '' }}">
-                                                    {{ $settlement->type_label }} · Rp {{ number_format((float) $settlement->amount, 0, ',', '.') }}
-                                                    @if($settlement->payment_method_label) · {{ $settlement->payment_method_label }}@endif
-                                                    · {{ $settlement->recorded_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                                </div>
-                                                <div class="small text-secondary">
-                                                    Dicatat oleh {{ $settlement->recorded_by_name_snapshot ?? $settlement->recordedBy?->name ?? 'Admin tidak diketahui' }} · {{ $settlement->reason }}
-                                                    @if($settlement->reference) · Ref: {{ $settlement->reference }}@endif
-                                                </div>
-                                                @if($settlement->voided_at)
-                                                    <div class="small text-secondary mb-2">Catatan dibatalkan {{ $settlement->voided_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB oleh {{ $settlement->voided_by_name_snapshot ?? $settlement->voidedBy?->name ?? 'Admin tidak diketahui' }}. Alasan: {{ $settlement->void_reason }}</div>
-                                                @else
-                                                    <button class="btn btn-sm btn-link text-danger px-0 mb-2" type="button"
-                                                        data-bs-toggle="modal" data-bs-target="#voidFundSettlement{{ $settlement->id }}">
-                                                        Koreksi catatan
+                                                @foreach($booking->payments as $payment)
+                                                    <div class="small text-secondary">{{ $payment->stage_label }} ·
+                                                        {{ $payment->payment_method_label }} · {{ $payment->status_label }}
+                                                    </div>
+                                                    <div
+                                                        class="small {{ $payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED ? 'text-success' : 'text-secondary' }}">
+                                                        @if($payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
+                                                            Nominal terverifikasi: Rp
+                                                            {{ number_format($payment->recognized_amount, 0, ',', '.') }}
+                                                        @elseif($payment->claimed_amount !== null)
+                                                            Klaim pelanggan: Rp
+                                                            {{ number_format((float) $payment->claimed_amount, 0, ',', '.') }}
+                                                        @elseif($payment->status === \App\Models\CourtBookingPayment::STATUS_REJECTED)
+                                                            Nominal tidak terverifikasi
+                                                        @else
+                                                            Nominal menunggu pemeriksaan admin
+                                                        @endif
+                                                    </div>
+                                                    @if($payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED && $payment->claimed_amount !== null && abs((float) $payment->claimed_amount - (float) $payment->verified_amount) >= 0.01)
+                                                        <div class="small text-secondary">Klaim awal: Rp
+                                                            {{ number_format((float) $payment->claimed_amount, 0, ',', '.') }} · Catatan:
+                                                            {{ $payment->note ?: 'Tidak ada catatan' }}
+                                                        </div>
+                                                    @endif
+                                                    @if($payment->payment_reference)
+                                                    <div class="small text-secondary">Ref: {{ $payment->payment_reference }}</div>@endif
+                                                    @if(in_array($booking->status, [\App\Models\CourtBooking::STATUS_CONFIRMED, \App\Models\CourtBooking::STATUS_CANCELLED], true) && $payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
+                                                        <div class="d-flex flex-wrap gap-2 mt-2">
+                                                            <button class="btn btn-sm btn-outline-secondary" type="button"
+                                                                data-bs-toggle="modal"
+                                                                data-bs-target="#bookingPaymentCorrection{{ $booking->id }}{{ $payment->id }}">
+                                                                <i class="bi bi-pencil" aria-hidden="true"></i> Koreksi pembayaran
+                                                            </button>
+                                                            @if($booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED)
+                                                                <button class="btn btn-sm btn-outline-danger" type="button"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#bookingPaymentUnverify{{ $booking->id }}{{ $payment->id }}">
+                                                                    <i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i> Batalkan
+                                                                    verifikasi
+                                                                </button>
+                                                            @endif
+                                                        </div>
+                                                    @endif
+                                                @endforeach
+                                                @if($booking->fundSettlements->isNotEmpty())
+                                                    <div class="border-top mt-3 pt-2">
+                                                        <div class="small fw-semibold mb-2">Riwayat penyelesaian dana booking</div>
+                                                        @foreach($booking->fundSettlements as $settlement)
+                                                            <div
+                                                                class="small {{ $settlement->voided_at ? 'text-secondary text-decoration-line-through' : '' }}">
+                                                                {{ $settlement->type_label }} · Rp
+                                                                {{ number_format((float) $settlement->amount, 0, ',', '.') }}
+                                                                @if($settlement->payment_method_label) ·
+                                                                {{ $settlement->payment_method_label }}@endif
+                                                                ·
+                                                                {{ $settlement->recorded_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB
+                                                            </div>
+                                                            <div class="small text-secondary">
+                                                                Dicatat oleh
+                                                                {{ $settlement->recorded_by_name_snapshot ?? $settlement->recordedBy?->name ?? 'Admin tidak diketahui' }}
+                                                                · {{ $settlement->reason }}
+                                                                @if($settlement->reference) · Ref: {{ $settlement->reference }}@endif
+                                                            </div>
+                                                            @if($settlement->voided_at)
+                                                                <div class="small text-secondary mb-2">Catatan dibatalkan
+                                                                    {{ $settlement->voided_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                    WIB oleh
+                                                                    {{ $settlement->voided_by_name_snapshot ?? $settlement->voidedBy?->name ?? 'Admin tidak diketahui' }}.
+                                                                    Alasan: {{ $settlement->void_reason }}
+                                                                </div>
+                                                            @else
+                                                                <button class="btn btn-sm btn-link text-danger px-0 mb-2" type="button"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#voidFundSettlement{{ $settlement->id }}">
+                                                                    Koreksi catatan
+                                                                </button>
+                                                            @endif
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if($booking->paymentAudits->isNotEmpty())
+                                                    <div class="border-top mt-3 pt-2">
+                                                        <div class="small fw-semibold mb-2">Riwayat koreksi pembayaran</div>
+                                                        @foreach($booking->paymentAudits as $paymentAudit)
+                                                            @php
+                                                                $auditBeforeAmount = data_get($paymentAudit->before_data, 'verified_amount') ?? data_get($paymentAudit->before_data, 'amount');
+                                                                $auditAfterAmount = data_get($paymentAudit->after_data, 'verified_amount') ?? data_get($paymentAudit->after_data, 'amount');
+                                                            @endphp
+                                                            <div class="small">
+                                                                {{ $paymentAudit->action === 'payment_unverified' ? 'Verifikasi dibatalkan' : 'Pembayaran dikoreksi' }}
+                                                                ·
+                                                                {{ $paymentAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB
+                                                                ·
+                                                                {{ $paymentAudit->admin_name_snapshot ?? $paymentAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                            </div>
+                                                            @if($auditBeforeAmount !== null || $auditAfterAmount !== null)
+                                                                <div class="small text-secondary">Sebelum Rp
+                                                                    {{ number_format((float) $auditBeforeAmount, 0, ',', '.') }} · Sesudah Rp
+                                                                    {{ number_format((float) $auditAfterAmount, 0, ',', '.') }}
+                                                                </div>
+                                                            @endif
+                                                            <div class="small text-secondary mb-2">Alasan: {{ $paymentAudit->reason }}</div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if($booking->scheduleAudits->isNotEmpty())
+                                                    <div class="border-top mt-3 pt-2">
+                                                        <div class="small fw-semibold mb-2">Riwayat koreksi jadwal</div>
+                                                        @foreach($booking->scheduleAudits as $scheduleAudit)
+                                                            @php
+                                                                $scheduleBefore = $scheduleAudit->before_data ?? [];
+                                                                $scheduleAfter = $scheduleAudit->after_data ?? [];
+                                                            @endphp
+                                                            <div class="small">
+                                                                {{ $scheduleAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB
+                                                                ·
+                                                                {{ $scheduleAudit->admin_name_snapshot ?? $scheduleAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                            </div>
+                                                            <div class="small text-secondary">
+                                                                Sebelum: {{ data_get($scheduleBefore, 'booking_date') }}
+                                                                {{ data_get($scheduleBefore, 'time_start') }}–{{ data_get($scheduleBefore, 'time_end') }}
+                                                                ({{ (int) data_get($scheduleBefore, 'duration_minutes') }} menit), total Rp
+                                                                {{ number_format((float) data_get($scheduleBefore, 'amount'), 0, ',', '.') }}.
+                                                            </div>
+                                                            <div class="small text-secondary">
+                                                                Sesudah: {{ data_get($scheduleAfter, 'booking_date') }}
+                                                                {{ data_get($scheduleAfter, 'time_start') }}–{{ data_get($scheduleAfter, 'time_end') }}
+                                                                ({{ (int) data_get($scheduleAfter, 'duration_minutes') }} menit), total Rp
+                                                                {{ number_format((float) data_get($scheduleAfter, 'amount'), 0, ',', '.') }}.
+                                                            </div>
+                                                            <div class="small text-secondary mb-2">Alasan: {{ $scheduleAudit->reason }}
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if($booking->discountAudits->isNotEmpty())
+                                                    <div class="border-top mt-3 pt-2">
+                                                        <div class="small fw-semibold mb-2">Riwayat koreksi diskon</div>
+                                                        @foreach($booking->discountAudits as $discountAudit)
+                                                            @php
+                                                                $discountBefore = $discountAudit->before_data ?? [];
+                                                                $discountAfter = $discountAudit->after_data ?? [];
+                                                                $discountTypeLabel = fn($type) => match ($type) {
+                                                                    'fixed' => 'Potongan nominal',
+                                                                    'percentage' => 'Potongan persentase',
+                                                                    default => 'Tanpa diskon',
+                                                                };
+                                                            @endphp
+                                                            <div class="small">
+                                                                {{ $discountAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB
+                                                                ·
+                                                                {{ $discountAudit->admin_name_snapshot ?? $discountAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                            </div>
+                                                            <div class="small text-secondary">
+                                                                Sebelum:
+                                                                {{ $discountTypeLabel(data_get($discountBefore, 'discount_type')) }} ·
+                                                                diskon Rp
+                                                                {{ number_format((float) data_get($discountBefore, 'discount_amount', 0), 0, ',', '.') }}
+                                                                · tagihan Rp
+                                                                {{ number_format((float) data_get($discountBefore, 'amount', 0), 0, ',', '.') }}.
+                                                            </div>
+                                                            <div class="small text-secondary">
+                                                                Sesudah: {{ $discountTypeLabel(data_get($discountAfter, 'discount_type')) }}
+                                                                · diskon Rp
+                                                                {{ number_format((float) data_get($discountAfter, 'discount_amount', 0), 0, ',', '.') }}
+                                                                · tagihan Rp
+                                                                {{ number_format((float) data_get($discountAfter, 'amount', 0), 0, ',', '.') }}.
+                                                            </div>
+                                                            <div class="small text-secondary mb-2">Alasan koreksi:
+                                                                {{ $discountAudit->reason }}
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @if($booking->backdateAudits->isNotEmpty())
+                                                    <div class="border-top mt-3 pt-2">
+                                                        <div class="small fw-semibold mb-2">Riwayat pencatatan booking tanggal lampau
+                                                        </div>
+                                                        @foreach($booking->backdateAudits as $backdateAudit)
+                                                            <div class="small">
+                                                                Dicatat
+                                                                {{ $backdateAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB
+                                                                ·
+                                                                {{ $backdateAudit->admin_name_snapshot ?? $backdateAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                            </div>
+                                                            <div class="small text-secondary mb-2">Alasan: {{ $backdateAudit->reason }}
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+                                                @endif
+                                                @foreach($booking->rentalLines as $line)
+                                                    <div class="small text-secondary">{{ $line->item_name_snapshot }} ×
+                                                        {{ $line->quantity }} ·
+                                                        Rp {{ number_format((float) $line->line_total, 0, ',', '.') }}
+                                                    </div>
+                                                @endforeach
+                                                @foreach($booking->rentalAdditions as $addition)
+                                                    <div class="border-top mt-2 pt-2">
+                                                        <div class="small fw-semibold">Tambahan perlengkapan · Rp
+                                                            {{ number_format((float) $addition->amount, 0, ',', '.') }}
+                                                        </div>
+                                                        @foreach($addition->lines as $line)
+                                                            <div class="small text-secondary">{{ $line->item_name_snapshot }} ×
+                                                                {{ $line->quantity }}
+                                                            </div>
+                                                        @endforeach
+                                                        <span
+                                                            class="badge {{ $addition->status === 'confirmed' ? 'text-bg-success' : (in_array($addition->status, ['pending_review', 'awaiting_payment'], true) ? 'text-bg-warning' : 'text-bg-secondary') }}">{{ $addition->status_label }}</span>
+                                                        @if($addition->confirmed_at)
+                                                            <div class="small text-success">Pembayaran tambahan pernah dikonfirmasi
+                                                                {{ $addition->confirmed_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }}
+                                                                WIB oleh {{ $addition->verifiedBy?->name ?? 'Admin dihapus' }}.
+                                                            </div>
+                                                        @endif
+                                                        @if($addition->payment_reference)
+                                                        <div class="small">Ref tambahan: {{ $addition->payment_reference }}</div>@endif
+                                                        @if($addition->payment_proof_path)
+                                                            <button class="btn btn-sm btn-outline-primary mt-1" type="button"
+                                                                aria-haspopup="dialog"
+                                                                data-booking-proof-modal="bookingRentalAdditionProof{{ $booking->id }}{{ $addition->id }}">Pratinjau
+                                                                bukti tambahan</button>
+                                                            <a class="btn btn-sm btn-link mt-1"
+                                                                href="{{ route('admin.court-bookings.rental-additions.proof.download', [$booking, $addition]) }}">Unduh</a>
+                                                        @endif
+                                                        @if($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_PENDING_REVIEW)
+                                                            <div class="d-flex flex-wrap gap-1 mt-2">
+                                                                <form method="POST"
+                                                                    action="{{ route('admin.court-bookings.rental-additions.confirm', [$booking, $addition]) }}"
+                                                                    onsubmit="return confirm('Konfirmasi pembayaran tambahan ini?')">
+                                                                    @csrf<button class="btn btn-sm btn-success" type="submit">Konfirmasi
+                                                                        tambahan</button>
+                                                                </form>
+                                                                <details>
+                                                                    <summary class="btn btn-sm btn-outline-danger">Tolak</summary>
+                                                                    <form class="mt-2" method="POST"
+                                                                        action="{{ route('admin.court-bookings.rental-additions.reject', [$booking, $addition]) }}">
+                                                                        @csrf<input class="form-control form-control-sm mb-2"
+                                                                            name="admin_note" maxlength="1000"
+                                                                            placeholder="Alasan (opsional)">
+                                                                        <button class="btn btn-sm btn-danger" type="submit">Tolak bukti
+                                                                            tambahan</button>
+                                                                    </form>
+                                                                </details>
+                                                                <form method="POST"
+                                                                    action="{{ route('admin.court-bookings.rental-additions.cancel', [$booking, $addition]) }}"
+                                                                    onsubmit="return confirm('Batalkan tambahan ini dan lepaskan stoknya?')">
+                                                                    @csrf<button class="btn btn-sm btn-link text-danger"
+                                                                        type="submit">Batalkan
+                                                                        tambahan</button>
+                                                                </form>
+                                                            </div>
+                                                        @elseif($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_AWAITING_PAYMENT && $addition->expires_at)
+                                                            <div class="small text-secondary">Ditahan sampai
+                                                                {{ $addition->expires_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('H:i') }}
+                                                                WIB
+                                                            </div>
+                                                        @endif
+                                                        @if($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_AWAITING_PAYMENT)
+                                                            <form class="mt-1" method="POST"
+                                                                action="{{ route('admin.court-bookings.rental-additions.cancel', [$booking, $addition]) }}"
+                                                                onsubmit="return confirm('Batalkan tambahan ini dan lepaskan stoknya?')">
+                                                                @csrf<button class="btn btn-sm btn-link text-danger p-0"
+                                                                    type="submit">Batalkan
+                                                                    tambahan</button>
+                                                            </form>
+                                                        @endif
+                                                    </div>
+                                                @endforeach
+                                                @if($booking->payment_reference)
+                                                <div class="small">Ref: {{ $booking->payment_reference }}</div>@endif
+                                                @if($booking->payment_proof_path)
+                                                    <button class="btn btn-sm btn-outline-primary mt-1" type="button"
+                                                        aria-haspopup="dialog"
+                                                        data-booking-proof-modal="bookingPaymentProof{{ $booking->id }}">
+                                                        <i class="bi bi-eye me-1" aria-hidden="true"></i>Pratinjau bukti
                                                     </button>
                                                 @endif
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if($booking->paymentAudits->isNotEmpty())
-                                        <div class="border-top mt-3 pt-2">
-                                            <div class="small fw-semibold mb-2">Riwayat koreksi pembayaran</div>
-                                            @foreach($booking->paymentAudits as $paymentAudit)
-                                                @php
-                                                    $auditBeforeAmount = data_get($paymentAudit->before_data, 'verified_amount') ?? data_get($paymentAudit->before_data, 'amount');
-                                                    $auditAfterAmount = data_get($paymentAudit->after_data, 'verified_amount') ?? data_get($paymentAudit->after_data, 'amount');
-                                                @endphp
-                                                <div class="small">
-                                                    {{ $paymentAudit->action === 'payment_unverified' ? 'Verifikasi dibatalkan' : 'Pembayaran dikoreksi' }}
-                                                    · {{ $paymentAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                                    · {{ $paymentAudit->admin_name_snapshot ?? $paymentAudit->admin?->name ?? 'Admin tidak diketahui' }}
-                                                </div>
-                                                @if($auditBeforeAmount !== null || $auditAfterAmount !== null)
-                                                    <div class="small text-secondary">Sebelum Rp {{ number_format((float) $auditBeforeAmount, 0, ',', '.') }} · Sesudah Rp {{ number_format((float) $auditAfterAmount, 0, ',', '.') }}</div>
-                                                @endif
-                                                <div class="small text-secondary mb-2">Alasan: {{ $paymentAudit->reason }}</div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if($booking->scheduleAudits->isNotEmpty())
-                                        <div class="border-top mt-3 pt-2">
-                                            <div class="small fw-semibold mb-2">Riwayat koreksi jadwal</div>
-                                            @foreach($booking->scheduleAudits as $scheduleAudit)
-                                                @php
-                                                    $scheduleBefore = $scheduleAudit->before_data ?? [];
-                                                    $scheduleAfter = $scheduleAudit->after_data ?? [];
-                                                @endphp
-                                                <div class="small">
-                                                    {{ $scheduleAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                                    · {{ $scheduleAudit->admin_name_snapshot ?? $scheduleAudit->admin?->name ?? 'Admin tidak diketahui' }}
-                                                </div>
-                                                <div class="small text-secondary">
-                                                    Sebelum: {{ data_get($scheduleBefore, 'booking_date') }}
-                                                    {{ data_get($scheduleBefore, 'time_start') }}–{{ data_get($scheduleBefore, 'time_end') }}
-                                                    ({{ (int) data_get($scheduleBefore, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleBefore, 'amount'), 0, ',', '.') }}.
-                                                </div>
-                                                <div class="small text-secondary">
-                                                    Sesudah: {{ data_get($scheduleAfter, 'booking_date') }}
-                                                    {{ data_get($scheduleAfter, 'time_start') }}–{{ data_get($scheduleAfter, 'time_end') }}
-                                                    ({{ (int) data_get($scheduleAfter, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleAfter, 'amount'), 0, ',', '.') }}.
-                                                </div>
-                                                <div class="small text-secondary mb-2">Alasan: {{ $scheduleAudit->reason }}</div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if($booking->discountAudits->isNotEmpty())
-                                        <div class="border-top mt-3 pt-2">
-                                            <div class="small fw-semibold mb-2">Riwayat koreksi diskon</div>
-                                            @foreach($booking->discountAudits as $discountAudit)
-                                                @php
-                                                    $discountBefore = $discountAudit->before_data ?? [];
-                                                    $discountAfter = $discountAudit->after_data ?? [];
-                                                    $discountTypeLabel = fn ($type) => match ($type) {
-                                                        'fixed' => 'Potongan nominal',
-                                                        'percentage' => 'Potongan persentase',
-                                                        default => 'Tanpa diskon',
-                                                    };
-                                                @endphp
-                                                <div class="small">
-                                                    {{ $discountAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                                    · {{ $discountAudit->admin_name_snapshot ?? $discountAudit->admin?->name ?? 'Admin tidak diketahui' }}
-                                                </div>
-                                                <div class="small text-secondary">
-                                                    Sebelum: {{ $discountTypeLabel(data_get($discountBefore, 'discount_type')) }} · diskon Rp {{ number_format((float) data_get($discountBefore, 'discount_amount', 0), 0, ',', '.') }} · tagihan Rp {{ number_format((float) data_get($discountBefore, 'amount', 0), 0, ',', '.') }}.
-                                                </div>
-                                                <div class="small text-secondary">
-                                                    Sesudah: {{ $discountTypeLabel(data_get($discountAfter, 'discount_type')) }} · diskon Rp {{ number_format((float) data_get($discountAfter, 'discount_amount', 0), 0, ',', '.') }} · tagihan Rp {{ number_format((float) data_get($discountAfter, 'amount', 0), 0, ',', '.') }}.
-                                                </div>
-                                                <div class="small text-secondary mb-2">Alasan koreksi: {{ $discountAudit->reason }}</div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @if($booking->backdateAudits->isNotEmpty())
-                                        <div class="border-top mt-3 pt-2">
-                                            <div class="small fw-semibold mb-2">Riwayat pencatatan booking tanggal lampau</div>
-                                            @foreach($booking->backdateAudits as $backdateAudit)
-                                                <div class="small">
-                                                    Dicatat {{ $backdateAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
-                                                    · {{ $backdateAudit->admin_name_snapshot ?? $backdateAudit->admin?->name ?? 'Admin tidak diketahui' }}
-                                                </div>
-                                                <div class="small text-secondary mb-2">Alasan: {{ $backdateAudit->reason }}</div>
-                                            @endforeach
-                                        </div>
-                                    @endif
-                                    @foreach($booking->rentalLines as $line)
-                                        <div class="small text-secondary">{{ $line->item_name_snapshot }} × {{ $line->quantity }} ·
-                                            Rp {{ number_format((float) $line->line_total, 0, ',', '.') }}</div>
-                                    @endforeach
-                                    @foreach($booking->rentalAdditions as $addition)
-                                        <div class="border-top mt-2 pt-2">
-                                            <div class="small fw-semibold">Tambahan perlengkapan · Rp
-                                                {{ number_format((float) $addition->amount, 0, ',', '.') }}
-                                            </div>
-                                            @foreach($addition->lines as $line)
-                                                <div class="small text-secondary">{{ $line->item_name_snapshot }} ×
-                                                    {{ $line->quantity }}
-                                                </div>
-                                            @endforeach
-                                            <span
-                                                class="badge {{ $addition->status === 'confirmed' ? 'text-bg-success' : (in_array($addition->status, ['pending_review', 'awaiting_payment'], true) ? 'text-bg-warning' : 'text-bg-secondary') }}">{{ $addition->status_label }}</span>
-                                            @if($addition->confirmed_at)
-                                                <div class="small text-success">Pembayaran tambahan pernah dikonfirmasi {{ $addition->confirmed_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB oleh {{ $addition->verifiedBy?->name ?? 'Admin dihapus' }}.</div>
-                                            @endif
-                                            @if($addition->payment_reference)
-                                            <div class="small">Ref tambahan: {{ $addition->payment_reference }}</div>@endif
-                                            @if($addition->payment_proof_path)
-                                                <button class="btn btn-sm btn-outline-primary mt-1" type="button" aria-haspopup="dialog"
-                                                    data-booking-proof-modal="bookingRentalAdditionProof{{ $booking->id }}{{ $addition->id }}">Pratinjau
-                                                    bukti tambahan</button>
-                                                <a class="btn btn-sm btn-link mt-1"
-                                                    href="{{ route('admin.court-bookings.rental-additions.proof.download', [$booking, $addition]) }}">Unduh</a>
-                                            @endif
-                                            @if($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_PENDING_REVIEW)
-                                                <div class="d-flex flex-wrap gap-1 mt-2">
-                                                    <form method="POST"
-                                                        action="{{ route('admin.court-bookings.rental-additions.confirm', [$booking, $addition]) }}"
-                                                        onsubmit="return confirm('Konfirmasi pembayaran tambahan ini?')">
-                                                        @csrf<button class="btn btn-sm btn-success" type="submit">Konfirmasi
-                                                            tambahan</button>
-                                                    </form>
-                                                    <details>
-                                                        <summary class="btn btn-sm btn-outline-danger">Tolak</summary>
-                                                        <form class="mt-2" method="POST"
-                                                            action="{{ route('admin.court-bookings.rental-additions.reject', [$booking, $addition]) }}">
-                                                            @csrf<input class="form-control form-control-sm mb-2" name="admin_note"
-                                                                maxlength="1000" placeholder="Alasan (opsional)">
-                                                            <button class="btn btn-sm btn-danger" type="submit">Tolak bukti
-                                                                tambahan</button>
-                                                        </form>
-                                                    </details>
-                                                    <form method="POST"
-                                                        action="{{ route('admin.court-bookings.rental-additions.cancel', [$booking, $addition]) }}"
-                                                        onsubmit="return confirm('Batalkan tambahan ini dan lepaskan stoknya?')">
-                                                        @csrf<button class="btn btn-sm btn-link text-danger" type="submit">Batalkan
-                                                            tambahan</button>
-                                                    </form>
-                                                </div>
-                                            @elseif($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_AWAITING_PAYMENT && $addition->expires_at)
-                                                <div class="small text-secondary">Ditahan sampai
-                                                    {{ $addition->expires_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('H:i') }}
-                                                    WIB
-                                                </div>
-                                            @endif
-                                            @if($addition->status === \App\Models\CourtBookingRentalAddition::STATUS_AWAITING_PAYMENT)
-                                                <form class="mt-1" method="POST"
-                                                    action="{{ route('admin.court-bookings.rental-additions.cancel', [$booking, $addition]) }}"
-                                                    onsubmit="return confirm('Batalkan tambahan ini dan lepaskan stoknya?')">
-                                                    @csrf<button class="btn btn-sm btn-link text-danger p-0" type="submit">Batalkan
-                                                        tambahan</button>
-                                                </form>
-                                            @endif
-                                        </div>
-                                    @endforeach
-                                    @if($booking->payment_reference)
-                                    <div class="small">Ref: {{ $booking->payment_reference }}</div>@endif
-                                    @if($booking->payment_proof_path)
-                                        <button class="btn btn-sm btn-outline-primary mt-1" type="button" aria-haspopup="dialog"
-                                            data-booking-proof-modal="bookingPaymentProof{{ $booking->id }}">
-                                            <i class="bi bi-eye me-1" aria-hidden="true"></i>Pratinjau bukti
-                                        </button>
-                                    @endif
                                             </div>
                                         </details>
                                     @endif
                                 </td>
                                 <td class="booking-status-cell">
                                     <div class="booking-cell-stack">
-                                    @php
-                                        $badge = match ($booking->status) {
-                                            'confirmed' => 'text-bg-success',
-                                            'pending_review' => 'text-bg-warning',
-                                            'awaiting_payment' => 'text-bg-info',
-                                            'rejected', 'cancelled' => 'text-bg-danger',
-                                            default => 'text-bg-secondary',
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $badge }}">{{ $booking->status_label }}</span>
-                                    @if($booking->status === 'cancelled' && $booking->cancelledBy)
-                                        <div class="small text-secondary mt-1">Dibatalkan oleh {{ $booking->cancelledBy->name }}
-                                        </div>
-                                    @elseif($booking->verifiedBy)
-                                        <div class="small text-secondary mt-1">Diperiksa oleh {{ $booking->verifiedBy->name }}</div>
-                                    @endif
-                                    @if($booking->status === 'confirmed' && $hasRentalItems)
-                                        @if($booking->rental_returned_at)
-                                            <div class="small text-success mt-2">Perlengkapan kembali
-                                                {{ $booking->rental_returned_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('H:i') }}
-                                                WIB
+                                        @php
+                                            $badge = match ($booking->status) {
+                                                'confirmed' => 'text-bg-success',
+                                                'pending_review' => 'text-bg-warning',
+                                                'awaiting_payment' => 'text-bg-info',
+                                                'rejected', 'cancelled' => 'text-bg-danger',
+                                                default => 'text-bg-secondary',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badge }}">{{ $booking->status_label }}</span>
+                                        @if($booking->status === 'cancelled' && $booking->cancelledBy)
+                                            <div class="small text-secondary mt-1">Dibatalkan oleh {{ $booking->cancelledBy->name }}
                                             </div>
-                                        @elseif($booking->rental_picked_up_at)
-                                            <div class="small text-warning-emphasis mt-2">Perlengkapan masih disewa</div>
-                                            @if(\Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE)->lessThan(now()->timezone(\App\Models\CourtBooking::TIMEZONE)))
-                                                <span class="badge text-bg-warning mt-1">Lewat perkiraan kembali</span>
-                                            @endif
-                                        @else
-                                            <div class="small text-secondary mt-2">Perlengkapan belum diambil</div>
+                                        @elseif($booking->verifiedBy)
+                                            <div class="small text-secondary mt-1">Diperiksa oleh {{ $booking->verifiedBy->name }}
+                                            </div>
                                         @endif
-                                    @endif
+                                        @if($booking->status === 'confirmed' && $hasRentalItems)
+                                            @if($booking->rental_returned_at)
+                                                <div class="small text-success mt-2">Perlengkapan kembali
+                                                    {{ $booking->rental_returned_at->timezone(\App\Models\CourtBooking::TIMEZONE)->format('H:i') }}
+                                                    WIB
+                                                </div>
+                                            @elseif($booking->rental_picked_up_at)
+                                                <div class="small text-warning-emphasis mt-2">Perlengkapan masih disewa</div>
+                                                @if(\Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_end, \App\Models\CourtBooking::TIMEZONE)->lessThan(now()->timezone(\App\Models\CourtBooking::TIMEZONE)))
+                                                    <span class="badge text-bg-warning mt-1">Lewat perkiraan kembali</span>
+                                                @endif
+                                            @else
+                                                <div class="small text-secondary mt-2">Perlengkapan belum diambil</div>
+                                            @endif
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="booking-actions-cell">
@@ -1869,43 +1989,67 @@
                             <form data-fund-settlement-form method="POST"
                                 action="{{ route('admin.court-bookings.fund-settlements.store', $booking) }}">
                                 @csrf
-                                <input type="hidden" name="request_key" value="{{ $fundSettlementOldInput ? old('request_key') : (string) \Illuminate\Support\Str::uuid() }}">
+                                <input type="hidden" name="request_key"
+                                    value="{{ $fundSettlementOldInput ? old('request_key') : (string) \Illuminate\Support\Str::uuid() }}">
                                 <input type="hidden" name="_fund_settlement_booking_id" value="{{ $booking->id }}">
                                 <div class="modal-header">
                                     <div>
-                                        <div class="booking-payment-modal-kicker">PENYELESAIAN DANA · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        <h2 class="modal-title" id="bookingFundSettlementTitle{{ $booking->id }}">Putuskan dana booking</h2>
+                                        <div class="booking-payment-modal-kicker">PENYELESAIAN DANA ·
+                                            #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingFundSettlementTitle{{ $booking->id }}">Putuskan dana
+                                            booking</h2>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p class="small text-secondary">Dana terverifikasi Rp {{ number_format($bookingFundPaid, 0, ',', '.') }}. Belum diputuskan Rp {{ number_format($bookingFundAvailable, 0, ',', '.') }}. Pembayaran asli tetap tersimpan sebagai histori.</p>
+                                    <p class="small text-secondary">Dana terverifikasi Rp
+                                        {{ number_format($bookingFundPaid, 0, ',', '.') }}. Belum diputuskan Rp
+                                        {{ number_format($bookingFundAvailable, 0, ',', '.') }}. Pembayaran asli tetap tersimpan
+                                        sebagai histori.
+                                    </p>
                                     <label class="form-label" for="fundSettlementType{{ $booking->id }}">Keputusan dana</label>
-                                    <select class="form-select mb-3" id="fundSettlementType{{ $booking->id }}" name="type" data-fund-settlement-type required>
-                                        <option value="refund" @selected($fundSettlementOldInput ? old('type') === 'refund' : true)>Sudah dikembalikan kepada pelanggan</option>
-                                        <option value="retained" @selected($fundSettlementOldInput && old('type') === 'retained')>Ditahan sebagai biaya pembatalan</option>
+                                    <select class="form-select mb-3" id="fundSettlementType{{ $booking->id }}" name="type"
+                                        data-fund-settlement-type required>
+                                        <option value="refund" @selected($fundSettlementOldInput ? old('type') === 'refund' : true)>
+                                            Sudah dikembalikan kepada pelanggan</option>
+                                        <option value="retained" @selected($fundSettlementOldInput && old('type') === 'retained')>
+                                            Ditahan sebagai biaya pembatalan</option>
                                     </select>
                                     <label class="form-label" for="fundSettlementAmount{{ $booking->id }}">Nominal keputusan</label>
                                     <div class="input-group mb-3">
                                         <span class="input-group-text">Rp</span>
-                                        <input class="form-control" id="fundSettlementAmount{{ $booking->id }}" type="text" inputmode="numeric" autocomplete="off"
-                                            value="{{ $fundSettlementOldInput ? old('amount') : (int) $bookingFundAvailable }}" data-rupiah-input required>
-                                        <input type="hidden" name="amount" value="{{ $fundSettlementOldInput ? preg_replace('/\D+/', '', (string) old('amount')) : (int) $bookingFundAvailable }}" data-rupiah-value>
+                                        <input class="form-control" id="fundSettlementAmount{{ $booking->id }}" type="text"
+                                            inputmode="numeric" autocomplete="off"
+                                            value="{{ $fundSettlementOldInput ? old('amount') : (int) $bookingFundAvailable }}"
+                                            data-rupiah-input required>
+                                        <input type="hidden" name="amount"
+                                            value="{{ $fundSettlementOldInput ? preg_replace('/\D+/', '', (string) old('amount')) : (int) $bookingFundAvailable }}"
+                                            data-rupiah-value>
                                     </div>
-                                    <label class="form-label" for="fundSettlementMethod{{ $booking->id }}" data-fund-method-label>Metode pengembalian</label>
-                                    <select class="form-select mb-3" id="fundSettlementMethod{{ $booking->id }}" name="payment_method" required>
-                                        <option value="cash" @selected($fundSettlementOldInput && old('payment_method') === 'cash')>Tunai</option>
+                                    <label class="form-label" for="fundSettlementMethod{{ $booking->id }}"
+                                        data-fund-method-label>Metode pengembalian</label>
+                                    <select class="form-select mb-3" id="fundSettlementMethod{{ $booking->id }}"
+                                        name="payment_method" required>
+                                        <option value="cash" @selected($fundSettlementOldInput && old('payment_method') === 'cash')>
+                                            Tunai</option>
                                         <option value="bank_transfer" @selected(!$fundSettlementOldInput || old('payment_method') === 'bank_transfer')>Transfer bank</option>
-                                        <option value="qris" @selected($fundSettlementOldInput && old('payment_method') === 'qris')>QRIS</option>
+                                        <option value="qris" @selected($fundSettlementOldInput && old('payment_method') === 'qris')>
+                                            QRIS</option>
                                         <option value="unclassified" @selected($fundSettlementOldInput && old('payment_method') === 'unclassified')>Belum dirinci</option>
                                     </select>
-                                    <label class="form-label" for="fundSettlementReference{{ $booking->id }}">Nomor referensi (opsional)</label>
-                                    <input class="form-control mb-3" id="fundSettlementReference{{ $booking->id }}" name="reference" maxlength="100"
-                                        value="{{ $fundSettlementOldInput ? old('reference') : '' }}" placeholder="Nomor transaksi penyelesaian dana">
-                                    <label class="form-label" for="fundSettlementReason{{ $booking->id }}">Alasan / catatan audit</label>
-                                    <textarea class="form-control" id="fundSettlementReason{{ $booking->id }}" name="reason" rows="3" maxlength="500" required
+                                    <label class="form-label" for="fundSettlementReference{{ $booking->id }}">Nomor referensi
+                                        (opsional)</label>
+                                    <input class="form-control mb-3" id="fundSettlementReference{{ $booking->id }}" name="reference"
+                                        maxlength="100" value="{{ $fundSettlementOldInput ? old('reference') : '' }}"
+                                        placeholder="Nomor transaksi penyelesaian dana">
+                                    <label class="form-label" for="fundSettlementReason{{ $booking->id }}">Alasan / catatan
+                                        audit</label>
+                                    <textarea class="form-control" id="fundSettlementReason{{ $booking->id }}" name="reason"
+                                        rows="3" maxlength="500" required
                                         placeholder="Contoh: dana dikembalikan penuh melalui transfer bank">{{ $fundSettlementOldInput ? old('reason') : '' }}</textarea>
-                                    <div class="form-text mt-2">Catat sebagai refund hanya setelah uang benar-benar dikembalikan. Pilih dana ditahan hanya jika nominal tersebut memang disepakati sebagai biaya pembatalan.</div>
+                                    <div class="form-text mt-2">Catat sebagai refund hanya setelah uang benar-benar dikembalikan.
+                                        Pilih dana ditahan hanya jika nominal tersebut memang disepakati sebagai biaya pembatalan.
+                                    </div>
                                     @if($fundSettlementOldInput && $errors->hasAny(['type', 'amount', 'payment_method', 'reference', 'reason', 'booking']))
                                         <div class="text-danger small mt-2">{{ $errors->first() }}</div>
                                     @endif
@@ -1921,25 +2065,36 @@
             @endif
 
             @foreach($booking->fundSettlements->whereNull('voided_at') as $settlement)
-                <div class="modal fade booking-payment-modal booking-cancel-modal" id="voidFundSettlement{{ $settlement->id }}" tabindex="-1"
-                    aria-labelledby="voidFundSettlementTitle{{ $settlement->id }}" aria-hidden="true">
+                <div class="modal fade booking-payment-modal booking-cancel-modal" id="voidFundSettlement{{ $settlement->id }}"
+                    tabindex="-1" aria-labelledby="voidFundSettlementTitle{{ $settlement->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
-                            <form method="POST" action="{{ route('admin.court-bookings.fund-settlements.void', [$booking, $settlement]) }}">
+                            <form method="POST"
+                                action="{{ route('admin.court-bookings.fund-settlements.void', [$booking, $settlement]) }}">
                                 @csrf
                                 <input type="hidden" name="_void_fund_settlement_id" value="{{ $settlement->id }}">
                                 <div class="modal-header">
                                     <div>
-                                        <div class="booking-payment-modal-kicker">KOREKSI CATATAN DANA · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        <h2 class="modal-title" id="voidFundSettlementTitle{{ $settlement->id }}">Koreksi catatan penyelesaian</h2>
+                                        <div class="booking-payment-modal-kicker">KOREKSI CATATAN DANA ·
+                                            #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="voidFundSettlementTitle{{ $settlement->id }}">Koreksi catatan
+                                            penyelesaian</h2>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                 </div>
                                 <div class="modal-body">
-                                    <p>{{ $settlement->type_label }} Rp {{ number_format((float) $settlement->amount, 0, ',', '.') }} akan ditandai sebagai catatan tidak berlaku. Catatan lama tetap tersimpan.</p>
-                                    <p class="small text-secondary">Tindakan ini hanya mengoreksi pencatatan. Tindakan ini tidak membatalkan atau mengirim transfer uang. Jika dana benar-benar berpindah, buat catatan pengganti yang sesuai setelah koreksi.</p>
-                                    <label class="form-label" for="voidFundSettlementReason{{ $settlement->id }}">Alasan koreksi</label>
-                                    <textarea class="form-control" id="voidFundSettlementReason{{ $settlement->id }}" name="reason" rows="3" maxlength="500" required>{{ (string) old('_void_fund_settlement_id') === (string) $settlement->id ? old('reason') : '' }}</textarea>
+                                    <p>{{ $settlement->type_label }} Rp
+                                        {{ number_format((float) $settlement->amount, 0, ',', '.') }} akan ditandai sebagai catatan
+                                        tidak berlaku. Catatan lama tetap tersimpan.
+                                    </p>
+                                    <p class="small text-secondary">Tindakan ini hanya mengoreksi pencatatan. Tindakan ini tidak
+                                        membatalkan atau mengirim transfer uang. Jika dana benar-benar berpindah, buat catatan
+                                        pengganti yang sesuai setelah koreksi.</p>
+                                    <label class="form-label" for="voidFundSettlementReason{{ $settlement->id }}">Alasan
+                                        koreksi</label>
+                                    <textarea class="form-control" id="voidFundSettlementReason{{ $settlement->id }}" name="reason"
+                                        rows="3" maxlength="500"
+                                        required>{{ (string) old('_void_fund_settlement_id') === (string) $settlement->id ? old('reason') : '' }}</textarea>
                                     @if((string) old('_void_fund_settlement_id') === (string) $settlement->id && $errors->has('reason'))
                                         <div class="text-danger small mt-2">{{ $errors->first('reason') }}</div>
                                     @endif
@@ -2077,12 +2232,12 @@
             @foreach($booking->payments as $payment)
                 @if(in_array($booking->status, [\App\Models\CourtBooking::STATUS_CONFIRMED, \App\Models\CourtBooking::STATUS_CANCELLED], true) && $payment->status === \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
                     @php
-                        $paymentCorrectionId = $booking->id.'_'.$payment->id;
+                        $paymentCorrectionId = $booking->id . '_' . $payment->id;
                         $paymentCorrectionOld = (string) old('_payment_edit_id', '') === (string) $payment->id;
                         $paymentUnverifyOld = (string) old('_payment_unverify_id', '') === (string) $payment->id;
                     @endphp
-                    <div class="modal fade booking-payment-modal" id="bookingPaymentCorrection{{ $booking->id }}{{ $payment->id }}" tabindex="-1"
-                        aria-labelledby="bookingPaymentCorrectionTitle{{ $paymentCorrectionId }}" aria-hidden="true">
+                    <div class="modal fade booking-payment-modal" id="bookingPaymentCorrection{{ $booking->id }}{{ $payment->id }}"
+                        tabindex="-1" aria-labelledby="bookingPaymentCorrectionTitle{{ $paymentCorrectionId }}" aria-hidden="true">
                         <div class="modal-dialog modal-dialog-centered">
                             <div class="modal-content">
                                 <form method="POST" action="{{ route('admin.court-bookings.payments.update', [$booking, $payment]) }}">
@@ -2091,33 +2246,50 @@
                                     <input type="hidden" name="_payment_edit_booking_id" value="{{ $booking->id }}">
                                     <div class="modal-header">
                                         <div>
-                                            <div class="booking-payment-modal-kicker">KOREKSI PEMBAYARAN · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                            <h2 class="modal-title" id="bookingPaymentCorrectionTitle{{ $paymentCorrectionId }}">Ubah pembayaran terverifikasi</h2>
+                                            <div class="booking-payment-modal-kicker">KOREKSI PEMBAYARAN ·
+                                                #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                            <h2 class="modal-title" id="bookingPaymentCorrectionTitle{{ $paymentCorrectionId }}">Ubah
+                                                pembayaran terverifikasi</h2>
                                         </div>
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                     </div>
                                     <div class="modal-body">
-                                        <p class="small text-secondary">Perubahan akan dicatat bersama nominal lama, nominal baru, admin, dan alasan koreksi.</p>
-                                        <label class="form-label" for="correctedPaymentAmount{{ $paymentCorrectionId }}">Nominal diterima</label>
+                                        <p class="small text-secondary">Perubahan akan dicatat bersama nominal lama, nominal baru,
+                                            admin, dan alasan koreksi.</p>
+                                        <label class="form-label" for="correctedPaymentAmount{{ $paymentCorrectionId }}">Nominal
+                                            diterima</label>
                                         <div class="input-group mb-3">
                                             <span class="input-group-text">Rp</span>
-                                            <input class="form-control" id="correctedPaymentAmount{{ $paymentCorrectionId }}" type="text" inputmode="numeric" autocomplete="off"
-                                                value="{{ $paymentCorrectionOld ? old('verified_amount') : (int) $payment->verified_amount }}" data-rupiah-input required>
-                                            <input type="hidden" name="verified_amount" value="{{ $paymentCorrectionOld ? preg_replace('/\D+/', '', (string) old('verified_amount')) : (int) $payment->verified_amount }}" data-rupiah-value>
+                                            <input class="form-control" id="correctedPaymentAmount{{ $paymentCorrectionId }}"
+                                                type="text" inputmode="numeric" autocomplete="off"
+                                                value="{{ $paymentCorrectionOld ? old('verified_amount') : (int) $payment->verified_amount }}"
+                                                data-rupiah-input required>
+                                            <input type="hidden" name="verified_amount"
+                                                value="{{ $paymentCorrectionOld ? preg_replace('/\D+/', '', (string) old('verified_amount')) : (int) $payment->verified_amount }}"
+                                                data-rupiah-value>
                                         </div>
-                                        <label class="form-label" for="correctedPaymentMethod{{ $paymentCorrectionId }}">Metode pembayaran</label>
-                                        <select class="form-select mb-3" id="correctedPaymentMethod{{ $paymentCorrectionId }}" name="payment_method" required>
+                                        <label class="form-label" for="correctedPaymentMethod{{ $paymentCorrectionId }}">Metode
+                                            pembayaran</label>
+                                        <select class="form-select mb-3" id="correctedPaymentMethod{{ $paymentCorrectionId }}"
+                                            name="payment_method" required>
                                             <option value="cash" @selected(($paymentCorrectionOld ? old('payment_method') : $payment->payment_method) === 'cash')>Tunai</option>
                                             <option value="bank_transfer" @selected(($paymentCorrectionOld ? old('payment_method') : $payment->payment_method) === 'bank_transfer')>Transfer bank</option>
                                             <option value="qris" @selected(($paymentCorrectionOld ? old('payment_method') : $payment->payment_method) === 'qris')>QRIS</option>
                                         </select>
-                                        <label class="form-label" for="correctedPaymentReference{{ $paymentCorrectionId }}">Referensi pembayaran</label>
-                                        <input class="form-control mb-3" id="correctedPaymentReference{{ $paymentCorrectionId }}" name="payment_reference" maxlength="100"
+                                        <label class="form-label" for="correctedPaymentReference{{ $paymentCorrectionId }}">Referensi
+                                            pembayaran</label>
+                                        <input class="form-control mb-3" id="correctedPaymentReference{{ $paymentCorrectionId }}"
+                                            name="payment_reference" maxlength="100"
                                             value="{{ $paymentCorrectionOld ? old('payment_reference') : $payment->payment_reference }}">
                                         <label class="form-label" for="correctedPaymentNote{{ $paymentCorrectionId }}">Catatan</label>
-                                        <textarea class="form-control mb-3" id="correctedPaymentNote{{ $paymentCorrectionId }}" name="note" rows="2" maxlength="500">{{ $paymentCorrectionOld ? old('note') : $payment->note }}</textarea>
-                                        <label class="form-label" for="paymentCorrectionReason{{ $paymentCorrectionId }}">Alasan koreksi</label>
-                                        <textarea class="form-control" id="paymentCorrectionReason{{ $paymentCorrectionId }}" name="reason" rows="2" maxlength="500" required>{{ $paymentCorrectionOld ? old('reason') : '' }}</textarea>
+                                        <textarea class="form-control mb-3" id="correctedPaymentNote{{ $paymentCorrectionId }}"
+                                            name="note" rows="2"
+                                            maxlength="500">{{ $paymentCorrectionOld ? old('note') : $payment->note }}</textarea>
+                                        <label class="form-label" for="paymentCorrectionReason{{ $paymentCorrectionId }}">Alasan
+                                            koreksi</label>
+                                        <textarea class="form-control" id="paymentCorrectionReason{{ $paymentCorrectionId }}"
+                                            name="reason" rows="2" maxlength="500"
+                                            required>{{ $paymentCorrectionOld ? old('reason') : '' }}</textarea>
                                     </div>
                                     <div class="modal-footer">
                                         <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
@@ -2129,34 +2301,41 @@
                     </div>
 
                     @if($booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED)
-                    <div class="modal fade booking-payment-modal booking-cancel-modal" id="bookingPaymentUnverify{{ $booking->id }}{{ $payment->id }}" tabindex="-1"
-                        aria-labelledby="bookingPaymentUnverifyTitle{{ $paymentCorrectionId }}" aria-hidden="true">
-                        <div class="modal-dialog modal-dialog-centered">
-                            <div class="modal-content">
-                                <form method="POST" action="{{ route('admin.court-bookings.payments.unverify', [$booking, $payment]) }}">
-                                    @csrf
-                                    <input type="hidden" name="_payment_unverify_id" value="{{ $payment->id }}">
-                                    <input type="hidden" name="_payment_unverify_booking_id" value="{{ $booking->id }}">
-                                    <div class="modal-header">
-                                        <div>
-                                            <div class="booking-payment-modal-kicker">PEMBATALAN VERIFIKASI · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                            <h2 class="modal-title" id="bookingPaymentUnverifyTitle{{ $paymentCorrectionId }}">Kembalikan pembayaran ke pemeriksaan</h2>
+                        <div class="modal fade booking-payment-modal booking-cancel-modal"
+                            id="bookingPaymentUnverify{{ $booking->id }}{{ $payment->id }}" tabindex="-1"
+                            aria-labelledby="bookingPaymentUnverifyTitle{{ $paymentCorrectionId }}" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <form method="POST"
+                                        action="{{ route('admin.court-bookings.payments.unverify', [$booking, $payment]) }}">
+                                        @csrf
+                                        <input type="hidden" name="_payment_unverify_id" value="{{ $payment->id }}">
+                                        <input type="hidden" name="_payment_unverify_booking_id" value="{{ $booking->id }}">
+                                        <div class="modal-header">
+                                            <div>
+                                                <div class="booking-payment-modal-kicker">PEMBATALAN VERIFIKASI ·
+                                                    #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                                <h2 class="modal-title" id="bookingPaymentUnverifyTitle{{ $paymentCorrectionId }}">
+                                                    Kembalikan pembayaran ke pemeriksaan</h2>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                         </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p>Pembayaran Rp {{ number_format($payment->recognized_amount, 0, ',', '.') }} akan kembali ke status menunggu verifikasi. Slot booking tetap ditahan.</p>
-                                        <label class="form-label" for="paymentUnverifyReason{{ $paymentCorrectionId }}">Alasan</label>
-                                        <textarea class="form-control" id="paymentUnverifyReason{{ $paymentCorrectionId }}" name="reason" rows="3" maxlength="500" required>{{ $paymentUnverifyOld ? old('reason') : '' }}</textarea>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
-                                        <button class="btn btn-danger" type="submit">Batalkan verifikasi</button>
-                                    </div>
-                                </form>
+                                        <div class="modal-body">
+                                            <p>Pembayaran Rp {{ number_format($payment->recognized_amount, 0, ',', '.') }} akan kembali ke
+                                                status menunggu verifikasi. Slot booking tetap ditahan.</p>
+                                            <label class="form-label" for="paymentUnverifyReason{{ $paymentCorrectionId }}">Alasan</label>
+                                            <textarea class="form-control" id="paymentUnverifyReason{{ $paymentCorrectionId }}"
+                                                name="reason" rows="3" maxlength="500"
+                                                required>{{ $paymentUnverifyOld ? old('reason') : '' }}</textarea>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                                            <button class="btn btn-danger" type="submit">Batalkan verifikasi</button>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     @endif
                 @endif
             @endforeach
@@ -2437,8 +2616,8 @@
                     : '';
             @endphp
             @if($canShowScheduleCorrection)
-                <div class="modal fade booking-payment-modal" id="bookingScheduleCorrection{{ $booking->id }}"
-                    tabindex="-1" aria-labelledby="bookingScheduleCorrectionTitle{{ $booking->id }}" aria-hidden="true">
+                <div class="modal fade booking-payment-modal" id="bookingScheduleCorrection{{ $booking->id }}" tabindex="-1"
+                    aria-labelledby="bookingScheduleCorrectionTitle{{ $booking->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered">
                         <div class="modal-content">
                             <form method="POST" action="{{ route('admin.court-bookings.schedule.update', $booking) }}">
@@ -2447,8 +2626,10 @@
                                 <input type="hidden" name="_schedule_edit_booking_id" value="{{ $booking->id }}">
                                 <div class="modal-header">
                                     <div>
-                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        <h2 class="modal-title" id="bookingScheduleCorrectionTitle{{ $booking->id }}">Koreksi tanggal dan jam</h2>
+                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING ·
+                                            #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingScheduleCorrectionTitle{{ $booking->id }}">Koreksi
+                                            tanggal dan jam</h2>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                 </div>
@@ -2460,65 +2641,103 @@
                                         </div>
                                         <div>
                                             <strong>Jadwal tercatat</strong>
-                                            <span>{{ $booking->booking_date->format('d/m/Y') }} · {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }} WIB</span>
+                                            <span>{{ $booking->booking_date->format('d/m/Y') }} ·
+                                                {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }}
+                                                WIB</span>
                                         </div>
                                     </div>
                                     <div class="alert alert-light border small" role="note">
-                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total tetap. Jika jam atau durasi berubah, total dihitung ulang. Jadwal yang bentrok akan ditolak dan semua koreksi dicatat di riwayat.
+                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari
+                                        ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total tetap.
+                                        Jika jam atau durasi berubah, total dihitung ulang. Jadwal yang bentrok akan ditolak dan
+                                        semua koreksi dicatat di riwayat.
                                     </div>
                                     <div class="row g-3">
                                         <div class="col-sm-4">
                                             <label class="form-label" for="scheduleCorrectionDate{{ $booking->id }}">Tanggal</label>
-                                            <input class="form-control" type="date" id="scheduleCorrectionDate{{ $booking->id }}" name="booking_date"
-                                                max="{{ $correctionToday }}"
-                                                value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $correctionDefaultDate }}" required>
-                                            @if(!$scheduleCorrectionOldInput && $correctionDefaultDate === '')<div class="form-text">Pilih tanggal pemakaian sebenarnya; booking ini saat ini tercatat pada tanggal mendatang.</div>@endif
-                                            @if($scheduleCorrectionOldInput && $errors->has('booking_date'))<div class="text-danger small mt-1">{{ $errors->first('booking_date') }}</div>@endif
+                                            <input class="form-control" type="date" id="scheduleCorrectionDate{{ $booking->id }}"
+                                                name="booking_date" max="{{ $correctionToday }}"
+                                                value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $correctionDefaultDate }}"
+                                                required>
+                                            @if(!$scheduleCorrectionOldInput && $correctionDefaultDate === '')
+                                                <div class="form-text">Pilih tanggal pemakaian sebenarnya; booking ini saat ini tercatat
+                                            pada tanggal mendatang.</div>@endif
+                                            @if($scheduleCorrectionOldInput && $errors->has('booking_date'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('booking_date') }}</div>@endif
                                         </div>
                                         <div class="col-sm-4">
-                                            <label class="form-label" for="scheduleCorrectionStart{{ $booking->id }}">Jam mulai</label>
-                                            <input class="form-control" type="time" id="scheduleCorrectionStart{{ $booking->id }}" name="time_start" step="60"
-                                                value="{{ $scheduleCorrectionOldInput ? old('time_start') : substr($booking->time_start, 0, 5) }}" required>
-                                            @if($scheduleCorrectionOldInput && $errors->has('time_start'))<div class="text-danger small mt-1">{{ $errors->first('time_start') }}</div>@endif
+                                            <label class="form-label" for="scheduleCorrectionStart{{ $booking->id }}">Jam
+                                                mulai</label>
+                                            <input class="form-control" type="time" id="scheduleCorrectionStart{{ $booking->id }}"
+                                                name="time_start" step="60"
+                                                value="{{ $scheduleCorrectionOldInput ? old('time_start') : substr($booking->time_start, 0, 5) }}"
+                                                required>
+                                            @if($scheduleCorrectionOldInput && $errors->has('time_start'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('time_start') }}</div>@endif
                                         </div>
                                         <div class="col-sm-4">
-                                            <label class="form-label" for="scheduleCorrectionEnd{{ $booking->id }}">Jam selesai</label>
-                                            <input class="form-control" type="time" id="scheduleCorrectionEnd{{ $booking->id }}" name="time_end" step="60"
-                                                value="{{ $scheduleCorrectionOldInput ? old('time_end') : substr($booking->time_end, 0, 5) }}" required>
-                                            @if($scheduleCorrectionOldInput && $errors->has('time_end'))<div class="text-danger small mt-1">{{ $errors->first('time_end') }}</div>@endif
+                                            <label class="form-label" for="scheduleCorrectionEnd{{ $booking->id }}">Jam
+                                                selesai</label>
+                                            <input class="form-control" type="time" id="scheduleCorrectionEnd{{ $booking->id }}"
+                                                name="time_end" step="60"
+                                                value="{{ $scheduleCorrectionOldInput ? old('time_end') : substr($booking->time_end, 0, 5) }}"
+                                                required>
+                                            @if($scheduleCorrectionOldInput && $errors->has('time_end'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('time_end') }}</div>@endif
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <label class="form-label" for="scheduleCorrectionReason{{ $booking->id }}">Alasan koreksi <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="scheduleCorrectionReason{{ $booking->id }}" name="reason" rows="3" maxlength="500"
-                                            placeholder="Contoh: tanggal salah dicatat; seharusnya 1 Oktober 2026" required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
-                                        @if($scheduleCorrectionOldInput && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
+                                        <label class="form-label" for="scheduleCorrectionReason{{ $booking->id }}">Alasan koreksi
+                                            <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="scheduleCorrectionReason{{ $booking->id }}" name="reason"
+                                            rows="3" maxlength="500"
+                                            placeholder="Contoh: tanggal salah dicatat; seharusnya 1 Oktober 2026"
+                                            required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
+                                        @if($scheduleCorrectionOldInput && $errors->has('reason'))
+                                        <div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
                                     </div>
-                                    <section class="border rounded p-3 mt-3" aria-labelledby="scheduleRefundHeading{{ $booking->id }}">
-                                        <h3 class="h6 mb-1" id="scheduleRefundHeading{{ $booking->id }}">Jika total baru lebih rendah</h3>
-                                        <p class="small text-secondary mb-3">Kembalikan kelebihan dana kepada pelanggan terlebih dahulu. Jika dana bersih yang diterima melebihi total baru, sistem mencatat refund sesuai nominal selisih dan metode pengembalian.</p>
+                                    <section class="border rounded p-3 mt-3"
+                                        aria-labelledby="scheduleRefundHeading{{ $booking->id }}">
+                                        <h3 class="h6 mb-1" id="scheduleRefundHeading{{ $booking->id }}">Jika total baru lebih
+                                            rendah</h3>
+                                        <p class="small text-secondary mb-3">Kembalikan kelebihan dana kepada pelanggan terlebih
+                                            dahulu. Jika dana bersih yang diterima melebihi total baru, sistem mencatat refund
+                                            sesuai nominal selisih dan metode pengembalian.</p>
                                         <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="scheduleRefundConfirmed{{ $booking->id }}"
-                                                name="refund_confirmed" value="1" @checked($scheduleCorrectionOldInput && old('refund_confirmed'))>
-                                            <label class="form-check-label" for="scheduleRefundConfirmed{{ $booking->id }}">Saya sudah benar-benar mengembalikan selisih dana kepada pelanggan.</label>
-                                            @if($scheduleCorrectionOldInput && $errors->has('refund_confirmed'))<div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
+                                            <input class="form-check-input" type="checkbox"
+                                                id="scheduleRefundConfirmed{{ $booking->id }}" name="refund_confirmed" value="1"
+                                                @checked($scheduleCorrectionOldInput && old('refund_confirmed'))>
+                                            <label class="form-check-label" for="scheduleRefundConfirmed{{ $booking->id }}">Saya
+                                                sudah benar-benar mengembalikan selisih dana kepada pelanggan.</label>
+                                            @if($scheduleCorrectionOldInput && $errors->has('refund_confirmed'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-sm-6">
-                                                <label class="form-label" for="scheduleRefundMethod{{ $booking->id }}">Dikembalikan melalui</label>
-                                                <select class="form-select" id="scheduleRefundMethod{{ $booking->id }}" name="refund_payment_method">
+                                                <label class="form-label" for="scheduleRefundMethod{{ $booking->id }}">Dikembalikan
+                                                    melalui</label>
+                                                <select class="form-select" id="scheduleRefundMethod{{ $booking->id }}"
+                                                    name="refund_payment_method">
                                                     <option value="">Pilih metode</option>
                                                     <option value="cash" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'cash')>Tunai</option>
                                                     <option value="bank_transfer" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'bank_transfer')>Transfer bank</option>
                                                     <option value="qris" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'qris')>QRIS</option>
                                                 </select>
-                                                @if($scheduleCorrectionOldInput && $errors->has('refund_payment_method'))<div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}</div>@endif
+                                                @if($scheduleCorrectionOldInput && $errors->has('refund_payment_method'))
+                                                    <div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}
+                                                </div>@endif
                                             </div>
                                             <div class="col-sm-6">
-                                                <label class="form-label" for="scheduleRefundReference{{ $booking->id }}">Referensi refund <span class="text-secondary">(opsional)</span></label>
-                                                <input class="form-control" type="text" id="scheduleRefundReference{{ $booking->id }}" name="refund_reference" maxlength="100"
-                                                    value="{{ $scheduleCorrectionOldInput ? old('refund_reference') : '' }}" placeholder="Contoh: nomor referensi transfer">
-                                                @if($scheduleCorrectionOldInput && $errors->has('refund_reference'))<div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>@endif
+                                                <label class="form-label" for="scheduleRefundReference{{ $booking->id }}">Referensi
+                                                    refund <span class="text-secondary">(opsional)</span></label>
+                                                <input class="form-control" type="text"
+                                                    id="scheduleRefundReference{{ $booking->id }}" name="refund_reference"
+                                                    maxlength="100"
+                                                    value="{{ $scheduleCorrectionOldInput ? old('refund_reference') : '' }}"
+                                                    placeholder="Contoh: nomor referensi transfer">
+                                                @if($scheduleCorrectionOldInput && $errors->has('refund_reference'))
+                                                    <div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </section>
@@ -2528,7 +2747,8 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Batal</button>
-                                    <button type="submit" class="btn btn-dark"><i class="bi bi-clock-history me-1" aria-hidden="true"></i>Simpan koreksi</button>
+                                    <button type="submit" class="btn btn-dark"><i class="bi bi-clock-history me-1"
+                                            aria-hidden="true"></i>Simpan koreksi</button>
                                 </div>
                             </form>
                         </div>
@@ -2544,7 +2764,7 @@
                     $discountCourtSubtotal = max(0, round($discountGrossSubtotal - $discountRentalTotal, 2));
                     $discountPaymentsGross = (float) $booking->payments
                         ->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
-                        ->sum(fn ($payment) => $payment->recognized_amount);
+                        ->sum(fn($payment) => $payment->recognized_amount);
                     $discountRefunds = (float) $booking->fundSettlements
                         ->where('type', \App\Models\CourtBookingFundSettlement::TYPE_REFUND)
                         ->whereNull('voided_at')
@@ -2552,8 +2772,9 @@
                     $discountNetPaid = max(0, round($discountPaymentsGross - $discountRefunds, 2));
                     $discountCurrentType = $discountCorrectionOld ? old('discount_type', $booking->discount_type ?: 'none') : ($booking->discount_type ?: 'none');
                 @endphp
-                <div class="modal fade booking-payment-modal" id="bookingDiscountCorrection{{ $booking->id }}"
-                    tabindex="-1" aria-labelledby="bookingDiscountCorrectionTitle{{ $booking->id }}" aria-hidden="true">
+                <div class="modal fade booking-payment-modal booking-discount-modal"
+                    id="bookingDiscountCorrection{{ $booking->id }}" tabindex="-1"
+                    aria-labelledby="bookingDiscountCorrectionTitle{{ $booking->id }}" aria-hidden="true">
                     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
                         <div class="modal-content">
                             <form method="POST" action="{{ route('admin.court-bookings.discount.update', $booking) }}"
@@ -2564,8 +2785,10 @@
                                 <input type="hidden" name="_discount_edit_booking_id" value="{{ $booking->id }}">
                                 <div class="modal-header">
                                     <div>
-                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
-                                        <h2 class="modal-title" id="bookingDiscountCorrectionTitle{{ $booking->id }}">Ubah diskon</h2>
+                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING ·
+                                            #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingDiscountCorrectionTitle{{ $booking->id }}">Ubah diskon
+                                        </h2>
                                     </div>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                                 </div>
@@ -2577,41 +2800,54 @@
                                         </div>
                                         <div>
                                             <strong>{{ $booking->court?->name ?? 'Lapangan dihapus' }}</strong>
-                                            <span>{{ $booking->booking_date->translatedFormat('d F Y') }} · {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }}</span>
+                                            <span>{{ $booking->booking_date->translatedFormat('d F Y') }} ·
+                                                {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }}</span>
                                         </div>
                                     </div>
-                                    <p class="small text-secondary">Diskon hanya mengurangi tarif lapangan. Biaya perlengkapan tetap sama. Setiap koreksi dicatat agar perubahan tagihan dapat ditelusuri.</p>
+                                    <p class="small text-secondary">Diskon hanya mengurangi tarif lapangan. Biaya perlengkapan tetap
+                                        sama. Setiap koreksi dicatat agar perubahan tagihan dapat ditelusuri.</p>
 
                                     <div class="row g-3">
                                         <div class="col-sm-5">
-                                            <label class="form-label" for="bookingDiscountType{{ $booking->id }}">Jenis diskon</label>
-                                            <select class="form-select" id="bookingDiscountType{{ $booking->id }}" name="discount_type" data-discount-type required>
+                                            <label class="form-label" for="bookingDiscountType{{ $booking->id }}">Jenis
+                                                diskon</label>
+                                            <select class="form-select" id="bookingDiscountType{{ $booking->id }}"
+                                                name="discount_type" data-discount-type required>
                                                 <option value="none" @selected($discountCurrentType === 'none')>Tanpa diskon</option>
-                                                <option value="fixed" @selected($discountCurrentType === 'fixed')>Potongan nominal</option>
-                                                <option value="percentage" @selected($discountCurrentType === 'percentage')>Potongan persentase</option>
+                                                <option value="fixed" @selected($discountCurrentType === 'fixed')>Potongan nominal
+                                                </option>
+                                                <option value="percentage" @selected($discountCurrentType === 'percentage')>Potongan
+                                                    persentase</option>
                                             </select>
                                         </div>
                                         <div class="col-sm-7">
-                                            <label class="form-label" for="bookingDiscountValue{{ $booking->id }}">Nilai diskon</label>
+                                            <label class="form-label" for="bookingDiscountValue{{ $booking->id }}">Nilai
+                                                diskon</label>
                                             <div class="input-group">
-                                                <input class="form-control" id="bookingDiscountValue{{ $booking->id }}" name="discount_value"
-                                                    type="text" inputmode="decimal" autocomplete="off" data-discount-value
+                                                <input class="form-control" id="bookingDiscountValue{{ $booking->id }}"
+                                                    name="discount_value" type="text" inputmode="decimal" autocomplete="off"
+                                                    data-discount-value
                                                     value="{{ $discountCorrectionOld ? old('discount_value', $booking->discount_value) : ($booking->discount_type === 'fixed' ? number_format((float) $booking->discount_value, 0, ',', '.') : (float) ($booking->discount_value ?? 0)) }}"
                                                     placeholder="Contoh: 50.000">
                                                 <span class="input-group-text" data-discount-suffix>Rp</span>
                                             </div>
-                                            @if($discountCorrectionOld && $errors->has('discount_value'))<div class="text-danger small mt-1">{{ $errors->first('discount_value') }}</div>@endif
+                                            @if($discountCorrectionOld && $errors->has('discount_value'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('discount_value') }}</div>@endif
                                         </div>
                                     </div>
                                     <div class="mt-3">
-                                        <label class="form-label" for="bookingDiscountReason{{ $booking->id }}">Alasan diskon</label>
-                                        <input class="form-control" id="bookingDiscountReason{{ $booking->id }}" name="discount_reason" maxlength="255"
+                                        <label class="form-label" for="bookingDiscountReason{{ $booking->id }}">Alasan
+                                            diskon</label>
+                                        <input class="form-control" id="bookingDiscountReason{{ $booking->id }}"
+                                            name="discount_reason" maxlength="255"
                                             value="{{ $discountCorrectionOld ? old('discount_reason', $booking->discount_reason) : $booking->discount_reason }}"
                                             placeholder="Contoh: potongan member">
-                                        @if($discountCorrectionOld && $errors->has('discount_reason'))<div class="text-danger small mt-1">{{ $errors->first('discount_reason') }}</div>@endif
+                                        @if($discountCorrectionOld && $errors->has('discount_reason'))
+                                        <div class="text-danger small mt-1">{{ $errors->first('discount_reason') }}</div>@endif
                                     </div>
 
-                                    <div class="booking-payment-facts booking-discount-facts" aria-label="Perkiraan total setelah diskon">
+                                    <div class="booking-payment-facts booking-discount-facts"
+                                        aria-label="Perkiraan total setelah diskon">
                                         <div class="booking-payment-fact">
                                             <span>Subtotal sebelum diskon</span>
                                             <strong data-discount-gross>Rp 0</strong>
@@ -2627,38 +2863,61 @@
                                     </div>
                                     <div class="small text-secondary mb-3" data-discount-balance></div>
 
-                                    <section class="border rounded p-3" data-discount-refund-section hidden aria-labelledby="bookingDiscountRefundHeading{{ $booking->id }}">
-                                        <h3 class="h6 mb-1" id="bookingDiscountRefundHeading{{ $booking->id }}">Pengembalian selisih</h3>
-                                        <p class="small text-secondary">Total baru lebih rendah daripada dana bersih yang diterima. Kembalikan selisihnya terlebih dahulu, lalu catat metode pengembalian di sini.</p>
+                                    <section class="border rounded p-3" data-discount-refund-section hidden
+                                        aria-labelledby="bookingDiscountRefundHeading{{ $booking->id }}">
+                                        <h3 class="h6 mb-1" id="bookingDiscountRefundHeading{{ $booking->id }}">Pengembalian selisih
+                                        </h3>
+                                        <p class="small text-secondary">Total baru lebih rendah daripada dana bersih yang diterima.
+                                            Kembalikan selisihnya terlebih dahulu, lalu catat metode pengembalian di sini.</p>
                                         <div class="form-check mb-3">
-                                            <input class="form-check-input" type="checkbox" id="bookingDiscountRefundConfirmed{{ $booking->id }}" name="refund_confirmed" value="1" @checked($discountCorrectionOld && old('refund_confirmed')) data-discount-refund-confirmed>
-                                            <label class="form-check-label" for="bookingDiscountRefundConfirmed{{ $booking->id }}">Saya sudah benar-benar mengembalikan selisih dana.</label>
-                                            @if($discountCorrectionOld && $errors->has('refund_confirmed'))<div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
+                                            <input class="form-check-input" type="checkbox"
+                                                id="bookingDiscountRefundConfirmed{{ $booking->id }}" name="refund_confirmed"
+                                                value="1" @checked($discountCorrectionOld && old('refund_confirmed'))
+                                                data-discount-refund-confirmed>
+                                            <label class="form-check-label"
+                                                for="bookingDiscountRefundConfirmed{{ $booking->id }}">Saya sudah benar-benar
+                                                mengembalikan selisih dana.</label>
+                                            @if($discountCorrectionOld && $errors->has('refund_confirmed'))
+                                            <div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
                                         </div>
                                         <div class="row g-3">
                                             <div class="col-sm-6">
-                                                <label class="form-label" for="bookingDiscountRefundMethod{{ $booking->id }}">Dikembalikan melalui</label>
-                                                <select class="form-select" id="bookingDiscountRefundMethod{{ $booking->id }}" name="refund_payment_method" data-discount-refund-method>
+                                                <label class="form-label"
+                                                    for="bookingDiscountRefundMethod{{ $booking->id }}">Dikembalikan melalui</label>
+                                                <select class="form-select" id="bookingDiscountRefundMethod{{ $booking->id }}"
+                                                    name="refund_payment_method" data-discount-refund-method>
                                                     <option value="">Pilih metode</option>
                                                     <option value="cash" @selected($discountCorrectionOld && old('refund_payment_method') === 'cash')>Tunai</option>
                                                     <option value="bank_transfer" @selected($discountCorrectionOld && old('refund_payment_method') === 'bank_transfer')>Transfer bank</option>
                                                     <option value="qris" @selected($discountCorrectionOld && old('refund_payment_method') === 'qris')>QRIS</option>
                                                 </select>
-                                                @if($discountCorrectionOld && $errors->has('refund_payment_method'))<div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}</div>@endif
+                                                @if($discountCorrectionOld && $errors->has('refund_payment_method'))
+                                                    <div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}
+                                                </div>@endif
                                             </div>
                                             <div class="col-sm-6">
-                                                <label class="form-label" for="bookingDiscountRefundReference{{ $booking->id }}">Referensi <span class="text-secondary">(opsional)</span></label>
-                                                <input class="form-control" id="bookingDiscountRefundReference{{ $booking->id }}" name="refund_reference" maxlength="100"
-                                                    value="{{ $discountCorrectionOld ? old('refund_reference') : '' }}" placeholder="Nomor referensi">
-                                                @if($discountCorrectionOld && $errors->has('refund_reference'))<div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>@endif
+                                                <label class="form-label"
+                                                    for="bookingDiscountRefundReference{{ $booking->id }}">Referensi <span
+                                                        class="text-secondary">(opsional)</span></label>
+                                                <input class="form-control" id="bookingDiscountRefundReference{{ $booking->id }}"
+                                                    name="refund_reference" maxlength="100"
+                                                    value="{{ $discountCorrectionOld ? old('refund_reference') : '' }}"
+                                                    placeholder="Nomor referensi">
+                                                @if($discountCorrectionOld && $errors->has('refund_reference'))
+                                                    <div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>
+                                                @endif
                                             </div>
                                         </div>
                                     </section>
 
                                     <div class="mt-3">
-                                        <label class="form-label" for="bookingDiscountAuditReason{{ $booking->id }}">Alasan koreksi <span class="text-danger">*</span></label>
-                                        <textarea class="form-control" id="bookingDiscountAuditReason{{ $booking->id }}" name="reason" rows="2" maxlength="500" placeholder="Contoh: diskon awal salah dicatat" required>{{ $discountCorrectionOld ? old('reason') : '' }}</textarea>
-                                        @if($discountCorrectionOld && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
+                                        <label class="form-label" for="bookingDiscountAuditReason{{ $booking->id }}">Alasan koreksi
+                                            <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="bookingDiscountAuditReason{{ $booking->id }}"
+                                            name="reason" rows="2" maxlength="500" placeholder="Contoh: diskon awal salah dicatat"
+                                            required>{{ $discountCorrectionOld ? old('reason') : '' }}</textarea>
+                                        @if($discountCorrectionOld && $errors->has('reason'))
+                                        <div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
                                     </div>
                                     @if($discountCorrectionOld && $errors->has('booking'))
                                         <div class="alert alert-danger mt-3 mb-0">{{ $errors->first('booking') }}</div>
@@ -2666,7 +2925,8 @@
                                 </div>
                                 <div class="modal-footer">
                                     <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
-                                    <button class="btn btn-dark" type="submit"><i class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan koreksi</button>
+                                    <button class="btn btn-dark" type="submit"><i class="bi bi-check2 me-1"
+                                            aria-hidden="true"></i>Simpan</button>
                                 </div>
                             </form>
                         </div>

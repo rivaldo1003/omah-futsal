@@ -1059,14 +1059,18 @@ class CourtBookingController extends Controller
             return mb_strtolower($normalized ?? $name, 'UTF-8');
         };
         $teamTotals = [];
+        $bookingTeamSqlKeys = [];
+        $tournamentRentalTeamSqlKeys = [];
         foreach ($bookingGroups as $bookingGroup) {
             $key = $normalizeTeamName((string) $bookingGroup->team_name);
             if ($key === '') {
                 continue;
             }
+            $bookingTeamSqlKeys[$key][] = (string) $bookingGroup->team_key;
 
             $displayName = trim((string) $bookingGroup->team_name);
             $teamTotals[$key] ??= [
+                'team_key' => $key,
                 'team_name' => $displayName,
                 'booking_count' => 0,
                 'booking_minutes' => 0,
@@ -1087,9 +1091,11 @@ class CourtBookingController extends Controller
             if ($key === '') {
                 continue;
             }
+            $tournamentRentalTeamSqlKeys[$key][] = (string) $rentalGroup->team_key;
 
             $displayName = trim((string) $rentalGroup->team_name);
             $teamTotals[$key] ??= [
+                'team_key' => $key,
                 'team_name' => $displayName,
                 'booking_count' => 0,
                 'booking_minutes' => 0,
@@ -1129,6 +1135,77 @@ class CourtBookingController extends Controller
             ['path' => $request->url(), 'query' => $request->query()],
         );
 
+        $pageTeamKeys = $pageTeamRows->pluck('team_key')->all();
+        $bookingSqlKeys = collect($pageTeamKeys)
+            ->flatMap(fn (string $key) => $bookingTeamSqlKeys[$key] ?? [])
+            ->unique()
+            ->values();
+        $tournamentRentalSqlKeys = collect($pageTeamKeys)
+            ->flatMap(fn (string $key) => $tournamentRentalTeamSqlKeys[$key] ?? [])
+            ->unique()
+            ->values();
+        $teamUsageDetails = [];
+
+        $bookingDetails = CourtBooking::query()
+            ->with('court:id,name')
+            ->where('status', CourtBooking::STATUS_CONFIRMED)
+            ->whereNotNull('team_name')
+            ->whereRaw("TRIM(team_name) <> ''")
+            ->whereIn(DB::raw('LOWER(TRIM(team_name))'), $bookingSqlKeys)
+            ->when($fromDate, fn ($query) => $query->whereDate('booking_date', '>=', $fromDate))
+            ->whereDate('booking_date', '<=', $toDate)
+            ->orderByDesc('booking_date')
+            ->orderByDesc('time_start')
+            ->orderByDesc('id')
+            ->get(['id', 'court_id', 'booking_date', 'time_start', 'time_end', 'duration_minutes', 'team_name', 'source']);
+
+        foreach ($bookingDetails as $booking) {
+            $key = $normalizeTeamName((string) $booking->team_name);
+            $teamUsageDetails[$key][] = [
+                'date' => $booking->booking_date->toDateString(),
+                'time_start' => substr((string) $booking->time_start, 0, 5),
+                'time_end' => substr((string) $booking->time_end, 0, 5),
+                'court_name' => $booking->court?->name ?? 'Lapangan dihapus',
+                'category' => match ($booking->source) {
+                    'member' => 'Booking member',
+                    'walk_in' => 'Booking walk-in',
+                    default => 'Booking publik',
+                },
+                'reference' => 'Booking #'.str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT),
+                'duration_minutes' => (int) $booking->duration_minutes,
+            ];
+        }
+
+        $tournamentRentalDetails = CourtTournamentRental::query()
+            ->with('court:id,name')
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->whereIn(DB::raw('LOWER(TRIM(tournament_name_snapshot))'), $tournamentRentalSqlKeys)
+            ->when($fromDate, fn ($query) => $query->whereDate('rental_date', '>=', $fromDate))
+            ->whereDate('rental_date', '<=', $toDate)
+            ->orderByDesc('rental_date')
+            ->orderByDesc('time_start')
+            ->orderByDesc('id')
+            ->get(['id', 'court_id', 'rental_date', 'time_start', 'time_end', 'duration_minutes', 'tournament_name_snapshot']);
+
+        foreach ($tournamentRentalDetails as $rental) {
+            $key = $normalizeTeamName((string) $rental->tournament_name_snapshot);
+            $teamUsageDetails[$key][] = [
+                'date' => $rental->rental_date->toDateString(),
+                'time_start' => substr((string) $rental->time_start, 0, 5),
+                'time_end' => substr((string) $rental->time_end, 0, 5),
+                'court_name' => $rental->court?->name ?? 'Lapangan dihapus',
+                'category' => 'Sewa turnamen',
+                'reference' => 'Sesi sewa turnamen',
+                'duration_minutes' => (int) $rental->duration_minutes,
+            ];
+        }
+
+        foreach ($teamUsageDetails as &$details) {
+            usort($details, static fn (array $left, array $right): int =>
+                strcmp($right['date'], $left['date']) ?: strcmp($right['time_start'], $left['time_start']));
+        }
+        unset($details);
+
         $tournamentRentalRows = CourtTournamentRental::query()
             ->with(['court:id,name', 'tournament:id,name'])
             ->orderByDesc('rental_date')
@@ -1161,6 +1238,7 @@ class CourtBookingController extends Controller
 
         return view('admin.court-bookings.team-hours', [
             'teams' => $teams,
+            'teamUsageDetails' => $teamUsageDetails,
             'fromDate' => $fromDate,
             'toDate' => $toDate,
             'selectedYear' => $selectedYear,
@@ -1308,7 +1386,12 @@ class CourtBookingController extends Controller
                 throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan booking lapangan yang sudah tercatat.']);
             }
             if ($availability->memberScheduleConflict($court, $date, $start, $end)) {
-                throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan jadwal member.']);
+                $memberName = $availability->memberScheduleNameForSlot($court, $date, $start, $end);
+                throw ValidationException::withMessages([
+                    'time_start' => 'Rentang sewa bertabrakan dengan jadwal rutin member'
+                        .($memberName ? ' '.$memberName : '')
+                        .'. Jika slot itu dipakai turnamen dan member tidak bermain, catat pengecualian tanggal pada menu Jadwal member, lalu simpan sesi sewa kembali.',
+                ]);
             }
             if ($availability->matchConflict($court, $date, $start, $end, $tournamentId)) {
                 throw ValidationException::withMessages(['time_start' => 'Rentang sewa bertabrakan dengan pertandingan lain di lapangan ini.']);
@@ -1402,7 +1485,7 @@ class CourtBookingController extends Controller
         $this->ensureAdmin();
         $courts = Court::query()->orderBy('sort_order')->orderBy('name')->get();
         $memberSchedules = CourtMemberSchedule::query()
-            ->with(['court', 'daysOff' => fn ($query) => $query->whereDate('off_date', '>=', now(CourtBooking::TIMEZONE)->toDateString())->orderBy('off_date')])
+            ->with(['court', 'daysOff' => fn ($query) => $query->orderByDesc('off_date')])
             ->orderBy('court_id')->orderBy('day_of_week')->orderBy('time_start')->get();
         $memberScheduleGroups = $memberSchedules->groupBy(fn (CourtMemberSchedule $schedule) => mb_strtolower(
             preg_replace('/\\s+/u', ' ', trim($schedule->member_name)),
@@ -1833,7 +1916,7 @@ class CourtBookingController extends Controller
     {
         $this->ensureAdmin();
         $validated = $request->validate([
-            'off_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString()],
+            'off_date' => ['required', 'date_format:Y-m-d'],
             'note' => ['nullable', 'string', 'max:255'],
         ]);
         DB::transaction(function () use ($schedule, $validated): void {
@@ -1856,7 +1939,7 @@ class CourtBookingController extends Controller
             );
         }, 3);
 
-        return back()->with('success', 'Tanggal libur member berhasil disimpan. Slot kembali tersedia pada tanggal tersebut.');
+        return back()->with('success', 'Pengecualian jadwal member berhasil dicatat. Slot rutin dilepas pada tanggal tersebut.');
     }
 
     public function destroyMemberDayOff(
