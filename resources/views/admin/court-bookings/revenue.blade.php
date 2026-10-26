@@ -248,6 +248,168 @@
             font-size: 13px;
         }
 
+        .refund-audit {
+            border-top: 1px solid var(--revenue-line);
+        }
+
+        .refund-audit-summary {
+            min-height: 58px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 12px 22px;
+            color: var(--revenue-ink);
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .refund-audit-summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .refund-audit-summary > span:first-child {
+            min-width: 0;
+        }
+
+        .refund-audit-summary:focus-visible {
+            outline: 2px solid var(--revenue-ink);
+            outline-offset: -3px;
+        }
+
+        .refund-audit-title {
+            display: block;
+            font-weight: 500;
+        }
+
+        .refund-audit-count {
+            display: block;
+            margin-top: 2px;
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
+        .refund-audit-total {
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+            flex: 0 0 auto;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .refund-audit-chevron {
+            color: var(--revenue-muted);
+            transition: transform 160ms ease;
+        }
+
+        .refund-audit[open] .refund-audit-chevron {
+            transform: rotate(180deg);
+        }
+
+        .refund-audit-list {
+            padding: 0 22px;
+            border-top: 1px solid var(--revenue-line);
+        }
+
+        .refund-entry {
+            padding: 17px 0;
+        }
+
+        .refund-entry + .refund-entry {
+            border-top: 1px solid var(--revenue-line);
+        }
+
+        .refund-entry-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .refund-entry-top > div:first-child {
+            min-width: 0;
+        }
+
+        .refund-booking-link {
+            color: var(--revenue-ink);
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        .refund-booking-link:hover {
+            text-decoration: underline;
+            text-underline-offset: 3px;
+        }
+
+        .refund-booking-person,
+        .refund-booking-contact {
+            display: block;
+            margin-top: 3px;
+        }
+
+        .refund-booking-contact,
+        .refund-entry-meta dt {
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
+        .refund-entry-amount {
+            flex: 0 0 auto;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .refund-entry-amount span {
+            display: block;
+            color: var(--revenue-muted);
+            font-size: 12px;
+        }
+
+        .refund-entry-amount strong {
+            display: block;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+
+        .refund-entry-meta {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px 24px;
+            margin: 13px 0 0;
+        }
+
+        .refund-entry-meta div {
+            min-width: 0;
+        }
+
+        .refund-entry-meta dt {
+            margin: 0 0 2px;
+        }
+
+        .refund-entry-meta dd {
+            margin: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .refund-audit-empty {
+            margin: 0;
+            padding: 20px 0;
+            color: var(--revenue-muted);
+        }
+
+        .refund-audit-pagination {
+            padding: 12px 22px;
+            border-top: 1px solid var(--revenue-line);
+        }
+
+        .refund-audit-pagination nav > div:first-child {
+            display: none;
+        }
+
+        .refund-audit-pagination nav > div:last-child {
+            justify-content: flex-end;
+        }
+
         .revenue-total,
         .revenue-source {
             min-width: 0;
@@ -578,6 +740,33 @@
                 padding-inline: 16px;
             }
 
+            .refund-audit-summary {
+                align-items: flex-start;
+                padding-inline: 16px;
+            }
+
+            .refund-audit-total {
+                gap: 7px;
+                font-size: 14px;
+            }
+
+            .refund-audit-list {
+                padding-inline: 16px;
+            }
+
+            .refund-entry-top {
+                gap: 12px;
+            }
+
+            .refund-entry-meta {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .refund-audit-pagination {
+                padding-inline: 16px;
+            }
+
             .revenue-method-summary > div:nth-child(odd) {
                 padding-left: 0;
             }
@@ -639,7 +828,7 @@
                     <strong>Rp {{ number_format($monthlyGrossReceipts, 0, ',', '.') }}</strong>
                 </div>
                 <div>
-                    <span>Refund booking tercatat</span>
+                    <span>Dana refund tercatat</span>
                     <strong>Rp {{ number_format($monthlyRefundTotal, 0, ',', '.') }}</strong>
                 </div>
                 <div>
@@ -693,7 +882,7 @@
                             $refundRowTotal = array_sum($monthlyIncomeByCategory['refunds']);
                         @endphp
                         <tr>
-                            <th scope="row">Refund booking</th>
+                            <th scope="row">Refund booking (uang keluar)</th>
                             @foreach($monthlyMethodLabels as $method => $methodLabel)
                                 @php
                                     $refundAmount = $monthlyIncomeByCategory['refunds'][$method];
@@ -724,7 +913,94 @@
                     </tfoot>
                 </table>
             </div>
-            <p class="revenue-month-note">Pembayaran booking masuk ke bulan saat dicatat; refund mengurangi arus kas pada bulan saat pengembalian dicatat. Sewa lapangan turnamen masuk ke baris booking jika pemasukan ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Perlengkapan yang dibayar dalam transaksi booking tetap termasuk pada baris booking, sedangkan sewa perlengkapan terpisah tampil pada baris masing-masing. Data lama yang belum memiliki metode pembayaran masuk ke “Belum dirinci”. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+            <p class="revenue-month-note">Refund ditampilkan sebagai pengurang karena dana keluar. Nilai refund pada ringkasan adalah total positifnya; penerimaan setelah refund dihitung dari penerimaan bruto dikurangi nilai tersebut. Setiap catatan di bawah mewakili satu pengembalian dana. Pembayaran booking masuk ke bulan saat dicatat. Sewa lapangan turnamen masuk ke baris booking jika pemasukan ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+
+            <details class="refund-audit" @if(request()->filled('refund_page')) open @endif>
+                <summary class="refund-audit-summary">
+                    <span>
+                        <span class="refund-audit-title">Rincian refund booking</span>
+                        <span class="refund-audit-count">{{ number_format($monthlyRefundDetails->total(), 0, ',', '.') }} catatan pada {{ $selectedMonthLabel }}</span>
+                    </span>
+                    <span class="refund-audit-total">
+                        <strong>Rp {{ number_format($monthlyRefundTotal, 0, ',', '.') }}</strong>
+                        <i class="bi bi-chevron-down refund-audit-chevron" aria-hidden="true"></i>
+                    </span>
+                </summary>
+
+                <div class="refund-audit-list">
+                    @if($monthlyRefundDetails->total() === 0)
+                        <p class="refund-audit-empty">Belum ada refund booking yang dicatat pada {{ $selectedMonthLabel }}.</p>
+                    @else
+                        @foreach($monthlyRefundDetails as $refund)
+                            @php
+                                $refundRecordedAt = \Carbon\CarbonImmutable::parse($refund->recorded_at, 'UTC')
+                                    ->setTimezone(\App\Models\CourtBooking::TIMEZONE)
+                                    ->locale('id');
+                                $refundBookingDate = \Carbon\CarbonImmutable::parse($refund->booking_date, \App\Models\CourtBooking::TIMEZONE)
+                                    ->locale('id')
+                                    ->translatedFormat('d M Y');
+                                $refundMethodLabel = match ($refund->payment_method) {
+                                    'cash' => 'Tunai',
+                                    'bank_transfer' => 'Transfer bank',
+                                    'qris' => 'QRIS',
+                                    default => 'Belum dirinci',
+                                };
+                                $refundDisplayName = filled($refund->team_name)
+                                    ? $refund->team_name
+                                    : $refund->customer_name;
+                            @endphp
+                            <article class="refund-entry">
+                                <div class="refund-entry-top">
+                                    <div>
+                                        <a class="refund-booking-link" href="{{ route('admin.court-bookings.index', ['date' => $refund->booking_date]) }}">
+                                            Booking #{{ str_pad((string) $refund->booking_id, 6, '0', STR_PAD_LEFT) }}
+                                        </a>
+                                        <span class="refund-booking-person">{{ $refundDisplayName }}</span>
+                                        <span class="refund-booking-contact">Catatan refund #{{ $refund->settlement_id }}</span>
+                                        @if(filled($refund->team_name) && filled($refund->customer_name) && $refund->team_name !== $refund->customer_name)
+                                            <span class="refund-booking-contact">Pemesan: {{ $refund->customer_name }}</span>
+                                        @endif
+                                    </div>
+                                    <div class="refund-entry-amount">
+                                        <span>Dana dikembalikan</span>
+                                        <strong>− Rp {{ number_format((float) $refund->amount, 0, ',', '.') }}</strong>
+                                    </div>
+                                </div>
+                                <dl class="refund-entry-meta">
+                                    <div>
+                                        <dt>Jadwal pemakaian</dt>
+                                        <dd>{{ $refundBookingDate }} · {{ $refund->court_name ?: 'Lapangan' }} · {{ substr((string) $refund->time_start, 0, 5) }}–{{ substr((string) $refund->time_end, 0, 5) }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Refund dicatat</dt>
+                                        <dd>{{ $refundRecordedAt->translatedFormat('d M Y, H:i') }} WIB · {{ $refundMethodLabel }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Dicatat oleh</dt>
+                                        <dd>{{ $refund->recorded_by_name_snapshot ?: 'Admin' }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt>Alasan</dt>
+                                        <dd>{{ $refund->reason }}</dd>
+                                    </div>
+                                    @if(filled($refund->reference))
+                                        <div>
+                                            <dt>Referensi</dt>
+                                            <dd>{{ $refund->reference }}</dd>
+                                        </div>
+                                    @endif
+                                </dl>
+                            </article>
+                        @endforeach
+
+                        @if($monthlyRefundDetails->hasPages())
+                            <div class="refund-audit-pagination">
+                                {{ $monthlyRefundDetails->onEachSide(1)->links() }}
+                            </div>
+                        @endif
+                    @endif
+                </div>
+            </details>
         </section>
 
         <section class="report-panel" aria-labelledby="monthlyExpensesTitle">

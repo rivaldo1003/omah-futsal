@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Court;
 use App\Models\CourtBooking;
 use App\Models\CourtBookingBackdateAudit;
+use App\Models\CourtBookingDiscountAudit;
 use App\Models\CourtBookingScheduleAudit;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtBookingRentalAddition;
@@ -58,7 +59,7 @@ class CourtBookingController extends Controller
         ]);
 
         $bookings = CourtBooking::query()
-            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'backdateAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
+            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'discountAudits.admin', 'backdateAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
             ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where(function ($bookingStatus) use ($status) {
                     $bookingStatus->where('status', $status);
@@ -250,6 +251,34 @@ class CourtBookingController extends Controller
             'payment_method',
             'amount',
         );
+
+        $monthlyRefundDetails = DB::table('court_booking_fund_settlements as settlement')
+            ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+            ->leftJoin('courts', 'courts.id', '=', 'booking.court_id')
+            ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('settlement.voided_at')
+            ->where('settlement.recorded_at', '>=', $monthStartUtc)
+            ->where('settlement.recorded_at', '<', $nextMonthStartUtc)
+            ->orderByDesc('settlement.recorded_at')
+            ->orderByDesc('settlement.id')
+            ->select([
+                'settlement.id as settlement_id',
+                'settlement.amount',
+                'settlement.payment_method',
+                'settlement.reference',
+                'settlement.reason',
+                'settlement.recorded_at',
+                'settlement.recorded_by_name_snapshot',
+                'booking.id as booking_id',
+                'booking.team_name',
+                'booking.customer_name',
+                'booking.booking_date',
+                'booking.time_start',
+                'booking.time_end',
+                'courts.name as court_name',
+            ])
+            ->paginate(15, ['*'], 'refund_page')
+            ->withQueryString();
 
         $monthlyIncomingByMethod = $this->emptyPaymentMethodTotals();
         foreach (['booking', 'rental_additions', 'standalone_rentals', 'parking', 'shop', 'other'] as $category) {
@@ -485,6 +514,7 @@ class CourtBookingController extends Controller
             'monthlyNetByMethod',
             'monthlyGrossReceipts',
             'monthlyRefundTotal',
+            'monthlyRefundDetails',
             'monthlyNetReceipts',
             'monthlyExpenseByCategory',
             'monthlyExpenseTotal',
@@ -2029,11 +2059,141 @@ class CourtBookingController extends Controller
         return back()->with('success', 'Nama tim booking berhasil disimpan.');
     }
 
+    public function updateDiscount(Request $request, CourtBooking $booking, CourtBookingDiscountService $discounts)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            '_discount_edit_booking_id' => ['required', 'integer', 'in:'.$booking->id],
+            'discount_type' => ['required', Rule::in(['none', 'fixed', 'percentage'])],
+            'discount_value' => ['nullable', 'string', 'max:30'],
+            'discount_reason' => ['nullable', 'string', 'max:255'],
+            'reason' => ['required', 'string', 'max:500'],
+            'refund_confirmed' => ['nullable', 'boolean'],
+            'refund_payment_method' => ['nullable', Rule::in(['cash', 'bank_transfer', 'qris'])],
+            'refund_reference' => ['nullable', 'string', 'max:100'],
+        ]);
+        $refundConfirmed = $request->boolean('refund_confirmed');
+
+        $result = DB::transaction(function () use ($booking, $validated, $discounts, $refundConfirmed): array {
+            $lockedBooking = CourtBooking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+            if ($lockedBooking->status !== CourtBooking::STATUS_CONFIRMED
+                || !in_array($lockedBooking->source, ['walk_in', 'member'], true)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Diskon hanya dapat dikoreksi untuk booking walk-in atau member yang sudah terkonfirmasi.',
+                ]);
+            }
+
+            $currentDiscountAmount = round((float) ($lockedBooking->discount_amount ?? 0), 2);
+            $subtotal = round((float) ($lockedBooking->subtotal_amount ?? ((float) $lockedBooking->amount + $currentDiscountAmount)), 2);
+            $rentalAmount = round((float) $lockedBooking->rentalLines()->sum('line_total'), 2);
+            $courtSubtotal = max(0, round($subtotal - $rentalAmount, 2));
+            $discount = $discounts->forCourtAmount(
+                $validated['discount_type'],
+                (string) ($validated['discount_value'] ?? ''),
+                (string) ($validated['discount_reason'] ?? ''),
+                $courtSubtotal,
+            );
+            $newAmount = max(0, round($subtotal - $discount['amount'], 2));
+
+            $grossPaidAmount = (float) $lockedBooking->payments()
+                ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+                ->sum(DB::raw('COALESCE(verified_amount, amount)'));
+            $previousRefunds = (float) $lockedBooking->fundSettlements()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+            $netPaidAmount = max(0, round($grossPaidAmount - $previousRefunds, 2));
+            $refundAmount = max(0, round($netPaidAmount - $newAmount, 2));
+
+            if ($refundAmount > 0 && !$refundConfirmed) {
+                throw ValidationException::withMessages([
+                    'refund_confirmed' => 'Tagihan baru Rp '.number_format($newAmount, 0, ',', '.').' lebih rendah dari dana bersih yang diterima Rp '.number_format($netPaidAmount, 0, ',', '.').'. Kembalikan selisih Rp '.number_format($refundAmount, 0, ',', '.').' kepada pelanggan, lalu konfirmasi refund di sini.',
+                ]);
+            }
+            if ($refundAmount > 0 && empty($validated['refund_payment_method'])) {
+                throw ValidationException::withMessages([
+                    'refund_payment_method' => 'Pilih metode yang benar-benar digunakan untuk mengembalikan Rp '.number_format($refundAmount, 0, ',', '.').' kepada pelanggan.',
+                ]);
+            }
+
+            $before = [
+                'subtotal_amount' => $subtotal,
+                'discount_type' => $lockedBooking->discount_type ?: 'none',
+                'discount_value' => (float) ($lockedBooking->discount_value ?? 0),
+                'discount_amount' => $currentDiscountAmount,
+                'discount_reason' => $lockedBooking->discount_reason,
+                'amount' => (float) $lockedBooking->amount,
+            ];
+            $after = [
+                'subtotal_amount' => $subtotal,
+                'discount_type' => $discount['type'],
+                'discount_value' => $discount['value'],
+                'discount_amount' => $discount['amount'],
+                'discount_reason' => $discount['reason'],
+                'amount' => $newAmount,
+            ];
+
+            if ($before === $after) {
+                throw ValidationException::withMessages(['booking' => 'Tidak ada perubahan diskon untuk disimpan.']);
+            }
+
+            $lockedBooking->update([
+                'subtotal_amount' => $subtotal,
+                'discount_type' => $discount['type'],
+                'discount_value' => $discount['value'],
+                'discount_amount' => $discount['amount'],
+                'discount_reason' => $discount['reason'],
+                'amount' => $newAmount,
+            ]);
+
+            CourtBookingDiscountAudit::query()->create([
+                'court_booking_id' => $lockedBooking->id,
+                'admin_id' => auth()->id(),
+                'admin_name_snapshot' => auth()->user()?->name,
+                'reason' => trim($validated['reason']),
+                'before_data' => $before,
+                'after_data' => $after,
+            ]);
+
+            if ($refundAmount > 0) {
+                CourtBookingFundSettlement::query()->create([
+                    'court_booking_id' => $lockedBooking->id,
+                    'request_key' => (string) Str::uuid(),
+                    'type' => CourtBookingFundSettlement::TYPE_REFUND,
+                    'amount' => $refundAmount,
+                    'payment_method' => $validated['refund_payment_method'],
+                    'reference' => trim((string) ($validated['refund_reference'] ?? '')) ?: null,
+                    'reason' => mb_substr('Refund selisih setelah koreksi diskon: '.trim($validated['reason']), 0, 500),
+                    'recorded_by' => auth()->id(),
+                    'recorded_by_name_snapshot' => mb_substr((string) auth()->user()?->name, 0, 160) ?: null,
+                    'recorded_at' => now(),
+                ]);
+            }
+
+            return [
+                'booking' => $lockedBooking->refresh(),
+                'refund_amount' => $refundAmount,
+                'balance' => max(0, round($newAmount - $netPaidAmount, 2)),
+            ];
+        });
+
+        $message = 'Diskon booking berhasil dikoreksi. Riwayat perubahan tersimpan.';
+        if ($result['refund_amount'] > 0) {
+            $message .= ' Refund Rp '.number_format($result['refund_amount'], 0, ',', '.').' tercatat sesuai metode pengembalian.';
+        } elseif ($result['balance'] > 0) {
+            $message .= ' Sisa tagihan sekarang Rp '.number_format($result['balance'], 0, ',', '.').'.';
+        }
+
+        return redirect()->route('admin.court-bookings.index', ['date' => $result['booking']->booking_date->toDateString()])
+            ->with('success', $message);
+    }
+
     public function updateSchedule(
         Request $request,
         CourtBooking $booking,
         CourtBookingAvailabilityService $availability,
         CourtPricingService $pricing,
+        CourtBookingDiscountService $discounts,
     ) {
         $this->ensureAdmin();
         $validated = $request->validate([
@@ -2050,7 +2210,7 @@ class CourtBookingController extends Controller
         ]);
         $refundConfirmed = $request->boolean('refund_confirmed');
 
-        $result = DB::transaction(function () use ($booking, $validated, $availability, $pricing, $refundConfirmed) {
+        $result = DB::transaction(function () use ($booking, $validated, $availability, $pricing, $discounts, $refundConfirmed) {
             // Serialize edits and new bookings for this court, then lock the booking row.
             $court = $availability->lockCourt((int) $booking->court_id);
             if (!$court) {
@@ -2127,11 +2287,18 @@ class CourtBookingController extends Controller
                 ]);
             }
 
+            $oldDiscountAmount = round((float) ($lockedBooking->discount_amount ?? 0), 2);
+            $oldSubtotal = round((float) ($lockedBooking->subtotal_amount ?? ((float) $lockedBooking->amount + $oldDiscountAmount)), 2);
             $before = [
                 'booking_date' => $lockedBooking->booking_date->toDateString(),
                 'time_start' => substr((string) $lockedBooking->time_start, 0, 5),
                 'time_end' => substr((string) $lockedBooking->time_end, 0, 5),
                 'duration_minutes' => (int) $lockedBooking->duration_minutes,
+                'subtotal_amount' => $oldSubtotal,
+                'discount_type' => $lockedBooking->discount_type ?: 'none',
+                'discount_value' => (float) ($lockedBooking->discount_value ?? 0),
+                'discount_amount' => $oldDiscountAmount,
+                'discount_reason' => $lockedBooking->discount_reason,
                 'amount' => (float) $lockedBooking->amount,
             ];
             $dateOnlyCorrection = $before['time_start'] === $validated['time_start']
@@ -2141,6 +2308,11 @@ class CourtBookingController extends Controller
             if ($dateOnlyCorrection) {
                 // A date-only correction changes which operating day receives the income,
                 // while preserving the amount that was actually charged and verified.
+                $newSubtotal = $oldSubtotal;
+                $newDiscountType = $lockedBooking->discount_type ?: 'none';
+                $newDiscountValue = (float) ($lockedBooking->discount_value ?? 0);
+                $newDiscountAmount = $oldDiscountAmount;
+                $newDiscountReason = $lockedBooking->discount_reason;
                 $newAmount = (float) $lockedBooking->amount;
             } else {
                 $courtAmount = $pricing->amountForRange(
@@ -2150,7 +2322,27 @@ class CourtBookingController extends Controller
                     $validated['booking_date'],
                 );
                 $rentalAmount = (float) $lockedBooking->rentalLines()->sum('line_total');
-                $newAmount = round($courtAmount + $rentalAmount, 2);
+                $newSubtotal = round($courtAmount + $rentalAmount, 2);
+                $newDiscountType = $lockedBooking->discount_type ?: 'none';
+                $existingDiscountValue = $discounts->normalizedValue(
+                    $newDiscountType,
+                    (string) ($lockedBooking->discount_value ?? ''),
+                );
+                if ($newDiscountType === 'fixed') {
+                    // A fixed discount cannot exceed a reduced court tariff after schedule correction.
+                    $existingDiscountValue = min($existingDiscountValue, (float) $courtAmount);
+                }
+                $discount = $discounts->forCourtAmount(
+                    $newDiscountType,
+                    (string) $existingDiscountValue,
+                    (string) ($lockedBooking->discount_reason ?? ''),
+                    (float) $courtAmount,
+                );
+                $newDiscountType = $discount['type'];
+                $newDiscountValue = $discount['value'];
+                $newDiscountAmount = $discount['amount'];
+                $newDiscountReason = $discount['reason'];
+                $newAmount = max(0, round($newSubtotal - $newDiscountAmount, 2));
             }
             $grossPaidAmount = (float) $lockedBooking->payments()
                 ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
@@ -2178,6 +2370,11 @@ class CourtBookingController extends Controller
                 'time_start' => $validated['time_start'],
                 'time_end' => $validated['time_end'],
                 'duration_minutes' => $durationMinutes,
+                'subtotal_amount' => $newSubtotal,
+                'discount_type' => $newDiscountType,
+                'discount_value' => $newDiscountValue,
+                'discount_amount' => $newDiscountAmount,
+                'discount_reason' => $newDiscountReason,
                 'amount' => $newAmount,
             ];
 
@@ -2190,6 +2387,11 @@ class CourtBookingController extends Controller
                 'time_start' => $validated['time_start'],
                 'time_end' => $validated['time_end'],
                 'duration_minutes' => $durationMinutes,
+                'subtotal_amount' => $newSubtotal,
+                'discount_type' => $newDiscountType,
+                'discount_value' => $newDiscountValue,
+                'discount_amount' => $newDiscountAmount,
+                'discount_reason' => $newDiscountReason,
                 'amount' => $newAmount,
             ]);
 

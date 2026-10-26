@@ -821,6 +821,10 @@
             background: var(--booking-cloud);
         }
 
+        .booking-discount-facts {
+            margin-top: 18px;
+        }
+
         .booking-payment-fact {
             display: grid;
             gap: 5px;
@@ -1008,6 +1012,15 @@
 
             .booking-payment-modal .modal-dialog {
                 margin: 8px;
+            }
+
+            .booking-discount-facts {
+                grid-template-columns: 1fr;
+            }
+
+            .booking-discount-facts .booking-payment-fact+.booking-payment-fact {
+                border-top: 1px solid var(--booking-line-soft);
+                border-left: 0;
             }
 
             .booking-payment-modal .modal-header,
@@ -1386,7 +1399,7 @@
                                             @endif
                                         @endif
                                     </div>
-                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->scheduleAudits->isNotEmpty() || $booking->backdateAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
+                                    @if($booking->payments->isNotEmpty() || $booking->paymentAudits->isNotEmpty() || $booking->scheduleAudits->isNotEmpty() || $booking->discountAudits->isNotEmpty() || $booking->backdateAudits->isNotEmpty() || $booking->fundSettlements->isNotEmpty() || $booking->rentalLines->isNotEmpty() || $booking->rentalAdditions->isNotEmpty() || $booking->payment_reference || $booking->payment_proof_path || $booking->cancelled_at)
                                         <details class="booking-row-details">
                                             <summary>
                                                 <span>Rincian transaksi</span>
@@ -1509,6 +1522,33 @@
                                                     ({{ (int) data_get($scheduleAfter, 'duration_minutes') }} menit), total Rp {{ number_format((float) data_get($scheduleAfter, 'amount'), 0, ',', '.') }}.
                                                 </div>
                                                 <div class="small text-secondary mb-2">Alasan: {{ $scheduleAudit->reason }}</div>
+                                            @endforeach
+                                        </div>
+                                    @endif
+                                    @if($booking->discountAudits->isNotEmpty())
+                                        <div class="border-top mt-3 pt-2">
+                                            <div class="small fw-semibold mb-2">Riwayat koreksi diskon</div>
+                                            @foreach($booking->discountAudits as $discountAudit)
+                                                @php
+                                                    $discountBefore = $discountAudit->before_data ?? [];
+                                                    $discountAfter = $discountAudit->after_data ?? [];
+                                                    $discountTypeLabel = fn ($type) => match ($type) {
+                                                        'fixed' => 'Potongan nominal',
+                                                        'percentage' => 'Potongan persentase',
+                                                        default => 'Tanpa diskon',
+                                                    };
+                                                @endphp
+                                                <div class="small">
+                                                    {{ $discountAudit->created_at?->timezone(\App\Models\CourtBooking::TIMEZONE)->format('d M Y, H:i') }} WIB
+                                                    · {{ $discountAudit->admin_name_snapshot ?? $discountAudit->admin?->name ?? 'Admin tidak diketahui' }}
+                                                </div>
+                                                <div class="small text-secondary">
+                                                    Sebelum: {{ $discountTypeLabel(data_get($discountBefore, 'discount_type')) }} · diskon Rp {{ number_format((float) data_get($discountBefore, 'discount_amount', 0), 0, ',', '.') }} · tagihan Rp {{ number_format((float) data_get($discountBefore, 'amount', 0), 0, ',', '.') }}.
+                                                </div>
+                                                <div class="small text-secondary">
+                                                    Sesudah: {{ $discountTypeLabel(data_get($discountAfter, 'discount_type')) }} · diskon Rp {{ number_format((float) data_get($discountAfter, 'discount_amount', 0), 0, ',', '.') }} · tagihan Rp {{ number_format((float) data_get($discountAfter, 'amount', 0), 0, ',', '.') }}.
+                                                </div>
+                                                <div class="small text-secondary mb-2">Alasan koreksi: {{ $discountAudit->reason }}</div>
                                             @endforeach
                                         </div>
                                     @endif
@@ -1641,6 +1681,12 @@
                                     </div>
                                 </td>
                                 <td class="booking-actions-cell">
+                                    @if($canCorrectSchedule && in_array($booking->source, ['walk_in', 'member'], true))
+                                        <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="modal"
+                                            data-bs-target="#bookingDiscountCorrection{{ $booking->id }}" aria-haspopup="dialog">
+                                            <i class="bi bi-tag me-1" aria-hidden="true"></i>Ubah diskon
+                                        </button>
+                                    @endif
                                     @if($canCorrectSchedule)
                                         <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="modal"
                                             data-bs-target="#bookingScheduleCorrection{{ $booking->id }}" aria-haspopup="dialog">
@@ -2489,8 +2535,222 @@
                     </div>
                 </div>
             @endif
+
+            @if($canShowScheduleCorrection && in_array($booking->source, ['walk_in', 'member'], true))
+                @php
+                    $discountCorrectionOld = (string) old('_discount_edit_booking_id', '') === (string) $booking->id;
+                    $discountGrossSubtotal = round((float) ($booking->subtotal_amount ?? ((float) $booking->amount + (float) ($booking->discount_amount ?? 0))), 2);
+                    $discountRentalTotal = round((float) $booking->rentalLines->sum('line_total'), 2);
+                    $discountCourtSubtotal = max(0, round($discountGrossSubtotal - $discountRentalTotal, 2));
+                    $discountPaymentsGross = (float) $booking->payments
+                        ->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)
+                        ->sum(fn ($payment) => $payment->recognized_amount);
+                    $discountRefunds = (float) $booking->fundSettlements
+                        ->where('type', \App\Models\CourtBookingFundSettlement::TYPE_REFUND)
+                        ->whereNull('voided_at')
+                        ->sum('amount');
+                    $discountNetPaid = max(0, round($discountPaymentsGross - $discountRefunds, 2));
+                    $discountCurrentType = $discountCorrectionOld ? old('discount_type', $booking->discount_type ?: 'none') : ($booking->discount_type ?: 'none');
+                @endphp
+                <div class="modal fade booking-payment-modal" id="bookingDiscountCorrection{{ $booking->id }}"
+                    tabindex="-1" aria-labelledby="bookingDiscountCorrectionTitle{{ $booking->id }}" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <form method="POST" action="{{ route('admin.court-bookings.discount.update', $booking) }}"
+                                data-booking-discount-form data-court-subtotal="{{ $discountCourtSubtotal }}"
+                                data-gross-subtotal="{{ $discountGrossSubtotal }}" data-net-paid="{{ $discountNetPaid }}">
+                                @csrf
+                                @method('PUT')
+                                <input type="hidden" name="_discount_edit_booking_id" value="{{ $booking->id }}">
+                                <div class="modal-header">
+                                    <div>
+                                        <div class="booking-payment-modal-kicker">KOREKSI BOOKING · #{{ str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT) }}</div>
+                                        <h2 class="modal-title" id="bookingDiscountCorrectionTitle{{ $booking->id }}">Ubah diskon</h2>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="booking-payment-context mb-3">
+                                        <div>
+                                            <strong>{{ $booking->team_name ?: $booking->customer_name }}</strong>
+                                            <span>{{ $booking->source === 'member' ? 'Booking member' : 'Booking walk-in' }}</span>
+                                        </div>
+                                        <div>
+                                            <strong>{{ $booking->court?->name ?? 'Lapangan dihapus' }}</strong>
+                                            <span>{{ $booking->booking_date->translatedFormat('d F Y') }} · {{ substr($booking->time_start, 0, 5) }}–{{ substr($booking->time_end, 0, 5) }}</span>
+                                        </div>
+                                    </div>
+                                    <p class="small text-secondary">Diskon hanya mengurangi tarif lapangan. Biaya perlengkapan tetap sama. Setiap koreksi dicatat agar perubahan tagihan dapat ditelusuri.</p>
+
+                                    <div class="row g-3">
+                                        <div class="col-sm-5">
+                                            <label class="form-label" for="bookingDiscountType{{ $booking->id }}">Jenis diskon</label>
+                                            <select class="form-select" id="bookingDiscountType{{ $booking->id }}" name="discount_type" data-discount-type required>
+                                                <option value="none" @selected($discountCurrentType === 'none')>Tanpa diskon</option>
+                                                <option value="fixed" @selected($discountCurrentType === 'fixed')>Potongan nominal</option>
+                                                <option value="percentage" @selected($discountCurrentType === 'percentage')>Potongan persentase</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-sm-7">
+                                            <label class="form-label" for="bookingDiscountValue{{ $booking->id }}">Nilai diskon</label>
+                                            <div class="input-group">
+                                                <input class="form-control" id="bookingDiscountValue{{ $booking->id }}" name="discount_value"
+                                                    type="text" inputmode="decimal" autocomplete="off" data-discount-value
+                                                    value="{{ $discountCorrectionOld ? old('discount_value', $booking->discount_value) : ($booking->discount_type === 'fixed' ? number_format((float) $booking->discount_value, 0, ',', '.') : (float) ($booking->discount_value ?? 0)) }}"
+                                                    placeholder="Contoh: 50.000">
+                                                <span class="input-group-text" data-discount-suffix>Rp</span>
+                                            </div>
+                                            @if($discountCorrectionOld && $errors->has('discount_value'))<div class="text-danger small mt-1">{{ $errors->first('discount_value') }}</div>@endif
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <label class="form-label" for="bookingDiscountReason{{ $booking->id }}">Alasan diskon</label>
+                                        <input class="form-control" id="bookingDiscountReason{{ $booking->id }}" name="discount_reason" maxlength="255"
+                                            value="{{ $discountCorrectionOld ? old('discount_reason', $booking->discount_reason) : $booking->discount_reason }}"
+                                            placeholder="Contoh: potongan member">
+                                        @if($discountCorrectionOld && $errors->has('discount_reason'))<div class="text-danger small mt-1">{{ $errors->first('discount_reason') }}</div>@endif
+                                    </div>
+
+                                    <div class="booking-payment-facts booking-discount-facts" aria-label="Perkiraan total setelah diskon">
+                                        <div class="booking-payment-fact">
+                                            <span>Subtotal sebelum diskon</span>
+                                            <strong data-discount-gross>Rp 0</strong>
+                                        </div>
+                                        <div class="booking-payment-fact">
+                                            <span>Diskon baru</span>
+                                            <strong data-discount-amount>Rp 0</strong>
+                                        </div>
+                                        <div class="booking-payment-fact">
+                                            <span>Total tagihan baru</span>
+                                            <strong data-discount-total>Rp 0</strong>
+                                        </div>
+                                    </div>
+                                    <div class="small text-secondary mb-3" data-discount-balance></div>
+
+                                    <section class="border rounded p-3" data-discount-refund-section hidden aria-labelledby="bookingDiscountRefundHeading{{ $booking->id }}">
+                                        <h3 class="h6 mb-1" id="bookingDiscountRefundHeading{{ $booking->id }}">Pengembalian selisih</h3>
+                                        <p class="small text-secondary">Total baru lebih rendah daripada dana bersih yang diterima. Kembalikan selisihnya terlebih dahulu, lalu catat metode pengembalian di sini.</p>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="bookingDiscountRefundConfirmed{{ $booking->id }}" name="refund_confirmed" value="1" @checked($discountCorrectionOld && old('refund_confirmed')) data-discount-refund-confirmed>
+                                            <label class="form-check-label" for="bookingDiscountRefundConfirmed{{ $booking->id }}">Saya sudah benar-benar mengembalikan selisih dana.</label>
+                                            @if($discountCorrectionOld && $errors->has('refund_confirmed'))<div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-sm-6">
+                                                <label class="form-label" for="bookingDiscountRefundMethod{{ $booking->id }}">Dikembalikan melalui</label>
+                                                <select class="form-select" id="bookingDiscountRefundMethod{{ $booking->id }}" name="refund_payment_method" data-discount-refund-method>
+                                                    <option value="">Pilih metode</option>
+                                                    <option value="cash" @selected($discountCorrectionOld && old('refund_payment_method') === 'cash')>Tunai</option>
+                                                    <option value="bank_transfer" @selected($discountCorrectionOld && old('refund_payment_method') === 'bank_transfer')>Transfer bank</option>
+                                                    <option value="qris" @selected($discountCorrectionOld && old('refund_payment_method') === 'qris')>QRIS</option>
+                                                </select>
+                                                @if($discountCorrectionOld && $errors->has('refund_payment_method'))<div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}</div>@endif
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label" for="bookingDiscountRefundReference{{ $booking->id }}">Referensi <span class="text-secondary">(opsional)</span></label>
+                                                <input class="form-control" id="bookingDiscountRefundReference{{ $booking->id }}" name="refund_reference" maxlength="100"
+                                                    value="{{ $discountCorrectionOld ? old('refund_reference') : '' }}" placeholder="Nomor referensi">
+                                                @if($discountCorrectionOld && $errors->has('refund_reference'))<div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>@endif
+                                            </div>
+                                        </div>
+                                    </section>
+
+                                    <div class="mt-3">
+                                        <label class="form-label" for="bookingDiscountAuditReason{{ $booking->id }}">Alasan koreksi <span class="text-danger">*</span></label>
+                                        <textarea class="form-control" id="bookingDiscountAuditReason{{ $booking->id }}" name="reason" rows="2" maxlength="500" placeholder="Contoh: diskon awal salah dicatat" required>{{ $discountCorrectionOld ? old('reason') : '' }}</textarea>
+                                        @if($discountCorrectionOld && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
+                                    </div>
+                                    @if($discountCorrectionOld && $errors->has('booking'))
+                                        <div class="alert alert-danger mt-3 mb-0">{{ $errors->first('booking') }}</div>
+                                    @endif
+                                </div>
+                                <div class="modal-footer">
+                                    <button class="btn btn-outline-secondary" type="button" data-bs-dismiss="modal">Batal</button>
+                                    <button class="btn btn-dark" type="submit"><i class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan koreksi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            @endif
         @endforeach
     </main>
+
+    @push('scripts')
+        <script>
+            (() => {
+                const formatRupiah = (amount) => `Rp ${new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 }).format(Math.max(0, Math.round(amount || 0)))}`;
+
+                document.querySelectorAll('[data-booking-discount-form]').forEach((form) => {
+                    const type = form.querySelector('[data-discount-type]');
+                    const value = form.querySelector('[data-discount-value]');
+                    const reason = form.querySelector('[name="discount_reason"]');
+                    const suffix = form.querySelector('[data-discount-suffix]');
+                    const grossOutput = form.querySelector('[data-discount-gross]');
+                    const discountOutput = form.querySelector('[data-discount-amount]');
+                    const totalOutput = form.querySelector('[data-discount-total]');
+                    const balanceOutput = form.querySelector('[data-discount-balance]');
+                    const refundSection = form.querySelector('[data-discount-refund-section]');
+                    const refundConfirmed = form.querySelector('[data-discount-refund-confirmed]');
+                    const refundMethod = form.querySelector('[data-discount-refund-method]');
+                    const gross = Number(form.dataset.grossSubtotal || 0);
+                    const courtSubtotal = Number(form.dataset.courtSubtotal || 0);
+                    const paid = Number(form.dataset.netPaid || 0);
+
+                    if (!type || !value || !grossOutput || !discountOutput || !totalOutput || !balanceOutput || !refundSection || !refundConfirmed || !refundMethod) return;
+
+                    const formatFixedInput = () => {
+                        const digits = value.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                        value.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    };
+                    const updatePreview = () => {
+                        const selectedType = type.value;
+                        suffix.textContent = selectedType === 'percentage' ? '%' : 'Rp';
+                        value.placeholder = selectedType === 'percentage' ? 'Contoh: 10' : 'Contoh: 50.000';
+                        const rawValue = selectedType === 'fixed'
+                            ? Number(value.value.replace(/\D/g, '') || 0)
+                            : Number(value.value.replace(',', '.') || 0);
+                        const discount = selectedType === 'fixed'
+                            ? Math.min(courtSubtotal, Math.max(0, rawValue))
+                            : selectedType === 'percentage'
+                                ? courtSubtotal * Math.min(100, Math.max(0, rawValue)) / 100
+                                : 0;
+                        const newTotal = Math.max(0, gross - discount);
+                        const refund = Math.max(0, paid - newTotal);
+                        const balance = Math.max(0, newTotal - paid);
+
+                        reason.required = discount > 0;
+                        grossOutput.textContent = formatRupiah(gross);
+                        discountOutput.textContent = formatRupiah(discount);
+                        totalOutput.textContent = formatRupiah(newTotal);
+                        balanceOutput.textContent = refund > 0
+                            ? `Dana bersih diterima ${formatRupiah(paid)} · Selisih yang harus dikembalikan ${formatRupiah(refund)}`
+                            : `Dana bersih diterima ${formatRupiah(paid)} · Sisa tagihan ${formatRupiah(balance)}`;
+                        refundSection.hidden = refund <= 0;
+                        refundConfirmed.required = refund > 0;
+                        refundMethod.required = refund > 0;
+                    };
+
+                    let previousType = type.value;
+                    type.addEventListener('change', () => {
+                        if (type.value !== previousType) {
+                            value.value = '';
+                            previousType = type.value;
+                        }
+                        if (type.value === 'fixed') formatFixedInput();
+                        updatePreview();
+                    });
+                    value.addEventListener('input', () => {
+                        if (type.value === 'fixed') formatFixedInput();
+                        updatePreview();
+                    });
+                    value.addEventListener('blur', updatePreview);
+                    if (type.value === 'fixed') formatFixedInput();
+                    updatePreview();
+                });
+            })();
+        </script>
+    @endpush
 
     @if((string) old('_verification_booking_id', '') !== '' && $errors->hasAny(['verified_amount', 'verification_note', 'booking']))
         @push('scripts')
@@ -2581,6 +2841,17 @@
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
                     const modal = document.getElementById('bookingScheduleCorrection{{ old('_schedule_edit_booking_id') }}');
+                    if (modal && window.bootstrap?.Modal) window.bootstrap.Modal.getOrCreateInstance(modal).show();
+                });
+            </script>
+        @endpush
+    @endif
+
+    @if((string) old('_discount_edit_booking_id', '') !== '' && $errors->hasAny(['discount_type', 'discount_value', 'discount_reason', 'reason', 'refund_confirmed', 'refund_payment_method', 'refund_reference', 'booking']))
+        @push('scripts')
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const modal = document.getElementById('bookingDiscountCorrection{{ old('_discount_edit_booking_id') }}');
                     if (modal && window.bootstrap?.Modal) window.bootstrap.Modal.getOrCreateInstance(modal).show();
                 });
             </script>

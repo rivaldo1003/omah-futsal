@@ -276,6 +276,7 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{booking}/fund-settlements/{settlement}/void', [AdminCourtBookingController::class, 'voidFundSettlement'])->name('fund-settlements.void');
         Route::put('/{booking}/team', [AdminCourtBookingController::class, 'updateTeamName'])->name('team.update');
         Route::put('/{booking}/schedule', [AdminCourtBookingController::class, 'updateSchedule'])->name('schedule.update');
+        Route::put('/{booking}/discount', [AdminCourtBookingController::class, 'updateDiscount'])->name('discount.update');
         Route::post('/{booking}/payments', [AdminCourtBookingController::class, 'recordPayment'])->name('payments.store');
         Route::put('/{booking}/payments/{payment}', [AdminCourtBookingController::class, 'updatePayment'])->name('payments.update');
         Route::post('/{booking}/payments/{payment}/unverify', [AdminCourtBookingController::class, 'unverifyPayment'])->name('payments.unverify');
