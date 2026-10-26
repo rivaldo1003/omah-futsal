@@ -22,6 +22,7 @@ class CourtDailyRevenueEntry extends Model
         'payment_method',
         'tournament_id',
         'court_id',
+        'court_tournament_rental_id',
         'note',
         'updated_by',
     ];
@@ -44,6 +45,11 @@ class CourtDailyRevenueEntry extends Model
     public function court(): BelongsTo
     {
         return $this->belongsTo(Court::class);
+    }
+
+    public function courtTournamentRental(): BelongsTo
+    {
+        return $this->belongsTo(CourtTournamentRental::class);
     }
 
     public function getPaymentMethodLabelAttribute(): string

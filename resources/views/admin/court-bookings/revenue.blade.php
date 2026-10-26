@@ -153,6 +153,47 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .revenue-net-result {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+            padding: 20px 22px;
+            border-left: 4px solid var(--revenue-ink);
+            border-bottom: 1px solid var(--revenue-line);
+            background: var(--revenue-cloud);
+        }
+
+        .revenue-net-result span {
+            display: block;
+            color: var(--revenue-ink);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .revenue-net-result p {
+            margin: 4px 0 0;
+            color: var(--revenue-muted);
+            font-size: 13px;
+        }
+
+        .revenue-net-result strong {
+            flex: 0 0 auto;
+            color: var(--revenue-ink);
+            font-size: clamp(24px, 3vw, 32px);
+            font-weight: 650;
+            line-height: 1.15;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .revenue-net-result.is-negative strong {
+            color: #b42318;
+        }
+
+        .revenue-expense-summary {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
         .revenue-month-filter {
             display: flex;
             flex-wrap: wrap;
@@ -428,6 +469,17 @@
                 grid-template-columns: 1fr;
             }
 
+            .revenue-net-result {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 8px;
+                padding: 18px 16px;
+            }
+
+            .revenue-net-result strong {
+                font-size: 28px;
+            }
+
             .revenue-month-summary > div + div {
                 border-top: 1px solid var(--revenue-line);
                 border-left: 0;
@@ -560,6 +612,9 @@
                 <a href="{{ route('admin.court-bookings.reports.daily') }}" class="btn">
                     <i class="bi bi-clipboard-data" aria-hidden="true"></i>Laporan operasional
                 </a>
+                <a href="{{ route('admin.court-bookings.expenses.index', ['month' => $selectedMonth]) }}" class="btn">
+                    <i class="bi bi-receipt" aria-hidden="true"></i>Pengeluaran
+                </a>
             </nav>
         </header>
 
@@ -567,7 +622,7 @@
             <header class="report-panel-header revenue-month-header">
                 <div>
                     <h2 id="monthlyRevenueTitle">Rekap pemasukan bulanan</h2>
-                    <p>{{ $selectedMonthLabel }} · Booking publik, walk-in, dan member yang pembayarannya tercatat, serta parkir, toko, sewa perlengkapan, dan pemasukan lain.</p>
+                    <p>{{ $selectedMonthLabel }} · Booking publik, walk-in, member, dan sewa lapangan turnamen, serta parkir, toko, perlengkapan, dan pemasukan lain.</p>
                 </div>
                 <form class="revenue-month-filter" method="GET" action="{{ route('admin.court-bookings.revenue') }}">
                     <div class="field">
@@ -669,7 +724,47 @@
                     </tfoot>
                 </table>
             </div>
-            <p class="revenue-month-note">Pembayaran booking masuk ke bulan saat dicatat; refund mengurangi arus kas pada bulan saat pengembalian dicatat. Parkir, toko, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Perlengkapan yang dibayar dalam transaksi booking tetap termasuk pada baris booking, sedangkan tambahan dan sewa perlengkapan terpisah tampil pada baris masing-masing. Data lama yang belum memiliki metode pembayaran masuk ke “Belum dirinci”. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+            <p class="revenue-month-note">Pembayaran booking masuk ke bulan saat dicatat; refund mengurangi arus kas pada bulan saat pengembalian dicatat. Sewa lapangan turnamen masuk ke baris booking jika pemasukan ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Perlengkapan yang dibayar dalam transaksi booking tetap termasuk pada baris booking, sedangkan sewa perlengkapan terpisah tampil pada baris masing-masing. Data lama yang belum memiliki metode pembayaran masuk ke “Belum dirinci”. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+        </section>
+
+        <section class="report-panel" aria-labelledby="monthlyExpensesTitle">
+            <header class="report-panel-header">
+                <div>
+                    <h2 id="monthlyExpensesTitle">Pengeluaran dan hasil bersih · {{ $selectedMonthLabel }}</h2>
+                    <p>Pengeluaran operasional dikurangkan setelah penerimaan booking dan pemasukan lain dikurangi refund.</p>
+                </div>
+                <a class="btn" href="{{ route('admin.court-bookings.expenses.index', ['month' => $selectedMonth]) }}">Kelola pengeluaran</a>
+            </header>
+            <div class="revenue-net-result{{ $monthlyOperatingSurplus < 0 ? ' is-negative' : '' }}" aria-label="Sisa arus kas setelah pengeluaran tercatat">
+                <div>
+                    <span>Sisa setelah pengeluaran tercatat</span>
+                    <p>Pemasukan bulan ini setelah refund, dikurangi pengeluaran yang dicatat di sistem.</p>
+                </div>
+                <strong>{{ $monthlyOperatingSurplus < 0 ? '− ' : '' }}Rp {{ number_format(abs($monthlyOperatingSurplus), 0, ',', '.') }}</strong>
+            </div>
+            <div class="revenue-month-summary revenue-expense-summary">
+                <div><span>Total pengeluaran</span><strong>Rp {{ number_format($monthlyExpenseTotal, 0, ',', '.') }}</strong></div>
+                <div><span>Rincian pembayaran</span><strong class="small">Tunai · transfer · QRIS</strong></div>
+            </div>
+            @php
+                $expenseCategoryLabels = ['salary' => 'Gaji', 'electricity' => 'Listrik', 'other' => 'Lain-lain'];
+                $expenseMethodLabels = ['cash' => 'Tunai', 'transfer' => 'Transfer', 'qris' => 'QRIS', 'unclassified' => 'Belum dirinci'];
+            @endphp
+            <div class="table-responsive">
+                <table class="table align-middle revenue-table revenue-month-table">
+                    <caption class="visually-hidden">Pengeluaran menurut kategori dan metode pembayaran untuk {{ $selectedMonthLabel }}.</caption>
+                    <thead><tr><th scope="col">Kategori pengeluaran</th>@foreach($expenseMethodLabels as $label)<th scope="col" class="text-end">{{ $label }}</th>@endforeach<th scope="col" class="text-end">Total</th></tr></thead>
+                    <tbody>
+                        @foreach($expenseCategoryLabels as $category => $label)
+                            @php
+                                $categoryTotal = array_sum($monthlyExpenseByCategory[$category]);
+                            @endphp
+                            <tr><th scope="row">{{ $label }}</th>@foreach($expenseMethodLabels as $method => $methodLabel)<td class="text-end revenue-money">Rp {{ number_format($monthlyExpenseByCategory[$category][$method], 0, ',', '.') }}</td>@endforeach<td class="text-end revenue-money"><strong>Rp {{ number_format($categoryTotal, 0, ',', '.') }}</strong></td></tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            <p class="revenue-month-note">Hasil setelah pengeluaran adalah ringkasan arus kas periode ini, bukan laporan laba akuntansi. Catatan yang dihapus tetap ada di riwayat audit tetapi tidak dihitung.</p>
         </section>
 
         <section class="report-panel revenue-overview" aria-label="Total pemasukan tercatat">
@@ -682,7 +777,7 @@
             <div class="revenue-source">
                 <span class="revenue-label">Pemasukan booking diakui</span>
                 <strong>Rp {{ number_format($bookingIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Booking aktif, perlengkapan tambahan, dan biaya pembatalan yang ditahan</span>
+                <span class="revenue-caption">Booking aktif, sewa lapangan turnamen, perlengkapan tambahan, dan biaya pembatalan yang ditahan</span>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Pembayaran booking bruto</span>

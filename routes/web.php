@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\HeroSettingController;
 use App\Http\Controllers\Admin\CourtBookingController as AdminCourtBookingController;
+use App\Http\Controllers\Admin\CourtOperationalExpenseController as AdminCourtOperationalExpenseController;
 use App\Http\Controllers\Admin\CourtBookingRentalAdditionController as AdminCourtBookingRentalAdditionController;
 use App\Http\Controllers\Admin\CourtRentalCatalogController as AdminCourtRentalCatalogController;
 use App\Http\Controllers\Admin\CourtRentalOrderController as AdminCourtRentalOrderController;
@@ -234,6 +235,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::get('/member-schedules/{schedule}/booking', [AdminCourtBookingController::class, 'createMemberBooking'])->name('member-schedules.booking.create');
         Route::post('/member-schedules/{schedule}/booking', [AdminCourtBookingController::class, 'storeMemberBooking'])->name('member-schedules.booking.store');
         Route::get('/reports/revenue', [AdminCourtBookingController::class, 'revenueReport'])->name('revenue');
+        Route::get('/reports/expenses', [AdminCourtOperationalExpenseController::class, 'index'])->name('expenses.index');
+        Route::post('/reports/expenses', [AdminCourtOperationalExpenseController::class, 'store'])->name('expenses.store');
+        Route::put('/reports/expenses/{expense}', [AdminCourtOperationalExpenseController::class, 'update'])->name('expenses.update');
+        Route::delete('/reports/expenses/{expense}', [AdminCourtOperationalExpenseController::class, 'destroy'])->name('expenses.destroy');
         Route::get('/reports/daily', [AdminCourtBookingController::class, 'dailyReport'])->name('reports.daily');
         Route::post('/reports/daily/review', [AdminCourtBookingController::class, 'reviewDailyReport'])->name('reports.daily-review.store');
         Route::get('/reports/team-hours', [AdminCourtBookingController::class, 'teamHoursReport'])->name('reports.team-hours');

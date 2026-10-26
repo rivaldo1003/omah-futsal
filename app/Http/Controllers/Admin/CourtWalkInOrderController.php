@@ -10,6 +10,7 @@ use App\Models\CourtBookingPayment;
 use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
 use App\Services\CourtBookingAvailabilityService;
+use App\Services\CourtBookingDiscountService;
 use App\Services\CourtPricingService;
 use App\Services\CourtRentalInventoryService;
 use Carbon\Carbon;
@@ -107,6 +108,7 @@ class CourtWalkInOrderController extends Controller
         CourtBookingAvailabilityService $availability,
         CourtPricingService $pricing,
         CourtRentalInventoryService $inventory,
+        CourtBookingDiscountService $discounts,
     ) {
         $this->ensureAdmin();
 
@@ -128,6 +130,9 @@ class CourtWalkInOrderController extends Controller
             'customer_email' => ['nullable', 'email', 'max:255'],
             'payment_method' => ['required', Rule::in(['none', 'cash', 'bank_transfer', 'qris'])],
             'amount_received' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'discount_type' => ['nullable', Rule::in(['none', 'fixed', 'percentage'])],
+            'discount_value' => ['nullable', 'string', 'max:30'],
+            'discount_reason' => ['nullable', 'string', 'max:255'],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
             'backdate_reason' => [$isBackdated ? 'required' : 'nullable', 'string', 'max:500'],
@@ -150,6 +155,9 @@ class CourtWalkInOrderController extends Controller
             'customer_phone' => trim($validated['customer_phone']),
             'customer_email' => $validated['customer_email'] ?? null,
             'payment_method' => $validated['payment_method'],
+            'discount_type' => $validated['discount_type'] ?? 'none',
+            'discount_value' => $discounts->normalizedValue($validated['discount_type'] ?? 'none', $validated['discount_value'] ?? ''),
+            'discount_reason' => trim((string) ($validated['discount_reason'] ?? '')),
             'amount_received' => round((float) ($validated['amount_received'] ?? 0), 2),
             'payment_reference' => $validated['payment_reference'] ?? null,
             'admin_note' => $validated['admin_note'] ?? null,
@@ -166,7 +174,7 @@ class CourtWalkInOrderController extends Controller
         }
 
         try {
-            $booking = DB::transaction(function () use ($validated, $rentalSelections, $availability, $pricing, $inventory, $fingerprint, $isBackdated) {
+            $booking = DB::transaction(function () use ($validated, $rentalSelections, $availability, $pricing, $inventory, $discounts, $fingerprint, $isBackdated) {
                 $court = $availability->lockCourt((int) $validated['court_id']);
                 if (!$court || !$court->is_active) {
                     throw ValidationException::withMessages(['court_id' => 'Lapangan ini sedang tidak menerima booking. Pilih lapangan aktif.']);
@@ -204,8 +212,15 @@ class CourtWalkInOrderController extends Controller
                     $rentalItems,
                     $inventory,
                 );
-                $amount = round((float) $availableRange['amount'] + $rentalTotal, 2);
-                if ($amount > 9999999999.99) {
+                $discount = $discounts->forCourtAmount(
+                    $validated['discount_type'] ?? 'none',
+                    $validated['discount_value'] ?? '',
+                    $validated['discount_reason'] ?? '',
+                    (float) $availableRange['amount'],
+                );
+                $subtotal = round((float) $availableRange['amount'] + $rentalTotal, 2);
+                $amount = round(max(0, $subtotal - $discount['amount']), 2);
+                if ($amount > 9999999999.99 || $subtotal > 9999999999.99) {
                     throw ValidationException::withMessages(['rental_items' => 'Total transaksi melebihi batas yang dapat disimpan. Kurangi jumlah perlengkapan.']);
                 }
 
@@ -232,6 +247,11 @@ class CourtWalkInOrderController extends Controller
                     'time_end' => $availableRange['end'].':00',
                     'duration_minutes' => $availableRange['duration'],
                     'amount' => $amount,
+                    'subtotal_amount' => $subtotal,
+                    'discount_type' => $discount['type'],
+                    'discount_value' => $discount['value'],
+                    'discount_amount' => $discount['amount'],
+                    'discount_reason' => $discount['reason'],
                     'customer_name' => trim($validated['customer_name']),
                     'team_name' => trim($validated['team_name']),
                     'customer_phone' => trim($validated['customer_phone']),
@@ -833,4 +853,5 @@ class CourtWalkInOrderController extends Controller
     {
         abort_unless(auth()->check() && auth()->user()->role === 'admin', 403);
     }
+
 }

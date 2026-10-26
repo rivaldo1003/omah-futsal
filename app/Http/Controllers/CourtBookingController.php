@@ -315,6 +315,7 @@ class CourtBookingController extends Controller
                     'time_end' => $endTime,
                     'duration_minutes' => $duration,
                     'amount' => $amount,
+                    'subtotal_amount' => $amount,
                     'customer_name' => $validated['customer_name'],
                     'team_name' => trim($validated['team_name']),
                     'customer_phone' => $validated['customer_phone'],
@@ -364,7 +365,7 @@ class CourtBookingController extends Controller
     public function show(string $token, CourtBookingAvailabilityService $availability)
     {
         $booking = CourtBooking::query()
-            ->with(['court', 'rentalLines', 'rentalAdditions.lines', 'payments'])
+            ->with(['court', 'rentalLines', 'rentalAdditions.lines', 'payments', 'fundSettlements'])
             ->where('public_token', $token)
             ->firstOrFail();
 
@@ -378,10 +379,16 @@ class CourtBookingController extends Controller
             $booking->refresh();
         }
 
-        $booking->load(['court', 'rentalLines', 'rentalAdditions.lines', 'payments']);
-        $booking->setAttribute('paid_amount', $booking->payments
+        $booking->load(['court', 'rentalLines', 'rentalAdditions.lines', 'payments', 'fundSettlements']);
+        $grossPaidAmount = (float) $booking->payments
             ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
-            ->sum(fn (CourtBookingPayment $payment) => $payment->recognized_amount));
+            ->sum(fn (CourtBookingPayment $payment) => $payment->recognized_amount);
+        $refundedAmount = (float) $booking->fundSettlements
+            ->where('type', \App\Models\CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('voided_at')
+            ->sum('amount');
+        $booking->setAttribute('paid_amount', max(0, round($grossPaidAmount - $refundedAmount, 2)));
+        $booking->setAttribute('refunded_amount', $refundedAmount);
 
         $scheduleHasPassed = $this->scheduleHasPassed($booking);
 

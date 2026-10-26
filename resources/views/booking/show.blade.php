@@ -99,7 +99,13 @@
                 <section class="payment-panel mb-3" aria-labelledby="paymentSummaryTitle">
                     <h2 id="paymentSummaryTitle">Ringkasan pembayaran</h2>
                     <div class="booking-details mb-0">
-                        <div><span class="detail-label">Sudah dibayar dan diverifikasi</span><span class="detail-value">Rp {{ number_format($paidAmount, 0, ',', '.') }}</span></div>
+                        <div>
+                            <span class="detail-label">{{ ($booking->refunded_amount ?? 0) > 0 ? 'Diterima setelah refund' : 'Sudah dibayar dan diverifikasi' }}</span>
+                            <span class="detail-value">Rp {{ number_format($paidAmount, 0, ',', '.') }}</span>
+                        </div>
+                        @if(($booking->refunded_amount ?? 0) > 0)
+                            <div><span class="detail-label">Dana yang sudah dikembalikan</span><span class="detail-value">Rp {{ number_format((float) $booking->refunded_amount, 0, ',', '.') }}</span></div>
+                        @endif
                         <div><span class="detail-label">Sisa pembayaran</span><span class="detail-value">{{ $remainingAmount === null ? '—' : 'Rp '.number_format($remainingAmount, 0, ',', '.') }}</span></div>
                     </div>
                     @if($booking->payments->isNotEmpty())

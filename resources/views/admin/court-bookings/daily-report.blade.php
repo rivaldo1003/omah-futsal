@@ -1026,6 +1026,10 @@
                     <strong>Rp {{ number_format($dailyBookingIncome, 0, ',', '.') }}</strong>
                 </div>
                 <div class="daily-report-metric">
+                    <span>Termasuk sewa lapangan turnamen</span>
+                    <strong>Rp {{ number_format($dailyTournamentRentalIncome, 0, ',', '.') }}</strong>
+                </div>
+                <div class="daily-report-metric">
                     <span>Tambahan perlengkapan (termasuk di pemasukan booking)</span>
                     <strong>Rp {{ number_format($dailyRentalAdditionIncome, 0, ',', '.') }}</strong>
                 </div>
@@ -1111,8 +1115,8 @@
         </section>
 
         <section class="daily-other-income-panel" aria-labelledby="dailyOtherIncomeTitle">
-            <h2 id="dailyOtherIncomeTitle">Pemasukan lain</h2>
-            <p>Catat pemasukan selain booking, parkir, dan toko. Untuk biaya sewa turnamen, pilih turnamen serta lapangan agar catatannya mudah dilacak. Jadwal pertandingan sendiri tidak otomatis dihitung sebagai pembayaran. Jangan catat ulang jika pembayarannya sudah tercatat pada booking lapangan.</p>
+            <h2 id="dailyOtherIncomeTitle">Catat pemasukan lain / sewa turnamen</h2>
+            <p>Catat uang sewa turnamen di sini lalu pilih sesi sewanya agar masuk ke pemasukan booking lapangan dan rekap penyewa. Tanpa memilih sesi, uang tetap tercatat sebagai sponsor atau pemasukan lain. Jika uang sewa sudah dicatat, ubah catatan yang ada dan pilih sesi; jangan menambah catatan baru. Jadwal pertandingan tidak otomatis membuat catatan pembayaran.</p>
 
             <form class="daily-other-income-form" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.store') }}">
                 @csrf
@@ -1135,8 +1139,21 @@
                     </select>
                 </div>
                 <div>
+                    <label class="form-label" for="otherIncomeRental">Sesi sewa lapangan turnamen <span class="text-secondary fw-normal">(opsional)</span></label>
+                    <select class="form-select js-revenue-rental-select" id="otherIncomeRental" name="court_tournament_rental_id"
+                        data-tournament-target="otherIncomeTournament" data-court-target="otherIncomeCourt">
+                        <option value="">Tidak terkait sewa turnamen</option>
+                        @foreach($tournamentRentals as $rental)
+                            <option value="{{ $rental->id }}" data-tournament-id="{{ $rental->tournament_id }}" data-court-id="{{ $rental->court_id }}" @selected((string) old('court_tournament_rental_id') === (string) $rental->id)>
+                                {{ $rental->tournament_name_snapshot }} · {{ $rental->rental_date->locale('id')->translatedFormat('d M Y') }} · {{ $rental->court?->name ?? 'Lapangan dihapus' }} · {{ substr((string) $rental->time_start, 0, 5) }}–{{ substr((string) $rental->time_end, 0, 5) }}{{ $rental->status === \App\Models\CourtTournamentRental::STATUS_CANCELLED ? ' · Dibatalkan' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <div class="form-text">Jika dipilih, turnamen dan lapangan mengikuti sesi sewa.</div>
+                </div>
+                <div>
                     <label class="form-label" for="otherIncomeTournament">Turnamen (opsional)</label>
-                    <select class="form-select" id="otherIncomeTournament" name="tournament_id">
+                    <select class="form-select" id="otherIncomeTournament" name="tournament_id" data-original-value="{{ old('tournament_id') }}">
                         <option value="">Tidak terkait turnamen</option>
                         @foreach($tournaments as $tournament)
                             <option value="{{ $tournament->id }}">{{ $tournament->name }}</option>
@@ -1145,7 +1162,7 @@
                 </div>
                 <div>
                     <label class="form-label" for="otherIncomeCourt">Lapangan (opsional)</label>
-                    <select class="form-select" id="otherIncomeCourt" name="court_id">
+                    <select class="form-select" id="otherIncomeCourt" name="court_id" data-original-value="{{ old('court_id') }}">
                         <option value="">Pilih lapangan</option>
                         @foreach($courts as $court)
                             <option value="{{ $court->id }}">{{ $court->name }}</option>
@@ -1161,22 +1178,25 @@
 
             <div class="table-responsive daily-other-income-table">
                 <table class="table align-middle mb-0">
-                    <thead><tr><th>Sumber / keterkaitan</th><th>Nominal</th><th>Metode</th><th>Turnamen</th><th>Lapangan</th><th>Catatan</th><th>Aksi</th></tr></thead>
+                    <thead><tr><th>Sumber / keterkaitan</th><th>Nominal</th><th>Metode</th><th>Sesi sewa lapangan</th><th>Turnamen</th><th>Lapangan</th><th>Catatan</th><th>Aksi</th></tr></thead>
                     <tbody>
                     @forelse($dailyRevenueEntries as $entry)
                         <tr>
                             <td><label class="visually-hidden" for="otherIncomeTitle{{ $entry->id }}">Sumber pemasukan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTitle{{ $entry->id }}" name="title" maxlength="120" value="{{ $entry->title }}" required>
+                                @if($entry->court_tournament_rental_id)<span class="badge text-bg-light">Sewa lapangan turnamen</span>@else<span class="badge text-bg-light">Pemasukan lain</span>@endif
+                                @if($entry->courtTournamentRental)<div class="small text-secondary">{{ $entry->courtTournamentRental->tournament_name_snapshot }} · {{ $entry->courtTournamentRental->rental_date->locale('id')->translatedFormat('d M Y') }} · {{ substr((string) $entry->courtTournamentRental->time_start, 0, 5) }}–{{ substr((string) $entry->courtTournamentRental->time_end, 0, 5) }}</div>@endif
                                 @if($entry->tournament)<div class="small text-secondary">{{ $entry->tournament->name }}</div>@endif</td>
                             <td><label class="visually-hidden" for="otherIncomeAmount{{ $entry->id }}">Nominal diterima</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeAmount{{ $entry->id }}" name="amount" type="text" inputmode="numeric" autocomplete="off" data-daily-rupiah value="{{ $formatRupiah($entry->amount) }}" required></td>
                             <td><label class="visually-hidden" for="otherIncomeMethod{{ $entry->id }}">Metode pembayaran</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeMethod{{ $entry->id }}" name="payment_method" required>
                                 @foreach(['cash' => 'Tunai', 'bank_transfer' => 'Transfer', 'qris' => 'QRIS', 'unclassified' => 'Belum dirinci'] as $method => $methodLabel)<option value="{{ $method }}" @selected($entry->payment_method === $method)>{{ $methodLabel }}</option>@endforeach
                             </select></td>
-                            <td><label class="visually-hidden" for="otherIncomeTournament{{ $entry->id }}">Turnamen</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTournament{{ $entry->id }}" name="tournament_id"><option value="">Tidak terkait</option>@foreach($tournaments as $tournament)<option value="{{ $tournament->id }}" @selected((int) $entry->tournament_id === (int) $tournament->id)>{{ $tournament->name }}</option>@endforeach</select></td>
-                            <td><label class="visually-hidden" for="otherIncomeCourt{{ $entry->id }}">Lapangan</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeCourt{{ $entry->id }}" name="court_id"><option value="">Tidak terkait</option>@foreach($courts as $court)<option value="{{ $court->id }}" @selected((int) $entry->court_id === (int) $court->id)>{{ $court->name }}</option>@endforeach</select></td>
+                            <td><label class="visually-hidden" for="otherIncomeRental{{ $entry->id }}">Sesi sewa lapangan turnamen</label><select class="form-select js-revenue-rental-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeRental{{ $entry->id }}" name="court_tournament_rental_id" data-tournament-target="otherIncomeTournament{{ $entry->id }}" data-court-target="otherIncomeCourt{{ $entry->id }}"><option value="">Tidak terkait sewa turnamen</option>@foreach($tournamentRentals as $rental)<option value="{{ $rental->id }}" data-tournament-id="{{ $rental->tournament_id }}" data-court-id="{{ $rental->court_id }}" @selected((int) $entry->court_tournament_rental_id === (int) $rental->id)>{{ $rental->tournament_name_snapshot }} · {{ $rental->rental_date->locale('id')->translatedFormat('d M Y') }} · {{ $rental->court?->name ?? 'Lapangan dihapus' }} · {{ substr((string) $rental->time_start, 0, 5) }}–{{ substr((string) $rental->time_end, 0, 5) }}{{ $rental->status === \App\Models\CourtTournamentRental::STATUS_CANCELLED ? ' · Dibatalkan' : '' }}</option>@endforeach</select></td>
+                            <td><label class="visually-hidden" for="otherIncomeTournament{{ $entry->id }}">Turnamen</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeTournament{{ $entry->id }}" name="tournament_id" data-original-value="{{ $entry->tournament_id }}"><option value="">Tidak terkait</option>@foreach($tournaments as $tournament)<option value="{{ $tournament->id }}" @selected((int) $entry->tournament_id === (int) $tournament->id)>{{ $tournament->name }}</option>@endforeach</select></td>
+                            <td><label class="visually-hidden" for="otherIncomeCourt{{ $entry->id }}">Lapangan</label><select class="form-select" form="editOtherIncome{{ $entry->id }}" id="otherIncomeCourt{{ $entry->id }}" name="court_id" data-original-value="{{ $entry->court_id }}"><option value="">Tidak terkait</option>@foreach($courts as $court)<option value="{{ $court->id }}" @selected((int) $entry->court_id === (int) $court->id)>{{ $court->name }}</option>@endforeach</select></td>
                             <td><label class="visually-hidden" for="otherIncomeNote{{ $entry->id }}">Catatan</label><input class="form-control" form="editOtherIncome{{ $entry->id }}" id="otherIncomeNote{{ $entry->id }}" name="note" maxlength="500" value="{{ $entry->note }}" placeholder="Catatan opsional"></td>
                             <td>
                                 <div class="daily-entry-actions">
-                                    <form id="editOtherIncome{{ $entry->id }}" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.update', $entry) }}">
+                        <form id="editOtherIncome{{ $entry->id }}" method="POST" action="{{ route('admin.court-bookings.reports.daily-revenue-entries.update', $entry) }}">
                                         @csrf @method('PUT')
                                         <button class="btn btn-outline-primary btn-sm" type="submit">Simpan perubahan</button>
                                     </form>
@@ -1188,7 +1208,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-secondary">Belum ada pemasukan lain untuk tanggal ini.</td></tr>
+                        <tr><td colspan="8" class="text-secondary">Belum ada pemasukan lain untuk tanggal ini.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
@@ -1199,7 +1219,7 @@
             <header class="daily-report-table-header">
                 <div>
                     <h2 id="dailyMatchesTitle">Jadwal pertandingan {{ \Carbon\CarbonImmutable::parse($reportDate)->locale('id')->translatedFormat('d F Y') }}</h2>
-                    <p>Jadwal turnamen menandai penggunaan lapangan. Pembayarannya dicatat terpisah pada pemasukan lain.</p>
+                    <p>Jadwal pertandingan menandai penggunaan lapangan. Uang sewanya dicatat pada sesi sewa turnamen; biaya pendaftaran atau sponsor dicatat sebagai pemasukan lain.</p>
                 </div>
                 <span class="daily-report-table-count">{{ number_format($dailyMatches->count()) }} pertandingan</span>
             </header>
@@ -1479,6 +1499,27 @@
             const formatter = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
             const fields = document.querySelectorAll('[data-daily-rupiah]');
             const formatValue = (digits) => digits ? `Rp ${formatter.format(Number(digits))}` : '';
+
+            document.querySelectorAll('.js-revenue-rental-select').forEach((rentalSelect) => {
+                const tournamentSelect = document.getElementById(rentalSelect.dataset.tournamentTarget || '');
+                const courtSelect = document.getElementById(rentalSelect.dataset.courtTarget || '');
+                const syncRentalDetails = () => {
+                    const selectedRental = rentalSelect.selectedOptions[0];
+                    const hasRental = Boolean(rentalSelect.value);
+                    [
+                        [tournamentSelect, 'tournamentId'],
+                        [courtSelect, 'courtId'],
+                    ].forEach(([select, key]) => {
+                        if (!select) return;
+                        select.disabled = hasRental;
+                        select.value = hasRental
+                            ? (selectedRental?.dataset[key] || '')
+                            : (select.dataset.originalValue || '');
+                    });
+                };
+                rentalSelect.addEventListener('change', syncRentalDetails);
+                syncRentalDetails();
+            });
 
             fields.forEach((field) => field.addEventListener('input', () => {
                 const previousValue = field.value;

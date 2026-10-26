@@ -798,7 +798,7 @@
                             {{ number_format((float) $schedule['court']->day_hourly_rate, 0, ',', '.') }}/jam ·
                             malam Rp {{ number_format((float) $schedule['court']->night_hourly_rate, 0, ',', '.') }}/jam
                         @endif
-                        mulai {{ $schedule['court']->night_rate_starts_at_formatted }} · interval 30 menit
+                        tarif malam berlaku {{ $schedule['court']->night_rate_starts_at_formatted }}–{{ $schedule['court']->night_rate_ends_at_formatted }} · interval 30 menit
                     </span>
                 </header>
                 @if(count($schedule['slots']))

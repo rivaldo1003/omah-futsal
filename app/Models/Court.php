@@ -18,6 +18,7 @@ class Court extends Model
         'weekend_day_hourly_rate',
         'weekend_night_hourly_rate',
         'night_rate_starts_at',
+        'night_rate_ends_at',
         'opening_time',
         'closing_time',
         'slot_duration_minutes',
@@ -77,5 +78,10 @@ class Court extends Model
     public function getNightRateStartsAtFormattedAttribute(): string
     {
         return substr((string) ($this->night_rate_starts_at ?? '18:00:00'), 0, 5);
+    }
+
+    public function getNightRateEndsAtFormattedAttribute(): string
+    {
+        return substr((string) ($this->night_rate_ends_at ?? '04:00:00'), 0, 5);
     }
 }

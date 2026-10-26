@@ -27,8 +27,8 @@
 
         .team-hours-header h1 {
             margin: 0 0 7px;
-            font-size: clamp(1.75rem, 2.5vw, 2rem);
-            font-weight: 500;
+            font-size: clamp(1.5rem, 2.5vw, 1.75rem);
+            font-weight: 600;
             line-height: 1.2;
         }
 
@@ -36,6 +36,13 @@
             max-width: 72ch;
             margin: 0;
             color: var(--team-muted);
+        }
+
+        .team-hours-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 8px;
         }
 
         .team-hours-page .btn {
@@ -58,6 +65,20 @@
         .team-hours-page .btn-primary:hover {
             border-color: #39393b;
             background: #39393b;
+        }
+
+        .tournament-rental-modal .modal-footer .btn-primary {
+            min-height: 42px;
+            border-color: #111111;
+            background-color: #111111;
+            color: #ffffff;
+        }
+
+        .tournament-rental-modal .modal-footer .btn-primary:hover,
+        .tournament-rental-modal .modal-footer .btn-primary:focus-visible {
+            border-color: #39393b;
+            background-color: #39393b;
+            color: #ffffff;
         }
 
         .team-hours-filter,
@@ -108,7 +129,9 @@
         .team-hours-filter .form-control:focus,
         .team-hours-filter .form-select:focus {
             border-color: var(--team-ink);
-            box-shadow: 0 0 0 3px rgb(17 17 17 / 10%);
+            box-shadow: none;
+            outline: 2px solid var(--team-ink);
+            outline-offset: 1px;
         }
 
         .team-hours-custom-details {
@@ -131,7 +154,7 @@
 
         .team-hours-summary {
             display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(4, minmax(0, 1fr));
             margin-bottom: 20px;
         }
 
@@ -152,8 +175,9 @@
         }
 
         .team-hours-summary strong {
-            font-size: 23px;
+            font-size: 21px;
             font-weight: 600;
+            line-height: 1.3;
             font-variant-numeric: tabular-nums;
         }
 
@@ -229,6 +253,10 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .team-hours-mobile-label {
+            display: none;
+        }
+
         .team-hours-note {
             margin: 14px 20px 18px;
             color: var(--team-muted);
@@ -252,6 +280,17 @@
             justify-content: flex-end;
             gap: 8px;
         }
+
+        .tournament-rental-table .table {
+            table-layout: fixed;
+        }
+
+        .tournament-rental-table th:nth-child(1) { width: 13%; }
+        .tournament-rental-table th:nth-child(2) { width: 22%; }
+        .tournament-rental-table th:nth-child(3) { width: 15%; }
+        .tournament-rental-table th:nth-child(4) { width: 21%; }
+        .tournament-rental-table th:nth-child(5) { width: 12%; }
+        .tournament-rental-table th:nth-child(6) { width: 17%; }
 
         .tournament-rental-status {
             display: inline-flex;
@@ -324,30 +363,267 @@
         .tournament-rental-modal .form-control:focus,
         .tournament-rental-modal .form-select:focus {
             border-color: var(--team-ink);
-            box-shadow: 0 0 0 3px rgb(17 17 17 / 10%);
+            box-shadow: none;
+            outline: 2px solid var(--team-ink);
+            outline-offset: 1px;
         }
 
         @media (max-width: 700px) {
+            .team-hours-header {
+                align-items: flex-start;
+                margin-bottom: 18px;
+            }
+
+            .team-hours-header-actions,
+            .team-hours-header-actions .btn {
+                width: 100%;
+            }
+
+            .team-hours-header-actions .btn {
+                flex: 1 1 180px;
+            }
+
+            .tournament-rental-modal .modal-dialog {
+                margin: 8px;
+            }
+
+            .tournament-rental-modal .modal-header,
+            .tournament-rental-modal .modal-body,
+            .tournament-rental-modal .modal-footer {
+                padding: 15px;
+            }
+
+            .tournament-rental-modal .modal-footer {
+                gap: 8px;
+            }
+
+            .tournament-rental-modal .modal-footer .btn {
+                flex: 1 1 130px;
+            }
+
+            .team-hours-filter {
+                padding: 15px;
+            }
+
+            .team-hours-year-form,
+            .team-hours-custom-form {
+                align-items: stretch;
+                gap: 11px;
+            }
+
+            .team-hours-year-form .field,
+            .team-hours-custom-form .field {
+                width: 100%;
+            }
+
+            .team-hours-year-form > .btn,
+            .team-hours-custom-form > .btn {
+                flex: 1 1 100%;
+                width: 100%;
+            }
+
             .team-hours-summary {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .team-hours-summary > div {
+                padding: 14px;
+                background: #ffffff;
             }
 
             .team-hours-summary > div + div {
-                border-top: 1px solid var(--team-line);
                 border-left: 0;
             }
 
-            .team-hours-table td,
-            .team-hours-table th {
-                padding: 12px;
+            .team-hours-summary > div:nth-child(even) {
+                border-left: 1px solid var(--team-line);
             }
 
-            .team-hours-note {
-                margin-inline: 12px;
+            .team-hours-summary > div:nth-child(n + 3) {
+                border-top: 1px solid var(--team-line);
+            }
+
+            .team-hours-summary strong {
+                font-size: 18px;
+            }
+
+            .team-hours-table > header {
+                align-items: flex-start;
+                padding: 15px;
+            }
+
+            .team-hours-table h2 {
+                font-size: 17px;
+            }
+
+            .team-usage-table .table,
+            .tournament-rental-table .table {
+                display: block;
+                width: 100%;
+            }
+
+            .team-usage-table thead,
+            .tournament-rental-table thead {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                padding: 0;
+                margin: -1px;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            .team-usage-table tbody,
+            .tournament-rental-table tbody {
+                display: block;
+            }
+
+            .team-usage-table tbody tr {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) auto;
+                grid-template-areas:
+                    "name duration"
+                    "count count";
+                align-items: center;
+                gap: 6px 12px;
+                padding: 13px 15px;
+                border-bottom: 1px solid var(--team-line);
+            }
+
+            .team-usage-table tbody tr:last-child {
+                border-bottom: 0;
+            }
+
+            .team-usage-table th,
+            .team-usage-table td {
+                min-width: 0;
+                padding: 0;
+                border: 0;
+            }
+
+            .team-usage-table .team-usage-name { grid-area: name; }
+            .team-usage-table .team-usage-count { grid-area: count; }
+            .team-usage-table .team-usage-duration {
+                grid-area: duration;
+                text-align: right;
+            }
+
+            .team-usage-table .team-hours-breakdown {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 2px 12px;
+            }
+
+            .team-hours-mobile-label {
+                display: block;
+                margin-bottom: 2px;
+                color: var(--team-muted);
+                font-size: 11px;
+                font-weight: 400;
+                text-align: left;
+            }
+
+            .team-usage-table .team-hours-empty-row {
+                display: block;
+            }
+
+            .team-usage-table .team-hours-empty {
+                padding: 20px 15px !important;
+            }
+
+            .tournament-rental-table tbody tr:not(.team-hours-empty-row) {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+                grid-template-areas:
+                    "name status"
+                    "date court"
+                    "period period"
+                    "actions actions";
+                align-items: start;
+                gap: 10px 14px;
+                padding: 14px 15px;
+                border-bottom: 1px solid var(--team-line);
+            }
+
+            .tournament-rental-table tbody tr:last-child {
+                border-bottom: 0;
+            }
+
+            .tournament-rental-table th,
+            .tournament-rental-table td {
+                min-width: 0;
+                padding: 0;
+                border: 0;
+                overflow-wrap: anywhere;
+                text-align: left !important;
+            }
+
+            .tournament-rental-table .rental-cell--name { grid-area: name; }
+            .tournament-rental-table .rental-cell--status {
+                grid-area: status;
+                justify-self: end;
+            }
+            .tournament-rental-table .rental-cell--date { grid-area: date; }
+            .tournament-rental-table .rental-cell--court { grid-area: court; }
+            .tournament-rental-table .rental-cell--period { grid-area: period; }
+            .tournament-rental-table .rental-cell--actions { grid-area: actions; }
+
+            .tournament-rental-table .tournament-rental-meta {
+                min-width: 0;
             }
 
             .tournament-rental-actions {
                 justify-content: flex-start;
+            }
+
+            .tournament-rental-actions .btn {
+                min-height: 38px;
+            }
+
+            .tournament-rental-table .team-hours-empty-row {
+                display: block;
+            }
+
+            .tournament-rental-table .team-hours-empty {
+                display: block;
+                padding: 20px 15px !important;
+            }
+
+            .team-hours-table td,
+            .team-hours-table th {
+                padding-top: 0;
+                padding-bottom: 0;
+            }
+
+            .team-hours-note {
+                margin: 12px 15px 16px;
+            }
+
+            .tournament-rental-intro {
+                padding: 13px 15px;
+            }
+        }
+
+        @media (max-width: 380px) {
+            .team-hours-summary > div {
+                padding: 12px 10px;
+            }
+
+            .tournament-rental-table tbody tr:not(.team-hours-empty-row) {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-areas:
+                    "name"
+                    "status"
+                    "date"
+                    "court"
+                    "period"
+                    "actions";
+            }
+
+            .tournament-rental-table .rental-cell--status {
+                justify-self: start;
             }
         }
     </style>
@@ -358,11 +634,17 @@
         <header class="team-hours-header">
             <div>
                 <h1>Jam lapangan per tim</h1>
-                <p>Rekap pemakaian booking tim dan sesi sewa turnamen dicatat terpisah. Sesi turnamen dihitung sebagai satu penyewa, termasuk waktu jeda.</p>
+                <p>Rekap ini menggabungkan booking tim/member dengan sewa turnamen. Setiap sesi turnamen dihitung sebagai satu penyewa, termasuk waktu jeda.</p>
             </div>
-            <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.daily') }}">
-                <i class="bi bi-clipboard-data" aria-hidden="true"></i>Laporan operasional
-            </a>
+            <div class="team-hours-header-actions">
+                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#tournamentRentalModal"
+                    data-mode="create" data-action="{{ route('admin.court-bookings.tournament-rentals.store') }}">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i>Catat sewa turnamen
+                </button>
+                <a class="btn btn-light" href="{{ route('admin.court-bookings.reports.daily') }}">
+                    <i class="bi bi-clipboard-data" aria-hidden="true"></i>Laporan operasional
+                </a>
+            </div>
         </header>
 
         @if($errors->any())
@@ -400,24 +682,28 @@
             </details>
         </section>
 
-        <section class="team-hours-summary" aria-label="Ringkasan jam lapangan per tim">
+        <section class="team-hours-summary" aria-label="Ringkasan pemakaian tim dan penyewa">
             <div>
-                <span>Tim dengan booking terkonfirmasi</span>
+                <span>Tim / penyewa</span>
                 <strong>{{ number_format($teamCount) }}</strong>
             </div>
             <div>
-                <span>Jumlah booking terkonfirmasi</span>
+                <span>Booking terkonfirmasi</span>
                 <strong>{{ number_format($confirmedBookingCount) }}</strong>
             </div>
             <div>
-                <span>Total durasi booking tim</span>
+                <span>Sewa turnamen · {{ number_format($periodTournamentRentalCount) }} sesi</span>
+                <strong>{{ intdiv($periodTournamentRentalMinutes, 60) }} jam {{ $periodTournamentRentalMinutes % 60 }} menit</strong>
+            </div>
+            <div>
+                <span>Total durasi pemakaian</span>
                 <strong>{{ intdiv($totalTeamMinutes, 60) }} jam {{ $totalTeamMinutes % 60 }} menit</strong>
             </div>
         </section>
 
         <section class="team-hours-table team-hours-section" aria-labelledby="teamHoursTableTitle">
             <header>
-                <h2 id="teamHoursTableTitle">Pemakaian lapangan per tim</h2>
+                <h2 id="teamHoursTableTitle">Pemakaian lapangan per tim / penyewa</h2>
                 <span>
                     @if($selectedYear)
                         Tahun kalender {{ $selectedYear }}
@@ -430,28 +716,37 @@
                 </span>
             </header>
             <div class="table-responsive">
-                <table class="table align-middle">
-                    <caption class="visually-hidden">Durasi booking terkonfirmasi untuk setiap tim.</caption>
+                <table class="table align-middle team-usage-table">
+                    <caption class="visually-hidden">Durasi booking tim/member dan sesi sewa turnamen untuk setiap penyewa.</caption>
                     <thead>
                         <tr>
-                            <th scope="col">Nama tim</th>
-                            <th scope="col" class="team-hours-number">Jumlah booking</th>
+                            <th scope="col">Tim / penyewa</th>
+                            <th scope="col" class="team-hours-number">Jumlah transaksi</th>
                             <th scope="col" class="team-hours-number">Total durasi</th>
                         </tr>
                     </thead>
                     <tbody>
                         @forelse($teams as $team)
                             <tr>
-                                <th scope="row" class="text-dark">{{ $team->team_name }}</th>
-                                <td class="team-hours-number">
+                                <th scope="row" class="text-dark team-usage-name">{{ $team->team_name }}</th>
+                                <td class="team-hours-number team-usage-count">
+                                    <span class="team-hours-mobile-label" aria-hidden="true">Jumlah transaksi</span>
                                     <div class="team-hours-breakdown">
-                                        <span>{{ number_format((int) $team->booking_count) }} booking</span>
+                                        @if($team->booking_count > 0)
+                                            <span>{{ number_format((int) $team->booking_count) }} booking</span>
+                                        @endif
+                                        @if($team->tournament_rental_count > 0)
+                                            <span>{{ number_format((int) $team->tournament_rental_count) }} sewa turnamen</span>
+                                        @endif
                                     </div>
                                 </td>
-                                <td class="team-hours-number"><strong>{{ intdiv((int) $team->booking_minutes, 60) }} jam {{ (int) $team->booking_minutes % 60 }} menit</strong></td>
+                                <td class="team-hours-number team-usage-duration">
+                                    <span class="team-hours-mobile-label" aria-hidden="true">Total durasi</span>
+                                    <strong>{{ intdiv((int) $team->total_minutes, 60) }} jam {{ (int) $team->total_minutes % 60 }} menit</strong>
+                                </td>
                             </tr>
                         @empty
-                            <tr><td class="team-hours-empty" colspan="3">Belum ada booking tim yang terkonfirmasi pada periode ini.</td></tr>
+                            <tr class="team-hours-empty-row"><td class="team-hours-empty" colspan="3">Belum ada booking terkonfirmasi atau sesi sewa turnamen pada periode ini.</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -459,7 +754,7 @@
             @if($teams->hasPages())
                 <div class="p-3">{{ $teams->links() }}</div>
             @endif
-            <p class="team-hours-note">Booking member masuk ke rekap setelah pemakaian pada tanggal tersebut dicatat admin. Fixture turnamen tidak dibagikan ke tim peserta dan tidak menambah jam pada tabel ini.</p>
+            <p class="team-hours-note">Booking member masuk setelah pemakaian dicatat admin. Sewa turnamen masuk sebagai satu penyewa dan durasinya mengikuti rentang sewa yang dicatat, termasuk jeda. Jadwal pertandingan tidak dibagikan ke tim peserta.</p>
         </section>
 
         <section class="team-hours-table team-hours-section" aria-labelledby="tournamentRentalTitle">
@@ -468,14 +763,10 @@
                     <h2 id="tournamentRentalTitle">Sesi sewa turnamen</h2>
                     <span>Semua tanggal · {{ number_format($tournamentRentalCount) }} sesi tidak dibatalkan · {{ intdiv($tournamentRentalMinutes, 60) }} jam {{ $tournamentRentalMinutes % 60 }} menit</span>
                 </div>
-                <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#tournamentRentalModal"
-                    data-mode="create" data-action="{{ route('admin.court-bookings.tournament-rentals.store') }}">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i>Catat sewa turnamen
-                </button>
             </header>
-            <p class="tournament-rental-intro">Daftar ini menampilkan semua tanggal, terlepas dari filter rekap tim di atas. Catat tanggal dan rentang sewa lapangan turnamen secara langsung. Seluruh rentang dihitung sebagai satu penyewa, termasuk jeda antarpertandingan. Catatan ini terpisah dari pemasukan dan rekap jam tiap tim.</p>
+            <p class="tournament-rental-intro">Catat rentang pemakaian lapangan turnamen di sini. Durasi penuh termasuk jeda dan masuk ke rekap satu penyewa di atas. Untuk mencatat uang sewa, pilih sesi ini pada Pemasukan harian di Laporan operasional; uang masuk ke kategori booking lapangan. Uang pendaftaran atau sponsor tetap dicatat sebagai pemasukan lain.</p>
             <div class="table-responsive">
-                <table class="table align-middle">
+                <table class="table align-middle tournament-rental-table">
                     <caption class="visually-hidden">Riwayat sesi sewa turnamen yang dicatat admin.</caption>
                     <thead>
                         <tr>
@@ -503,17 +794,17 @@
                                     : ($rentalDisplayStatus === \App\Models\CourtTournamentRental::STATUS_SCHEDULED ? 'is-scheduled' : '');
                             @endphp
                             <tr>
-                                <td>{{ $rental->rental_date->locale('id')->translatedFormat('d M Y') }}</td>
-                                <th scope="row" class="text-dark">{{ $rental->tournament_name_snapshot }}</th>
-                                <td>{{ $rental->court?->name ?? 'Lapangan dihapus' }}</td>
-                                <td>
+                                <td class="rental-cell--date"><span class="team-hours-mobile-label" aria-hidden="true">Tanggal</span>{{ $rental->rental_date->locale('id')->translatedFormat('d M Y') }}</td>
+                                <th scope="row" class="text-dark rental-cell--name">{{ $rental->tournament_name_snapshot }}</th>
+                                <td class="rental-cell--court"><span class="team-hours-mobile-label" aria-hidden="true">Lapangan</span>{{ $rental->court?->name ?? 'Lapangan dihapus' }}</td>
+                                <td class="rental-cell--period"><span class="team-hours-mobile-label" aria-hidden="true">Rentang sewa</span>
                                     <div class="tournament-rental-meta">
                                         <strong>{{ $rentalStart }}–{{ $rentalEnd }}</strong>
                                         <span>{{ intdiv((int) $rental->duration_minutes, 60) }} jam {{ (int) $rental->duration_minutes % 60 }} menit · jeda termasuk</span>
                                     </div>
                                 </td>
-                                <td><span class="tournament-rental-status {{ $rentalStatusClass }}">{{ $rentalStatusLabel }}</span></td>
-                                <td>
+                                <td class="rental-cell--status"><span class="team-hours-mobile-label" aria-hidden="true">Status</span><span class="tournament-rental-status {{ $rentalStatusClass }}">{{ $rentalStatusLabel }}</span></td>
+                                <td class="rental-cell--actions"><span class="team-hours-mobile-label" aria-hidden="true">Tindakan</span>
                                     <div class="tournament-rental-actions">
                                         @if($rental->status !== \App\Models\CourtTournamentRental::STATUS_CANCELLED)
                                             <button class="btn btn-light btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#tournamentRentalModal"
@@ -536,7 +827,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td class="team-hours-empty" colspan="6">Belum ada sesi sewa turnamen yang dicatat pada periode ini.</td></tr>
+                            <tr class="team-hours-empty-row"><td class="team-hours-empty" colspan="6">Belum ada sesi sewa turnamen yang dicatat pada periode ini.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

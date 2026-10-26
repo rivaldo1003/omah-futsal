@@ -258,16 +258,29 @@
             flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
-            gap: 8px 24px;
+            gap: 12px 28px;
         }
 
         .walk-in-schedule-meta {
-            max-width: 72ch;
+            display: grid;
+            gap: 4px;
+            max-width: min(100%, 760px);
             color: var(--walk-in-muted);
             font-size: 14px;
             text-align: right;
             font-variant-numeric: tabular-nums;
-            line-height: 1.7;
+            line-height: 1.45;
+        }
+
+        .walk-in-schedule-rates {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            gap: 4px 14px;
+        }
+
+        .walk-in-schedule-rates span {
+            white-space: nowrap;
         }
 
         .walk-in-legend {
@@ -448,29 +461,64 @@
             color: var(--walk-in-ink);
             font-size: 18px;
             font-weight: 500;
+            font-variant-numeric: tabular-nums;
         }
 
         .walk-in-booking-context {
             display: flex;
             flex-wrap: wrap;
+            align-items: center;
             justify-content: space-between;
-            gap: 8px 24px;
-            padding: 16px 20px;
+            gap: 16px 24px;
+            padding: 18px 20px;
             margin-bottom: 24px;
             border: 1px solid var(--walk-in-line-soft);
             border-radius: 8px;
             background: var(--walk-in-cloud);
         }
 
-        .walk-in-booking-context strong,
-        .walk-in-total strong {
-            color: var(--walk-in-ink);
+        .walk-in-context-main,
+        .walk-in-context-total {
+            display: grid;
+            gap: 3px;
+        }
+
+        .walk-in-context-label {
+            color: var(--walk-in-muted);
+            font-size: 12px;
             font-weight: 500;
         }
 
+        .walk-in-context-main strong {
+            color: var(--walk-in-ink);
+            font-size: 17px;
+            font-weight: 500;
+        }
+
+        .walk-in-context-main > span:last-child {
+            color: var(--walk-in-muted);
+            font-size: 14px;
+        }
+
         .walk-in-booking-context-total {
-            white-space: nowrap;
+            min-width: 150px;
+            text-align: right;
             font-variant-numeric: tabular-nums;
+        }
+
+        .walk-in-booking-context-total strong {
+            color: var(--walk-in-ink);
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .walk-in-form-group-title {
+            margin: 4px 0 0;
+            padding-bottom: 8px;
+            border-bottom: 1px solid var(--walk-in-line-soft);
+            color: var(--walk-in-muted);
+            font-size: 13px;
+            font-weight: 500;
         }
 
         .walk-in-admin-page .table {
@@ -505,28 +553,69 @@
             font-size: 16px;
         }
 
+        .walk-in-admin-page .table tbody td:nth-child(2),
+        .walk-in-admin-page .table tbody td:nth-child(3),
+        .walk-in-admin-page .table thead th:nth-child(2),
+        .walk-in-admin-page .table thead th:nth-child(3) {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .walk-in-admin-page .table tbody td:last-child,
+        .walk-in-admin-page .table thead th:last-child {
+            text-align: right;
+        }
+
         .walk-in-total {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(170px, auto);
+            align-items: end;
+            gap: 20px 32px;
+            padding: 16px 0 0;
+            border-top: 1px solid var(--walk-in-line-soft);
+        }
+
+        .walk-in-total-lines {
+            display: grid;
+            gap: 6px;
+            max-width: 430px;
+        }
+
+        .walk-in-total-line {
             display: flex;
-            flex-wrap: wrap;
-            align-items: center;
+            align-items: baseline;
             justify-content: space-between;
-            gap: 12px 24px;
-            padding: 20px;
-            border: 1px solid var(--walk-in-line-soft);
-            border-radius: 8px;
-            background: var(--walk-in-cloud);
+            gap: 16px;
+            color: var(--walk-in-muted);
+            font-size: 13px;
+        }
+
+        .walk-in-total-line strong {
+            color: var(--walk-in-charcoal);
+            font-size: 13px;
+            font-weight: 500;
+            font-variant-numeric: tabular-nums;
         }
 
         .walk-in-total h2 {
-            margin: 0 0 4px;
+            margin: 0;
             color: var(--walk-in-ink);
-            font-size: 20px;
+            font-size: 14px;
             font-weight: 500;
         }
 
-        .walk-in-total strong {
-            font-size: 28px;
+        .walk-in-total-final {
+            text-align: right;
+        }
+
+        .walk-in-total #walkInTotal {
+            display: block;
+            color: var(--walk-in-ink);
+            font-size: clamp(26px, 3vw, 32px);
+            font-weight: 600;
+            line-height: 1.15;
             font-variant-numeric: tabular-nums;
+            text-align: right;
         }
 
         .walk-in-note-section {
@@ -571,6 +660,10 @@
                 text-align: left;
             }
 
+            .walk-in-schedule-rates {
+                justify-content: flex-start;
+            }
+
             .walk-in-detail-modal .modal-header,
             .walk-in-detail-modal .modal-footer,
             .walk-in-detail-modal .modal-body {
@@ -587,8 +680,17 @@
                 flex-direction: column;
             }
 
-            .walk-in-total strong {
-                font-size: 24px;
+            .walk-in-booking-context-total {
+                text-align: left;
+            }
+
+            .walk-in-total {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 16px;
+            }
+
+            .walk-in-total-final {
+                text-align: left;
             }
 
             .walk-in-form-actions,
@@ -663,17 +765,17 @@
         <div class="card-header walk-in-schedule-heading">
             <h2>2. Pilih slot lapangan</h2>
             <div class="walk-in-schedule-meta">
-                {{ $selectedCourt->name }} · {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }}
-                · 30 menit per slot
-                @if(\Carbon\CarbonImmutable::parse($date)->isWeekend())
-                    · Siang akhir pekan Rp
-                    {{ number_format((float) $selectedCourt->weekend_day_hourly_rate, 0, ',', '.') }}/jam
-                    · Malam akhir pekan Rp
-                    {{ number_format((float) $selectedCourt->weekend_night_hourly_rate, 0, ',', '.') }}/jam
-                @else
-                    · Siang Rp {{ number_format((float) $selectedCourt->day_hourly_rate, 0, ',', '.') }}/jam
-                    · Malam Rp {{ number_format((float) $selectedCourt->night_hourly_rate, 0, ',', '.') }}/jam
-                @endif
+                <span>{{ $selectedCourt->name }} · {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} · 30 menit per slot</span>
+                <span class="walk-in-schedule-rates">
+                    @if(\Carbon\CarbonImmutable::parse($date)->isWeekend())
+                        <span>Siang akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_day_hourly_rate, 0, ',', '.') }}/jam</span>
+                        <span>Malam akhir pekan Rp {{ number_format((float) $selectedCourt->weekend_night_hourly_rate, 0, ',', '.') }}/jam</span>
+                    @else
+                        <span>Siang Rp {{ number_format((float) $selectedCourt->day_hourly_rate, 0, ',', '.') }}/jam</span>
+                        <span>Malam Rp {{ number_format((float) $selectedCourt->night_hourly_rate, 0, ',', '.') }}/jam</span>
+                    @endif
+                    <span>Tarif malam {{ $selectedCourt->night_rate_starts_at_formatted }}–{{ $selectedCourt->night_rate_ends_at_formatted }}</span>
+                </span>
             </div>
         </div>
         <div class="card-body">
@@ -906,17 +1008,24 @@
             <input type="hidden" name="range" value="{{ $selectedRange['value'] }}">
 
             <div class="walk-in-booking-context">
-                <div><strong>{{ $selectedCourt->name }}</strong> ·
-                    {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} ·
-                    @if($selectedRange['is_instant'] ?? false)
-                        Mulai sekarang sampai {{ $selectedRange['end'] }} · {{ $selectedRange['duration_label'] }} aktual ·
-                        tarif penuh {{ $selectedRange['slot_minutes'] }} menit
-                    @else
-                        {{ $selectedRange['start'] }}–{{ $selectedRange['end'] }} ({{ $selectedRange['duration_label'] }})
-                    @endif
+                <div class="walk-in-context-main">
+                    <span class="walk-in-context-label">Jadwal yang dipilih</span>
+                    <strong>{{ $selectedCourt->name }}</strong>
+                    <span>
+                        {{ \Carbon\Carbon::parse($date)->translatedFormat('l, d F Y') }} ·
+                        @if($selectedRange['is_instant'] ?? false)
+                            Mulai sekarang sampai {{ $selectedRange['end'] }} · {{ $selectedRange['duration_label'] }} aktual ·
+                            tarif penuh {{ $selectedRange['slot_minutes'] }} menit
+                        @else
+                            {{ $selectedRange['start'] }}–{{ $selectedRange['end'] }} ({{ $selectedRange['duration_label'] }})
+                        @endif
+                    </span>
                 </div>
-                <span class="walk-in-booking-context-total">Sewa lapangan: <strong>Rp
-                        {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong></span>
+                <div class="walk-in-context-total walk-in-booking-context-total">
+                    <span class="walk-in-context-label">Tarif lapangan</span>
+                    <strong>Rp
+                        {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong>
+                </div>
             </div>
 
             <section class="card mb-4" aria-labelledby="walkInCustomerTitle">
@@ -941,6 +1050,7 @@
                                 @endif
                             </div>
                         @endif
+                        <div class="col-12"><h3 class="walk-in-form-group-title">Data pelanggan</h3></div>
                         <div class="col-12 col-md-3">
                             <label class="form-label" for="walkInName">Nama pelanggan</label>
                             <input class="form-control" id="walkInName" name="customer_name" maxlength="120"
@@ -962,6 +1072,7 @@
                             <input class="form-control" id="walkInEmail" type="email" name="customer_email"
                                 maxlength="255" autocomplete="email" value="{{ old('customer_email') }}">
                         </div>
+                        <div class="col-12"><h3 class="walk-in-form-group-title">Pembayaran awal</h3></div>
                         <div class="col-12 col-md-5">
                             <label class="form-label" for="walkInPayment">Metode pembayaran</label>
                             <select class="form-select" id="walkInPayment" name="payment_method" required>
@@ -1050,13 +1161,47 @@
             </section>
             @endif
 
-            <section class="walk-in-total mb-4" aria-labelledby="walkInSummaryTitle">
-                <div>
-                    <h2 id="walkInSummaryTitle">Total tagihan</h2><span class="small text-secondary">Lapangan dan
-                        perlengkapan yang dipilih</span>
+            <section class="card mb-4" aria-labelledby="walkInDiscountTitle">
+                <div class="card-header"><h2 id="walkInDiscountTitle">Diskon booking lapangan <span class="text-secondary fw-normal">(opsional)</span></h2></div>
+                <div class="card-body">
+                    <div class="row g-3 align-items-end">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label" for="walkInDiscountType">Jenis diskon</label>
+                            <select class="form-select" id="walkInDiscountType" name="discount_type">
+                                <option value="none" @selected(old('discount_type', 'none') === 'none')>Tanpa diskon</option>
+                                <option value="fixed" @selected(old('discount_type') === 'fixed')>Potongan nominal</option>
+                                <option value="percentage" @selected(old('discount_type') === 'percentage')>Potongan persentase</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4" id="walkInDiscountValueField" hidden>
+                            <label class="form-label" for="walkInDiscountValue" id="walkInDiscountValueLabel">Nilai diskon</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="walkInDiscountPrefix">Rp</span>
+                                <input class="form-control" id="walkInDiscountValue" name="discount_value" type="text"
+                                    inputmode="decimal" autocomplete="off" value="{{ old('discount_value') }}" placeholder="Contoh: 50.000">
+                            </div>
+                            @error('discount_value') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+                        <div class="col-12 col-md-4" id="walkInDiscountReasonField" hidden>
+                            <label class="form-label" for="walkInDiscountReason">Alasan diskon <span class="text-danger">*</span></label>
+                            <input class="form-control" id="walkInDiscountReason" name="discount_reason" maxlength="255"
+                                value="{{ old('discount_reason') }}" placeholder="Contoh: harga khusus member">
+                            @error('discount_reason') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                        </div>
+                    </div>
+                    <p class="form-text mb-0 mt-2">Diskon hanya mengurangi tarif lapangan. Harga perlengkapan tetap sesuai katalog dan alasan diskon tersimpan di transaksi.</p>
+                    <div class="walk-in-total mt-3" aria-live="polite">
+                        <div class="walk-in-total-lines">
+                            <div class="walk-in-total-line"><span>Tarif lapangan</span><strong id="walkInCourtSubtotal">Rp {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong></div>
+                            <div class="walk-in-total-line"><span>Diskon</span><strong id="walkInDiscountAmount">Rp 0</strong></div>
+                            <div class="walk-in-total-line"><span>Perlengkapan</span><strong id="walkInRentalSubtotal">Rp 0</strong></div>
+                        </div>
+                        <div class="walk-in-total-final">
+                            <h2 id="walkInSummaryTitle">Total tagihan</h2>
+                            <strong id="walkInTotal" data-court-amount="{{ $selectedRange['amount'] }}">Rp {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong>
+                        </div>
+                    </div>
                 </div>
-                <strong id="walkInTotal" data-court-amount="{{ $selectedRange['amount'] }}">Rp
-                    {{ number_format($selectedRange['amount'], 0, ',', '.') }}</strong>
             </section>
 
             <div class="walk-in-note-section">
@@ -1321,6 +1466,16 @@
             const balance = document.getElementById('walkInBalance');
             const amountError = document.getElementById('walkInAmountReceivedError');
             const paymentMethod = document.getElementById('walkInPayment');
+            const discountType = document.getElementById('walkInDiscountType');
+            const discountValue = document.getElementById('walkInDiscountValue');
+            const discountValueField = document.getElementById('walkInDiscountValueField');
+            const discountReasonField = document.getElementById('walkInDiscountReasonField');
+            const discountReason = document.getElementById('walkInDiscountReason');
+            const discountValueLabel = document.getElementById('walkInDiscountValueLabel');
+            const discountPrefix = document.getElementById('walkInDiscountPrefix');
+            const courtSubtotalLabel = document.getElementById('walkInCourtSubtotal');
+            const discountAmountLabel = document.getElementById('walkInDiscountAmount');
+            const rentalSubtotalLabel = document.getElementById('walkInRentalSubtotal');
             if (!form || !total || !amountDisplay || !amountValue || !balance || !amountError) return;
 
             const money = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
@@ -1344,6 +1499,30 @@
                 updateBalance();
             };
 
+            const discountNumber = () => {
+                if (!discountValue) return 0;
+                const raw = discountType?.value === 'fixed'
+                    ? discountValue.value.replace(/\D/g, '')
+                    : discountValue.value.replace(',', '.').replace(/[^\d.]/g, '');
+                return Number(raw || 0);
+            };
+
+            const syncDiscountControls = () => {
+                const active = discountType?.value !== 'none';
+                if (discountValueField) discountValueField.hidden = !active;
+                if (discountReasonField) discountReasonField.hidden = !active;
+                if (discountReason) discountReason.required = active && discountNumber() > 0;
+                if (discountType?.value === 'percentage') {
+                    discountValueLabel.textContent = 'Persentase diskon';
+                    discountPrefix.textContent = '%';
+                    discountValue.placeholder = 'Contoh: 10';
+                } else {
+                    discountValueLabel.textContent = 'Nominal diskon';
+                    discountPrefix.textContent = 'Rp';
+                    discountValue.placeholder = 'Contoh: 50.000';
+                }
+            };
+
             const updateTotal = () => {
                 const rentalTotal = [...form.querySelectorAll('.walk-in-rental-quantity')].reduce((sum, input) => {
                     const maximum = Number(input.max || 0);
@@ -1351,8 +1530,19 @@
                     input.value = String(quantity);
                     return sum + quantity * Number(input.dataset.price || 0);
                 }, 0);
-                totalAmount = Number(total.dataset.courtAmount || 0) + rentalTotal;
+                const courtAmount = Number(total.dataset.courtAmount || 0);
+                const value = discountNumber();
+                const discountAmount = discountType?.value === 'fixed'
+                    ? Math.min(courtAmount, value)
+                    : discountType?.value === 'percentage'
+                        ? Math.min(courtAmount, courtAmount * Math.min(100, value) / 100)
+                        : 0;
+                totalAmount = Math.max(0, courtAmount - discountAmount) + rentalTotal;
+                courtSubtotalLabel.textContent = `Rp ${money.format(courtAmount)}`;
+                discountAmountLabel.textContent = `Rp ${money.format(discountAmount)}`;
+                rentalSubtotalLabel.textContent = `Rp ${money.format(rentalTotal)}`;
                 total.textContent = `Rp ${money.format(totalAmount)}`;
+                syncDiscountControls();
                 updateBalance();
             };
 
@@ -1381,6 +1571,15 @@
                 }
             });
             form.querySelectorAll('.walk-in-rental-quantity').forEach((input) => input.addEventListener('input', updateTotal));
+            discountType?.addEventListener('change', updateTotal);
+            discountValue?.addEventListener('input', () => {
+                if (discountType?.value === 'fixed') {
+                    const digits = discountValue.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                    discountValue.value = digits.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+                updateTotal();
+            });
+            discountReason?.addEventListener('input', updateTotal);
             syncReceivedAmount();
             updateTotal();
         })();

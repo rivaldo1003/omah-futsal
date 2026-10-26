@@ -284,9 +284,37 @@
                         </div>
 
                         <div class="member-booking-price">
-                            <span>Total tagihan sesuai tarif tanggal tersebut</span>
-                            <strong>Rp {{ number_format($amount, 0, ',', '.') }}</strong>
+                            <span>Total tagihan setelah diskon</span>
+                            <strong id="memberBookingTotal" data-court-amount="{{ $amount }}">Rp {{ number_format($amount, 0, ',', '.') }}</strong>
+                            <small class="d-block text-secondary mt-1" id="memberBookingPriceBreakdown">Tarif lapangan Rp {{ number_format($amount, 0, ',', '.') }} · diskon Rp 0</small>
                         </div>
+
+                        <div class="member-booking-fields mt-3">
+                            <div>
+                                <label class="form-label" for="memberDiscountType">Diskon booking lapangan <span class="text-secondary">(opsional)</span></label>
+                                <select class="form-select" id="memberDiscountType" name="discount_type">
+                                    <option value="none" @selected(old('discount_type', 'none') === 'none')>Tanpa diskon</option>
+                                    <option value="fixed" @selected(old('discount_type') === 'fixed')>Potongan nominal</option>
+                                    <option value="percentage" @selected(old('discount_type') === 'percentage')>Potongan persentase</option>
+                                </select>
+                            </div>
+                            <div id="memberDiscountValueField" hidden>
+                                <label class="form-label" for="memberDiscountValue" id="memberDiscountValueLabel">Nominal diskon</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="memberDiscountPrefix">Rp</span>
+                                    <input class="form-control" id="memberDiscountValue" name="discount_value" type="text" inputmode="decimal"
+                                        autocomplete="off" value="{{ old('discount_value') }}" placeholder="Contoh: 50.000">
+                                </div>
+                                @error('discount_value') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </div>
+                            <div id="memberDiscountReasonField" hidden>
+                                <label class="form-label" for="memberDiscountReason">Alasan diskon <span class="text-danger">*</span></label>
+                                <input class="form-control" id="memberDiscountReason" name="discount_reason" maxlength="255"
+                                    value="{{ old('discount_reason') }}" placeholder="Contoh: potongan khusus member">
+                                @error('discount_reason') <div class="text-danger small mt-1">{{ $message }}</div> @enderror
+                            </div>
+                        </div>
+                        <small class="member-booking-field-help">Diskon hanya mengurangi tarif lapangan. Alasan diskon disimpan bersama transaksi.</small>
 
                         <div class="member-booking-section-heading">
                             <h3>Catat pembayaran</h3>
@@ -397,6 +425,50 @@
                     display.value = format('0');
                 }
             });
+
+            const bookingTotal = document.getElementById('memberBookingTotal');
+            const breakdown = document.getElementById('memberBookingPriceBreakdown');
+            const discountType = document.getElementById('memberDiscountType');
+            const discountValue = document.getElementById('memberDiscountValue');
+            const discountValueField = document.getElementById('memberDiscountValueField');
+            const reasonField = document.getElementById('memberDiscountReasonField');
+            const reason = document.getElementById('memberDiscountReason');
+            const valueLabel = document.getElementById('memberDiscountValueLabel');
+            const prefix = document.getElementById('memberDiscountPrefix');
+            const money = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 0 });
+
+            const updateDiscount = () => {
+                if (!bookingTotal || !discountType || !discountValue) return;
+                const type = discountType.value;
+                const active = type !== 'none';
+                discountValueField.hidden = !active;
+                reasonField.hidden = !active;
+                const digitsOnly = discountValue.value.replace(/\D/g, '');
+                const value = type === 'fixed'
+                    ? Number(digitsOnly || 0)
+                    : Number(discountValue.value.replace(',', '.').replace(/[^\d.]/g, '') || 0);
+                const courtAmount = Number(bookingTotal.dataset.courtAmount || 0);
+                const discount = type === 'fixed'
+                    ? Math.min(courtAmount, value)
+                    : type === 'percentage' ? courtAmount * Math.min(100, value) / 100 : 0;
+                const finalAmount = Math.max(0, courtAmount - discount);
+                bookingTotal.textContent = `Rp ${money.format(finalAmount)}`;
+                breakdown.textContent = `Tarif lapangan Rp ${money.format(courtAmount)} · diskon Rp ${money.format(discount)}`;
+                reason.required = active && value > 0;
+                valueLabel.textContent = type === 'percentage' ? 'Persentase diskon' : 'Nominal diskon';
+                prefix.textContent = type === 'percentage' ? '%' : 'Rp';
+                discountValue.placeholder = type === 'percentage' ? 'Contoh: 10' : 'Contoh: 50.000';
+            };
+
+            discountType?.addEventListener('change', updateDiscount);
+            discountValue?.addEventListener('input', () => {
+                if (discountType.value === 'fixed') {
+                    const value = discountValue.value.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+                    discountValue.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                }
+                updateDiscount();
+            });
+            updateDiscount();
         })();
     </script>
 @endsection

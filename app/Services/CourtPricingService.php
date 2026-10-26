@@ -15,17 +15,24 @@ class CourtPricingService
         $cursor = CarbonImmutable::parse($date.' '.$startTime, $timezone);
         $end = $cursor->addMinutes($durationMinutes);
         $nightStartsAt = $court->night_rate_starts_at_formatted;
+        $nightEndsAt = $court->night_rate_ends_at_formatted;
         $amount = 0.0;
 
         while ($cursor->lessThan($end)) {
-            $nightBoundary = CarbonImmutable::parse($cursor->toDateString().' '.$nightStartsAt, $timezone);
-            if ($nightBoundary->lessThanOrEqualTo($cursor)) {
-                $nightBoundary = $nightBoundary->addDay();
+            $segmentEnd = $end;
+            $dayBoundary = $cursor->startOfDay()->addDay();
+            if ($dayBoundary->lessThan($segmentEnd)) {
+                $segmentEnd = $dayBoundary;
             }
-            $nextBoundary = $cursor->startOfDay()->addDay();
-            $segmentEnd = $end->min($nextBoundary);
-            if ($nightBoundary->lessThan($segmentEnd)) {
-                $segmentEnd = $nightBoundary;
+
+            foreach ([$nightStartsAt, $nightEndsAt] as $boundaryTime) {
+                $boundary = CarbonImmutable::parse($cursor->toDateString().' '.$boundaryTime, $timezone);
+                if ($boundary->lessThanOrEqualTo($cursor)) {
+                    continue;
+                }
+                if ($boundary->lessThan($segmentEnd)) {
+                    $segmentEnd = $boundary;
+                }
             }
 
             $segmentMinutes = (int) (($segmentEnd->getTimestamp() - $cursor->getTimestamp()) / 60);
@@ -35,7 +42,10 @@ class CourtPricingService
             }
 
             $isWeekend = $cursor->isSaturday() || $cursor->isSunday();
-            $isNight = $cursor->format('H:i') >= $nightStartsAt;
+            $time = $cursor->format('H:i');
+            $isNight = $nightStartsAt < $nightEndsAt
+                ? $time >= $nightStartsAt && $time < $nightEndsAt
+                : $time >= $nightStartsAt || $time < $nightEndsAt;
             $hourlyRate = match (true) {
                 $isWeekend && $isNight => (float) $court->weekend_night_hourly_rate,
                 $isWeekend => (float) $court->weekend_day_hourly_rate,

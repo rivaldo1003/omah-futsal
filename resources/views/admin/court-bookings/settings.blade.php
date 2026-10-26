@@ -778,12 +778,17 @@
                                             placeholder="Rp 400.000">
                                     </div>
                                     <div>
-                                        <label class="form-label" for="courtNightStart{{ $court->id }}">Tarif malam
-                                            mulai</label>
+                                        <label class="form-label" for="courtNightStart{{ $court->id }}">Tarif malam mulai</label>
                                         <input class="form-control" id="courtNightStart{{ $court->id }}"
                                             name="night_rate_starts_at" type="time" required
                                             value="{{ $court->night_rate_starts_at_formatted }}">
-                                        <div class="form-text">Slot yang melewati waktu ini dihitung secara proporsional.</div>
+                                    </div>
+                                    <div>
+                                        <label class="form-label" for="courtNightEnd{{ $court->id }}">Tarif malam berakhir</label>
+                                        <input class="form-control" id="courtNightEnd{{ $court->id }}"
+                                            name="night_rate_ends_at" type="time" required
+                                            value="{{ $court->night_rate_ends_at_formatted }}">
+                                        <div class="form-text">Contoh 18.00–04.00 mencakup jam setelah tengah malam.</div>
                                     </div>
                                 </div>
 
@@ -878,7 +883,7 @@
 
                                 <section class="court-add-section" aria-labelledby="courtWeekdayRatesHeading">
                                     <h3 class="court-add-section-title" id="courtWeekdayRatesHeading">Tarif hari biasa</h3>
-                                    <div class="court-add-fields court-add-fields--three">
+                                    <div class="court-add-fields court-add-fields--two">
                                         <div>
                                             <label class="form-label" for="newCourtDayRate">Tarif siang per jam</label>
                                             <input class="form-control @error('day_hourly_rate', 'addCourt') is-invalid @enderror"
@@ -909,6 +914,16 @@
                                                 @error('night_rate_starts_at', 'addCourt') aria-invalid="true" aria-describedby="newCourtNightStartError" @enderror>
                                             @error('night_rate_starts_at', 'addCourt')
                                                 <div class="invalid-feedback" id="newCourtNightStartError">{{ $message }}</div>
+                                            @enderror
+                                        </div>
+                                        <div>
+                                            <label class="form-label" for="newCourtNightEnd">Tarif malam berakhir</label>
+                                            <input class="form-control @error('night_rate_ends_at', 'addCourt') is-invalid @enderror"
+                                                id="newCourtNightEnd" name="night_rate_ends_at" type="time"
+                                                value="{{ $addCourtOld('night_rate_ends_at', '04:00') }}" required
+                                                @error('night_rate_ends_at', 'addCourt') aria-invalid="true" aria-describedby="newCourtNightEndError" @enderror>
+                                            @error('night_rate_ends_at', 'addCourt')
+                                                <div class="invalid-feedback" id="newCourtNightEndError">{{ $message }}</div>
                                             @enderror
                                         </div>
                                     </div>

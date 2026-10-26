@@ -23,6 +23,7 @@ use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
 use App\Models\Tournament;
 use App\Services\CourtBookingAvailabilityService;
+use App\Services\CourtBookingDiscountService;
 use App\Services\CourtPricingService;
 use App\Services\CourtRentalInventoryService;
 use Carbon\CarbonImmutable;
@@ -106,6 +107,13 @@ class CourtBookingController extends Controller
                 ->whereHas('booking', fn ($query) => $query
                     ->whereDate('booking_date', $todayReportDate)
                     ->where('status', CourtBooking::STATUS_CANCELLED))
+                ->sum('amount')
+            - (float) CourtBookingFundSettlement::query()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->whereHas('booking', fn ($query) => $query
+                    ->whereDate('booking_date', $todayReportDate)
+                    ->where('status', CourtBooking::STATUS_CONFIRMED))
                 ->sum('amount');
 
         $counts = [
@@ -168,6 +176,17 @@ class CourtBookingController extends Controller
             'COALESCE(verified_amount, amount)',
         );
 
+        $monthlyTournamentRentalIncome = DB::table('court_daily_revenue_entries')
+            ->whereNotNull('court_tournament_rental_id')
+            ->whereNull('deleted_at')
+            ->whereBetween('operating_date', [$monthStart->toDateString(), $monthEndDate]);
+        $this->accumulatePaymentMethodTotals(
+            $monthlyIncomeByCategory['booking'],
+            $monthlyTournamentRentalIncome,
+            'payment_method',
+            'amount',
+        );
+
         $bookingRentalAdditions = DB::table('court_booking_rental_additions')
             ->whereNotNull('confirmed_at')
             ->where('confirmed_at', '>=', $monthStartUtc)
@@ -211,6 +230,7 @@ class CourtBookingController extends Controller
 
         $otherIncomeEntries = DB::table('court_daily_revenue_entries')
             ->whereNull('deleted_at')
+            ->whereNull('court_tournament_rental_id')
             ->whereBetween('operating_date', [$monthStart->toDateString(), $monthEndDate]);
         $this->accumulatePaymentMethodTotals(
             $monthlyIncomeByCategory['other'],
@@ -245,6 +265,26 @@ class CourtBookingController extends Controller
         $monthlyRefundTotal = array_sum($monthlyIncomeByCategory['refunds']);
         $monthlyNetReceipts = array_sum($monthlyNetByMethod);
 
+        $monthlyExpenseGroups = DB::table('court_operational_expenses')
+            ->whereNull('deleted_at')
+            ->whereBetween('expense_date', [$monthStart->toDateString(), $monthEndDate])
+            ->selectRaw('category, payment_method, COALESCE(SUM(amount), 0) as total')
+            ->groupBy('category', 'payment_method')
+            ->get();
+        $monthlyExpenseByCategory = [
+            'salary' => $this->emptyPaymentMethodTotals(),
+            'electricity' => $this->emptyPaymentMethodTotals(),
+            'other' => $this->emptyPaymentMethodTotals(),
+        ];
+        foreach ($monthlyExpenseGroups as $expenseGroup) {
+            $method = $expenseGroup->payment_method === 'bank_transfer' ? 'transfer' : $expenseGroup->payment_method;
+            if (isset($monthlyExpenseByCategory[$expenseGroup->category][$method])) {
+                $monthlyExpenseByCategory[$expenseGroup->category][$method] = (float) $expenseGroup->total;
+            }
+        }
+        $monthlyExpenseTotal = (float) $monthlyExpenseGroups->sum('total');
+        $monthlyOperatingSurplus = $monthlyNetReceipts - $monthlyExpenseTotal;
+
         $grossBookingPayments = (float) CourtBookingPayment::query()
             ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
             ->sum(DB::raw('COALESCE(verified_amount, amount)'))
@@ -261,7 +301,11 @@ class CourtBookingController extends Controller
         $bookingRefunds = (float) CourtBookingFundSettlement::query()
             ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
             ->whereNull('voided_at')
-            ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CANCELLED))
+            ->sum('amount');
+        $activeBookingRefunds = (float) CourtBookingFundSettlement::query()
+            ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('voided_at')
+            ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CONFIRMED))
             ->sum('amount');
         $retainedCancellationIncome = (float) CourtBookingFundSettlement::query()
             ->where('type', CourtBookingFundSettlement::TYPE_RETAINED)
@@ -281,13 +325,15 @@ class CourtBookingController extends Controller
             ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CANCELLED))
             ->sum('amount');
         $unresolvedCancellationFunds = max(0, round($cancelledBookingPayments - $cancelledBookingSettlements, 2));
-        $bookingIncome = $activeBookingPayments + $activeBookingAdditionIncome + $retainedCancellationIncome;
+        $bookingIncome = max(0, round($activeBookingPayments - $activeBookingRefunds, 2))
+            + $activeBookingAdditionIncome + $retainedCancellationIncome
+            + (float) CourtDailyRevenueEntry::query()->whereNotNull('court_tournament_rental_id')->sum('amount');
         $standaloneRentalIncome = (float) CourtRentalOrder::query()
             ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
             ->sum('amount');
         $allTimeParkingIncome = (float) CourtDailyRevenue::query()->sum('parking_income');
         $allTimeShopIncome = (float) CourtDailyRevenue::query()->sum('shop_income');
-        $allTimeOtherIncome = (float) CourtDailyRevenueEntry::query()->sum('amount');
+        $allTimeOtherIncome = (float) CourtDailyRevenueEntry::query()->whereNull('court_tournament_rental_id')->sum('amount');
         $otherRentalIncome = $standaloneRentalIncome;
         $totalIncome = $bookingIncome + $otherRentalIncome + $allTimeParkingIncome + $allTimeShopIncome + $allTimeOtherIncome;
         $incomeByPaymentMethod = $this->recognizedIncomeByPaymentMethod();
@@ -346,6 +392,16 @@ class CourtBookingController extends Controller
             ->whereBetween('booking.booking_date', [$chartStart->toDateString(), $chartEnd->toDateString()])
             ->groupBy('booking.booking_date')
             ->get()
+            ->concat(DB::table('court_booking_fund_settlements as settlement')
+                ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+                ->select('booking.booking_date')
+                ->selectRaw('0 as booking_count, -SUM(settlement.amount) as booking_value')
+                ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('settlement.voided_at')
+                ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
+                ->whereBetween('booking.booking_date', [$chartStart->toDateString(), $chartEnd->toDateString()])
+                ->groupBy('booking.booking_date')
+                ->get())
             ->concat(DB::table('court_booking_fund_settlements as settlement')
                 ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
                 ->select('booking.booking_date')
@@ -430,6 +486,9 @@ class CourtBookingController extends Controller
             'monthlyGrossReceipts',
             'monthlyRefundTotal',
             'monthlyNetReceipts',
+            'monthlyExpenseByCategory',
+            'monthlyExpenseTotal',
+            'monthlyOperatingSurplus',
             'totalIncome',
             'bookingIncome',
             'incomeByPaymentMethod',
@@ -554,6 +613,27 @@ class CourtBookingController extends Controller
             }
         }
 
+        $bookingRefunds = DB::table('court_booking_fund_settlements as settlement')
+            ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+            ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('settlement.voided_at')
+            ->where('booking.status', CourtBooking::STATUS_CONFIRMED);
+        if ($operatingDate) {
+            $bookingRefunds->whereDate('booking.booking_date', $operatingDate);
+        }
+        foreach ($bookingRefunds->select('settlement.payment_method')
+            ->selectRaw('SUM(settlement.amount) as amount')
+            ->groupBy('settlement.payment_method')
+            ->get() as $refund) {
+            $bucket = match ($refund->payment_method) {
+                'cash' => 'cash',
+                'bank_transfer' => 'transfer',
+                'qris' => 'qris',
+                default => 'unclassified',
+            };
+            $totals[$bucket] -= (float) $refund->amount;
+        }
+
         $dailyRevenue = DB::table('court_daily_revenues');
         if ($operatingDate) {
             $dailyRevenue->where('operating_date', $operatingDate);
@@ -627,9 +707,7 @@ class CourtBookingController extends Controller
         $dailyBookingRefunds = (float) CourtBookingFundSettlement::query()
             ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
             ->whereNull('voided_at')
-            ->whereHas('booking', fn ($query) => $query
-                ->whereDate('booking_date', $reportDate)
-                ->where('status', CourtBooking::STATUS_CANCELLED))
+            ->whereHas('booking', fn ($query) => $query->whereDate('booking_date', $reportDate))
             ->sum('amount');
         $dailyCancelledGross = (float) $dailyBookings
             ->where('status', CourtBooking::STATUS_CANCELLED)
@@ -645,6 +723,11 @@ class CourtBookingController extends Controller
             ->sum('amount');
         $dailyUnresolvedCancellationFunds = max(0, round($dailyCancelledGross - $dailyCancelledSettled, 2));
         $dailyBookingIncome = max(0, round($dailyBookingPayments - $dailyBookingRefunds - $dailyUnresolvedCancellationFunds, 2));
+        $dailyTournamentRentalIncome = (float) CourtDailyRevenueEntry::query()
+            ->whereDate('operating_date', $reportDate)
+            ->whereNotNull('court_tournament_rental_id')
+            ->sum('amount');
+        $dailyBookingIncome += $dailyTournamentRentalIncome;
         $dailyRentalAdditionIncome = (float) CourtBookingRentalAddition::query()
             ->join('court_bookings as booking', 'booking.id', '=', 'court_booking_rental_additions.court_booking_id')
             ->whereDate('booking.booking_date', $reportDate)
@@ -656,22 +739,35 @@ class CourtBookingController extends Controller
             ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
             ->sum('amount');
         $dailyRevenueEntries = CourtDailyRevenueEntry::query()
-            ->with(['updatedBy', 'tournament', 'court'])
+            ->with(['updatedBy', 'tournament', 'court', 'courtTournamentRental.court'])
             ->where('operating_date', $reportDate)
             ->orderBy('id')
             ->get();
-        $dailyOtherIncome = (float) $dailyRevenueEntries->sum('amount');
+        $dailyOtherIncome = (float) $dailyRevenueEntries
+            ->whereNull('court_tournament_rental_id')
+            ->sum('amount');
         $dailyTotalIncome = $dailyBookingIncome + $dailyParkingIncome + $dailyShopIncome + $dailyOtherIncome + $dailyStandaloneRentalIncome;
         $dailyIncomeByPaymentMethod = $this->recognizedIncomeByPaymentMethod($reportDate);
         $dailyTotalIncome = array_sum($dailyIncomeByPaymentMethod);
         $tournaments = Tournament::query()->orderBy('name')->get(['id', 'name']);
         $courts = Court::query()->orderBy('sort_order')->orderBy('name')->get(['id', 'name']);
-        $dailyOutstandingBalance = (float) $dailyConfirmedBookings->sum(fn ($booking) => max(
-            0,
-            (float) $booking->amount - (float) $booking->payments
+        $tournamentRentals = CourtTournamentRental::query()
+            ->with('court:id,name')
+            ->orderByDesc('rental_date')
+            ->orderByDesc('time_start')
+            ->orderByDesc('id')
+            ->get();
+        $dailyOutstandingBalance = (float) $dailyConfirmedBookings->sum(function ($booking): float {
+            $paid = (float) $booking->payments
                 ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
-                ->sum(fn ($payment) => $payment->recognized_amount),
-        ));
+                ->sum(fn ($payment) => $payment->recognized_amount);
+            $refunded = (float) $booking->fundSettlements
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+
+            return max(0, (float) $booking->amount - max(0, $paid - $refunded));
+        });
 
         return view('admin.court-bookings.daily-report', compact(
             'reportDate',
@@ -698,6 +794,8 @@ class CourtBookingController extends Controller
             'reportMonthEnd',
             'tournaments',
             'courts',
+            'tournamentRentals',
+            'dailyTournamentRentalIncome',
         ));
     }
 
@@ -793,7 +891,9 @@ class CourtBookingController extends Controller
             $rentalOrders = $rentalOrdersByDate->get($dateKey, collect());
             $dailyRevenue = $dailyRevenuesByDate->get($dateKey);
             $allOtherEntries = $revenueEntriesByDate->get($dateKey, collect());
-            $activeOtherEntries = $allOtherEntries->whereNull('deleted_at');
+            $activeRevenueEntries = $allOtherEntries->whereNull('deleted_at');
+            $activeTournamentRentalEntries = $activeRevenueEntries->whereNotNull('court_tournament_rental_id');
+            $activeOtherEntries = $activeRevenueEntries->whereNull('court_tournament_rental_id');
             $review = $reviewsByDate->get($dateKey);
 
             $bookingIncome = 0.0;
@@ -805,6 +905,10 @@ class CourtBookingController extends Controller
                     $bookingIncome += (float) $booking->rentalAdditions
                         ->whereNotNull('confirmed_at')
                         ->sum('amount');
+                    $bookingIncome -= (float) $booking->fundSettlements
+                        ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                        ->whereNull('voided_at')
+                        ->sum('amount');
                 } elseif ($booking->status === CourtBooking::STATUS_CANCELLED) {
                     $bookingIncome += (float) $booking->fundSettlements
                         ->where('type', CourtBookingFundSettlement::TYPE_RETAINED)
@@ -812,6 +916,7 @@ class CourtBookingController extends Controller
                         ->sum('amount');
                 }
             }
+            $bookingIncome += (float) $activeTournamentRentalEntries->sum('amount');
 
             $snapshot = [
                 'bookings' => $bookings->map(fn (CourtBooking $booking): array => $booking->toArray())->values()->all(),
@@ -909,6 +1014,14 @@ class CourtBookingController extends Controller
             ->groupBy('team_key')
             ->get();
 
+        $tournamentRentalGroups = CourtTournamentRental::query()
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->when($fromDate, fn ($query) => $query->whereDate('rental_date', '>=', $fromDate))
+            ->whereDate('rental_date', '<=', $toDate)
+            ->selectRaw('LOWER(TRIM(tournament_name_snapshot)) as team_key, MIN(TRIM(tournament_name_snapshot)) as team_name, COUNT(*) as tournament_rental_count, COALESCE(SUM(duration_minutes), 0) as tournament_rental_minutes')
+            ->groupBy('team_key')
+            ->get();
+
         $normalizeTeamName = static function (string $name): string {
             $name = trim($name);
             $normalized = preg_replace('/\\s+/u', ' ', $name);
@@ -927,6 +1040,8 @@ class CourtBookingController extends Controller
                 'team_name' => $displayName,
                 'booking_count' => 0,
                 'booking_minutes' => 0,
+                'tournament_rental_count' => 0,
+                'tournament_rental_minutes' => 0,
                 'total_minutes' => 0,
             ];
             if (strcasecmp($displayName, $teamTotals[$key]['team_name']) < 0) {
@@ -937,6 +1052,29 @@ class CourtBookingController extends Controller
             $teamTotals[$key]['total_minutes'] += (int) $bookingGroup->booking_minutes;
         }
 
+        foreach ($tournamentRentalGroups as $rentalGroup) {
+            $key = $normalizeTeamName((string) $rentalGroup->team_name);
+            if ($key === '') {
+                continue;
+            }
+
+            $displayName = trim((string) $rentalGroup->team_name);
+            $teamTotals[$key] ??= [
+                'team_name' => $displayName,
+                'booking_count' => 0,
+                'booking_minutes' => 0,
+                'tournament_rental_count' => 0,
+                'tournament_rental_minutes' => 0,
+                'total_minutes' => 0,
+            ];
+            if (strcasecmp($displayName, $teamTotals[$key]['team_name']) < 0) {
+                $teamTotals[$key]['team_name'] = $displayName;
+            }
+            $teamTotals[$key]['tournament_rental_count'] += (int) $rentalGroup->tournament_rental_count;
+            $teamTotals[$key]['tournament_rental_minutes'] += (int) $rentalGroup->tournament_rental_minutes;
+            $teamTotals[$key]['total_minutes'] += (int) $rentalGroup->tournament_rental_minutes;
+        }
+
         $teamRows = collect(array_values($teamTotals))
             ->sort(function (array $left, array $right): int {
                 return ($right['total_minutes'] <=> $left['total_minutes'])
@@ -945,6 +1083,8 @@ class CourtBookingController extends Controller
             ->values();
         $teamCount = $teamRows->count();
         $confirmedBookingCount = (int) $teamRows->sum('booking_count');
+        $periodTournamentRentalCount = (int) $teamRows->sum('tournament_rental_count');
+        $periodTournamentRentalMinutes = (int) $teamRows->sum('tournament_rental_minutes');
         $totalTeamMinutes = (int) $teamRows->sum('total_minutes');
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
         $pageTeamRows = $teamRows
@@ -1002,6 +1142,8 @@ class CourtBookingController extends Controller
             'tournamentRentalMinutes' => $tournamentRentalMinutes,
             'teamCount' => (int) $teamCount,
             'confirmedBookingCount' => $confirmedBookingCount,
+            'periodTournamentRentalCount' => $periodTournamentRentalCount,
+            'periodTournamentRentalMinutes' => $periodTournamentRentalMinutes,
             'totalTeamMinutes' => $totalTeamMinutes,
         ]);
     }
@@ -1308,6 +1450,7 @@ class CourtBookingController extends Controller
         CourtMemberSchedule $schedule,
         CourtBookingAvailabilityService $availability,
         CourtPricingService $pricing,
+        CourtBookingDiscountService $discounts,
     ) {
         $this->ensureAdmin();
 
@@ -1323,6 +1466,9 @@ class CourtBookingController extends Controller
             'booking_date' => ['required', 'date_format:Y-m-d', 'after_or_equal:'.$minimumDate, 'before_or_equal:'.$maximumDate],
             'member_booking_request_key' => ['required', 'uuid'],
             'amount_received' => ['nullable', 'numeric', 'min:0', 'max:9999999999.99'],
+            'discount_type' => ['nullable', Rule::in(['none', 'fixed', 'percentage'])],
+            'discount_value' => ['nullable', 'string', 'max:30'],
+            'discount_reason' => ['nullable', 'string', 'max:255'],
             'payment_method' => ['required', Rule::in(['none', 'cash', 'bank_transfer', 'qris'])],
             'payment_reference' => ['nullable', 'string', 'max:100'],
             'admin_note' => ['nullable', 'string', 'max:1000'],
@@ -1342,6 +1488,9 @@ class CourtBookingController extends Controller
             'schedule_id' => (int) $schedule->id,
             'booking_date' => $validated['booking_date'],
             'amount_received' => $amountReceived,
+            'discount_type' => $validated['discount_type'] ?? 'none',
+            'discount_value' => $discounts->normalizedValue($validated['discount_type'] ?? 'none', $validated['discount_value'] ?? ''),
+            'discount_reason' => trim((string) ($validated['discount_reason'] ?? '')),
             'payment_method' => $validated['payment_method'],
             'payment_reference' => $validated['payment_reference'] ?? null,
             'admin_note' => $validated['admin_note'] ?? null,
@@ -1360,7 +1509,7 @@ class CourtBookingController extends Controller
                 ->with('success', 'Transaksi member ini sudah tercatat sebelumnya. Tidak ada transaksi duplikat yang dibuat.');
         }
 
-        $booking = DB::transaction(function () use ($schedule, $validated, $availability, $pricing, $amountReceived, $fingerprint, $isBackdated): CourtBooking {
+        $booking = DB::transaction(function () use ($schedule, $validated, $availability, $pricing, $discounts, $amountReceived, $fingerprint, $isBackdated): CourtBooking {
             $lockedCourt = $availability->lockCourt((int) $schedule->court_id);
             if (!$lockedCourt) {
                 throw ValidationException::withMessages(['booking_date' => 'Lapangan pada jadwal member ini sudah tidak tersedia.']);
@@ -1391,12 +1540,20 @@ class CourtBookingController extends Controller
             }
 
             $occurrence = $this->assertMemberScheduleOccurrence($lockedSchedule, $validated['booking_date'], $availability);
-            $amount = $pricing->amountForRange(
+            $courtAmount = $pricing->amountForRange(
                 $lockedCourt,
                 $occurrence['time_start'],
                 $occurrence['duration_minutes'],
                 $validated['booking_date'],
             );
+            $discount = $discounts->forCourtAmount(
+                $validated['discount_type'] ?? 'none',
+                $validated['discount_value'] ?? '',
+                $validated['discount_reason'] ?? '',
+                (float) $courtAmount,
+            );
+            $subtotal = round((float) $courtAmount, 2);
+            $amount = round(max(0, $subtotal - $discount['amount']), 2);
             if ($amountReceived > $amount) {
                 throw ValidationException::withMessages([
                     'amount_received' => 'Nominal diterima tidak boleh melebihi total tagihan Rp '.number_format($amount, 0, ',', '.').'.',
@@ -1416,6 +1573,11 @@ class CourtBookingController extends Controller
                 'time_end' => $occurrence['time_end'].':00',
                 'duration_minutes' => $occurrence['duration_minutes'],
                 'amount' => $amount,
+                'subtotal_amount' => $subtotal,
+                'discount_type' => $discount['type'],
+                'discount_value' => $discount['value'],
+                'discount_amount' => $discount['amount'],
+                'discount_reason' => $discount['reason'],
                 'team_name' => trim($lockedSchedule->member_name),
                 'customer_name' => trim($lockedSchedule->member_name),
                 'customer_phone' => null,
@@ -1880,11 +2042,15 @@ class CourtBookingController extends Controller
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'reason' => ['required', 'string', 'max:500'],
+            'refund_confirmed' => ['nullable', 'boolean'],
+            'refund_payment_method' => ['nullable', Rule::in(['cash', 'bank_transfer', 'qris'])],
+            'refund_reference' => ['nullable', 'string', 'max:100'],
         ], [
             'booking_date.before_or_equal' => 'Tanggal pemakaian sebenarnya tidak boleh setelah hari ini.',
         ]);
+        $refundConfirmed = $request->boolean('refund_confirmed');
 
-        $updatedBooking = DB::transaction(function () use ($booking, $validated, $availability, $pricing) {
+        $result = DB::transaction(function () use ($booking, $validated, $availability, $pricing, $refundConfirmed) {
             // Serialize edits and new bookings for this court, then lock the booking row.
             $court = $availability->lockCourt((int) $booking->court_id);
             if (!$court) {
@@ -1986,13 +2152,24 @@ class CourtBookingController extends Controller
                 $rentalAmount = (float) $lockedBooking->rentalLines()->sum('line_total');
                 $newAmount = round($courtAmount + $rentalAmount, 2);
             }
-            $paidAmount = (float) $lockedBooking->payments()
+            $grossPaidAmount = (float) $lockedBooking->payments()
                 ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
                 ->sum(DB::raw('COALESCE(verified_amount, amount)'));
+            $previousRefunds = (float) $lockedBooking->fundSettlements()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+            $netPaidAmount = max(0, round($grossPaidAmount - $previousRefunds, 2));
+            $refundAmount = max(0, round($netPaidAmount - $newAmount, 2));
 
-            if ($newAmount + 0.009 < $paidAmount) {
+            if ($refundAmount > 0 && !$refundConfirmed) {
                 throw ValidationException::withMessages([
-                    'time_end' => 'Total baru (Rp '.number_format($newAmount, 0, ',', '.').') lebih kecil daripada pembayaran yang sudah diterima (Rp '.number_format($paidAmount, 0, ',', '.').'). Koreksi ini belum dapat disimpan karena belum ada alur pencatatan kelebihan pembayaran/refund.',
+                    'refund_confirmed' => 'Tagihan baru Rp '.number_format($newAmount, 0, ',', '.').' lebih rendah dari dana bersih yang diterima Rp '.number_format($netPaidAmount, 0, ',', '.').'. Kembalikan selisih Rp '.number_format($refundAmount, 0, ',', '.').' kepada pelanggan, lalu konfirmasi refund di sini.',
+                ]);
+            }
+            if ($refundAmount > 0 && empty($validated['refund_payment_method'])) {
+                throw ValidationException::withMessages([
+                    'refund_payment_method' => 'Pilih metode yang benar-benar digunakan untuk mengembalikan Rp '.number_format($refundAmount, 0, ',', '.').' kepada pelanggan.',
                 ]);
             }
 
@@ -2025,11 +2202,34 @@ class CourtBookingController extends Controller
                 'after_data' => $after,
             ]);
 
-            return $lockedBooking->refresh();
+            if ($refundAmount > 0) {
+                CourtBookingFundSettlement::query()->create([
+                    'court_booking_id' => $lockedBooking->id,
+                    'request_key' => (string) Str::uuid(),
+                    'type' => CourtBookingFundSettlement::TYPE_REFUND,
+                    'amount' => $refundAmount,
+                    'payment_method' => $validated['refund_payment_method'],
+                    'reference' => trim((string) ($validated['refund_reference'] ?? '')) ?: null,
+                    'reason' => mb_substr('Refund selisih setelah koreksi jadwal: '.trim($validated['reason']), 0, 500),
+                    'recorded_by' => auth()->id(),
+                    'recorded_by_name_snapshot' => mb_substr((string) auth()->user()?->name, 0, 160) ?: null,
+                    'recorded_at' => now(),
+                ]);
+            }
+
+            return [
+                'booking' => $lockedBooking->refresh(),
+                'refund_amount' => $refundAmount,
+            ];
         });
 
-        return redirect()->route('admin.court-bookings.index', ['date' => $updatedBooking->booking_date->toDateString()])
-            ->with('success', 'Tanggal dan jadwal booking berhasil dikoreksi. Riwayat koreksi tersimpan dan pembayaran yang telah diterima tetap tercatat.');
+        $successMessage = 'Tanggal dan jadwal booking berhasil dikoreksi. Riwayat koreksi tersimpan.';
+        if ($result['refund_amount'] > 0) {
+            $successMessage .= ' Refund Rp '.number_format($result['refund_amount'], 0, ',', '.').' juga tercatat dengan metode pengembalian yang dipilih.';
+        }
+
+        return redirect()->route('admin.court-bookings.index', ['date' => $result['booking']->booking_date->toDateString()])
+            ->with('success', $successMessage);
     }
 
     public function updateDailyRevenue(Request $request)
@@ -2085,41 +2285,69 @@ class CourtBookingController extends Controller
     public function storeDailyRevenueEntry(Request $request)
     {
         $this->ensureAdmin();
-        $this->normalizeRupiahInput($request, 'amount');
-        $validated = $request->validate([
-            'operating_date' => ['required', 'date_format:Y-m-d'],
-            'title' => ['required', 'string', 'max:120'],
-            'amount' => ['required', 'integer', 'min:1', 'max:9999999999'],
-            'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'qris', 'unclassified'])],
-            'tournament_id' => ['nullable', 'integer', 'exists:tournaments,id'],
-            'court_id' => ['nullable', 'integer', 'exists:courts,id'],
-            'note' => ['nullable', 'string', 'max:500'],
-        ]);
+        $validated = $this->validateDailyRevenueEntry($request, true);
         CourtDailyRevenueEntry::query()->create([
             ...$validated,
             'updated_by' => auth()->id(),
         ]);
 
         return redirect()->route('admin.court-bookings.reports.daily', ['date' => $validated['operating_date']])
-            ->with('success', 'Pemasukan lain berhasil dicatat.');
+            ->with('success', $validated['court_tournament_rental_id']
+                ? 'Pemasukan sewa lapangan turnamen berhasil dicatat dan masuk ke pemasukan booking lapangan.'
+                : 'Pemasukan lain berhasil dicatat.');
     }
 
     public function updateDailyRevenueEntry(Request $request, CourtDailyRevenueEntry $entry)
     {
         $this->ensureAdmin();
+        $validated = $this->validateDailyRevenueEntry($request, false, $entry);
+        $entry->update([...$validated, 'updated_by' => auth()->id()]);
+
+        return redirect()->route('admin.court-bookings.reports.daily', ['date' => $entry->operating_date->toDateString()])
+            ->with('success', $validated['court_tournament_rental_id']
+                ? 'Catatan pemasukan sewa lapangan turnamen berhasil diperbarui.'
+                : 'Catatan pemasukan lain berhasil diperbarui.');
+    }
+
+    private function validateDailyRevenueEntry(
+        Request $request,
+        bool $includeOperatingDate,
+        ?CourtDailyRevenueEntry $entry = null,
+    ): array {
         $this->normalizeRupiahInput($request, 'amount');
-        $validated = $request->validate([
+
+        $rules = [
             'title' => ['required', 'string', 'max:120'],
             'amount' => ['required', 'integer', 'min:1', 'max:9999999999'],
             'payment_method' => ['required', Rule::in(['cash', 'bank_transfer', 'qris', 'unclassified'])],
             'tournament_id' => ['nullable', 'integer', 'exists:tournaments,id'],
             'court_id' => ['nullable', 'integer', 'exists:courts,id'],
+            'court_tournament_rental_id' => ['nullable', 'integer', 'exists:court_tournament_rentals,id'],
             'note' => ['nullable', 'string', 'max:500'],
-        ]);
-        $entry->update([...$validated, 'updated_by' => auth()->id()]);
+        ];
+        if ($includeOperatingDate) {
+            $rules['operating_date'] = ['required', 'date_format:Y-m-d'];
+        }
 
-        return redirect()->route('admin.court-bookings.reports.daily', ['date' => $entry->operating_date->toDateString()])
-            ->with('success', 'Catatan pemasukan lain berhasil diperbarui.');
+        $validated = $request->validate($rules);
+        $rentalId = $validated['court_tournament_rental_id'] ?? null;
+        $rental = $rentalId ? CourtTournamentRental::query()->findOrFail((int) $rentalId) : null;
+
+        if ($rental?->status === CourtTournamentRental::STATUS_CANCELLED
+            && (int) $entry?->court_tournament_rental_id !== (int) $rental->id) {
+            throw ValidationException::withMessages([
+                'court_tournament_rental_id' => 'Sesi sewa yang dibatalkan tidak dapat dipilih untuk pemasukan baru.',
+            ]);
+        }
+
+        if ($rental) {
+            $validated['tournament_id'] = $rental->tournament_id;
+            $validated['court_id'] = $rental->court_id;
+        }
+
+        $validated['court_tournament_rental_id'] = $rental?->id;
+
+        return $validated;
     }
 
     public function destroyDailyRevenueEntry(CourtDailyRevenueEntry $entry)
@@ -2161,6 +2389,11 @@ class CourtBookingController extends Controller
             $paidAmount = (float) $lockedBooking->payments()
                 ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
                 ->sum(DB::raw('COALESCE(verified_amount, amount)'));
+            $paidAmount -= (float) $lockedBooking->fundSettlements()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+            $paidAmount = max(0, $paidAmount);
             $balance = max(0, round((float) $lockedBooking->amount - $paidAmount, 2));
             $paymentAmount = round((float) $validated['amount'], 2);
 
@@ -2223,7 +2456,12 @@ class CourtBookingController extends Controller
                 ->whereKeyNot($lockedPayment->id)
                 ->sum(DB::raw('COALESCE(verified_amount, amount)'));
             $newAmount = round((float) $validated['verified_amount'], 2);
-            if ($otherConfirmed + $newAmount > (float) $lockedBooking->amount) {
+            $activeRefunds = (float) $lockedBooking->fundSettlements()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+            $netPaidAfterCorrection = max(0, round($otherConfirmed + $newAmount - $activeRefunds, 2));
+            if ($netPaidAfterCorrection > (float) $lockedBooking->amount) {
                 throw ValidationException::withMessages(['verified_amount' => 'Nominal ini membuat total pembayaran melebihi tagihan booking.']);
             }
             $activeSettlements = (float) $lockedBooking->fundSettlements()->whereNull('voided_at')->sum('amount');
@@ -2233,7 +2471,7 @@ class CourtBookingController extends Controller
             }
 
             $before = $this->paymentAuditSnapshot($lockedPayment);
-            $paidAfter = $otherConfirmed + $newAmount;
+            $paidAfter = $netPaidAfterCorrection;
             $lockedPayment->update([
                 'amount' => $newAmount,
                 'verified_amount' => $newAmount,
@@ -2268,6 +2506,16 @@ class CourtBookingController extends Controller
             }
             if (!in_array($lockedBooking->status, [CourtBooking::STATUS_CONFIRMED, CourtBooking::STATUS_PENDING_REVIEW], true)) {
                 throw ValidationException::withMessages(['booking' => 'Status booking tidak mendukung pembatalan verifikasi pembayaran.']);
+            }
+
+            $remainingConfirmedBeforeUpdate = (float) $lockedBooking->payments()
+                ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
+                ->whereKeyNot($lockedPayment->id)
+                ->sum(DB::raw('COALESCE(verified_amount, amount)'));
+            $confirmedAdditions = (float) $lockedBooking->rentalAdditions()->whereNotNull('confirmed_at')->sum('amount');
+            $activeSettlements = (float) $lockedBooking->fundSettlements()->whereNull('voided_at')->sum('amount');
+            if ($remainingConfirmedBeforeUpdate + $confirmedAdditions < $activeSettlements) {
+                throw ValidationException::withMessages(['payment' => 'Pembayaran tidak dapat dikembalikan ke pemeriksaan karena dana refund/penyelesaian sudah tercatat. Koreksi catatan dana terlebih dahulu.']);
             }
 
             $before = $this->paymentAuditSnapshot($lockedPayment);
@@ -2370,7 +2618,12 @@ class CourtBookingController extends Controller
             $confirmedBefore = (float) $lockedBooking->payments()
                 ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
                 ->sum(DB::raw('COALESCE(verified_amount, amount)'));
-            $remainingBefore = max(0, round((float) $lockedBooking->amount - $confirmedBefore, 2));
+            $activeRefunds = (float) $lockedBooking->fundSettlements()
+                ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
+                ->whereNull('voided_at')
+                ->sum('amount');
+            $netConfirmedBefore = max(0, round($confirmedBefore - $activeRefunds, 2));
+            $remainingBefore = max(0, round((float) $lockedBooking->amount - $netConfirmedBefore, 2));
             if ($verifiedAmount > $remainingBefore) {
                 throw ValidationException::withMessages(['booking' => 'Nominal pembayaran melebihi sisa tagihan. Periksa riwayat pembayaran booking ini.']);
             }
@@ -2568,8 +2821,11 @@ class CourtBookingController extends Controller
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            if ($lockedBooking->status !== CourtBooking::STATUS_CANCELLED) {
-                throw ValidationException::withMessages(['booking' => 'Catatan dana hanya dapat dikoreksi saat booking berstatus dibatalkan.']);
+            $canVoidCancellationSettlement = $lockedBooking->status === CourtBooking::STATUS_CANCELLED;
+            $canVoidActiveRefund = $lockedBooking->status === CourtBooking::STATUS_CONFIRMED
+                && $lockedSettlement->type === CourtBookingFundSettlement::TYPE_REFUND;
+            if (!$canVoidCancellationSettlement && !$canVoidActiveRefund) {
+                throw ValidationException::withMessages(['booking' => 'Refund booking aktif dapat dikoreksi selama booking masih terkonfirmasi. Catatan dana pembatalan hanya dapat dikoreksi pada booking yang dibatalkan.']);
             }
             if ($lockedSettlement->voided_at) {
                 return false;
@@ -2689,6 +2945,7 @@ class CourtBookingController extends Controller
             'weekend_day_hourly_rate' => ['required', 'integer', 'min:0', 'max:100000000'],
             'weekend_night_hourly_rate' => ['required', 'integer', 'min:0', 'max:100000000'],
             'night_rate_starts_at' => ['required', 'date_format:H:i'],
+            'night_rate_ends_at' => ['required', 'date_format:H:i'],
             'opening_time' => ['required', 'date_format:H:i'],
             'closing_time' => ['required', 'date_format:H:i'],
             'slot_duration_minutes' => ['required', 'integer', Rule::in([30])],
@@ -2698,6 +2955,9 @@ class CourtBookingController extends Controller
 
         if ($validated['closing_time'] !== '00:00' && $validated['closing_time'] <= $validated['opening_time']) {
             throw ValidationException::withMessages(['closing_time' => 'Jam tutup harus setelah jam buka. Gunakan 00.00 jika lapangan beroperasi sampai tengah malam.']);
+        }
+        if ($validated['night_rate_starts_at'] === $validated['night_rate_ends_at']) {
+            throw ValidationException::withMessages(['night_rate_ends_at' => 'Jam akhir tarif malam harus berbeda dari jam mulainya.']);
         }
 
         return $validated + [
@@ -2901,4 +3161,5 @@ class CourtBookingController extends Controller
             })
             ->exists();
     }
+
 }

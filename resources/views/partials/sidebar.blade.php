@@ -379,6 +379,11 @@
                 <i class="bi bi-cash-stack"></i> Laporan pemasukan
             </a>
 
+            <a class="nav-link {{ request()->routeIs('admin.court-bookings.expenses.*') ? 'active' : '' }}"
+                href="{{ route('admin.court-bookings.expenses.index') }}">
+                <i class="bi bi-receipt"></i> Pengeluaran operasional
+            </a>
+
             <a class="nav-link {{ request()->routeIs('admin.court-rentals.settings', 'admin.court-rentals.items.*') ? 'active' : '' }}"
                 href="{{ route('admin.court-rentals.settings') }}">
                 <i class="bi bi-box-seam"></i> Katalog perlengkapan

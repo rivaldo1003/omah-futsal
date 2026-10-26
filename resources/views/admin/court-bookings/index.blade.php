@@ -1280,11 +1280,18 @@
                                     ->count();
                                 $bookingStart = \Carbon\Carbon::parse($booking->booking_date->toDateString() . ' ' . $booking->time_start, \App\Models\CourtBooking::TIMEZONE);
                                 $canCorrectSchedule = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED;
-                                $paidAmount = (float) $booking->payments->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)->sum(fn($payment) => $payment->recognized_amount);
+                                $grossPaidAmount = (float) $booking->payments->where('status', \App\Models\CourtBookingPayment::STATUS_CONFIRMED)->sum(fn($payment) => $payment->recognized_amount);
+                                $bookingRefundAmount = (float) $booking->fundSettlements
+                                    ->where('type', \App\Models\CourtBookingFundSettlement::TYPE_REFUND)
+                                    ->whereNull('voided_at')
+                                    ->sum('amount');
+                                $paidAmount = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED
+                                    ? max(0, $grossPaidAmount - $bookingRefundAmount)
+                                    : $grossPaidAmount;
                                 $paidRentalAdditionAmount = $booking->status === \App\Models\CourtBooking::STATUS_CANCELLED
                                     ? (float) $booking->rentalAdditions->whereNotNull('confirmed_at')->sum('amount')
                                     : 0;
-                                $bookingFundsReceived = $paidAmount + $paidRentalAdditionAmount;
+                                $bookingFundsReceived = $grossPaidAmount + $paidRentalAdditionAmount;
                                 $activeFundSettlements = $booking->fundSettlements->whereNull('voided_at');
                                 $settledFundAmount = (float) $activeFundSettlements->sum('amount');
                                 $unresolvedCancelledFunds = $booking->status === \App\Models\CourtBooking::STATUS_CANCELLED
@@ -1347,6 +1354,9 @@
                                             <span>Total tagihan</span>
                                             <strong>Rp {{ number_format((float) $booking->amount, 0, ',', '.') }}</strong>
                                         </div>
+                                        @if((float) ($booking->discount_amount ?? 0) > 0)
+                                            <div class="small text-secondary mt-1">Harga awal Rp {{ number_format((float) ($booking->subtotal_amount ?? ($booking->amount + $booking->discount_amount)), 0, ',', '.') }} · Diskon Rp {{ number_format((float) $booking->discount_amount, 0, ',', '.') }}{{ $booking->discount_reason ? ' · '.$booking->discount_reason : '' }}</div>
+                                        @endif
                                         <div class="booking-payment-balance">
                                             <div>
                                                 <span>Diterima</span>
@@ -1360,6 +1370,9 @@
                                     @endif
                                         </div>
                                         <div class="booking-payment-method">{{ $booking->payment_method_label }}</div>
+                                        @if($booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED && $bookingRefundAmount > 0)
+                                            <div class="small text-secondary mt-1">Refund tercatat: Rp {{ number_format($bookingRefundAmount, 0, ',', '.') }}</div>
+                                        @endif
                                         @if($booking->status === \App\Models\CourtBooking::STATUS_CANCELLED && $bookingFundsReceived > 0)
                                             <div class="small mt-2 {{ $unresolvedCancelledFunds > 0 ? 'text-warning-emphasis' : 'text-success' }}">
                                                 @if($unresolvedCancelledFunds > 0)
@@ -2405,7 +2418,7 @@
                                         </div>
                                     </div>
                                     <div class="alert alert-light border small" role="note">
-                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total dan pembayaran tetap. Jika jam atau durasi berubah, total dihitung ulang. Semua koreksi dicatat di riwayat; jadwal yang bentrok akan ditolak.
+                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total tetap. Jika jam atau durasi berubah, total dihitung ulang. Jadwal yang bentrok akan ditolak dan semua koreksi dicatat di riwayat.
                                     </div>
                                     <div class="row g-3">
                                         <div class="col-sm-4">
@@ -2435,6 +2448,34 @@
                                             placeholder="Contoh: tanggal salah dicatat; seharusnya 1 Oktober 2026" required>{{ $scheduleCorrectionOldInput ? old('reason') : '' }}</textarea>
                                         @if($scheduleCorrectionOldInput && $errors->has('reason'))<div class="text-danger small mt-1">{{ $errors->first('reason') }}</div>@endif
                                     </div>
+                                    <section class="border rounded p-3 mt-3" aria-labelledby="scheduleRefundHeading{{ $booking->id }}">
+                                        <h3 class="h6 mb-1" id="scheduleRefundHeading{{ $booking->id }}">Jika total baru lebih rendah</h3>
+                                        <p class="small text-secondary mb-3">Kembalikan kelebihan dana kepada pelanggan terlebih dahulu. Jika dana bersih yang diterima melebihi total baru, sistem mencatat refund sesuai nominal selisih dan metode pengembalian.</p>
+                                        <div class="form-check mb-3">
+                                            <input class="form-check-input" type="checkbox" id="scheduleRefundConfirmed{{ $booking->id }}"
+                                                name="refund_confirmed" value="1" @checked($scheduleCorrectionOldInput && old('refund_confirmed'))>
+                                            <label class="form-check-label" for="scheduleRefundConfirmed{{ $booking->id }}">Saya sudah benar-benar mengembalikan selisih dana kepada pelanggan.</label>
+                                            @if($scheduleCorrectionOldInput && $errors->has('refund_confirmed'))<div class="text-danger small mt-1">{{ $errors->first('refund_confirmed') }}</div>@endif
+                                        </div>
+                                        <div class="row g-3">
+                                            <div class="col-sm-6">
+                                                <label class="form-label" for="scheduleRefundMethod{{ $booking->id }}">Dikembalikan melalui</label>
+                                                <select class="form-select" id="scheduleRefundMethod{{ $booking->id }}" name="refund_payment_method">
+                                                    <option value="">Pilih metode</option>
+                                                    <option value="cash" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'cash')>Tunai</option>
+                                                    <option value="bank_transfer" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'bank_transfer')>Transfer bank</option>
+                                                    <option value="qris" @selected($scheduleCorrectionOldInput && old('refund_payment_method') === 'qris')>QRIS</option>
+                                                </select>
+                                                @if($scheduleCorrectionOldInput && $errors->has('refund_payment_method'))<div class="text-danger small mt-1">{{ $errors->first('refund_payment_method') }}</div>@endif
+                                            </div>
+                                            <div class="col-sm-6">
+                                                <label class="form-label" for="scheduleRefundReference{{ $booking->id }}">Referensi refund <span class="text-secondary">(opsional)</span></label>
+                                                <input class="form-control" type="text" id="scheduleRefundReference{{ $booking->id }}" name="refund_reference" maxlength="100"
+                                                    value="{{ $scheduleCorrectionOldInput ? old('refund_reference') : '' }}" placeholder="Contoh: nomor referensi transfer">
+                                                @if($scheduleCorrectionOldInput && $errors->has('refund_reference'))<div class="text-danger small mt-1">{{ $errors->first('refund_reference') }}</div>@endif
+                                            </div>
+                                        </div>
+                                    </section>
                                     @if($scheduleCorrectionOldInput && $errors->has('booking'))
                                         <div class="alert alert-danger mt-3 mb-0">{{ $errors->first('booking') }}</div>
                                     @endif
@@ -2535,7 +2576,7 @@
         @endpush
     @endif
 
-    @if((string) old('_schedule_edit_booking_id', '') !== '' && $errors->hasAny(['booking_date', 'time_start', 'time_end', 'reason', 'booking']))
+    @if((string) old('_schedule_edit_booking_id', '') !== '' && $errors->hasAny(['booking_date', 'time_start', 'time_end', 'reason', 'refund_confirmed', 'refund_payment_method', 'refund_reference', 'booking']))
         @push('scripts')
             <script>
                 document.addEventListener('DOMContentLoaded', () => {
