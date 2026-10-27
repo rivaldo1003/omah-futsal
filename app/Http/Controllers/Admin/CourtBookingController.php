@@ -290,7 +290,10 @@ class CourtBookingController extends Controller
         foreach (array_keys($monthlyNetByMethod) as $method) {
             $monthlyNetByMethod[$method] -= $monthlyIncomeByCategory['refunds'][$method];
         }
-        $monthlyGrossReceipts = array_sum($monthlyIncomingByMethod);
+        $monthlyNetBookingByMethod = $monthlyIncomeByCategory['booking'];
+        foreach (array_keys($monthlyNetBookingByMethod) as $method) {
+            $monthlyNetBookingByMethod[$method] -= $monthlyIncomeByCategory['refunds'][$method];
+        }
         $monthlyRefundTotal = array_sum($monthlyIncomeByCategory['refunds']);
         $monthlyNetReceipts = array_sum($monthlyNetByMethod);
 
@@ -314,33 +317,12 @@ class CourtBookingController extends Controller
         $monthlyExpenseTotal = (float) $monthlyExpenseGroups->sum('total');
         $monthlyOperatingSurplus = $monthlyNetReceipts - $monthlyExpenseTotal;
 
-        $grossBookingPayments = (float) CourtBookingPayment::query()
-            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
-            ->sum(DB::raw('COALESCE(verified_amount, amount)'))
-            + (float) CourtBookingRentalAddition::query()->whereNotNull('confirmed_at')->sum('amount');
-        $activeBookingPayments = (float) CourtBookingPayment::query()
-            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
-            ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CONFIRMED))
-            ->sum(DB::raw('COALESCE(verified_amount, amount)'));
-        $activeBookingAdditionIncome = (float) CourtBookingRentalAddition::query()
-            ->join('court_bookings as booking', 'booking.id', '=', 'court_booking_rental_additions.court_booking_id')
-            ->whereNotNull('court_booking_rental_additions.confirmed_at')
-            ->where('booking.status', CourtBooking::STATUS_CONFIRMED)
-            ->sum('court_booking_rental_additions.amount');
-        $bookingRefunds = (float) CourtBookingFundSettlement::query()
-            ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
-            ->whereNull('voided_at')
-            ->sum('amount');
-        $activeBookingRefunds = (float) CourtBookingFundSettlement::query()
-            ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
-            ->whereNull('voided_at')
-            ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CONFIRMED))
-            ->sum('amount');
         $retainedCancellationIncome = (float) CourtBookingFundSettlement::query()
             ->where('type', CourtBookingFundSettlement::TYPE_RETAINED)
             ->whereNull('voided_at')
             ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CANCELLED))
             ->sum('amount');
+        $bookingIncomeByPaymentMethod = $this->recognizedBookingIncomeByPaymentMethod();
         $cancelledBookingPayments = (float) CourtBookingPayment::query()
             ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
             ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CANCELLED))
@@ -354,9 +336,7 @@ class CourtBookingController extends Controller
             ->whereHas('booking', fn ($query) => $query->where('status', CourtBooking::STATUS_CANCELLED))
             ->sum('amount');
         $unresolvedCancellationFunds = max(0, round($cancelledBookingPayments - $cancelledBookingSettlements, 2));
-        $bookingIncome = max(0, round($activeBookingPayments - $activeBookingRefunds, 2))
-            + $activeBookingAdditionIncome + $retainedCancellationIncome
-            + (float) CourtDailyRevenueEntry::query()->whereNotNull('court_tournament_rental_id')->sum('amount');
+        $bookingIncome = array_sum($bookingIncomeByPaymentMethod);
         $standaloneRentalIncome = (float) CourtRentalOrder::query()
             ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
             ->sum('amount');
@@ -510,9 +490,8 @@ class CourtBookingController extends Controller
             'selectedMonth',
             'selectedMonthLabel',
             'monthlyIncomeByCategory',
-            'monthlyIncomingByMethod',
             'monthlyNetByMethod',
-            'monthlyGrossReceipts',
+            'monthlyNetBookingByMethod',
             'monthlyRefundTotal',
             'monthlyRefundDetails',
             'monthlyNetReceipts',
@@ -521,9 +500,8 @@ class CourtBookingController extends Controller
             'monthlyOperatingSurplus',
             'totalIncome',
             'bookingIncome',
+            'bookingIncomeByPaymentMethod',
             'incomeByPaymentMethod',
-            'grossBookingPayments',
-            'bookingRefunds',
             'retainedCancellationIncome',
             'unresolvedCancellationFunds',
             'otherRentalIncome',
@@ -551,6 +529,9 @@ class CourtBookingController extends Controller
 
     private function accumulatePaymentMethodTotals(array &$totals, $query, string $methodColumn, string $amountExpression): void
     {
+        $methodKey = str_contains($methodColumn, '.')
+            ? substr($methodColumn, strrpos($methodColumn, '.') + 1)
+            : $methodColumn;
         $rows = $query
             ->select($methodColumn)
             ->selectRaw("SUM({$amountExpression}) as amount")
@@ -558,7 +539,7 @@ class CourtBookingController extends Controller
             ->get();
 
         foreach ($rows as $row) {
-            $method = match ($row->{$methodColumn}) {
+            $method = match ($row->{$methodKey}) {
                 'cash' => 'cash',
                 'bank_transfer' => 'transfer',
                 'qris' => 'qris',
@@ -677,6 +658,74 @@ class CourtBookingController extends Controller
 
         foreach (array_keys($totals) as $method) {
             $totals[$method] += (float) ($revenueTotals->{$method} ?? 0);
+        }
+
+        return array_map(fn (float $amount): float => round($amount, 2), $totals);
+    }
+
+    private function recognizedBookingIncomeByPaymentMethod(): array
+    {
+        $totals = $this->emptyPaymentMethodTotals();
+
+        $bookingPayments = DB::table('court_booking_payments as payment')
+            ->join('court_bookings as booking', 'booking.id', '=', 'payment.court_booking_id')
+            ->where('payment.status', CourtBookingPayment::STATUS_CONFIRMED)
+            ->where('booking.status', CourtBooking::STATUS_CONFIRMED);
+        $this->accumulatePaymentMethodTotals(
+            $totals,
+            $bookingPayments,
+            'payment.payment_method',
+            'COALESCE(payment.verified_amount, payment.amount)',
+        );
+
+        $rentalAdditions = DB::table('court_booking_rental_additions as addition')
+            ->join('court_bookings as booking', 'booking.id', '=', 'addition.court_booking_id')
+            ->whereNotNull('addition.confirmed_at')
+            ->where('booking.status', CourtBooking::STATUS_CONFIRMED);
+        $this->accumulatePaymentMethodTotals(
+            $totals,
+            $rentalAdditions,
+            'addition.payment_method',
+            'addition.amount',
+        );
+
+        $retainedCancellations = DB::table('court_booking_fund_settlements as settlement')
+            ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+            ->where('settlement.type', CourtBookingFundSettlement::TYPE_RETAINED)
+            ->whereNull('settlement.voided_at')
+            ->where('booking.status', CourtBooking::STATUS_CANCELLED);
+        $this->accumulatePaymentMethodTotals(
+            $totals,
+            $retainedCancellations,
+            'settlement.payment_method',
+            'settlement.amount',
+        );
+
+        $tournamentRentalIncome = DB::table('court_daily_revenue_entries as entry')
+            ->whereNotNull('entry.court_tournament_rental_id')
+            ->whereNull('entry.deleted_at');
+        $this->accumulatePaymentMethodTotals(
+            $totals,
+            $tournamentRentalIncome,
+            'entry.payment_method',
+            'entry.amount',
+        );
+
+        $refunds = DB::table('court_booking_fund_settlements as settlement')
+            ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+            ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('settlement.voided_at')
+            ->where('booking.status', CourtBooking::STATUS_CONFIRMED);
+        $refundTotals = $this->emptyPaymentMethodTotals();
+        $this->accumulatePaymentMethodTotals(
+            $refundTotals,
+            $refunds,
+            'settlement.payment_method',
+            'settlement.amount',
+        );
+
+        foreach (array_keys($totals) as $method) {
+            $totals[$method] -= $refundTotals[$method];
         }
 
         return array_map(fn (float $amount): float => round($amount, 2), $totals);

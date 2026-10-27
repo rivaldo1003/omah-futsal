@@ -54,6 +54,12 @@
             </div>
         </section>
 
+        @if($topCourtUsers->isNotEmpty())
+            <section class="home-section" aria-label="Tim dan penyewa dengan pemakaian lapangan terbanyak">
+                @include('home.partials.top-court-users')
+            </section>
+        @endif
+
         <section class="home-section home-section-stack" aria-label="Informasi tim">
             @if($teamSectionTournament)
                 @include('home.partials.active-teams')

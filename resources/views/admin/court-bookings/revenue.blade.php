@@ -130,6 +130,10 @@
             border-bottom: 1px solid var(--revenue-line);
         }
 
+        .revenue-month-summary--net {
+            grid-template-columns: minmax(0, 1fr);
+        }
+
         .revenue-month-summary > div {
             min-width: 0;
             padding: 17px 22px;
@@ -463,6 +467,36 @@
             color: var(--revenue-muted);
             font-size: 13px;
             line-height: 1.45;
+        }
+
+        .revenue-booking-methods {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px 14px;
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid var(--revenue-line);
+        }
+
+        .revenue-booking-methods > div {
+            display: grid;
+            gap: 2px;
+            min-width: 0;
+            padding: 8px 10px;
+            border-radius: 6px;
+            background: var(--revenue-cloud);
+        }
+
+        .revenue-booking-methods span {
+            color: var(--revenue-muted);
+            font-size: 12px;
+            line-height: 1.35;
+        }
+
+        .revenue-booking-methods strong {
+            font-size: 13px;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
         }
 
         .report-panel-header {
@@ -822,24 +856,16 @@
                 </form>
             </header>
 
-            <div class="revenue-month-summary" aria-label="Ringkasan penerimaan bulan {{ $selectedMonthLabel }}">
+            <div class="revenue-month-summary revenue-month-summary--net" aria-label="Ringkasan penerimaan bulan {{ $selectedMonthLabel }}">
                 <div>
-                    <span>Total penerimaan bruto</span>
-                    <strong>Rp {{ number_format($monthlyGrossReceipts, 0, ',', '.') }}</strong>
-                </div>
-                <div>
-                    <span>Dana refund tercatat</span>
-                    <strong>Rp {{ number_format($monthlyRefundTotal, 0, ',', '.') }}</strong>
-                </div>
-                <div>
-                    <span>Penerimaan setelah refund</span>
+                    <span>Total pemasukan setelah refund · {{ $selectedMonthLabel }}</span>
                     <strong>Rp {{ number_format($monthlyNetReceipts, 0, ',', '.') }}</strong>
                 </div>
             </div>
 
             @php
                 $monthlyCategoryLabels = [
-                    'booking' => 'Booking lapangan',
+                    'booking' => 'Booking lapangan bersih',
                     'rental_additions' => 'Tambahan perlengkapan booking',
                     'standalone_rentals' => 'Sewa perlengkapan mandiri',
                     'parking' => 'Parkir',
@@ -855,7 +881,7 @@
             @endphp
             <div class="table-responsive">
                 <table class="table align-middle revenue-table revenue-month-table">
-                    <caption class="visually-hidden">Penerimaan dan refund berdasarkan sumber serta metode pembayaran untuk {{ $selectedMonthLabel }}.</caption>
+                    <caption class="visually-hidden">Pemasukan setelah refund berdasarkan sumber serta metode pembayaran untuk {{ $selectedMonthLabel }}.</caption>
                     <thead>
                         <tr>
                             <th scope="col">Sumber transaksi</th>
@@ -868,40 +894,24 @@
                     <tbody>
                         @foreach($monthlyCategoryLabels as $category => $categoryLabel)
                             @php
-                                $categoryTotal = array_sum($monthlyIncomeByCategory[$category]);
+                                $categoryAmounts = $category === 'booking'
+                                    ? $monthlyNetBookingByMethod
+                                    : $monthlyIncomeByCategory[$category];
+                                $categoryTotal = array_sum($categoryAmounts);
                             @endphp
                             <tr>
                                 <th scope="row">{{ $categoryLabel }}</th>
                                 @foreach($monthlyMethodLabels as $method => $methodLabel)
-                                    <td class="text-end revenue-money">Rp {{ number_format($monthlyIncomeByCategory[$category][$method], 0, ',', '.') }}</td>
+                                    @php $amount = $categoryAmounts[$method]; @endphp
+                                    <td class="text-end revenue-money">{{ $amount < 0 ? '− ' : '' }}Rp {{ number_format(abs($amount), 0, ',', '.') }}</td>
                                 @endforeach
-                                <td class="text-end revenue-money"><strong>Rp {{ number_format($categoryTotal, 0, ',', '.') }}</strong></td>
+                                <td class="text-end revenue-money"><strong>{{ $categoryTotal < 0 ? '− ' : '' }}Rp {{ number_format(abs($categoryTotal), 0, ',', '.') }}</strong></td>
                             </tr>
                         @endforeach
-                        @php
-                            $refundRowTotal = array_sum($monthlyIncomeByCategory['refunds']);
-                        @endphp
-                        <tr>
-                            <th scope="row">Refund booking (uang keluar)</th>
-                            @foreach($monthlyMethodLabels as $method => $methodLabel)
-                                @php
-                                    $refundAmount = $monthlyIncomeByCategory['refunds'][$method];
-                                @endphp
-                                <td class="text-end revenue-money">{{ $refundAmount > 0 ? '− ' : '' }}Rp {{ number_format($refundAmount, 0, ',', '.') }}</td>
-                            @endforeach
-                            <td class="text-end revenue-money"><strong>{{ $refundRowTotal > 0 ? '− ' : '' }}Rp {{ number_format($refundRowTotal, 0, ',', '.') }}</strong></td>
-                        </tr>
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th scope="row">Penerimaan bruto</th>
-                            @foreach($monthlyMethodLabels as $method => $methodLabel)
-                                <td class="text-end revenue-money">Rp {{ number_format($monthlyIncomingByMethod[$method], 0, ',', '.') }}</td>
-                            @endforeach
-                            <td class="text-end revenue-money">Rp {{ number_format($monthlyGrossReceipts, 0, ',', '.') }}</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">Setelah refund</th>
+                            <th scope="row">Total pemasukan setelah refund</th>
                             @foreach($monthlyMethodLabels as $method => $methodLabel)
                                 @php
                                     $netAmount = $monthlyNetByMethod[$method];
@@ -913,7 +923,7 @@
                     </tfoot>
                 </table>
             </div>
-            <p class="revenue-month-note">Refund ditampilkan sebagai pengurang karena dana keluar. Nilai refund pada ringkasan adalah total positifnya; penerimaan setelah refund dihitung dari penerimaan bruto dikurangi nilai tersebut. Setiap catatan di bawah mewakili satu pengembalian dana. Pembayaran booking masuk ke bulan saat dicatat. Sewa lapangan turnamen masuk ke baris booking jika pemasukan ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Angka setelah refund menunjukkan arus kas, bukan laba bersih.</p>
+            <p class="revenue-month-note">Baris booking lapangan sudah dikurangi refund sesuai metode dana dikembalikan, sehingga tunai dan transfer menunjukkan nilai bersih. Refund tetap tersimpan dan dapat ditelusuri di rincian refund atau daftar booking untuk dikoreksi. Pembayaran booking masuk ke bulan saat dicatat. Pemasukan sewa turnamen masuk ke baris booking jika ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Total ini menunjukkan arus kas setelah refund, sebelum pengeluaran.</p>
 
             <details class="refund-audit" @if(request()->filled('refund_page')) open @endif>
                 <summary class="refund-audit-summary">
@@ -1054,17 +1064,14 @@
                 <span class="revenue-label">Pemasukan booking diakui</span>
                 <strong>Rp {{ number_format($bookingIncome, 0, ',', '.') }}</strong>
                 <span class="revenue-caption">Booking aktif, sewa lapangan turnamen, perlengkapan tambahan, dan biaya pembatalan yang ditahan</span>
-            </div>
-            <div class="revenue-source">
-                <span class="revenue-label">Pembayaran booking bruto</span>
-                <strong>Rp {{ number_format($grossBookingPayments, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Termasuk pembayaran dari booking yang kemudian dibatalkan. Nilai ini
-                    hanya catatan bruto, bukan tambahan ke total pemasukan.</span>
-            </div>
-            <div class="revenue-source">
-                <span class="revenue-label">Refund tercatat</span>
-                <strong>Rp {{ number_format($bookingRefunds, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Dana yang sudah dikembalikan</span>
+                <div class="revenue-booking-methods" aria-label="Rincian pemasukan booking bersih berdasarkan metode pembayaran">
+                    @foreach(['cash' => 'Tunai bersih', 'transfer' => 'Transfer bersih', 'qris' => 'QRIS bersih', 'unclassified' => 'Belum dirinci'] as $method => $label)
+                        <div>
+                            <span>{{ $label }}</span>
+                            <strong>Rp {{ number_format($bookingIncomeByPaymentMethod[$method] ?? 0, 0, ',', '.') }}</strong>
+                        </div>
+                    @endforeach
+                </div>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Dana batal belum diputuskan</span>

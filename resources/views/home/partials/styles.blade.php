@@ -1886,6 +1886,142 @@
         margin-top: 24px;
     }
 
+    .home-court-usage-header {
+        align-items: flex-start;
+        gap: 16px;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .home-court-usage-header::-webkit-details-marker {
+        display: none;
+    }
+
+    .home-court-usage-header::marker {
+        content: '';
+    }
+
+    .home-court-usage-header:hover {
+        background: var(--surface-subtle);
+    }
+
+    .home-court-usage-header:focus-visible {
+        position: relative;
+        z-index: 1;
+        outline: 2px solid var(--accent);
+        outline-offset: -3px;
+    }
+
+    .home-court-usage-header-actions {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+
+    .home-court-usage-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        color: var(--text-primary);
+        font-size: 13px;
+        font-weight: 600;
+        white-space: nowrap;
+    }
+
+    .home-court-usage-toggle i {
+        transition: transform 160ms ease;
+    }
+
+    .home-court-usage[open] .home-court-usage-toggle i {
+        transform: rotate(180deg);
+    }
+
+    .home-court-usage[open] .home-court-usage-action-show,
+    .home-court-usage:not([open]) .home-court-usage-action-hide {
+        display: none;
+    }
+
+    .home-court-usage-header p {
+        margin: 5px 0 0;
+        color: var(--text-muted);
+        font-size: 14px;
+        line-height: 1.45;
+    }
+
+    .home-court-usage-period {
+        flex: 0 0 auto;
+        padding-top: 1px;
+        color: var(--text-muted);
+        font-size: 13px;
+    }
+
+    .home-court-usage-list {
+        margin: 0;
+        padding: 0 22px;
+        list-style: none;
+    }
+
+    .home-court-usage-row {
+        display: grid;
+        grid-template-columns: 38px minmax(0, 1fr) minmax(150px, auto);
+        align-items: center;
+        gap: 14px;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .home-court-usage-row:last-child {
+        border-bottom: 0;
+    }
+
+    .home-court-usage-rank {
+        color: var(--text-muted);
+        font-size: 13px;
+        font-variant-numeric: tabular-nums;
+    }
+
+    .home-court-usage-main {
+        min-width: 0;
+    }
+
+    .home-court-usage-main h3 {
+        overflow: hidden;
+        margin: 0;
+        color: var(--text-primary);
+        font-size: 15px;
+        font-weight: 600;
+        line-height: 1.35;
+        text-overflow: ellipsis;
+    }
+
+    .home-court-usage-main p {
+        margin: 4px 0 0;
+        color: var(--text-muted);
+        font-size: 13px;
+        line-height: 1.4;
+    }
+
+    .home-court-usage-duration {
+        display: grid;
+        justify-items: end;
+        gap: 2px;
+        white-space: nowrap;
+    }
+
+    .home-court-usage-duration span {
+        color: var(--text-muted);
+        font-size: 12px;
+    }
+
+    .home-court-usage-duration strong {
+        color: var(--text-primary);
+        font-size: 16px;
+        font-variant-numeric: tabular-nums;
+        font-weight: 600;
+    }
+
     .home-page .btn-action-primary,
     .home-page .btn-action-secondary,
     .home-page .nav-btn-admin,
@@ -1960,5 +2096,53 @@
         .home-content { margin-top: 24px; }
         .home-content > .home-section + .home-section { margin-top: 32px; }
         .home-section-stack { gap: 20px; }
+    }
+
+    @media (max-width: 575.98px) {
+        .home-court-usage-header {
+            flex-wrap: wrap;
+        }
+
+        .home-court-usage-header-actions {
+            width: 100%;
+            justify-content: space-between;
+            margin-left: 0;
+        }
+
+        .home-court-usage-list {
+            padding-inline: 16px;
+        }
+
+        .home-court-usage-row {
+            grid-template-columns: 28px minmax(0, 1fr);
+            column-gap: 10px;
+            row-gap: 3px;
+            padding: 14px 0;
+        }
+
+        .home-court-usage-rank {
+            grid-column: 1;
+            grid-row: 1 / span 2;
+        }
+
+        .home-court-usage-main {
+            grid-column: 2;
+            grid-row: 1;
+        }
+
+        .home-court-usage-duration {
+            grid-column: 2;
+            grid-row: 2;
+            justify-items: start;
+            white-space: normal;
+        }
+
+        .home-court-usage-duration span {
+            display: none;
+        }
+
+        .home-court-usage-duration strong {
+            font-size: 14px;
+        }
     }
 </style>
