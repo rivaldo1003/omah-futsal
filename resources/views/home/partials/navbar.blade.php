@@ -12,6 +12,9 @@
         || request()->is('teams*')
         || request()->is('market-value*');
     $isScheduleSection = request()->is('schedule*') || request()->is('matches*');
+    $isBookingSection = request()->is('booking*');
+    $isBookingUsage = request()->routeIs('booking.usage');
+    $isBookingOrder = $isBookingSection && !$isBookingUsage;
     $isMoreSection = request()->is('admin/tournaments*')
         || request()->is('admin/teams*');
 @endphp
@@ -74,6 +77,23 @@
                     </a>
                 </div>
             </li>
+            <li class="nav-dropdown nav-booking-dropdown {{ $isBookingSection ? 'is-active' : '' }}">
+                <button type="button" class="nav-menu-link nav-dropdown-toggle nav-btn-booking {{ $isBookingSection ? 'active' : '' }}"
+                    id="navBookingToggle" aria-haspopup="true" aria-controls="navBookingMenu" aria-expanded="false">
+                    <i class="bi bi-calendar-check" aria-hidden="true"></i><span>Booking</span>
+                    <i class="bi bi-chevron-down nav-dropdown-caret" aria-hidden="true"></i>
+                </button>
+                <div class="nav-dropdown-menu" id="navBookingMenu" role="menu">
+                    <a class="nav-dropdown-item {{ $isBookingOrder ? 'active' : '' }}"
+                        href="{{ route('booking.index') }}" role="menuitem">
+                        <i class="bi bi-calendar-plus"></i><span>Pesan lapangan</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ $isBookingUsage ? 'active' : '' }}"
+                        href="{{ route('booking.usage') }}" role="menuitem">
+                        <i class="bi bi-bar-chart-line"></i><span>Tim dan penyewa terbanyak</span>
+                    </a>
+                </div>
+            </li>
 
             {{-- Tautan tambahan dan pintasan administrasi --}}
             @auth
@@ -121,10 +141,6 @@
             @endauth
         </ul>
 
-        <a class="nav-btn-booking ms-lg-2" href="{{ route('booking.index') }}">
-            <i class="bi bi-calendar-plus"></i><span>Pesan lapangan</span>
-        </a>
-
         {{-- Hamburger (mobile only) --}}
         <button class="navbar-toggler" id="sidebarToggle" type="button" aria-label="Buka menu navigasi" aria-expanded="false">
             <span class="navbar-toggler-icon"></span>
@@ -160,7 +176,7 @@
         <a class="msb-link {{ request()->is('news*') ? 'is-active' : '' }}" href="{{ route('news.index') }}">
             <i class="bi bi-newspaper"></i><span>Berita</span>
         </a>
-        <details class="msb-group {{ $isCompetitionSection ? 'is-active' : '' }}" open>
+        <details class="msb-group {{ $isCompetitionSection ? 'is-active' : '' }}" @if($isCompetitionSection) open @endif>
             <summary class="msb-link msb-group-toggle">
                 <i class="bi bi-trophy" aria-hidden="true"></i><span>Kompetisi</span>
                 <i class="bi bi-chevron-down msb-group-caret" aria-hidden="true"></i>
@@ -196,10 +212,22 @@
                 </a>
             </div>
         </details>
-        <a class="msb-link msb-link-booking {{ request()->is('booking*') ? 'is-active' : '' }}"
-            href="{{ route('booking.index') }}" @if(request()->is('booking*')) aria-current="page" @endif>
-            <i class="bi bi-calendar-check" aria-hidden="true"></i><span>Booking lapangan</span>
-        </a>
+        <details class="msb-group msb-group-booking {{ $isBookingSection ? 'is-active' : '' }}" @if($isBookingSection) open @endif>
+            <summary class="msb-link msb-group-toggle msb-link-booking">
+                <i class="bi bi-calendar-check" aria-hidden="true"></i><span>Booking</span>
+                <i class="bi bi-chevron-down msb-group-caret" aria-hidden="true"></i>
+            </summary>
+            <div class="msb-subnav">
+                <a class="msb-link msb-sublink {{ $isBookingOrder ? 'is-active' : '' }}"
+                    href="{{ route('booking.index') }}" @if($isBookingOrder) aria-current="page" @endif>
+                    <i class="bi bi-calendar-plus" aria-hidden="true"></i><span>Pesan lapangan</span>
+                </a>
+                <a class="msb-link msb-sublink {{ $isBookingUsage ? 'is-active' : '' }}"
+                    href="{{ route('booking.usage') }}" @if($isBookingUsage) aria-current="page" @endif>
+                    <i class="bi bi-bar-chart-line" aria-hidden="true"></i><span>Tim dan penyewa terbanyak</span>
+                </a>
+            </div>
+        </details>
 
         @auth
             @if(auth()->user()->role === 'admin')
@@ -602,6 +630,17 @@
     font-family: inherit;
 }
 
+.nav-booking-dropdown > .nav-btn-booking,
+.nav-booking-dropdown > .nav-btn-booking:hover {
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #ffffff;
+}
+
+.nav-booking-dropdown > .nav-btn-booking:hover {
+    background: var(--accent-hover);
+}
+
 .nav-dropdown-caret {
     font-size: 10px !important;
     transition: transform 180ms ease;
@@ -616,6 +655,11 @@
     color: var(--accent);
     background-color: var(--accent-subtle);
     font-weight: 600;
+}
+
+.nav-dropdown.is-active > .nav-dropdown-toggle.nav-btn-booking {
+    color: #ffffff;
+    background: var(--accent);
 }
 
 .nav-dropdown-menu {

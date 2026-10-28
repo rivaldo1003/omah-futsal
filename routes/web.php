@@ -11,6 +11,7 @@ use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\MatchApiController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\CourtBookingController;
+use App\Http\Controllers\CourtBookingUsageController;
 use App\Http\Controllers\CourtRentalController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MatchEventController;
@@ -34,6 +35,7 @@ Route::get('/contact', [HomeController::class, 'contact'])->name('contact');
 // Public court availability and manual-payment booking flow
 Route::get('/booking', [CourtBookingController::class, 'index'])->name('booking.index');
 Route::post('/booking', [CourtBookingController::class, 'store'])->middleware('throttle:10,1')->name('booking.store');
+Route::get('/booking/pemakaian-terbanyak', [CourtBookingUsageController::class, 'index'])->name('booking.usage');
 Route::get('/booking/{token}', [CourtBookingController::class, 'show'])->whereUuid('token')->name('booking.show');
 Route::get('/booking/{token}/status', [CourtBookingController::class, 'status'])
     ->whereUuid('token')->middleware('throttle:60,1')->name('booking.status');
