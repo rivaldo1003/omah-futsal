@@ -2328,9 +2328,10 @@ class CourtBookingController extends Controller
         CourtBookingDiscountService $discounts,
     ) {
         $this->ensureAdmin();
+        $correctionMaxDate = CarbonImmutable::today(CourtBooking::TIMEZONE)->addDays(60)->toDateString();
         $validated = $request->validate([
             '_schedule_edit_booking_id' => ['required', 'integer', 'in:'.$booking->id],
-            'booking_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.CarbonImmutable::today(CourtBooking::TIMEZONE)->toDateString()],
+            'booking_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.$correctionMaxDate],
             'time_start' => ['required', 'date_format:H:i'],
             'time_end' => ['required', 'date_format:H:i'],
             'reason' => ['required', 'string', 'max:500'],
@@ -2338,7 +2339,7 @@ class CourtBookingController extends Controller
             'refund_payment_method' => ['nullable', Rule::in(['cash', 'bank_transfer', 'qris'])],
             'refund_reference' => ['nullable', 'string', 'max:100'],
         ], [
-            'booking_date.before_or_equal' => 'Tanggal pemakaian sebenarnya tidak boleh setelah hari ini.',
+            'booking_date.before_or_equal' => 'Tanggal booking maksimal 60 hari ke depan.',
         ]);
         $refundConfirmed = $request->boolean('refund_confirmed');
 
@@ -2376,8 +2377,31 @@ class CourtBookingController extends Controller
             if ($durationMinutes < 1 || $durationMinutes > 1440) {
                 throw ValidationException::withMessages(['time_end' => 'Durasi koreksi harus lebih dari 0 dan maksimal 24 jam.']);
             }
-            if ($end->isAfter($now)) {
-                throw ValidationException::withMessages(['time_end' => 'Koreksi hanya untuk pemakaian yang sudah selesai. Jam selesai harus sudah lewat.']);
+
+            $existingStart = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $lockedBooking->booking_date->toDateString().' '.substr((string) $lockedBooking->time_start, 0, 5),
+                CourtBooking::TIMEZONE,
+            );
+            $existingEnd = CarbonImmutable::createFromFormat(
+                'Y-m-d H:i',
+                $lockedBooking->booking_date->toDateString().' '.substr((string) $lockedBooking->time_end, 0, 5),
+                CourtBooking::TIMEZONE,
+            );
+            if ($existingEnd->lessThanOrEqualTo($existingStart)) {
+                $existingEnd = $existingEnd->addDay();
+            }
+
+            if ($existingStart->lessThanOrEqualTo($now) && $existingEnd->isAfter($now)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Booking yang sedang berlangsung belum dapat dikoreksi. Tunggu sampai jadwal selesai.',
+                ]);
+            }
+
+            if ($start->lessThanOrEqualTo($now) && $end->isAfter($now)) {
+                throw ValidationException::withMessages([
+                    'time_start' => 'Jadwal koreksi tidak boleh berada di tengah waktu yang sedang berlangsung.',
+                ]);
             }
 
             $conflictingBooking = $availability->bookingConflict(
@@ -2554,12 +2578,15 @@ class CourtBookingController extends Controller
             return [
                 'booking' => $lockedBooking->refresh(),
                 'refund_amount' => $refundAmount,
+                'balance' => max(0, round($newAmount - $netPaidAmount, 2)),
             ];
         });
 
         $successMessage = 'Tanggal dan jadwal booking berhasil dikoreksi. Riwayat koreksi tersimpan.';
         if ($result['refund_amount'] > 0) {
             $successMessage .= ' Refund Rp '.number_format($result['refund_amount'], 0, ',', '.').' juga tercatat dengan metode pengembalian yang dipilih.';
+        } elseif ($result['balance'] > 0) {
+            $successMessage .= ' Sisa tagihan setelah koreksi Rp '.number_format($result['balance'], 0, ',', '.').'.';
         }
 
         return redirect()->route('admin.court-bookings.index', ['date' => $result['booking']->booking_date->toDateString()])

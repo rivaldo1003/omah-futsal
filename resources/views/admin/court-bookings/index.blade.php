@@ -2610,10 +2610,8 @@
             @php
                 $scheduleCorrectionOldInput = (string) old('_schedule_edit_booking_id', '') === (string) $booking->id;
                 $canShowScheduleCorrection = $booking->status === \App\Models\CourtBooking::STATUS_CONFIRMED;
-                $correctionToday = now(\App\Models\CourtBooking::TIMEZONE)->toDateString();
-                $correctionDefaultDate = $booking->booking_date->toDateString() <= $correctionToday
-                    ? $booking->booking_date->toDateString()
-                    : '';
+                $correctionMaxDate = now(\App\Models\CourtBooking::TIMEZONE)->addDays(60)->toDateString();
+                $correctionDefaultDate = $booking->booking_date->toDateString();
             @endphp
             @if($canShowScheduleCorrection)
                 <div class="modal fade booking-payment-modal" id="bookingScheduleCorrection{{ $booking->id }}" tabindex="-1"
@@ -2647,21 +2645,18 @@
                                         </div>
                                     </div>
                                     <div class="alert alert-light border small" role="note">
-                                        Gunakan jika tanggal booking salah atau pemakaian aktual berbeda. Tanggal koreksi harus hari
-                                        ini atau sebelumnya dan jamnya sudah selesai. Jika hanya tanggal yang diubah, total tetap.
-                                        Jika jam atau durasi berubah, total dihitung ulang. Jadwal yang bentrok akan ditolak dan
-                                        semua koreksi dicatat di riwayat.
+                                        Admin dapat mengoreksi booking mendatang sebelum waktu mulai atau memperbarui pemakaian setelah
+                                        jadwal selesai. Booking yang sedang berlangsung tidak dapat diubah. Tanggal mendatang dibatasi
+                                        hingga 60 hari. Jika hanya tanggal yang diubah, total tetap; perubahan jam atau durasi akan
+                                        menghitung ulang tagihan. Jadwal yang bentrok ditolak dan semua koreksi dicatat di riwayat.
                                     </div>
                                     <div class="row g-3">
                                         <div class="col-sm-4">
                                             <label class="form-label" for="scheduleCorrectionDate{{ $booking->id }}">Tanggal</label>
                                             <input class="form-control" type="date" id="scheduleCorrectionDate{{ $booking->id }}"
-                                                name="booking_date" max="{{ $correctionToday }}"
+                                                name="booking_date" max="{{ $correctionMaxDate }}"
                                                 value="{{ $scheduleCorrectionOldInput ? old('booking_date') : $correctionDefaultDate }}"
                                                 required>
-                                            @if(!$scheduleCorrectionOldInput && $correctionDefaultDate === '')
-                                                <div class="form-text">Pilih tanggal pemakaian sebenarnya; booking ini saat ini tercatat
-                                            pada tanggal mendatang.</div>@endif
                                             @if($scheduleCorrectionOldInput && $errors->has('booking_date'))
                                             <div class="text-danger small mt-1">{{ $errors->first('booking_date') }}</div>@endif
                                         </div>

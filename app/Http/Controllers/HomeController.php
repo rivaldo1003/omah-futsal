@@ -486,7 +486,7 @@ class HomeController extends Controller
                 return ($right['total_minutes'] <=> $left['total_minutes'])
                     ?: strcasecmp($left['team_name'], $right['team_name']);
             })
-            ->take(5)
+            ->take(32)
             ->values();
     }
 
