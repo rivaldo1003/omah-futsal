@@ -10,7 +10,7 @@ use Illuminate\Support\Collection;
 
 class CourtBookingUsageService
 {
-    public function topUsers(int $limit = 32, ?string $startDate = null, ?string $endDate = null): Collection
+    public function topUsers(int $limit = 32): Collection
     {
         $asOfDate = Carbon::today(BusinessTime::TIMEZONE)->toDateString();
         $normalizeName = static function (string $name): string {
@@ -25,8 +25,6 @@ class CourtBookingUsageService
             ->whereNotNull('team_name')
             ->whereRaw("TRIM(team_name) <> ''")
             ->whereDate('booking_date', '<=', $asOfDate)
-            ->when($startDate, fn ($query) => $query->whereDate('booking_date', '>=', $startDate))
-            ->when($endDate, fn ($query) => $query->whereDate('booking_date', '<=', $endDate))
             ->selectRaw('MIN(TRIM(team_name)) as team_name, COUNT(*) as booking_count, COALESCE(SUM(duration_minutes), 0) as booking_minutes')
             ->groupByRaw('LOWER(TRIM(team_name))')
             ->get();
@@ -36,8 +34,6 @@ class CourtBookingUsageService
             ->whereNotNull('tournament_name_snapshot')
             ->whereRaw("TRIM(tournament_name_snapshot) <> ''")
             ->whereDate('rental_date', '<=', $asOfDate)
-            ->when($startDate, fn ($query) => $query->whereDate('rental_date', '>=', $startDate))
-            ->when($endDate, fn ($query) => $query->whereDate('rental_date', '<=', $endDate))
             ->selectRaw('MIN(TRIM(tournament_name_snapshot)) as team_name, COUNT(*) as rental_count, COALESCE(SUM(duration_minutes), 0) as rental_minutes')
             ->groupByRaw('LOWER(TRIM(tournament_name_snapshot))')
             ->get();

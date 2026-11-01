@@ -5,7 +5,7 @@
             <p>Menghitung booking terkonfirmasi termasuk member yang sudah dicatat, serta sewa turnamen termasuk jeda. Jadwal pertandingan tidak dihitung.</p>
         </div>
         <span class="home-court-usage-header-actions">
-            <span class="home-court-usage-period">{{ $usagePeriodLabel }}</span>
+            <span class="home-court-usage-period">Sejak awal</span>
             <span class="home-court-usage-toggle">
                 <span class="home-court-usage-action-show">Tampilkan</span>
                 <span class="home-court-usage-action-hide">Sembunyikan</span>

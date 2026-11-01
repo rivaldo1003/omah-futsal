@@ -80,80 +80,6 @@
             font-size: 14px;
         }
 
-        .booking-usage-filter {
-            display: flex;
-            align-items: end;
-            justify-content: space-between;
-            gap: 18px;
-            margin-bottom: 18px;
-            padding: 18px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--surface);
-        }
-
-        .booking-usage-filter form {
-            display: flex;
-            align-items: end;
-            gap: 10px;
-            margin: 0;
-        }
-
-        .booking-usage-filter label {
-            display: block;
-            margin-bottom: 6px;
-            color: var(--text-secondary);
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .booking-usage-filter input[type="month"] {
-            min-width: 190px;
-            min-height: 44px;
-            padding: 9px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--surface);
-            color: var(--text-primary);
-            font: inherit;
-        }
-
-        .booking-usage-filter button,
-        .booking-usage-filter .usage-all-link {
-            display: inline-flex;
-            min-height: 44px;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 9px 15px;
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            background: var(--surface-subtle);
-            color: var(--text-primary);
-            font: inherit;
-            font-size: 14px;
-            font-weight: 650;
-            text-decoration: none;
-            white-space: nowrap;
-        }
-
-        .booking-usage-filter button {
-            border-color: var(--text-primary);
-            background: var(--text-primary);
-            color: var(--surface);
-        }
-
-        .booking-usage-filter .usage-all-link[aria-current="page"] {
-            background: var(--surface);
-            color: var(--text-primary);
-        }
-
-        .booking-usage-period {
-            margin: -5px 0 14px;
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-
         .booking-usage-page .home-court-usage {
             margin-bottom: 0;
         }
@@ -167,27 +93,6 @@
             .booking-usage-heading {
                 margin-bottom: 18px;
             }
-
-            .booking-usage-filter,
-            .booking-usage-filter form {
-                align-items: stretch;
-                flex-direction: column;
-            }
-
-            .booking-usage-filter {
-                gap: 10px;
-                padding: 14px;
-            }
-
-            .booking-usage-filter input[type="month"] {
-                width: 100%;
-                min-width: 0;
-            }
-
-            .booking-usage-filter button,
-            .booking-usage-filter .usage-all-link {
-                width: 100%;
-            }
         }
     </style>
 </head>
@@ -199,32 +104,15 @@
         <header class="booking-usage-heading">
             <p class="eyebrow">Booking lapangan</p>
             <h1 id="bookingUsageTitle">Pemakaian lapangan</h1>
-            <p>Lihat tim dan penyewa dengan durasi pemakaian tertinggi, baik per bulan maupun sejak awal pencatatan.</p>
+            <p>Lihat tim dan penyewa dengan durasi pemakaian tertinggi sejak awal pencatatan. Rekap diperbarui hingga {{ $usageAsOfMonth }}.</p>
         </header>
-
-        <section class="booking-usage-filter" aria-label="Filter periode pemakaian">
-            <form method="GET" action="{{ route('booking.usage') }}">
-                <input type="hidden" name="period" value="month">
-                <div>
-                    <label for="usageMonth">Pilih bulan</label>
-                    <input type="month" id="usageMonth" name="month" value="{{ $usageMonth }}"
-                        max="{{ now(\App\Support\BusinessTime::TIMEZONE)->format('Y-m') }}" required>
-                </div>
-                <button type="submit"><i class="bi bi-calendar2-check" aria-hidden="true"></i> Tampilkan bulan</button>
-            </form>
-            <a class="usage-all-link" href="{{ route('booking.usage', ['period' => 'all']) }}"
-                @if($usagePeriod === 'all') aria-current="page" @endif>
-                <i class="bi bi-arrows-fullscreen" aria-hidden="true"></i> Lihat keseluruhan
-            </a>
-        </section>
-        <p class="booking-usage-period">Periode: {{ $usagePeriodLabel }} · maksimal 32 tim/penyewa teratas</p>
 
         @if($topCourtUsers->isNotEmpty())
             @include('home.partials.top-court-users')
         @else
             <section class="booking-usage-empty" aria-live="polite">
                 <i class="bi bi-calendar2-week" aria-hidden="true"></i>
-                <h2>{{ $usagePeriod === 'month' ? 'Belum ada pemakaian tercatat pada '.$selectedMonthLabel : 'Belum ada pemakaian tercatat' }}</h2>
+                <h2>Belum ada pemakaian tercatat</h2>
                 <p>Rekap mencakup booking terkonfirmasi dan sesi sewa turnamen yang dicatat.</p>
             </section>
         @endif
