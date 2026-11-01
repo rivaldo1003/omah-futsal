@@ -306,6 +306,8 @@
     .expense-row-actions {
         display: flex;
         justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
     }
 
     .expense-row details {
@@ -531,6 +533,12 @@
             padding-inline: 13px;
         }
 
+        .expense-row-actions {
+            grid-column: 1 / -1;
+            grid-row: 4;
+            justify-content: flex-start;
+        }
+
         .expense-edit-modal .modal-dialog {
             width: calc(100% - 16px);
             margin: 8px auto;
@@ -642,6 +650,16 @@
                                 data-method="{{ $expense->payment_method }}" data-note="{{ $expense->note }}">
                                 <i class="bi bi-pencil" aria-hidden="true"></i>Ubah
                             </button>
+                            <button class="btn btn-outline-danger js-open-expense-delete" type="button"
+                                data-bs-toggle="modal" data-bs-target="#deleteExpenseModal"
+                                data-expense-id="{{ $expense->id }}"
+                                data-action="{{ route('admin.court-bookings.expenses.destroy', $expense) }}"
+                                data-title="{{ $expense->title }}"
+                                data-date="{{ $expense->expense_date->locale('id')->translatedFormat('d F Y') }}"
+                                data-amount="{{ (int) $expense->amount }}"
+                                aria-label="Hapus pengeluaran {{ $expense->title }}">
+                                <i class="bi bi-trash3" aria-hidden="true"></i>Hapus
+                            </button>
                         </div>
                     @endif
                 </div>
@@ -654,12 +672,6 @@
                             @if($audit->after_data)<p>Sesudahnya: {{ $audit->after_data['title'] ?? '' }} · Rp {{ number_format((float) ($audit->after_data['amount'] ?? 0), 0, ',', '.') }}</p>@endif
                         </div>
                     @empty <p class="small text-secondary mt-3">Belum ada riwayat perubahan.</p> @endforelse
-                    @if(!$deleted)
-                        <form class="mt-3" method="POST" action="{{ route('admin.court-bookings.expenses.destroy', $expense) }}" onsubmit="return confirm('Hapus catatan ini dari perhitungan? Riwayatnya tetap disimpan.')">
-                            @csrf @method('DELETE')
-                            <div class="row g-2 align-items-end"><div class="col-12 col-md-8"><label class="form-label" for="deleteReason{{ $expense->id }}">Alasan hapus <span class="text-danger">*</span></label><input class="form-control" id="deleteReason{{ $expense->id }}" name="audit_reason" minlength="3" maxlength="500" required></div><div class="col-auto"><button class="btn btn-outline-danger" type="submit">Hapus catatan</button></div></div>
-                        </form>
-                    @endif
                 </details>
             </article>
         @empty
@@ -747,6 +759,44 @@
             </div>
         </div>
     </div>
+
+    <div class="modal fade expense-edit-modal expense-delete-modal" id="deleteExpenseModal" tabindex="-1"
+        aria-labelledby="deleteExpenseModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <form id="deleteExpenseForm" method="POST" action="#">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="_deleting_expense_id" id="deletingExpenseId"
+                        value="{{ old('_deleting_expense_id') }}">
+                    <div class="modal-header">
+                        <div>
+                            <h2 class="modal-title mb-1" id="deleteExpenseModalTitle">Hapus catatan pengeluaran?</h2>
+                            <p class="small text-secondary mb-0">Catatan tidak dihitung lagi, tetapi riwayat audit tetap tersimpan.</p>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    </div>
+                    <div class="modal-body">
+                        @if($errors->any() && old('_deleting_expense_id'))
+                            <div class="alert alert-danger" role="alert">{{ $errors->first() }}</div>
+                        @endif
+                        <div class="p-3 mb-3 border rounded-2 bg-light">
+                            <strong id="deleteExpenseTitle">Pengeluaran</strong>
+                            <div class="small text-secondary mt-1"><span id="deleteExpenseDate"></span> · <span id="deleteExpenseAmount"></span></div>
+                        </div>
+                        <label class="form-label" for="deleteExpenseReason">Alasan penghapusan <span class="text-danger">*</span></label>
+                        <input class="form-control" id="deleteExpenseReason" name="audit_reason" minlength="3"
+                            maxlength="500" value="{{ old('audit_reason') }}"
+                            placeholder="Contoh: catatan tercatat dua kali" required>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn" data-bs-dismiss="modal">Batal</button>
+                        <button class="btn btn-outline-danger" type="submit"><i class="bi bi-trash3" aria-hidden="true"></i>Hapus catatan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </main>
 @endsection
 
@@ -812,6 +862,37 @@
         if (trigger) {
             form.action = trigger.dataset.action;
             bootstrap.Modal.getOrCreateInstance(modal).show();
+        }
+    }
+
+    const deleteModal = document.getElementById('deleteExpenseModal');
+    const deleteForm = document.getElementById('deleteExpenseForm');
+    const deletingExpenseId = document.getElementById('deletingExpenseId');
+    const deleteExpenseReason = document.getElementById('deleteExpenseReason');
+    if (deleteModal && deleteForm) {
+        deleteModal.addEventListener('show.bs.modal', (event) => {
+            const trigger = event.relatedTarget;
+            if (!trigger) return;
+
+            deleteForm.action = trigger.dataset.action;
+            deletingExpenseId.value = trigger.dataset.expenseId;
+            document.getElementById('deleteExpenseTitle').textContent = trigger.dataset.title;
+            document.getElementById('deleteExpenseDate').textContent = trigger.dataset.date;
+            document.getElementById('deleteExpenseAmount').textContent = `Rp ${formatAmount(trigger.dataset.amount || '0')}`;
+            deleteExpenseReason.value = '';
+        });
+
+        const previousDeleteId = deletingExpenseId.value;
+        if (previousDeleteId) {
+            const trigger = Array.from(document.querySelectorAll('.js-open-expense-delete'))
+                .find((button) => button.dataset.expenseId === previousDeleteId);
+            if (trigger) {
+                deleteForm.action = trigger.dataset.action;
+                document.getElementById('deleteExpenseTitle').textContent = trigger.dataset.title;
+                document.getElementById('deleteExpenseDate').textContent = trigger.dataset.date;
+                document.getElementById('deleteExpenseAmount').textContent = `Rp ${formatAmount(trigger.dataset.amount || '0')}`;
+                bootstrap.Modal.getOrCreateInstance(deleteModal).show();
+            }
         }
     }
 })();

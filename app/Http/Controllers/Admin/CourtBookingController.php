@@ -149,8 +149,8 @@ class CourtBookingController extends Controller
         $selectedMonth = $filters['month'] ?? CarbonImmutable::now(CourtBooking::TIMEZONE)->format('Y-m');
         $monthStart = CarbonImmutable::parse($selectedMonth.'-01', CourtBooking::TIMEZONE)->startOfMonth();
         $nextMonthStart = $monthStart->addMonth();
-        $monthStartUtc = $monthStart->utc()->format('Y-m-d H:i:s');
-        $nextMonthStartUtc = $nextMonthStart->utc()->format('Y-m-d H:i:s');
+        $monthStartDate = $monthStart->toDateString();
+        $nextMonthStartDate = $nextMonthStart->toDateString();
         $monthEndDate = $nextMonthStart->subDay()->toDateString();
         $selectedMonthLabel = $monthStart->locale('id')->translatedFormat('F Y');
 
@@ -164,17 +164,16 @@ class CourtBookingController extends Controller
             'refunds' => $this->emptyPaymentMethodTotals(),
         ];
 
-        $bookingPayments = DB::table('court_booking_payments')
-            ->where('status', CourtBookingPayment::STATUS_CONFIRMED)
-            ->whereRaw('COALESCE(recorded_at, verified_at, created_at) >= ? AND COALESCE(recorded_at, verified_at, created_at) < ?', [
-                $monthStartUtc,
-                $nextMonthStartUtc,
-            ]);
+        $bookingPayments = DB::table('court_booking_payments as payment')
+            ->join('court_bookings as booking', 'booking.id', '=', 'payment.court_booking_id')
+            ->where('payment.status', CourtBookingPayment::STATUS_CONFIRMED)
+            ->where('booking.booking_date', '>=', $monthStartDate)
+            ->where('booking.booking_date', '<', $nextMonthStartDate);
         $this->accumulatePaymentMethodTotals(
             $monthlyIncomeByCategory['booking'],
             $bookingPayments,
-            'payment_method',
-            'COALESCE(verified_amount, amount)',
+            'payment.payment_method',
+            'COALESCE(payment.verified_amount, payment.amount)',
         );
 
         $monthlyTournamentRentalIncome = DB::table('court_daily_revenue_entries')
@@ -188,22 +187,21 @@ class CourtBookingController extends Controller
             'amount',
         );
 
-        $bookingRentalAdditions = DB::table('court_booking_rental_additions')
-            ->whereNotNull('confirmed_at')
-            ->where('confirmed_at', '>=', $monthStartUtc)
-            ->where('confirmed_at', '<', $nextMonthStartUtc);
+        $bookingRentalAdditions = DB::table('court_booking_rental_additions as addition')
+            ->join('court_bookings as booking', 'booking.id', '=', 'addition.court_booking_id')
+            ->whereNotNull('addition.confirmed_at')
+            ->where('booking.booking_date', '>=', $monthStartDate)
+            ->where('booking.booking_date', '<', $nextMonthStartDate);
         $this->accumulatePaymentMethodTotals(
             $monthlyIncomeByCategory['rental_additions'],
             $bookingRentalAdditions,
-            'payment_method',
-            'amount',
+            'addition.payment_method',
+            'addition.amount',
         );
 
         $standaloneRentals = DB::table('court_rental_orders')
             ->where('status', CourtRentalOrder::STATUS_CONFIRMED)
-            ->whereNotNull('confirmed_at')
-            ->where('confirmed_at', '>=', $monthStartUtc)
-            ->where('confirmed_at', '<', $nextMonthStartUtc);
+            ->whereBetween('rental_date', [$monthStartDate, $monthEndDate]);
         $this->accumulatePaymentMethodTotals(
             $monthlyIncomeByCategory['standalone_rentals'],
             $standaloneRentals,
@@ -240,16 +238,17 @@ class CourtBookingController extends Controller
             'amount',
         );
 
-        $monthlyRefunds = DB::table('court_booking_fund_settlements')
-            ->where('type', CourtBookingFundSettlement::TYPE_REFUND)
-            ->whereNull('voided_at')
-            ->where('recorded_at', '>=', $monthStartUtc)
-            ->where('recorded_at', '<', $nextMonthStartUtc);
+        $monthlyRefunds = DB::table('court_booking_fund_settlements as settlement')
+            ->join('court_bookings as booking', 'booking.id', '=', 'settlement.court_booking_id')
+            ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
+            ->whereNull('settlement.voided_at')
+            ->where('booking.booking_date', '>=', $monthStartDate)
+            ->where('booking.booking_date', '<', $nextMonthStartDate);
         $this->accumulatePaymentMethodTotals(
             $monthlyIncomeByCategory['refunds'],
             $monthlyRefunds,
-            'payment_method',
-            'amount',
+            'settlement.payment_method',
+            'settlement.amount',
         );
 
         $monthlyRefundDetails = DB::table('court_booking_fund_settlements as settlement')
@@ -257,8 +256,8 @@ class CourtBookingController extends Controller
             ->leftJoin('courts', 'courts.id', '=', 'booking.court_id')
             ->where('settlement.type', CourtBookingFundSettlement::TYPE_REFUND)
             ->whereNull('settlement.voided_at')
-            ->where('settlement.recorded_at', '>=', $monthStartUtc)
-            ->where('settlement.recorded_at', '<', $nextMonthStartUtc)
+            ->where('booking.booking_date', '>=', $monthStartDate)
+            ->where('booking.booking_date', '<', $nextMonthStartDate)
             ->orderByDesc('settlement.recorded_at')
             ->orderByDesc('settlement.id')
             ->select([
@@ -295,7 +294,19 @@ class CourtBookingController extends Controller
             $monthlyNetBookingByMethod[$method] -= $monthlyIncomeByCategory['refunds'][$method];
         }
         $monthlyRefundTotal = array_sum($monthlyIncomeByCategory['refunds']);
-        $monthlyNetReceipts = array_sum($monthlyNetByMethod);
+        $monthlyNetOperationalByMethod = $this->emptyPaymentMethodTotals();
+        foreach (['booking', 'rental_additions', 'standalone_rentals', 'parking', 'other'] as $category) {
+            foreach (array_keys($monthlyNetOperationalByMethod) as $method) {
+                $monthlyNetOperationalByMethod[$method] += $monthlyIncomeByCategory[$category][$method];
+            }
+        }
+        foreach (array_keys($monthlyNetOperationalByMethod) as $method) {
+            $monthlyNetOperationalByMethod[$method] -= $monthlyIncomeByCategory['refunds'][$method];
+        }
+        $monthlyNetOperationalIncome = array_sum($monthlyNetOperationalByMethod);
+        $monthlyShopIncomeByMethod = $monthlyIncomeByCategory['shop'];
+        $monthlyShopIncome = array_sum($monthlyShopIncomeByMethod);
+        $monthlyNetReceipts = $monthlyNetOperationalIncome + $monthlyShopIncome;
 
         $monthlyExpenseGroups = DB::table('court_operational_expenses')
             ->whereNull('deleted_at')
@@ -347,6 +358,7 @@ class CourtBookingController extends Controller
         $totalIncome = $bookingIncome + $otherRentalIncome + $allTimeParkingIncome + $allTimeShopIncome + $allTimeOtherIncome;
         $incomeByPaymentMethod = $this->recognizedIncomeByPaymentMethod();
         $totalIncome = array_sum($incomeByPaymentMethod);
+        $allTimeNonShopIncome = $totalIncome - $allTimeShopIncome;
 
         $bookingRentalIncomeByItem = DB::table('court_booking_rental_lines as line')
             ->join('court_bookings as booking', 'booking.id', '=', 'line.court_booking_id')
@@ -492,6 +504,10 @@ class CourtBookingController extends Controller
             'monthlyIncomeByCategory',
             'monthlyNetByMethod',
             'monthlyNetBookingByMethod',
+            'monthlyNetOperationalByMethod',
+            'monthlyNetOperationalIncome',
+            'monthlyShopIncomeByMethod',
+            'monthlyShopIncome',
             'monthlyRefundTotal',
             'monthlyRefundDetails',
             'monthlyNetReceipts',
@@ -499,6 +515,7 @@ class CourtBookingController extends Controller
             'monthlyExpenseTotal',
             'monthlyOperatingSurplus',
             'totalIncome',
+            'allTimeNonShopIncome',
             'bookingIncome',
             'bookingIncomeByPaymentMethod',
             'incomeByPaymentMethod',

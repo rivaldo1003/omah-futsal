@@ -134,6 +134,45 @@
             grid-template-columns: minmax(0, 1fr);
         }
 
+        .revenue-month-source-summary {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            border-bottom: 1px solid var(--revenue-line);
+        }
+
+        .revenue-month-source-summary > div {
+            min-width: 0;
+            padding: 16px 22px;
+        }
+
+        .revenue-month-source-summary > div + div {
+            border-left: 1px solid var(--revenue-line);
+        }
+
+        .revenue-month-source-summary span,
+        .revenue-month-source-summary small {
+            display: block;
+            color: var(--revenue-muted);
+        }
+
+        .revenue-month-source-summary span {
+            font-size: 13px;
+        }
+
+        .revenue-month-source-summary strong {
+            display: block;
+            margin: 3px 0;
+            color: var(--revenue-ink);
+            font-size: 19px;
+            font-weight: 550;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .revenue-month-source-summary small {
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         .revenue-month-summary > div {
             min-width: 0;
             padding: 17px 22px;
@@ -665,6 +704,10 @@
                 grid-template-columns: 1fr;
             }
 
+            .revenue-month-source-summary {
+                grid-template-columns: 1fr;
+            }
+
             .revenue-net-result {
                 align-items: flex-start;
                 flex-direction: column;
@@ -677,6 +720,11 @@
             }
 
             .revenue-month-summary > div + div {
+                border-top: 1px solid var(--revenue-line);
+                border-left: 0;
+            }
+
+            .revenue-month-source-summary > div + div {
                 border-top: 1px solid var(--revenue-line);
                 border-left: 0;
             }
@@ -770,6 +818,10 @@
                 padding: 15px 16px;
             }
 
+            .revenue-month-source-summary > div {
+                padding: 15px 16px;
+            }
+
             .revenue-month-note {
                 padding-inline: 16px;
             }
@@ -845,7 +897,7 @@
             <header class="report-panel-header revenue-month-header">
                 <div>
                     <h2 id="monthlyRevenueTitle">Rekap pemasukan bulanan</h2>
-                    <p>{{ $selectedMonthLabel }} · Booking publik, walk-in, member, dan sewa lapangan turnamen, serta parkir, toko, perlengkapan, dan pemasukan lain.</p>
+                    <p>{{ $selectedMonthLabel }} · Booking dikelompokkan menurut tanggal pemakaian; sumber lain mengikuti tanggal operasionalnya.</p>
                 </div>
                 <form class="revenue-month-filter" method="GET" action="{{ route('admin.court-bookings.revenue') }}">
                     <div class="field">
@@ -858,8 +910,22 @@
 
             <div class="revenue-month-summary revenue-month-summary--net" aria-label="Ringkasan penerimaan bulan {{ $selectedMonthLabel }}">
                 <div>
-                    <span>Total pemasukan setelah refund · {{ $selectedMonthLabel }}</span>
+                    <span>Total pemasukan bersih · {{ $selectedMonthLabel }}</span>
                     <strong>Rp {{ number_format($monthlyNetReceipts, 0, ',', '.') }}</strong>
+                    <small class="text-secondary">Booking masuk sesuai tanggal pemakaian, bukan tanggal data dimasukkan. Toko dirinci terpisah di bawah.</small>
+                </div>
+            </div>
+
+            <div class="revenue-month-source-summary" aria-label="Pemisahan pemasukan lapangan dan toko untuk {{ $selectedMonthLabel }}">
+                <div>
+                    <span>Lapangan dan pemasukan operasional · di luar toko</span>
+                    <strong>Rp {{ number_format($monthlyNetOperationalIncome, 0, ',', '.') }}</strong>
+                    <small>Booking lapangan, perlengkapan, parkir, serta sponsor dan pemasukan lain setelah refund.</small>
+                </div>
+                <div>
+                    <span>Pemasukan toko</span>
+                    <strong>Rp {{ number_format($monthlyShopIncome, 0, ',', '.') }}</strong>
+                    <small>Dicatat terpisah dari pemasukan lapangan dan operasional.</small>
                 </div>
             </div>
 
@@ -911,7 +977,23 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <th scope="row">Total pemasukan setelah refund</th>
+                            <th scope="row">Subtotal lapangan dan operasional · setelah refund</th>
+                            @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                @php $netAmount = $monthlyNetOperationalByMethod[$method]; @endphp
+                                <td class="text-end revenue-money">{{ $netAmount < 0 ? '− ' : '' }}Rp {{ number_format(abs($netAmount), 0, ',', '.') }}</td>
+                            @endforeach
+                            <td class="text-end revenue-money"><strong>{{ $monthlyNetOperationalIncome < 0 ? '− ' : '' }}Rp {{ number_format(abs($monthlyNetOperationalIncome), 0, ',', '.') }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Toko · dicatat terpisah</th>
+                            @foreach($monthlyMethodLabels as $method => $methodLabel)
+                                @php $shopAmount = $monthlyShopIncomeByMethod[$method]; @endphp
+                                <td class="text-end revenue-money">Rp {{ number_format($shopAmount, 0, ',', '.') }}</td>
+                            @endforeach
+                            <td class="text-end revenue-money"><strong>Rp {{ number_format($monthlyShopIncome, 0, ',', '.') }}</strong></td>
+                        </tr>
+                        <tr>
+                            <th scope="row">Total semua pemasukan bersih</th>
                             @foreach($monthlyMethodLabels as $method => $methodLabel)
                                 @php
                                     $netAmount = $monthlyNetByMethod[$method];
@@ -923,13 +1005,13 @@
                     </tfoot>
                 </table>
             </div>
-            <p class="revenue-month-note">Baris booking lapangan sudah dikurangi refund sesuai metode dana dikembalikan, sehingga tunai dan transfer menunjukkan nilai bersih. Refund tetap tersimpan dan dapat ditelusuri di rincian refund atau daftar booking untuk dikoreksi. Pembayaran booking masuk ke bulan saat dicatat. Pemasukan sewa turnamen masuk ke baris booking jika ditautkan ke sesi sewanya. Parkir, toko, sponsor, dan pemasukan lain mengikuti tanggal operasional yang dipilih admin. Total ini menunjukkan arus kas setelah refund, sebelum pengeluaran.</p>
+            <p class="revenue-month-note">Booking dan refund booking mengikuti tanggal pemakaian lapangan, termasuk data lama yang baru dimasukkan belakangan. Sewa perlengkapan mandiri mengikuti tanggal sewa; parkir, toko, sewa turnamen, sponsor, dan pemasukan lain mengikuti tanggal operasional. Waktu pencatatan pembayaran tetap tersimpan untuk audit, tetapi tidak menentukan bulan rekap. Total ini adalah pemasukan operasional setelah refund dan sebelum pengeluaran, bukan arus kas berdasarkan tanggal uang diterima.</p>
 
             <details class="refund-audit" @if(request()->filled('refund_page')) open @endif>
                 <summary class="refund-audit-summary">
                     <span>
                         <span class="refund-audit-title">Rincian refund booking</span>
-                        <span class="refund-audit-count">{{ number_format($monthlyRefundDetails->total(), 0, ',', '.') }} catatan pada {{ $selectedMonthLabel }}</span>
+                        <span class="refund-audit-count">{{ number_format($monthlyRefundDetails->total(), 0, ',', '.') }} refund untuk booking bulan {{ $selectedMonthLabel }}</span>
                     </span>
                     <span class="refund-audit-total">
                         <strong>Rp {{ number_format($monthlyRefundTotal, 0, ',', '.') }}</strong>
@@ -939,7 +1021,7 @@
 
                 <div class="refund-audit-list">
                     @if($monthlyRefundDetails->total() === 0)
-                        <p class="refund-audit-empty">Belum ada refund booking yang dicatat pada {{ $selectedMonthLabel }}.</p>
+                        <p class="refund-audit-empty">Belum ada refund untuk booking bulan {{ $selectedMonthLabel }}.</p>
                     @else
                         @foreach($monthlyRefundDetails as $refund)
                             @php
@@ -1016,15 +1098,15 @@
         <section class="report-panel" aria-labelledby="monthlyExpensesTitle">
             <header class="report-panel-header">
                 <div>
-                    <h2 id="monthlyExpensesTitle">Pengeluaran dan hasil bersih · {{ $selectedMonthLabel }}</h2>
-                    <p>Pengeluaran operasional dikurangkan setelah penerimaan booking dan pemasukan lain dikurangi refund.</p>
+                    <h2 id="monthlyExpensesTitle">Pengeluaran dan hasil operasional · {{ $selectedMonthLabel }}</h2>
+                    <p>Pemasukan memakai tanggal pemakaian atau tanggal operasional sumbernya; pengeluaran memakai tanggal pengeluaran.</p>
                 </div>
                 <a class="btn" href="{{ route('admin.court-bookings.expenses.index', ['month' => $selectedMonth]) }}">Kelola pengeluaran</a>
             </header>
-            <div class="revenue-net-result{{ $monthlyOperatingSurplus < 0 ? ' is-negative' : '' }}" aria-label="Sisa arus kas setelah pengeluaran tercatat">
+            <div class="revenue-net-result{{ $monthlyOperatingSurplus < 0 ? ' is-negative' : '' }}" aria-label="Hasil operasional setelah pengeluaran tercatat">
                 <div>
-                    <span>Sisa setelah pengeluaran tercatat</span>
-                    <p>Pemasukan bulan ini setelah refund, dikurangi pengeluaran yang dicatat di sistem.</p>
+                    <span>Hasil operasional setelah pengeluaran</span>
+                    <p>Rp {{ number_format($monthlyNetReceipts, 0, ',', '.') }} pemasukan bersih, termasuk toko, dikurangi Rp {{ number_format($monthlyExpenseTotal, 0, ',', '.') }} pengeluaran pada bulan yang sama.</p>
                 </div>
                 <strong>{{ $monthlyOperatingSurplus < 0 ? '− ' : '' }}Rp {{ number_format(abs($monthlyOperatingSurplus), 0, ',', '.') }}</strong>
             </div>
@@ -1050,15 +1132,19 @@
                     </tbody>
                 </table>
             </div>
-            <p class="revenue-month-note">Hasil setelah pengeluaran adalah ringkasan arus kas periode ini, bukan laporan laba akuntansi. Catatan yang dihapus tetap ada di riwayat audit tetapi tidak dihitung.</p>
+            <p class="revenue-month-note">Hasil ini merangkum pemasukan operasional berdasarkan tanggal pemakaian atau operasional dikurangi pengeluaran berdasarkan tanggalnya. Ini bukan laporan arus kas berdasarkan waktu uang diterima atau laporan laba akuntansi. Catatan yang dihapus tetap ada di riwayat audit tetapi tidak dihitung.</p>
         </section>
 
-        <section class="report-panel revenue-overview" aria-label="Total pemasukan tercatat">
+        <section class="report-panel revenue-overview" aria-label="Akumulasi pemasukan sepanjang waktu">
             <div class="revenue-total">
-                <span class="revenue-label">Total pemasukan tercatat</span>
+                <span class="revenue-label">Akumulasi pemasukan sepanjang waktu</span>
                 <strong>Rp {{ number_format($totalIncome, 0, ',', '.') }}</strong>
-                <span class="revenue-caption">Pemasukan yang diakui setelah refund dan dana pembatalan belum diputuskan
-                    dipisahkan.</span>
+                <span class="revenue-caption">Akumulasi semua tanggal, tidak mengikuti filter bulan di atas. Angka ini tidak untuk dibandingkan langsung dengan saldo kas bulanan.</span>
+            </div>
+            <div class="revenue-source">
+                <span class="revenue-label">Lapangan dan pemasukan operasional · di luar toko</span>
+                <strong>Rp {{ number_format($allTimeNonShopIncome, 0, ',', '.') }}</strong>
+                <span class="revenue-caption">Subtotal semua tanggal di luar toko. Kartu sumber berikutnya merinci isi subtotal ini.</span>
             </div>
             <div class="revenue-source">
                 <span class="revenue-label">Pemasukan booking diakui</span>
