@@ -104,7 +104,7 @@
         <header class="booking-usage-heading">
             <p class="eyebrow">Booking lapangan</p>
             <h1 id="bookingUsageTitle">Pemakaian lapangan</h1>
-            <p>Lihat tim dan penyewa dengan durasi pemakaian tertinggi sejak awal pencatatan. Rekap diperbarui hingga {{ $usageAsOfMonth }}.</p>
+            <p>Lihat tim dan penyewa dengan durasi pemakaian tertinggi sejak awal pencatatan (Oktober 2026).</p>
         </header>
 
         @if($topCourtUsers->isNotEmpty())
