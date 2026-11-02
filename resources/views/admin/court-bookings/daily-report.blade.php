@@ -1014,6 +1014,10 @@
                     <strong>{{ intdiv($dailyBookedMinutes, 60) }}j {{ $dailyBookedMinutes % 60 }}m</strong>
                 </div>
                 <div class="daily-report-metric">
+                    <span>Total jam terkonfirmasi · {{ $reportMonthStart->locale('id')->translatedFormat('F Y') }}</span>
+                    <strong>{{ intdiv($monthlyBookedMinutes, 60) }}j {{ $monthlyBookedMinutes % 60 }}m</strong>
+                </div>
+                <div class="daily-report-metric">
                     <span>Jam menunggu</span>
                     <strong>{{ intdiv($dailyPendingMinutes, 60) }}j {{ $dailyPendingMinutes % 60 }}m</strong>
                 </div>

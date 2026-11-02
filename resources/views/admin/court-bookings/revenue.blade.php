@@ -1105,8 +1105,8 @@
             </header>
             <div class="revenue-net-result{{ $monthlyOperatingSurplus < 0 ? ' is-negative' : '' }}" aria-label="Hasil operasional setelah pengeluaran tercatat">
                 <div>
-                    <span>Hasil operasional setelah pengeluaran</span>
-                    <p>Rp {{ number_format($monthlyNetReceipts, 0, ',', '.') }} pemasukan bersih, termasuk toko, dikurangi Rp {{ number_format($monthlyExpenseTotal, 0, ',', '.') }} pengeluaran pada bulan yang sama.</p>
+                    <span>Hasil operasional setelah pengeluaran · tanpa toko</span>
+                    <p>Rp {{ number_format($monthlyNetOperationalIncome, 0, ',', '.') }} pemasukan lapangan dan operasional setelah refund, dikurangi Rp {{ number_format($monthlyExpenseTotal, 0, ',', '.') }} pengeluaran pada bulan yang sama. Pemasukan toko tetap dirinci terpisah.</p>
                 </div>
                 <strong>{{ $monthlyOperatingSurplus < 0 ? '− ' : '' }}Rp {{ number_format(abs($monthlyOperatingSurplus), 0, ',', '.') }}</strong>
             </div>

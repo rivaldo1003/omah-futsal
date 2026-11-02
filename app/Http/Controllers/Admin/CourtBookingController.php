@@ -326,7 +326,9 @@ class CourtBookingController extends Controller
             }
         }
         $monthlyExpenseTotal = (float) $monthlyExpenseGroups->sum('total');
-        $monthlyOperatingSurplus = $monthlyNetReceipts - $monthlyExpenseTotal;
+        // Store revenue is reported separately and excluded from the court
+        // operating result to match the client's monthly spreadsheet.
+        $monthlyOperatingSurplus = $monthlyNetOperationalIncome - $monthlyExpenseTotal;
 
         $retainedCancellationIncome = (float) CourtBookingFundSettlement::query()
             ->where('type', CourtBookingFundSettlement::TYPE_RETAINED)
@@ -786,6 +788,10 @@ class CourtBookingController extends Controller
             CourtBooking::STATUS_PENDING_REVIEW,
         ]);
         $dailyBookedMinutes = (int) $dailyConfirmedBookings->sum('duration_minutes');
+        $monthlyBookedMinutes = (int) CourtBooking::query()
+            ->where('status', CourtBooking::STATUS_CONFIRMED)
+            ->whereBetween('booking_date', [$reportMonthStart->toDateString(), $reportMonthEnd->toDateString()])
+            ->sum('duration_minutes');
         $dailyPendingMinutes = (int) $dailyPendingBookings->sum('duration_minutes');
         $dailyRevenue = CourtDailyRevenue::query()
             ->with('updatedBy')
@@ -888,6 +894,7 @@ class CourtBookingController extends Controller
             'dailyReconciliation',
             'reportMonthStart',
             'reportMonthEnd',
+            'monthlyBookedMinutes',
             'tournaments',
             'courts',
             'tournamentRentals',
