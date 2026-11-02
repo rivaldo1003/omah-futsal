@@ -788,10 +788,20 @@ class CourtBookingController extends Controller
             CourtBooking::STATUS_PENDING_REVIEW,
         ]);
         $dailyBookedMinutes = (int) $dailyConfirmedBookings->sum('duration_minutes');
+        $dailyTournamentRentalMinutes = (int) CourtTournamentRental::query()
+            ->whereDate('rental_date', $reportDate)
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->sum('duration_minutes');
+        $dailyTotalUsageMinutes = $dailyBookedMinutes + $dailyTournamentRentalMinutes;
         $monthlyBookedMinutes = (int) CourtBooking::query()
             ->where('status', CourtBooking::STATUS_CONFIRMED)
             ->whereBetween('booking_date', [$reportMonthStart->toDateString(), $reportMonthEnd->toDateString()])
             ->sum('duration_minutes');
+        $monthlyTournamentRentalMinutes = (int) CourtTournamentRental::query()
+            ->whereBetween('rental_date', [$reportMonthStart->toDateString(), $reportMonthEnd->toDateString()])
+            ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+            ->sum('duration_minutes');
+        $monthlyTotalUsageMinutes = $monthlyBookedMinutes + $monthlyTournamentRentalMinutes;
         $dailyPendingMinutes = (int) $dailyPendingBookings->sum('duration_minutes');
         $dailyRevenue = CourtDailyRevenue::query()
             ->with('updatedBy')
@@ -878,6 +888,8 @@ class CourtBookingController extends Controller
             'dailyRevenue',
             'dailyRevenueEntries',
             'dailyBookedMinutes',
+            'dailyTournamentRentalMinutes',
+            'dailyTotalUsageMinutes',
             'dailyPendingMinutes',
             'dailyParkingIncome',
             'dailyShopIncome',
@@ -895,6 +907,8 @@ class CourtBookingController extends Controller
             'reportMonthStart',
             'reportMonthEnd',
             'monthlyBookedMinutes',
+            'monthlyTournamentRentalMinutes',
+            'monthlyTotalUsageMinutes',
             'tournaments',
             'courts',
             'tournamentRentals',

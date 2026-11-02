@@ -542,6 +542,14 @@
             font-variant-numeric: tabular-nums;
         }
 
+        .daily-report-metric small {
+            display: block;
+            margin-top: 4px;
+            color: var(--report-muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
         .daily-report-table {
             border-top: 1px solid var(--report-line);
         }
@@ -845,6 +853,10 @@
                 font-size: 18px;
             }
 
+            .daily-report-metric small {
+                font-size: 11px;
+            }
+
             .daily-report-table-header {
                 align-items: flex-start;
                 padding-block: 16px;
@@ -1010,12 +1022,14 @@
 
             <div class="daily-report-metrics">
                 <div class="daily-report-metric">
-                    <span>Jam terkonfirmasi</span>
-                    <strong>{{ intdiv($dailyBookedMinutes, 60) }}j {{ $dailyBookedMinutes % 60 }}m</strong>
+                    <span>Total jam tersewa</span>
+                    <strong>{{ intdiv($dailyTotalUsageMinutes, 60) }}j {{ $dailyTotalUsageMinutes % 60 }}m</strong>
+                    <small>Booking terkonfirmasi {{ intdiv($dailyBookedMinutes, 60) }}j {{ $dailyBookedMinutes % 60 }}m · Sewa turnamen {{ intdiv($dailyTournamentRentalMinutes, 60) }}j {{ $dailyTournamentRentalMinutes % 60 }}m</small>
                 </div>
                 <div class="daily-report-metric">
-                    <span>Total jam terkonfirmasi · {{ $reportMonthStart->locale('id')->translatedFormat('F Y') }}</span>
-                    <strong>{{ intdiv($monthlyBookedMinutes, 60) }}j {{ $monthlyBookedMinutes % 60 }}m</strong>
+                    <span>Total jam tersewa · {{ $reportMonthStart->locale('id')->translatedFormat('F Y') }}</span>
+                    <strong>{{ intdiv($monthlyTotalUsageMinutes, 60) }}j {{ $monthlyTotalUsageMinutes % 60 }}m</strong>
+                    <small>Booking terkonfirmasi {{ intdiv($monthlyBookedMinutes, 60) }}j {{ $monthlyBookedMinutes % 60 }}m · Sewa turnamen {{ intdiv($monthlyTournamentRentalMinutes, 60) }}j {{ $monthlyTournamentRentalMinutes % 60 }}m</small>
                 </div>
                 <div class="daily-report-metric">
                     <span>Jam menunggu</span>
@@ -1258,7 +1272,7 @@
             <header class="daily-report-table-header">
                 <div>
                     <h2 id="dailyBookingsTitle">Booking tanggal {{ \Carbon\CarbonImmutable::parse($reportDate)->locale('id')->translatedFormat('d F Y') }}</h2>
-                    <p>Jam sewa dihitung dari booking terkonfirmasi. Parkir dan toko direkap terpisah di atas.</p>
+                    <p>Daftar ini memuat booking. Total jam di atas juga mencakup sesi sewa turnamen yang tidak dibatalkan, termasuk jeda dalam rentang sewa tercatat. Parkir dan toko direkap terpisah.</p>
                 </div>
                 <span class="daily-report-table-count">{{ number_format($dailyBookings->count()) }} booking</span>
             </header>
