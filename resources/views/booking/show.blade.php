@@ -25,7 +25,7 @@
         .detail-value { display:block; font-weight:650; }
         .payment-panel { border:1px solid var(--border-color); border-radius:var(--radius-md); background:var(--v3-card); padding:18px; margin-top:18px; }
         .payment-panel h2 { font-size:16px; font-weight:750; margin:0 0 14px; }
-        .qris-image { display:block; max-width:250px; max-height:250px; object-fit:contain; background:#fff; padding:10px; border-radius:8px; margin:12px auto; }
+        .qris-image { display:block; width:min(100%, 360px); max-width:100%; height:auto; max-height:none; object-fit:contain; background:#fff; padding:12px; border-radius:8px; margin:16px auto; }
         .payment-instructions { color:var(--text-secondary); white-space:pre-line; font-size:14px; }
         .proof-form .form-control { background:var(--v3-surface); color:var(--text-primary); border-color:var(--border-color); }
         .status-note { color:var(--text-secondary); background:rgba(0,229,255,.06); border:1px solid rgba(0,229,255,.18); border-radius:var(--radius-sm); padding:13px 15px; }
