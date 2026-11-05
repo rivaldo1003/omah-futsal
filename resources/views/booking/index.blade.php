@@ -1475,7 +1475,7 @@
                 button.classList.toggle('selected', selected);
                 button.setAttribute('aria-pressed', selected ? 'true' : 'false');
                 const slotAmount = Number(button.dataset.amountCents) / 100;
-                const statusCopy = button.querySelector(':scope > span:not(.slot-pitch-markings)');
+                const statusCopy = button.querySelector(':scope > .slot-button-copy');
                 statusCopy.textContent = selected ? 'Bagian booking' : `${formatRupiah(slotAmount)} · Pilih slot`;
             });
 
@@ -1547,7 +1547,7 @@
                     button.classList.remove('available', 'selected');
                     button.classList.add('past');
                     button.setAttribute('aria-label', `${button.dataset.start} sampai ${button.dataset.end}: Waktu sudah lewat`);
-                    const statusCopy = button.querySelector(':scope > span:not(.slot-pitch-markings)');
+                    const statusCopy = button.querySelector(':scope > .slot-button-copy');
                     if (statusCopy) statusCopy.innerHTML = '<i class="bi bi-clock-history" aria-hidden="true"></i>Waktu sudah lewat';
                 }
             });

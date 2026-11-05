@@ -136,6 +136,8 @@
         min-width: 0;
         max-width: 100%;
         font-weight: 650;
+        overflow-wrap: anywhere;
+        word-break: break-word;
     }
 
     .slot-button.available {
@@ -312,6 +314,7 @@
 
     .slot-button--inspect > span:not(.slot-pitch-markings) {
         justify-content: space-between;
+        flex-wrap: wrap;
     }
 
     .slot-button:disabled {
