@@ -846,7 +846,7 @@
                             @if($slot['status'] === 'available' && $hasPaymentOption)
                                 <x-court-booking-slot status="available" class="js-book-slot"
                                     :time-label="$slot['start'] . '–' . $slot['end']"
-                                    date-label="{{ $date->translatedFormat('l, d F Y') }}"
+                                    :date-label="$date->locale('id')->translatedFormat('l, d F Y')"
                                     data-court-id="{{ $schedule['court']->id }}"
                                     data-court-name="{{ $schedule['court']->name }}" data-date="{{ $date->toDateString() }}"
                                     data-date-label="{{ $date->translatedFormat('l, d F Y') }}"
@@ -861,7 +861,7 @@
                             @elseif($slotDisplayStatus === 'match' && filled($slot['match_details']))
                                 <x-court-booking-slot status="match" class="slot-button--inspect js-slot-detail"
                                     :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
-                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" data-detail-kind="Pertandingan"
+                                    :date-label="$date->locale('id')->translatedFormat('l, d F Y')" data-detail-kind="Pertandingan"
                                     data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
                                     data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
                                     data-detail-court="{{ $schedule['court']->name }}"
@@ -877,7 +877,7 @@
                             @elseif($slotDisplayStatus === 'tournament_rental' && filled($slot['tournament_rental_details']))
                                 <x-court-booking-slot status="tournament_rental" class="slot-button--inspect js-slot-detail"
                                     :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
-                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" data-detail-kind="Sewa turnamen"
+                                    :date-label="$date->locale('id')->translatedFormat('l, d F Y')" data-detail-kind="Sewa turnamen"
                                     data-detail-name="{{ $slot['tournament_rental_details']['tournament_name'] }}"
                                     data-detail-rental-start="{{ $slot['tournament_rental_details']['rental_start'] }}"
                                     data-detail-rental-end="{{ $slot['tournament_rental_details']['rental_end'] }}"
@@ -894,7 +894,7 @@
                             @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
                                 <x-court-booking-slot :status="$slotDisplayStatus" class="slot-button--inspect js-slot-detail"
                                     :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
-                                    date-label="{{ $date->translatedFormat('l, d F Y') }}"
+                                    :date-label="$date->locale('id')->translatedFormat('l, d F Y')"
                                     data-detail-kind="{{ $slotDisplayStatus === 'member' ? 'Member' : 'Tim' }}"
                                     data-detail-name="{{ trim($slot['display_name']) }}"
                                     data-detail-court="{{ $schedule['court']->name }}"
@@ -911,7 +911,7 @@
                                 </x-court-booking-slot>
                             @else
                                 <x-court-booking-slot :status="$slotDisplayStatus" :time-label="$slot['start'] . '–' . $slot['end']"
-                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" :disabled="true"
+                                    :date-label="$date->locale('id')->translatedFormat('l, d F Y')" :disabled="true"
                                     aria-label="{{ $slotAriaLabel }}">
                                     <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
                                     <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
