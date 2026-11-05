@@ -1,6 +1,7 @@
 @props([
     'status' => 'available',
     'timeLabel',
+    'dateLabel' => null,
     'disabled' => false,
 ])
 
@@ -12,6 +13,11 @@
         <span class="slot-pitch-penalty-area slot-pitch-penalty-area--left"></span>
         <span class="slot-pitch-penalty-area slot-pitch-penalty-area--right"></span>
     </span>
+    @if($dateLabel)
+        <span class="slot-button-date">{{ $dateLabel }}</span>
+    @endif
     <strong class="slot-button-time">{{ $timeLabel }}</strong>
     <span class="slot-button-copy walk-in-slot-copy">{{ $slot }}</span>
 </button>
+
+</write_to_file>

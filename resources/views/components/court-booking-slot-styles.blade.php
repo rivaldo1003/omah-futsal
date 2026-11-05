@@ -105,6 +105,15 @@
         font-variant-numeric: tabular-nums;
     }
 
+    .slot-button-date {
+        display: block;
+        color: var(--text-secondary, #39393b);
+        font-size: 11px;
+        font-weight: 600;
+        margin-bottom: 2px;
+        line-height: 1.3;
+    }
+
     .slot-button > span:not(.slot-pitch-markings) {
         display: flex;
         align-items: center;
@@ -126,9 +135,6 @@
         display: inline-block;
         min-width: 0;
         max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
         font-weight: 650;
     }
 

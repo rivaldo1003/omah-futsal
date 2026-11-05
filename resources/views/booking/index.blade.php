@@ -798,7 +798,9 @@
                             {{ number_format((float) $schedule['court']->day_hourly_rate, 0, ',', '.') }}/jam ·
                             malam Rp {{ number_format((float) $schedule['court']->night_hourly_rate, 0, ',', '.') }}/jam
                         @endif
-                        tarif malam berlaku {{ $schedule['court']->night_rate_starts_at_formatted }}–{{ $schedule['court']->night_rate_ends_at_formatted }} · interval 30 menit
+                        tarif malam berlaku
+                        {{ $schedule['court']->night_rate_starts_at_formatted }}–{{ $schedule['court']->night_rate_ends_at_formatted }}
+                        · interval 30 menit
                     </span>
                 </header>
                 @if(count($schedule['slots']))
@@ -835,29 +837,31 @@
                                     'member' => 'Member: ',
                                     default => 'Tim: ',
                                 };
-                                $slotAriaLabel = $slot['start'].' sampai '.$slot['end'].': '.$statusLabels[$slotDisplayStatus];
+                                $slotAriaLabel = $slot['start'] . ' sampai ' . $slot['end'] . ': ' . $statusLabels[$slotDisplayStatus];
                                 if (in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name'])) {
-                                    $slotAriaLabel .= ', '.$displayNameLabel.trim($slot['display_name']);
+                                    $slotAriaLabel .= ', ' . $displayNameLabel . trim($slot['display_name']);
                                 }
                                 $rentalAvailabilityJson = json_encode($slot['rental_availability']);
                             @endphp
                             @if($slot['status'] === 'available' && $hasPaymentOption)
                                 <x-court-booking-slot status="available" class="js-book-slot"
-                                    :time-label="$slot['start'].'–'.$slot['end']"
-                                    data-court-id="{{ $schedule['court']->id }}" data-court-name="{{ $schedule['court']->name }}"
-                                    data-date="{{ $date->toDateString() }}" data-date-label="{{ $date->translatedFormat('l, d F Y') }}"
+                                    :time-label="$slot['start'] . '–' . $slot['end']"
+                                    date-label="{{ $date->translatedFormat('l, d F Y') }}"
+                                    data-court-id="{{ $schedule['court']->id }}"
+                                    data-court-name="{{ $schedule['court']->name }}" data-date="{{ $date->toDateString() }}"
+                                    data-date-label="{{ $date->translatedFormat('l, d F Y') }}"
                                     data-request-key="{{ $slot['request_key'] }}" data-starts-at="{{ $slot['starts_at'] }}"
                                     data-start="{{ $slot['start'] }}" data-end="{{ $slot['end'] }}"
                                     data-duration="{{ $slot['duration'] }}"
                                     data-amount-cents="{{ (int) round((float) $slot['amount'] * 100) }}"
-                                    data-rental-availability="{{ $rentalAvailabilityJson }}"
-                                    aria-label="{{ $slotAriaLabel }}" aria-describedby="bookingSelectionHelp" aria-pressed="false">
+                                    data-rental-availability="{{ $rentalAvailabilityJson }}" aria-label="{{ $slotAriaLabel }}"
+                                    aria-describedby="bookingSelectionHelp" aria-pressed="false">
                                     Rp {{ number_format($slot['amount'], 0, ',', '.') }} · Pilih slot
                                 </x-court-booking-slot>
                             @elseif($slotDisplayStatus === 'match' && filled($slot['match_details']))
                                 <x-court-booking-slot status="match" class="slot-button--inspect js-slot-detail"
-                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
-                                    data-detail-kind="Pertandingan"
+                                    :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
+                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" data-detail-kind="Pertandingan"
                                     data-detail-name="{{ $slot['match_details']['home_team'] }} vs {{ $slot['match_details']['away_team'] }}"
                                     data-detail-competition="{{ $slot['match_details']['competition_name'] }}"
                                     data-detail-court="{{ $schedule['court']->name }}"
@@ -872,8 +876,8 @@
                                 </x-court-booking-slot>
                             @elseif($slotDisplayStatus === 'tournament_rental' && filled($slot['tournament_rental_details']))
                                 <x-court-booking-slot status="tournament_rental" class="slot-button--inspect js-slot-detail"
-                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
-                                    data-detail-kind="Sewa turnamen"
+                                    :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
+                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" data-detail-kind="Sewa turnamen"
                                     data-detail-name="{{ $slot['tournament_rental_details']['tournament_name'] }}"
                                     data-detail-rental-start="{{ $slot['tournament_rental_details']['rental_start'] }}"
                                     data-detail-rental-end="{{ $slot['tournament_rental_details']['rental_end'] }}"
@@ -889,23 +893,26 @@
                                 </x-court-booking-slot>
                             @elseif(in_array($slotDisplayStatus, ['pending', 'booked', 'member'], true) && filled($slot['display_name']))
                                 <x-court-booking-slot :status="$slotDisplayStatus" class="slot-button--inspect js-slot-detail"
-                                    :time-label="$slot['start'].'–'.$slot['end']" :disabled="false"
+                                    :time-label="$slot['start'] . '–' . $slot['end']" :disabled="false"
+                                    date-label="{{ $date->translatedFormat('l, d F Y') }}"
                                     data-detail-kind="{{ $slotDisplayStatus === 'member' ? 'Member' : 'Tim' }}"
                                     data-detail-name="{{ trim($slot['display_name']) }}"
                                     data-detail-court="{{ $schedule['court']->name }}"
                                     data-detail-date="{{ $date->translatedFormat('l, d F Y') }}"
                                     data-detail-start="{{ $slot['start'] }}" data-detail-end="{{ $slot['end'] }}"
-                                    data-detail-status="{{ $slotDisplayStatus }}" aria-haspopup="dialog"
-                                    aria-controls="slotDetailModal" title="Klik untuk melihat detail jadwal"
-                                    aria-label="Lihat detail {{ $displayNameLabel.trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
-                                    <span class="slot-status-copy slot-occupant-copy" title="{{ $displayNameLabel.trim($slot['display_name']) }}">
-                                        {{ $displayNameLabel.trim($slot['display_name']) }}
+                                    data-detail-status="{{ $slotDisplayStatus }}" aria-haspopup="dialog" aria-controls="slotDetailModal"
+                                    title="Klik untuk melihat detail jadwal"
+                                    aria-label="Lihat detail {{ $displayNameLabel . trim($slot['display_name']) }}, {{ $slot['start'] }} sampai {{ $slot['end'] }}">
+                                    <span class="slot-status-copy slot-occupant-copy"
+                                        title="{{ $displayNameLabel . trim($slot['display_name']) }}">
+                                        {{ $displayNameLabel . trim($slot['display_name']) }}
                                     </span>
                                     <i class="bi bi-chevron-right slot-inspect-icon" aria-hidden="true"></i>
                                 </x-court-booking-slot>
                             @else
-                                <x-court-booking-slot :status="$slotDisplayStatus" :time-label="$slot['start'].'–'.$slot['end']"
-                                    :disabled="true" aria-label="{{ $slotAriaLabel }}">
+                                <x-court-booking-slot :status="$slotDisplayStatus" :time-label="$slot['start'] . '–' . $slot['end']"
+                                    date-label="{{ $date->translatedFormat('l, d F Y') }}" :disabled="true"
+                                    aria-label="{{ $slotAriaLabel }}">
                                     <i class="bi {{ $statusIcons[$slotDisplayStatus] }}" aria-hidden="true"></i>
                                     <span class="slot-status-copy">{{ $statusLabels[$slotDisplayStatus] }}</span>
                                 </x-court-booking-slot>
@@ -1098,7 +1105,8 @@
                 <div class="modal-header">
                     <div>
                         <h2 class="modal-title fs-5 fw-bold" id="bookingHistoryModalTitle">Semua riwayat booking</h2>
-                        <p class="booking-resume-intro mt-1">Maksimal 10 booking terbaru yang tersimpan di perangkat ini.</p>
+                        <p class="booking-resume-intro mt-1">Maksimal 10 booking terbaru yang tersimpan di perangkat
+                            ini.</p>
                     </div>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
                 </div>
