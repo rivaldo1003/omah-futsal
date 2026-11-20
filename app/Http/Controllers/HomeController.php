@@ -10,11 +10,12 @@ use App\Models\Team;
 use App\Models\Tournament;
 use App\Support\BusinessTime;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class HomeController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         // ==============================
         // GET HERO SETTINGS
@@ -45,9 +46,16 @@ class HomeController extends Controller
         $liveTournaments = Tournament::live()->get();
         $recentCompletedTournament = $this->getLatestCompletedTournamentSummary();
 
-        // Turnamen ongoing selalu menjadi konteks utama Home. Jika belum ada,
-        // gunakan turnamen unggulan yang akan datang, lalu fallback ke daftar live.
-        $activeTournament = $liveTournaments->firstWhere('status', 'ongoing')
+        // Pengunjung dapat memilih turnamen aktif untuk mengganti konteks
+        // klasemen, bracket, jadwal, dan statistik di halaman Home.
+        $requestedTournamentId = $request->integer('tournament_id');
+        $selectedTournament = $requestedTournamentId > 0
+            ? $liveTournaments->firstWhere('id', $requestedTournamentId)
+            : null;
+
+        // Default: turnamen berjalan, lalu unggulan, lalu turnamen live pertama.
+        $activeTournament = $selectedTournament
+            ?? $liveTournaments->firstWhere('status', 'ongoing')
             ?? Tournament::live()->where('is_featured', true)->first()
             ?? $liveTournaments->first();
 
@@ -254,6 +262,10 @@ class HomeController extends Controller
                             'away_team' => $awayTeam,
                             'status' => $match->status,
                             'is_bye' => $isBye,
+                            'date' => $match->match_date?->format('Y-m-d'),
+                            'time' => $match->time_start ? substr($match->time_start, 0, 5) : null,
+                            'time_end' => $match->time_end ? substr($match->time_end, 0, 5) : null,
+                            'venue' => $match->venue,
                             'winner' => $winnerId && (int) $winnerId === (int) $match->team_home_id
                                 ? 'home'
                                 : ($winnerId && (int) $winnerId === (int) $match->team_away_id
@@ -1337,6 +1349,77 @@ class HomeController extends Controller
     }
 
     /**
+     * Public archive of completed tournaments and their recorded champions.
+     */
+    public function tournamentHistory(Request $request)
+    {
+        $search = mb_substr(trim((string) $request->query('q', '')), 0, 100);
+        $tournamentsQuery = Tournament::query()
+            ->where('status', 'completed')
+            ->withCount([
+                'teams as history_teams_count',
+                'matches as history_matches_count' => fn ($query) => $query->where('is_cancelled', false),
+            ]);
+
+        if ($search !== '') {
+            $tournamentsQuery->where('name', 'like', '%' . $search . '%');
+        }
+
+        $tournaments = $tournamentsQuery
+            ->orderByRaw('COALESCE(end_date, start_date) DESC')
+            ->orderByDesc('id')
+            ->paginate(12)
+            ->withQueryString();
+
+        foreach ($tournaments as $tournament) {
+            $champion = null;
+
+            if ($tournament->type === 'league') {
+                $standings = $this->getAllGroupStandingsFixed($tournament);
+                $leader = $standings['Klasemen'][0] ?? null;
+
+                if ($leader && (int) ($leader->matches_played ?? 0) > 0) {
+                    $champion = [
+                        'name' => $leader->team_name ?? $leader->team->name ?? null,
+                        'logo' => $leader->team_logo ?? $leader->team->logo ?? null,
+                    ];
+                }
+            } else {
+                $finalMatch = Game::publiclyVisible()
+                    ->with(['homeTeam', 'awayTeam'])
+                    ->where('tournament_id', $tournament->id)
+                    ->where('round_type', 'final')
+                    ->where('status', 'completed')
+                    ->orderByDesc('match_date')
+                    ->orderByDesc('id')
+                    ->first();
+
+                $winnerId = $finalMatch ? $this->getDecidedWinnerId($finalMatch) : null;
+                $winnerTeam = $winnerId && $finalMatch
+                    ? ((int) $winnerId === (int) $finalMatch->team_home_id
+                        ? $finalMatch->homeTeam
+                        : $finalMatch->awayTeam)
+                    : null;
+
+                if ($winnerTeam) {
+                    $champion = [
+                        'name' => $winnerTeam->name,
+                        'logo' => $winnerTeam->logo,
+                    ];
+                }
+            }
+
+            $tournament->setAttribute('history_champion', $champion);
+        }
+
+        return view('tournament-history.index', [
+            'tournaments' => $tournaments,
+            'search' => $search,
+            'completedTournamentCount' => Tournament::where('status', 'completed')->count(),
+        ]);
+    }
+
+    /**
      * Public team profile focused on tournament participation and results.
      */
     public function teamHistory(Team $team)
@@ -1410,6 +1493,7 @@ class HomeController extends Controller
         $completedMatches = Game::where('status', 'completed')->count();
 
         $recentMatches = Game::with(['homeTeam', 'awayTeam'])
+            ->whereNotNull('match_date')
             ->orderBy('match_date', 'desc')
             ->limit(5)
             ->get();

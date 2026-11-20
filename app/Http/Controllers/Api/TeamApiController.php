@@ -345,7 +345,7 @@ class TeamApiController extends Controller
         
         return [
             'id' => $match->id,
-            'date' => $match->match_date->format('Y-m-d'),
+            'date' => $match->match_date?->format('Y-m-d'),
             'time' => $match->time_start,
             'venue' => $match->venue,
             'status' => $match->status,

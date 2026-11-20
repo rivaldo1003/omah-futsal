@@ -978,18 +978,35 @@
         <header class="page-header">
             <div>
                 <h1>Pertandingan</h1>
-                <p class="page-subtitle">Kelola dan jadwalkan pertandingan turnamen.</p>
+                <p class="page-subtitle">
+                    @if($scopedTournament)
+                        {{ $scopedTournament->name }} · daftar pertandingan dikunci ke turnamen ini.
+                    @else
+                        Kelola dan jadwalkan pertandingan turnamen.
+                    @endif
+                </p>
             </div>
             <div class="header-tools">
-                <a href="{{ route('admin.matches.create') }}" class="btn-create">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat pertandingan
-                </a>
-                <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
-                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Pertandingan persahabatan
-                </a>
-                <button type="button" class="btn-create btn-generate" data-bs-toggle="modal" data-bs-target="#generateModal">
-                    <i class="bi bi-magic" aria-hidden="true"></i> Jadwal otomatis
-                </button>
+                @if($scopedTournament)
+                    <a href="{{ route('admin.tournaments.show', $scopedTournament) }}" class="btn-create btn-friendly">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i> Detail turnamen
+                    </a>
+                @endif
+                @if(!$scopedTournament || in_array($scopedTournament->status, ['upcoming', 'ongoing'], true))
+                    <a href="{{ route('admin.matches.create', $scopedTournament ? ['tournament_id' => $scopedTournament->id, 'return_tournament_id' => $scopedTournament->id] : []) }}" class="btn-create">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat pertandingan
+                    </a>
+                @endif
+                @unless($scopedTournament)
+                    <a href="{{ route('admin.matches.create', ['mode' => 'friendly']) }}" class="btn-create btn-friendly">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Pertandingan persahabatan
+                    </a>
+                @endunless
+                @if(!$scopedTournament || in_array($scopedTournament->status, ['upcoming', 'ongoing'], true))
+                    <button type="button" class="btn-create btn-generate" data-bs-toggle="modal" data-bs-target="#generateModal">
+                        <i class="bi bi-magic" aria-hidden="true"></i> Jadwal otomatis
+                    </button>
+                @endif
             </div>
         </header>
 
@@ -1014,14 +1031,19 @@
                 </div>
                 <form id="generateForm" action="" method="POST">
                     @csrf
+                    @if($scopedTournament)
+                        <input type="hidden" name="return_tournament_id" value="{{ $scopedTournament->id }}">
+                    @endif
                     <div class="modal-body">
                         <div class="mb-3">
                             <label class="form-label fw-semibold" for="generateTournamentSelect">
                                 Pilih turnamen <span class="text-danger">*</span>
                             </label>
-                            <select class="form-select" id="generateTournamentSelect" required>
-                                <option value="">Pilih turnamen</option>
-                                @foreach($tournaments->whereIn('status', ['upcoming', 'ongoing']) as $tournament)
+                            <select class="form-select" id="generateTournamentSelect" required @disabled($scopedTournament)>
+                                @unless($scopedTournament)
+                                    <option value="">Pilih turnamen</option>
+                                @endunless
+                                @foreach($scopedTournament ? collect([$scopedTournament]) : $tournaments->whereIn('status', ['upcoming', 'ongoing']) as $tournament)
                                     @php
                                         $teamCount = $tournament->teams()->count();
                                         $estMatches = 0;
@@ -1038,7 +1060,7 @@
                                     <option value="{{ $tournament->id }}" data-type="{{ $tournament->type }}"
                                         data-teams="{{ $teamCount }}" data-est="{{ $estMatches }}"
                                         data-existing="{{ \App\Models\Game::where('tournament_id', $tournament->id)->count() }}"
-                                        {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
+                                        {{ ($scopedTournament?->id ?? request('tournament_id')) == $tournament->id ? 'selected' : '' }}>
                                         {{ $tournament->name }} ({{ ucfirst($tournament->type) }})
                                     </option>
                                 @endforeach
@@ -1127,17 +1149,21 @@
         <div class="search-box">
             <i class="bi bi-search search-icon" aria-hidden="true"></i>
             <input type="search" id="searchInput" name="search" autocomplete="off"
-                placeholder="Cari nama tim…" class="search-input"
-                aria-label="Cari pertandingan berdasarkan nama tim">
+                placeholder="Cari nama tim, tekan Enter untuk semua halaman" class="search-input"
+                value="{{ request('search') }}" aria-label="Cari pertandingan berdasarkan nama tim">
         </div>
         <label class="visually-hidden" for="tournamentFilter">Filter turnamen</label>
-        <select id="tournamentFilter" name="tournament_id" class="filter-select">
-            <option value="">Semua turnamen</option>
-            @foreach($tournaments as $tournament)
-                <option value="{{ $tournament->id }}" {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
-                    {{ $tournament->name }}
-                </option>
-            @endforeach
+        <select id="tournamentFilter" name="tournament_id" class="filter-select" @disabled($scopedTournament)>
+            @if($scopedTournament)
+                <option value="{{ $scopedTournament->id }}" selected>{{ $scopedTournament->name }} · terkunci</option>
+            @else
+                <option value="">Semua turnamen</option>
+                @foreach($tournaments as $tournament)
+                    <option value="{{ $tournament->id }}" {{ request('tournament_id') == $tournament->id ? 'selected' : '' }}>
+                        {{ $tournament->name }}
+                    </option>
+                @endforeach
+            @endif
         </select>
 
         <label class="visually-hidden" for="statusFilter">Filter status</label>
@@ -1223,7 +1249,7 @@
                                 @endphp
                                 <tr class="match-row {{ ($match->status == 'completed' && ($match->et_score || $match->is_penalty)) ? 'row-has-extras' : '' }}"
                                     data-status="{{ $match->is_cancelled ? 'cancelled' : $match->status }}"
-                                    data-round="{{ $match->round_type }}" data-date="{{ $match->match_date->format('Y-m-d') }}"
+                                    data-round="{{ $match->round_type }}" data-date="{{ $match->match_date?->format('Y-m-d') }}"
                                     data-tournament="{{ $match->tournament_id }}">
                                     <td>
                                         <input type="checkbox" class="match-checkbox" value="{{ $match->id }}"
@@ -1233,10 +1259,14 @@
                                             title="Fixture bracket draw hanya dapat dihapus melalui pengelolaan bracket." @endif>
                                     </td>
                                     <td>
-                                        <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
-                                        <div class="match-time">
-                                            <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ $match->time_start }}
-                                        </div>
+                                        @if($match->match_date && $match->time_start && $match->time_end)
+                                            <div class="match-date">{{ $match->match_date->format('d M Y') }}</div>
+                                            <div class="match-time">
+                                                <i class="bi bi-clock me-1" aria-hidden="true"></i>{{ substr($match->time_start, 0, 5) }}–{{ substr($match->time_end, 0, 5) }}
+                                            </div>
+                                        @else
+                                            <span class="status-badge status-postponed">Belum dijadwalkan</span>
+                                        @endif
                                     </td>
                                     <td>
                                         <div class="match-teams">
@@ -1367,7 +1397,7 @@
                                                     <i class="bi bi-toggles" aria-hidden="true"></i>
                                                 </a>
                                             @else
-                                                <a href="{{ route('admin.matches.edit', $match) }}" class="btn-small btn-edit"
+                                                <a href="{{ route('admin.matches.edit', array_merge(['match' => $match], ($scopedTournament || request('tournament_id')) ? ['return_tournament_id' => $scopedTournament?->id ?? request('tournament_id')] : [])) }}" class="btn-small btn-edit"
                                                     title="Ubah pertandingan" aria-label="Ubah pertandingan">
                                                     <i class="bi bi-pencil" aria-hidden="true"></i>
                                                 </a>
@@ -1521,7 +1551,7 @@
                     <p class="empty-state-text">
                         Mulai dengan membuat pertandingan turnamen pertama Anda.
                     </p>
-                    <a href="{{ route('admin.matches.create') }}" class="btn-create">
+                    <a href="{{ route('admin.matches.create', $scopedTournament ? ['tournament_id' => $scopedTournament->id, 'return_tournament_id' => $scopedTournament->id] : []) }}" class="btn-create">
                         <i class="bi bi-plus"></i> Buat pertandingan
                     </a>
                 </div>
@@ -2088,24 +2118,20 @@
         document.addEventListener('DOMContentLoaded', function () {
             applyUrlFilters();
 
-            if (tournamentFilter) tournamentFilter.addEventListener('change', function () {
-                updateUrlParam('tournament_id', this.value);
-                filterMatches();
-            });
+            if (tournamentFilter && !tournamentFilter.disabled) {
+                tournamentFilter.addEventListener('change', submitCurrentFilters);
+            }
 
             if (statusFilter) statusFilter.addEventListener('change', function () {
-                updateUrlParam('status', this.value);
-                filterMatches();
+                submitCurrentFilters();
             });
 
             if (roundFilter) roundFilter.addEventListener('change', function () {
-                updateUrlParam('round', this.value);
-                filterMatches();
+                submitCurrentFilters();
             });
 
             if (dateFrom) dateFrom.addEventListener('change', function () {
-                updateUrlParam('date', this.value);
-                filterMatches();
+                submitCurrentFilters();
             });
 
             if (searchInput) searchInput.addEventListener('input', function () {
@@ -2113,24 +2139,48 @@
                 filterMatches();
             });
 
+            if (searchInput) searchInput.addEventListener('keydown', function (event) {
+                if (event.key !== 'Enter') return;
+
+                event.preventDefault();
+                submitCurrentFilters();
+            });
+
             // Reset filters
             if (resetFilters) {
                 resetFilters.addEventListener('click', function () {
                     // Clear all filters
-                    if (tournamentFilter) tournamentFilter.value = '';
+                    if (tournamentFilter && !tournamentFilter.disabled) tournamentFilter.value = '';
                     if (statusFilter) statusFilter.value = '';
                     if (roundFilter) roundFilter.value = '';
                     if (dateFrom) dateFrom.value = '';
                     if (searchInput) searchInput.value = '';
 
-                    // Clear URL parameters
-                    clearUrlParams();
-
-                    // Apply filters
-                    filterMatches();
+                    const url = new URL(window.location.href);
+                    url.search = '';
+                    window.location.assign(url.toString());
                 });
             }
         });
+
+        function submitCurrentFilters() {
+            const url = new URL(window.location.href);
+            const values = {
+                tournament_id: tournamentFilter?.value,
+                status: statusFilter?.value,
+                round: roundFilter?.value,
+                date: dateFrom?.value,
+                search: searchInput?.value.trim(),
+            };
+
+            Object.entries(values).forEach(([key, value]) => {
+                if (value) url.searchParams.set(key, value);
+                else url.searchParams.delete(key);
+            });
+
+            url.searchParams.delete('page');
+            window.location.assign(url.toString());
+        }
 
         // Function to update URL parameter
         function updateUrlParam(key, value) {

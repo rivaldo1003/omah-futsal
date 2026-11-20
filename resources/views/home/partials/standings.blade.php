@@ -1,5 +1,21 @@
 {{-- Home standings and knockout bracket --}}
-<div class="v3-home-standings">
+<div class="v3-home-standings" id="home-tournament">
+    @if(isset($liveTournaments) && $liveTournaments->count() > 1)
+        <form class="v3-tournament-switcher" method="GET" action="{{ route('home') }}#home-tournament">
+            <label for="homeTournamentSelect">Pilih turnamen</label>
+            <div class="v3-tournament-switcher-controls">
+                <select id="homeTournamentSelect" name="tournament_id" class="form-select">
+                    @foreach($liveTournaments as $tournamentOption)
+                        <option value="{{ $tournamentOption->id }}" @selected($activeTournament && $activeTournament->id === $tournamentOption->id)>
+                            {{ $tournamentOption->name }} · {{ $tournamentOption->status === 'ongoing' ? 'Berlangsung' : 'Akan datang' }}
+                        </option>
+                    @endforeach
+                </select>
+                <button type="submit" class="btn-action-secondary v3-tournament-switcher-submit">Tampilkan</button>
+            </div>
+        </form>
+    @endif
+
     @if(!$isCupType)
         <div class="app-card v3-card">
             <div class="app-card-header v3-card-header">
@@ -223,6 +239,60 @@
             --v3-font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
             --v3-radius-md: 8px;
             --v3-radius-sm: 8px;
+        }
+
+        .v3-home-standings .v3-tournament-switcher {
+            margin-bottom: 16px;
+            padding: 16px 18px;
+            border: 1px solid var(--v3-border);
+            border-radius: var(--v3-radius-md);
+            background: var(--v3-surface);
+        }
+
+        .v3-home-standings .v3-tournament-switcher label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--v3-text-sub);
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .v3-home-standings .v3-tournament-switcher-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        .v3-home-standings .v3-tournament-switcher .form-select {
+            min-width: 0;
+            min-height: 44px;
+            border-color: var(--v3-border);
+            border-radius: var(--v3-radius-sm);
+            color: var(--v3-text-main);
+            box-shadow: none;
+        }
+
+        .v3-home-standings .v3-tournament-switcher-submit {
+            flex: 0 0 auto;
+            min-height: 44px;
+            padding: 0 18px;
+            border: 1px solid var(--v3-text-main);
+            border-radius: var(--v3-radius-sm);
+            background: var(--v3-text-main);
+            color: var(--v3-surface);
+        }
+
+        .v3-home-standings .v3-tournament-switcher-submit:hover {
+            opacity: .86;
+        }
+
+        @media (max-width: 520px) {
+            .v3-home-standings .v3-tournament-switcher-controls {
+                flex-direction: column;
+            }
+
+            .v3-home-standings .v3-tournament-switcher-submit {
+                width: 100%;
+            }
         }
 
         .v3-home-standings .v3-card {

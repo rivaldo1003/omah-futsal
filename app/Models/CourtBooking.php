@@ -6,6 +6,7 @@ use App\Support\BusinessTime;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class CourtBooking extends Model
@@ -26,6 +27,7 @@ class CourtBooking extends Model
         'idempotency_key',
         'request_fingerprint',
         'court_id',
+        'tournament_id',
         'court_member_schedule_id',
         'booking_date',
         'time_start',
@@ -83,6 +85,18 @@ class CourtBooking extends Model
     public function court(): BelongsTo
     {
         return $this->belongsTo(Court::class);
+    }
+
+    public function tournament(): BelongsTo
+    {
+        return $this->belongsTo(Tournament::class);
+    }
+
+    public function tournaments(): BelongsToMany
+    {
+        return $this->belongsToMany(Tournament::class, 'court_booking_tournament')
+            ->withPivot('linked_by')
+            ->withTimestamps();
     }
 
     public function memberSchedule(): BelongsTo

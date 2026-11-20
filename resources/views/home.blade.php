@@ -27,7 +27,7 @@
     <!-- Main Content Container -->
     <main class="app-container content-section home-content" aria-label="Informasi OFS Futsal Center">
         @if($activeTournament)
-            <section class="home-section home-section--feature" aria-label="Klasemen atau bagan turnamen yang sedang berlangsung">
+            <section class="home-section home-section--feature" aria-label="Klasemen atau bagan turnamen yang dipilih">
                 @include('home.partials.standings')
             </section>
         @endif
@@ -63,7 +63,7 @@
         </section>
 
         @if(isset($liveTournaments) && $liveTournaments->count() > 1)
-            <section class="home-section" aria-label="Turnamen berjalan lainnya">
+            <section class="home-section" aria-label="Turnamen aktif dan mendatang">
                 @include('home.partials.live-tournaments')
             </section>
         @endif

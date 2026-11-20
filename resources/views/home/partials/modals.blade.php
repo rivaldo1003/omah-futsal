@@ -55,8 +55,12 @@
                                     <h6 class="fw-semibold small text-secondary mb-2">Match information</h6>
                                     <ul class="list-unstyled small text-secondary mb-0">
                                         <li class="mb-1">
-                                            <strong class="text-dark">Date:</strong> {{ $match->match_date->format('d M Y') }} •
-                                            {{ $match->time_start }}
+                                            <strong class="text-dark">Date &amp; time:</strong>
+                                            @if($match->match_date && $match->time_start && $match->time_end)
+                                                {{ $match->match_date->format('d M Y') }} · {{ substr($match->time_start, 0, 5) }}–{{ substr($match->time_end, 0, 5) }}
+                                            @else
+                                                Jadwal belum ditentukan
+                                            @endif
                                         </li>
                                         <li class="mb-1">
                                             <strong class="text-dark">Venue:</strong> {{ $match->venue ?? 'Main field' }}

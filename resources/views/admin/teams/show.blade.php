@@ -870,7 +870,7 @@
                                     {{ $match->homeTeam->name ?? 'Unknown' }} vs {{ $match->awayTeam->name ?? 'Unknown' }}
                                 </div>
                                 <small class="text-secondary">
-                                    {{ \Carbon\Carbon::parse($match->match_date)->format('d M Y') }}
+                                    {{ $match->match_date?->format('d M Y') ?? 'Belum dijadwalkan' }}
                                     @if($match->venue)
                                         • {{ $match->venue }}
                                     @endif

@@ -3,6 +3,7 @@
      ============================================================ --}}
 @php
     $isCompetitionSection = request()->is('tournaments*')
+        || request()->is('riwayat-turnamen*')
         || request()->is('schedule*')
         || request()->is('matches*')
         || request()->is('standings*')
@@ -50,6 +51,10 @@
                     <a class="nav-dropdown-item {{ request()->is('tournaments*') ? 'active' : '' }}"
                         href="{{ route('tournaments.index') }}" role="menuitem">
                         <i class="bi bi-trophy"></i><span>Daftar turnamen</span>
+                    </a>
+                    <a class="nav-dropdown-item {{ request()->is('riwayat-turnamen*') ? 'active' : '' }}"
+                        href="{{ route('tournaments.history') }}" role="menuitem">
+                        <i class="bi bi-clock-history"></i><span>Riwayat turnamen</span>
                     </a>
                     <a class="nav-dropdown-item {{ $isScheduleSection ? 'active' : '' }}"
                         href="{{ route('schedule') }}" role="menuitem">
@@ -185,6 +190,10 @@
                 <a class="msb-link msb-sublink {{ request()->is('tournaments*') ? 'is-active' : '' }}"
                     href="{{ route('tournaments.index') }}" @if(request()->is('tournaments*')) aria-current="page" @endif>
                     <i class="bi bi-trophy" aria-hidden="true"></i><span>Daftar turnamen</span>
+                </a>
+                <a class="msb-link msb-sublink {{ request()->is('riwayat-turnamen*') ? 'is-active' : '' }}"
+                    href="{{ route('tournaments.history') }}" @if(request()->is('riwayat-turnamen*')) aria-current="page" @endif>
+                    <i class="bi bi-clock-history" aria-hidden="true"></i><span>Riwayat turnamen</span>
                 </a>
                 <a class="msb-link msb-sublink {{ $isScheduleSection ? 'is-active' : '' }}"
                     href="{{ route('schedule') }}" @if($isScheduleSection) aria-current="page" @endif>

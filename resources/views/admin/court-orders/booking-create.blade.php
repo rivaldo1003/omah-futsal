@@ -1061,6 +1061,22 @@
                             <input class="form-control" id="walkInTeam" name="team_name" maxlength="120"
                                 autocomplete="organization" value="{{ old('team_name') }}" required>
                         </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label" for="walkInTournament">Turnamen terkait <span
+                                    class="text-secondary">(opsional)</span></label>
+                            <select class="form-select" id="walkInTournament" name="tournament_id">
+                                <option value="">Bukan booking turnamen</option>
+                                @foreach($tournaments as $tournament)
+                                    <option value="{{ $tournament->id }}" @selected((string) old('tournament_id') === (string) $tournament->id)>
+                                        {{ $tournament->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-text">Pilih jika booking ini adalah reservasi lapangan untuk satu turnamen. Laga turnamen hanya boleh dijadwalkan di dalam rentang booking ini.</div>
+                            @if($errors->has('tournament_id'))
+                                <div class="text-danger small mt-1">{{ $errors->first('tournament_id') }}</div>
+                            @endif
+                        </div>
                         <div class="col-12 col-md-3">
                             <label class="form-label" for="walkInPhone">Nomor WhatsApp</label>
                             <input class="form-control" id="walkInPhone" name="customer_phone" maxlength="30"

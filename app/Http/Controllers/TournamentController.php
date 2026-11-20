@@ -17,34 +17,6 @@ use Illuminate\Support\Str;
 
 class TournamentController extends Controller
 {
-    /**
-     * Turnamen yang masih "aktif" (belum selesai/dibatalkan).
-     * Sistem hanya mengizinkan SATU turnamen aktif pada satu waktu.
-     */
-    private function activeTournament()
-    {
-        return Tournament::whereIn('status', ['upcoming', 'ongoing'])
-            ->orderByRaw("CASE WHEN status = 'ongoing' THEN 1 ELSE 2 END")
-            ->orderBy('start_date', 'asc')
-            ->first();
-    }
-
-    /**
-     * Guard: cegah pembuatan turnamen baru bila masih ada turnamen aktif.
-     * Mengembalikan redirect error bila terblokir, atau null bila boleh lanjut.
-     */
-    private function guardSingleActiveTournament()
-    {
-        $active = $this->activeTournament();
-
-        if ($active) {
-            return redirect()->route('admin.tournaments.index')
-                ->with('error', 'Tidak bisa membuat turnamen baru. Masih ada turnamen aktif: "' . $active->name . '" (status: ' . $active->status . '). Selesaikan atau batalkan turnamen tersebut terlebih dahulu.');
-        }
-
-        return null;
-    }
-
     private function matchHasProgress(?Game $match): bool
     {
         if (!$match) {
@@ -62,10 +34,6 @@ class TournamentController extends Controller
     // Create tournament - redirect to step 1
     public function create()
     {
-        if ($redirect = $this->guardSingleActiveTournament()) {
-            return $redirect;
-        }
-
         return redirect()->route('admin.tournaments.create.step', ['step' => 1]);
     }
 
@@ -180,14 +148,6 @@ class TournamentController extends Controller
         // Check if user is admin
         if (auth()->user()->role !== 'admin') {
             abort(403, 'Unauthorized access. Admin role required.');
-        }
-
-        // Guard: hanya boleh satu turnamen aktif. Izinkan lanjut bila sedang
-        // melanjutkan draft (session tournament_data sudah ada).
-        if (empty(session()->get('tournament_data'))) {
-            if ($redirect = $this->guardSingleActiveTournament()) {
-                return $redirect;
-            }
         }
 
         // Get all teams
@@ -586,11 +546,6 @@ class TournamentController extends Controller
                     'confirmTournament' => 'required|accepted',
                 ]);
 
-                // Guard terakhir: pastikan tidak ada turnamen aktif lain sebelum menyimpan.
-                if ($redirect = $this->guardSingleActiveTournament()) {
-                    return $redirect;
-                }
-
                 $tournamentData = session()->get('tournament_data', []);
                 $tournamentType = $tournamentData['type'];
 
@@ -844,10 +799,9 @@ class TournamentController extends Controller
                 ->count(),
         ];
 
-        // Turnamen aktif (belum completed/cancelled) — dipakai untuk disable tombol create.
-        $activeTournament = $this->activeTournament();
+        $liveTournamentCount = $stats['upcoming'] + $stats['ongoing'];
 
-        return view('admin.tournaments.index', compact('tournaments', 'stats', 'activeTournament'));
+        return view('admin.tournaments.index', compact('tournaments', 'stats', 'liveTournamentCount'));
     }
 
     // Show tournament details

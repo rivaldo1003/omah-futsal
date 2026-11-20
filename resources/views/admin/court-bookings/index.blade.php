@@ -1407,6 +1407,15 @@
                                             <span>Tim</span>
                                             <strong>{{ $booking->team_name ?: 'Belum dicatat' }}</strong>
                                         </div>
+                                        @php
+                                            $bookingTournamentNames = $booking->tournaments->pluck('name')->unique()->values();
+                                            if ($booking->tournament && !$bookingTournamentNames->contains($booking->tournament->name)) {
+                                                $bookingTournamentNames->push($booking->tournament->name);
+                                            }
+                                        @endphp
+                                        @if($bookingTournamentNames->isNotEmpty())
+                                            <div class="small text-secondary mt-1">Turnamen terkait: {{ $bookingTournamentNames->implode(', ') }}</div>
+                                        @endif
                                     </div>
                                 </td>
                                 <td class="booking-payment-cell">
@@ -1801,6 +1810,17 @@
                                     </div>
                                 </td>
                                 <td class="booking-actions-cell">
+                                    @if($booking->source === 'walk_in' && in_array($booking->status, [
+                                        App\Models\CourtBooking::STATUS_AWAITING_PAYMENT,
+                                        App\Models\CourtBooking::STATUS_PENDING_REVIEW,
+                                        App\Models\CourtBooking::STATUS_CONFIRMED,
+                                    ], true))
+                                        <a class="btn btn-sm btn-outline-secondary mb-2"
+                                            href="{{ route('admin.court-bookings.tournament-reservations.create', ['booking_id' => $booking->id]) }}">
+                                            <i class="bi bi-trophy me-1" aria-hidden="true"></i>
+                                            Kaitkan reservasi turnamen
+                                        </a>
+                                    @endif
                                     @if($canCorrectSchedule && in_array($booking->source, ['walk_in', 'member'], true))
                                         <button class="btn btn-sm btn-outline-secondary mb-2" type="button" data-bs-toggle="modal"
                                             data-bs-target="#bookingDiscountCorrection{{ $booking->id }}" aria-haspopup="dialog">
@@ -2928,6 +2948,7 @@
                     </div>
                 </div>
             @endif
+
         @endforeach
     </main>
 

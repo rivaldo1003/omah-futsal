@@ -513,6 +513,12 @@
 
             <!-- Tab pertandingan -->
             <div id="matches-tab" class="tab-pane" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <p class="mb-0 text-muted">Daftar pada tab ini adalah ringkasan. Buka halaman khusus untuk mencari dan mengelola semua pertandingan turnamen.</p>
+                    <a href="{{ route('admin.tournaments.matches', $tournament) }}" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-list-ul me-1" aria-hidden="true"></i> Buka daftar pertandingan
+                    </a>
+                </div>
                 @if($tournament->matches_count > 0)
                     <div class="mb-3">
                         <div class="btn-group btn-group-sm" role="group">
@@ -566,8 +572,12 @@
                                         </td>
                                         <td>
                                             <div class="match-info">
-                                                <span>{{ $match->match_date->format('d M') }}</span>
-                                                <span>{{ date('H:i', strtotime($match->time_start)) }}</span>
+                                                @if($match->match_date && $match->time_start && $match->time_end)
+                                                    <span>{{ $match->match_date->format('d M') }}</span>
+                                                    <span>{{ substr($match->time_start, 0, 5) }}–{{ substr($match->time_end, 0, 5) }}</span>
+                                                @else
+                                                    <span class="text-muted">Belum dijadwalkan</span>
+                                                @endif
                                             </div>
                                         </td>
                                         <td>
@@ -590,7 +600,7 @@
                         </div>
                         <h6 class="empty-title">Belum Ada Pertandingan</h6>
                         <p class="empty-text">Jadwalkan pertandingan untuk mengisi turnamen ini.</p>
-                        <a href="{{ route('admin.matches.create') }}" class="btn btn-primary btn-sm">
+                        <a href="{{ route('admin.matches.create', ['tournament_id' => $tournament->id, 'return_tournament_id' => $tournament->id]) }}" class="btn btn-primary btn-sm">
                             <i class="bi bi-plus-circle me-1"></i> Jadwalkan Pertandingan
                         </a>
                     </div>

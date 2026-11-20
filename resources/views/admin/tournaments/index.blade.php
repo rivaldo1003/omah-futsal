@@ -231,6 +231,10 @@
             color: var(--tournament-warning);
         }
 
+        .admin-tournaments-page .alert-admin-info {
+            color: var(--tournament-charcoal);
+        }
+
         .admin-tournaments-page .alert-close {
             flex: 0 0 auto;
             margin-left: auto;
@@ -732,16 +736,9 @@
                 <p class="page-subtitle">Kelola jadwal, format, dan peserta turnamen.</p>
             </div>
             <div class="header-tools">
-                @if($activeTournament)
-                    <span class="btn-create is-disabled" aria-disabled="true"
-                        title="Masih ada turnamen aktif: {{ $activeTournament->name }}">
-                        <i class="bi bi-lock" aria-hidden="true"></i> Buat turnamen
-                    </span>
-                @else
-                    <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
-                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat turnamen
-                    </a>
-                @endif
+                <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
+                    <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat turnamen
+                </a>
             </div>
         </header>
 
@@ -761,21 +758,12 @@
             </div>
         @endif
 
-        @if($activeTournament)
-            <div class="alert alert-admin alert-admin-warning" role="status">
-                <i class="bi bi-lock-fill" aria-hidden="true"></i>
+        @if($liveTournamentCount > 1)
+            <div class="alert alert-admin alert-admin-info" role="status">
+                <i class="bi bi-trophy" aria-hidden="true"></i>
                 <div>
-                    <strong>Hanya satu turnamen yang dapat berjalan pada satu waktu.</strong>
-                    <span>Turnamen “{{ $activeTournament->name }}” masih berstatus
-                        @switch($activeTournament->status)
-                            @case('upcoming') akan datang @break
-                            @case('ongoing') berlangsung @break
-                            @case('completed') selesai @break
-                            @case('cancelled') dibatalkan @break
-                            @default {{ $activeTournament->status }}
-                        @endswitch.
-                        Selesaikan atau batalkan turnamen tersebut sebelum membuat turnamen baru.
-                    </span>
+                    <strong>{{ $liveTournamentCount }} turnamen berjalan atau akan datang.</strong>
+                    <span>Setiap turnamen memiliki jadwal, peserta, klasemen, dan bagan masing-masing.</span>
                 </div>
             </div>
         @endif
@@ -1006,11 +994,9 @@
                     </div>
                     <h3 class="empty-state-title">Belum ada turnamen</h3>
                     <p class="empty-state-text">Buat turnamen pertama untuk mulai mengatur pertandingan dan peserta.</p>
-                    @if(!$activeTournament)
-                        <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
-                            <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat turnamen pertama
-                        </a>
-                    @endif
+                    <a href="{{ route('admin.tournaments.create.step', ['step' => 1]) }}" class="btn-create">
+                        <i class="bi bi-plus-lg" aria-hidden="true"></i> Buat turnamen pertama
+                    </a>
                 </div>
             @endif
         </section>

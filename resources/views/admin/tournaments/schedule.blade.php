@@ -72,8 +72,12 @@
                                     @foreach($matches as $match)
                                         <tr>
                                             <td>
-                                                <div>{{ $match->match_date->format('d M Y') }}</div>
-                                                <small class="text-muted">{{ $match->time_start }} - {{ $match->time_end }}</small>
+                                                @if($match->match_date && $match->time_start && $match->time_end)
+                                                    <div>{{ $match->match_date->format('d M Y') }}</div>
+                                                    <small class="text-muted">{{ substr($match->time_start, 0, 5) }} - {{ substr($match->time_end, 0, 5) }}</small>
+                                                @else
+                                                    <span class="text-muted">Belum dijadwalkan</span>
+                                                @endif
                                             </td>
                                             <td>
                                                 <div class="d-flex align-items-center">
@@ -154,8 +158,11 @@
                                     <div class="match-card mb-3 p-3 border rounded">
                                         <div class="text-center mb-2">
                                             <small class="text-muted">
-                                                {{ $match->match_date->format('d M Y') }} | 
-                                                {{ $match->time_start }}
+                                                @if($match->match_date && $match->time_start && $match->time_end)
+                                                    {{ $match->match_date->format('d M Y') }} · {{ substr($match->time_start, 0, 5) }}–{{ substr($match->time_end, 0, 5) }}
+                                                @else
+                                                    Belum dijadwalkan
+                                                @endif
                                             </small>
                                         </div>
                                         <div class="d-flex justify-content-between align-items-center">

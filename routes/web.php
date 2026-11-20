@@ -60,6 +60,7 @@ Route::get('/news', [NewsArticleController::class, 'index'])->name('news.index')
 Route::get('/news/{id}', [NewsArticleController::class, 'show'])->name('news.show');
 
 // Tournaments
+Route::get('/riwayat-turnamen', [HomeController::class, 'tournamentHistory'])->name('tournaments.history');
 Route::get('/tournaments', [TournamentController::class, 'index'])->name('tournaments.index');
 Route::get('/tournaments/active', [TournamentController::class, 'active'])->name('tournaments.active');
 Route::get('/tournaments/{tournament}', [TournamentController::class, 'show'])->name('tournaments.show');
@@ -202,6 +203,10 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     // Standard CRUD routes - EXCLUDE create dan store karena sudah ada di atas
     Route::resource('tournaments', TournamentController::class)->except(['create', 'store']);
 
+    // Match list with a fixed tournament context (filters and pagination stay scoped).
+    Route::get('/tournaments/{tournament}/matches', [GameController::class, 'tournamentMatches'])
+        ->name('tournaments.matches');
+
     // Tournament Schedule Routes
     Route::get('/tournaments/{tournament}/schedule', [ScheduleController::class, 'index'])->name('tournaments.schedule');
     Route::post('/tournaments/{tournament}/schedule/generate', [ScheduleController::class, 'generateSchedule'])->name('tournaments.schedule.generate');
@@ -277,6 +282,9 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
         Route::post('/{booking}/fund-settlements', [AdminCourtBookingController::class, 'storeFundSettlement'])->name('fund-settlements.store');
         Route::post('/{booking}/fund-settlements/{settlement}/void', [AdminCourtBookingController::class, 'voidFundSettlement'])->name('fund-settlements.void');
         Route::put('/{booking}/team', [AdminCourtBookingController::class, 'updateTeamName'])->name('team.update');
+        Route::get('/tournament-reservations/create', [AdminCourtBookingController::class, 'createTournamentReservation'])->name('tournament-reservations.create');
+        Route::post('/tournament-reservations', [AdminCourtBookingController::class, 'storeTournamentReservation'])->name('tournament-reservations.store');
+        Route::put('/{booking}/tournament', [AdminCourtBookingController::class, 'updateTournamentLink'])->name('tournament.update');
         Route::put('/{booking}/schedule', [AdminCourtBookingController::class, 'updateSchedule'])->name('schedule.update');
         Route::put('/{booking}/discount', [AdminCourtBookingController::class, 'updateDiscount'])->name('discount.update');
         Route::post('/{booking}/payments', [AdminCourtBookingController::class, 'recordPayment'])->name('payments.store');

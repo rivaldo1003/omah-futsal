@@ -163,7 +163,7 @@
                                                     -
                                                 @endif
                                             </td>
-                                            <td>{{ $goal->match->match_date->format('d/m/Y') }}</td>
+                                            <td>{{ $goal->match->match_date?->format('d/m/Y') ?? 'Belum dijadwalkan' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>
@@ -209,7 +209,7 @@
                                                 </span>
                                             </td>
                                             <td>{{ $card->reason ?: '-' }}</td>
-                                            <td>{{ $card->match->match_date->format('d/m/Y') }}</td>
+                                            <td>{{ $card->match->match_date?->format('d/m/Y') ?? 'Belum dijadwalkan' }}</td>
                                         </tr>
                                     @endforeach
                                 </tbody>

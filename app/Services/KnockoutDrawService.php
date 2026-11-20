@@ -454,8 +454,10 @@ class KnockoutDrawService
         $tournament->settings = $settings;
         $tournament->save();
 
-        $this->resolveFirstRound($tournament);
-        $this->resolveAutomaticByes($tournament);
+        // The interactive draw flow must create the complete fixture list as
+        // soon as all teams are placed. Later rounds keep empty participants
+        // until earlier results determine who advances.
+        $this->generateAllMatches($tournament);
     }
 
     /**
@@ -679,12 +681,12 @@ class KnockoutDrawService
         if (!$match) {
             $match = Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $this->matchDate($tournament, 1),
-                'time_start' => $this->timeSlot($matchIndex, $tournament),
-                'time_end' => $this->timeEnd($this->timeSlot($matchIndex, $tournament), $tournament),
+                'match_date' => null,
+                'time_start' => null,
+                'time_end' => null,
                 'team_home_id' => $homeTeamId,
                 'team_away_id' => $awayTeamId,
-                'venue' => $tournament->location ?? 'Main Field',
+                'venue' => null,
                 'status' => 'upcoming',
                 'round_type' => $this->roundType((int) ($tournament->settings['draw_bracket_size'] ?? $this->bracketSize($tournament)), 1),
                 'group_name' => null,
@@ -793,12 +795,12 @@ class KnockoutDrawService
         if (!$match) {
             $match = Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $this->matchDate($tournament, $roundNumber),
-                'time_start' => $this->timeSlot($matchIndex, $tournament),
-                'time_end' => $this->timeEnd($this->timeSlot($matchIndex, $tournament), $tournament),
+                'match_date' => null,
+                'time_start' => null,
+                'time_end' => null,
                 'team_home_id' => $home->team_id,
                 'team_away_id' => $away->team_id,
-                'venue' => $tournament->location ?? 'Main Field',
+                'venue' => null,
                 'status' => 'upcoming',
                 'round_type' => $roundType,
                 'group_name' => null,
@@ -1117,16 +1119,14 @@ class KnockoutDrawService
         if (!$fixture) {
             $size = (int) ($tournament->settings['draw_bracket_size'] ?? $this->bracketSize($tournament));
             $rounds = (int) round(log(max($size, 2), 2));
-            $timeStart = $this->timeSlot(0, $tournament);
-
             $fixture = Game::create([
                 'tournament_id' => $tournament->id,
-                'match_date' => $this->matchDate($tournament, $rounds),
-                'time_start' => $timeStart,
-                'time_end' => $this->timeEnd($timeStart, $tournament),
+                'match_date' => null,
+                'time_start' => null,
+                'time_end' => null,
                 'team_home_id' => null,
                 'team_away_id' => null,
-                'venue' => $tournament->location ?? 'Main Field',
+                'venue' => null,
                 'status' => 'upcoming',
                 'round_type' => 'third_place',
                 'group_name' => null,
@@ -1404,15 +1404,14 @@ class KnockoutDrawService
                     }
 
                     if (!$match) {
-                        $timeStart = $this->timeSlot($matchIndex, $tournament);
                         $match = Game::create([
                             'tournament_id' => $tournament->id,
-                            'match_date' => $this->matchDate($tournament, $roundNumber),
-                            'time_start' => $timeStart,
-                            'time_end' => $this->timeEnd($timeStart, $tournament),
+                            'match_date' => null,
+                            'time_start' => null,
+                            'time_end' => null,
                             'team_home_id' => $home->team_id,
                             'team_away_id' => $away->team_id,
-                            'venue' => $tournament->location ?? 'Main Field',
+                            'venue' => null,
                             'status' => 'upcoming',
                             'round_type' => $this->roundType($size, $roundNumber),
                             'group_name' => null,
@@ -1437,15 +1436,14 @@ class KnockoutDrawService
                     ->first();
 
                 if (!$thirdPlaceFixture) {
-                    $timeStart = $this->timeSlot(0, $tournament);
                     $thirdPlaceFixture = Game::create([
                         'tournament_id' => $tournament->id,
-                        'match_date' => $this->matchDate($tournament, $rounds),
-                        'time_start' => $timeStart,
-                        'time_end' => $this->timeEnd($timeStart, $tournament),
+                        'match_date' => null,
+                        'time_start' => null,
+                        'time_end' => null,
                         'team_home_id' => null,
                         'team_away_id' => null,
-                        'venue' => $tournament->location ?? 'Main Field',
+                        'venue' => null,
                         'status' => 'upcoming',
                         'round_type' => 'third_place',
                         'group_name' => null,

@@ -2,7 +2,7 @@
     <div class="app-card-header">
         <h3 class="app-card-title">
             <i class="bi bi-trophy"></i>
-            <span>{{ $activeTournament ? 'Teams in ongoing tournament' : 'Teams in latest completed tournament' }}</span>
+            <span>{{ $activeTournament ? 'Teams in selected tournament' : 'Teams in latest completed tournament' }}</span>
         </h3>
         <div class="d-flex align-items-center gap-2">
             <span class="app-badge app-badge-default">{{ $teamSectionTournament->name }}</span>
@@ -70,7 +70,12 @@
                                     </div>
                                 </div>
                                 <span class="app-badge {{ $activeTournament ? 'app-badge-success' : 'app-badge-default' }} flex-shrink-0">
-                                    @if($activeTournament)<i class="bi bi-circle-fill" style="font-size: 5px;"></i> Active @else Completed @endif
+                                    @if($activeTournament)
+                                        <i class="bi bi-circle-fill" style="font-size: 5px;"></i>
+                                        {{ $activeTournament->status === 'ongoing' ? 'Berlangsung' : 'Akan datang' }}
+                                    @else
+                                        Selesai
+                                    @endif
                                 </span>
                             </div>
 
@@ -124,7 +129,7 @@
         @else
             <div class="text-center py-4 text-secondary">
                 <i class="bi bi-people fs-4 d-block mb-1"></i>
-                <span>{{ $activeTournament ? 'No teams currently registered in this ongoing tournament' : 'No team entries were recorded for this completed tournament' }}</span>
+                <span>{{ $activeTournament ? 'No teams registered in this tournament yet' : 'No team entries were recorded for this completed tournament' }}</span>
             </div>
         @endif
     </div>

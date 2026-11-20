@@ -191,6 +191,96 @@
             color: var(--match-success);
         }
 
+        .admin-match-edit .tournament-schedule-reference {
+            margin-bottom: 24px;
+            padding: 16px;
+            border: 1px solid var(--match-border);
+            border-left: 3px solid var(--match-success);
+            border-radius: 8px;
+            background: #f8faf9;
+        }
+
+        .admin-match-edit .tournament-schedule-reference h6 {
+            margin: 0;
+            color: var(--match-ink);
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .admin-match-edit .tournament-schedule-reference > p {
+            margin: 5px 0 12px;
+            color: var(--match-muted);
+            font-size: 13px;
+            line-height: 1.45;
+        }
+
+        .admin-match-edit .tournament-schedule-list {
+            display: grid;
+            gap: 6px;
+            max-height: 260px;
+            overflow-y: auto;
+        }
+
+        .admin-match-edit .tournament-schedule-item {
+            display: grid;
+            grid-template-columns: minmax(130px, .8fr) minmax(130px, 1fr) minmax(150px, 1.2fr) auto;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            border: 1px solid var(--match-border);
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--match-charcoal);
+            font-size: 13px;
+            line-height: 1.35;
+        }
+
+        .admin-match-edit .tournament-schedule-item strong {
+            color: var(--match-ink);
+            font-weight: 600;
+        }
+
+        .admin-match-edit .tournament-schedule-kind {
+            color: var(--match-muted);
+            font-size: 11px;
+            white-space: nowrap;
+        }
+
+        .admin-match-edit .tournament-schedule-empty {
+            margin: 0;
+            padding: 10px 12px;
+            border-radius: 6px;
+            background: #ffffff;
+            color: var(--match-muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 767.98px) {
+            .admin-match-edit .tournament-schedule-reference {
+                padding: 13px;
+            }
+
+            .admin-match-edit .tournament-schedule-item {
+                grid-template-columns: 1fr auto;
+                gap: 4px 10px;
+            }
+
+            .admin-match-edit .tournament-schedule-item > :nth-child(2) {
+                grid-column: 1;
+                grid-row: 2;
+            }
+
+            .admin-match-edit .tournament-schedule-item > :nth-child(3) {
+                grid-column: 1;
+                grid-row: 3;
+            }
+
+            .admin-match-edit .tournament-schedule-kind {
+                grid-column: 2;
+                grid-row: 1;
+            }
+        }
+
         .admin-match-edit .badge-friendly {
             padding: 5px 9px;
             border: 1px solid var(--match-border);
@@ -363,14 +453,65 @@
         <div class="card-body">
             @if($isBracketManaged)
                 <div class="alert alert-info" role="status">
-                    Fixture ini terhubung ke bracket. Tanggal, waktu, venue, dan catatan dapat diatur saat peserta masih TBA;
-                    nama tim dan hasil tetap dikelola otomatis oleh bracket.
+                    Undian membuat fixture tanpa memesan lapangan. Atur tanggal, waktu, dan lapangan di sini;
+                    sistem akan menolak jadwal yang bertabrakan. Nama tim dan hasil tetap dikelola oleh bracket.
                 </div>
+            @endif
+
+            @if($match->tournament_id && (!$match->match_date || !$match->time_start || !$match->time_end))
+                <section class="tournament-schedule-reference" aria-labelledby="tournamentScheduleReferenceTitle">
+                    <h6 id="tournamentScheduleReferenceTitle">Jadwal lapangan turnamen ini</h6>
+                    <p>Gunakan tanggal dan rentang jam booking/sewa berikut saat menjadwalkan pertandingan.</p>
+
+                    @if($tournamentCourtBookings->isEmpty() && $tournamentRentalSessions->isEmpty())
+                        <div class="tournament-schedule-empty">
+                            Belum ada booking atau sesi sewa lapangan yang tercatat untuk turnamen ini.
+                        </div>
+                    @else
+                        <div class="tournament-schedule-list">
+                            @foreach($tournamentCourtBookings as $booking)
+                                @php
+                                    $bookingStart = substr((string) $booking->time_start, 0, 5);
+                                    $bookingEnd = substr((string) $booking->time_end, 0, 5);
+                                    $bookingEndsNextDay = $bookingEnd <= $bookingStart;
+                                    $bookingStatusLabel = match ($booking->status) {
+                                        \App\Models\CourtBooking::STATUS_CONFIRMED => 'Terkonfirmasi',
+                                        \App\Models\CourtBooking::STATUS_PENDING_REVIEW => 'Menunggu verifikasi',
+                                        default => 'Menunggu pembayaran',
+                                    };
+                                @endphp
+                                <div class="tournament-schedule-item">
+                                    <strong>{{ $booking->booking_date->format('d/m/Y') }}</strong>
+                                    <span>{{ $booking->court?->name ?? 'Lapangan tidak tersedia' }}</span>
+                                    <span>{{ $bookingStart }}–{{ $bookingEnd }}{{ $bookingEndsNextDay ? ' (+1 hari)' : '' }}</span>
+                                    <span class="tournament-schedule-kind">Booking · {{ $bookingStatusLabel }}</span>
+                                </div>
+                            @endforeach
+
+                            @foreach($tournamentRentalSessions as $rental)
+                                @php
+                                    $rentalStart = substr((string) $rental->time_start, 0, 5);
+                                    $rentalEnd = substr((string) $rental->time_end, 0, 5);
+                                    $rentalEndsNextDay = $rentalEnd <= $rentalStart;
+                                @endphp
+                                <div class="tournament-schedule-item">
+                                    <strong>{{ $rental->rental_date->format('d/m/Y') }}</strong>
+                                    <span>{{ $rental->court?->name ?? 'Lapangan tidak tersedia' }}</span>
+                                    <span>{{ $rentalStart }}–{{ $rentalEnd }}{{ $rentalEndsNextDay ? ' (+1 hari)' : '' }}</span>
+                                    <span class="tournament-schedule-kind">Sewa turnamen</span>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
             @endif
 
             <form action="{{ route('admin.matches.update', $match) }}" method="POST" id="matchForm">
                 @csrf
                 @method('PUT')
+                @if($returnTournamentId)
+                    <input type="hidden" name="return_tournament_id" value="{{ $returnTournamentId }}">
+                @endif
 
                 @php
                     /* Opsi tim + grup asal (dari pivot turnamen) — dihitung sekali untuk kedua select */
@@ -402,11 +543,17 @@
                                     <span class="badge badge-friendly">Friendly Match</span>
                                     <small class="text-muted ms-2">Tidak terikat turnamen</small>
                                 </div>
-                            @elseif($isBracketManaged)
+                            @elseif($isBracketManaged || $returnTournamentId)
                                 <label class="form-label">Turnamen</label>
                                 <div class="form-control bg-light d-flex align-items-center" aria-readonly="true">
                                     {{ $match->tournament?->name ?? 'Turnamen bracket' }}
+                                    @if($returnTournamentId)
+                                        <small class="text-muted ms-2">Terkunci pada turnamen ini</small>
+                                    @endif
                                 </div>
+                                @unless($isBracketManaged)
+                                    <input type="hidden" name="tournament_id" value="{{ $match->tournament_id }}">
+                                @endunless
                             @else
                                 <label for="tournament_id" class="form-label">Turnamen <span class="required">*</span></label>
                                 <select name="tournament_id" id="tournament_id"
@@ -603,10 +750,25 @@
 
                         <!-- Venue -->
                         <div class="mb-3">
-                            <label for="venue" class="form-label">Venue</label>
-                            <input type="text" name="venue" id="venue"
-                                class="form-control @error('venue') is-invalid @enderror"
-                                value="{{ old('venue', $match->venue) }}" placeholder="contoh: Stadion Utama">
+                            <label for="venue" class="form-label">Lapangan @if($isBracketManaged)<span class="required">*</span>@endif</label>
+                            @if($isBracketManaged)
+                                <select name="venue" id="venue" required
+                                    class="form-select @error('venue') is-invalid @enderror">
+                                    <option value="">Pilih lapangan</option>
+                                    @foreach($courts as $court)
+                                        <option value="{{ $court->name }}" {{ old('venue', $match->venue) === $court->name ? 'selected' : '' }}>
+                                            {{ $court->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @if($courts->isEmpty())
+                                    <div class="form-text">Belum ada lapangan aktif. Aktifkan lapangan di Pengaturan booking sebelum menjadwalkan fixture.</div>
+                                @endif
+                            @else
+                                <input type="text" name="venue" id="venue"
+                                    class="form-control @error('venue') is-invalid @enderror"
+                                    value="{{ old('venue', $match->venue) }}" placeholder="contoh: Stadion Utama">
+                            @endif
                             @error('venue')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

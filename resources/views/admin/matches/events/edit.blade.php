@@ -21,7 +21,7 @@
                 </h1>
                 <p class="text-muted mb-0">
                     {{ $match->homeTeam->name ?? 'Home Team' }} vs {{ $match->awayTeam->name ?? 'Away Team' }}
-                    - {{ $match->match_date->format('d M Y') }}
+                    - {{ $match->match_date?->format('d M Y') ?? 'Belum dijadwalkan' }}
                 </p>
             </div>
             <div>

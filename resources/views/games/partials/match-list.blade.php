@@ -3,8 +3,13 @@
     <div class="schedule-day-group">
         <div class="schedule-date-header">
             <div>
-                <i class="bi bi-calendar-date"></i>
-                {{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}
+                @if($date === 'unscheduled')
+                    <i class="bi bi-calendar-minus"></i>
+                    Jadwal belum ditentukan
+                @else
+                    <i class="bi bi-calendar-date"></i>
+                    {{ \Carbon\Carbon::parse($date)->format('l, d F Y') }}
+                @endif
             </div>
             <span class="schedule-match-count">
                 {{ $matchesOnDate->count() }} {{ Str::plural('match', $matchesOnDate->count()) }}
@@ -70,13 +75,18 @@
             <div class="schedule-match-row">
                 {{-- Match Time & Venue --}}
                 <div class="schedule-match-time-col">
-                    <div class="schedule-time-text">
-                        {{ $match->time_start ? date('H:i', strtotime($match->time_start)) : 'TBD' }}
-                    </div>
-                    <div class="schedule-venue-text" title="{{ $match->venue ?? 'Main Field' }}">
-                        <i class="bi bi-geo-alt"></i>
-                        {{ Str::limit($match->venue ?? 'Main Field', 14) }}
-                    </div>
+                    @if(!$match->match_date || !$match->time_start || !$match->time_end)
+                        <div class="schedule-time-text">Belum dijadwalkan</div>
+                        <div class="schedule-venue-text">Menunggu jadwal dari admin</div>
+                    @else
+                        <div class="schedule-time-text">
+                            {{ date('H:i', strtotime($match->time_start)) }}–{{ date('H:i', strtotime($match->time_end)) }}
+                        </div>
+                        <div class="schedule-venue-text" title="{{ $match->venue ?? 'Main Field' }}">
+                            <i class="bi bi-geo-alt"></i>
+                            {{ Str::limit($match->venue ?? 'Main Field', 14) }}
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Teams & Score --}}

@@ -112,7 +112,7 @@
             <h1>Tambah Event Pertandingan</h1>
             <p class="page-subtitle">
                 {{ $match->homeTeam->name ?? 'Tim Home' }} vs {{ $match->awayTeam->name ?? 'Tim Away' }},
-                {{ $match->match_date->format('d M Y') }}
+                {{ $match->match_date?->format('d M Y') ?? 'Belum dijadwalkan' }}
             </p>
         </div>
         <a href="{{ route('admin.matches.events.index', $match) }}" class="btn-back">

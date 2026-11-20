@@ -104,18 +104,12 @@ class CourtMatchScheduleGuard
             return;
         }
 
-        $bookingConflict = CourtBooking::query()
+        $matchStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
+        $matchEnd = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
+        $bookingCandidates = CourtBooking::query()
             ->where('court_id', $court->id)
-            ->where('booking_date', $date)
-            ->where('time_start', '<', $end)
-            ->where('time_end', '>', $start)
-            ->where(function ($query) use ($now) {
-                $query->where('booking_date', '>', $now->toDateString())
-                    ->orWhere(function ($query) use ($now) {
-                        $query->where('booking_date', $now->toDateString())
-                            ->where('time_end', '>', $now->format('H:i:s'));
-                    });
-            })
+            ->whereDate('booking_date', '>=', $matchStart->copy()->subDay()->toDateString())
+            ->whereDate('booking_date', '<=', $matchStart->toDateString())
             ->where(function ($query) {
                 $query->whereIn('status', [
                     CourtBooking::STATUS_PENDING_REVIEW,
@@ -125,9 +119,54 @@ class CourtMatchScheduleGuard
                         ->where('expires_at', '>', now());
                 });
             })
-            ->exists();
+            ->with('tournaments:id')
+            ->get(['id', 'tournament_id', 'booking_date', 'time_start', 'time_end', 'source']);
 
-        if ($bookingConflict) {
+        foreach ($bookingCandidates as $booking) {
+            $bookingStart = Carbon::parse(
+                $booking->booking_date->toDateString().' '.$booking->time_start,
+                CourtBooking::TIMEZONE,
+            );
+            $bookingEnd = Carbon::parse(
+                $booking->booking_date->toDateString().' '.$booking->time_end,
+                CourtBooking::TIMEZONE,
+            );
+            if ($bookingEnd->lessThanOrEqualTo($bookingStart)) {
+                $bookingEnd->addDay();
+            }
+
+            if (! $bookingStart->lessThan($matchEnd) || ! $bookingEnd->greaterThan($matchStart)) {
+                continue;
+            }
+
+            // A booking may be shared by several tournaments when one organizer
+            // rents the court for multiple competitions on the same date range.
+            $linkedTournamentIds = $booking->tournaments->pluck('id')->map(fn ($id) => (int) $id)->all();
+            if ($booking->tournament_id !== null) {
+                $linkedTournamentIds[] = (int) $booking->tournament_id;
+            }
+
+            // Only a reservation explicitly linked to this same tournament can
+            // be reused by its fixture. Unrelated bookings remain blocking.
+            if ($match->tournament_id !== null && in_array((int) $match->tournament_id, $linkedTournamentIds, true)) {
+                if ($matchStart->greaterThanOrEqualTo($bookingStart) && $matchEnd->lessThanOrEqualTo($bookingEnd)) {
+                    continue;
+                }
+
+                throw ValidationException::withMessages([
+                    'time_start' => 'Jadwal pertandingan harus berada di dalam rentang booking turnamen yang terkait.',
+                ]);
+            }
+
+            if ($match->tournament_id !== null
+                && $linkedTournamentIds === []
+                && $booking->source === 'walk_in') {
+                throw ValidationException::withMessages([
+                    'venue' => 'Booking #'.str_pad((string) $booking->id, 6, '0', STR_PAD_LEFT)
+                        .' belum dikaitkan ke turnamen. Jika ini reservasi turnamen, buka Booking Lapangan dan pilih “Kaitkan reservasi turnamen” untuk menghubungkan satu atau beberapa booking sekaligus.',
+                ]);
+            }
+
             throw ValidationException::withMessages([
                 'venue' => 'Jadwal bertabrakan dengan booking lapangan yang masih aktif.',
             ]);

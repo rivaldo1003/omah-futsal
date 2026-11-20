@@ -775,6 +775,10 @@ class Game extends Model
      */
     public function getTimeRangeAttribute()
     {
+        if (!$this->time_start || !$this->time_end) {
+            return 'Belum dijadwalkan';
+        }
+
         return date('H:i', strtotime($this->time_start)) . ' - ' .
             date('H:i', strtotime($this->time_end));
     }
@@ -865,6 +869,10 @@ class Game extends Model
      */
     public function getMatchShortInfoAttribute()
     {
+        if (!$this->match_date || !$this->time_start || !$this->time_end) {
+            return 'Belum dijadwalkan';
+        }
+
         $date = $this->match_date->format('d M');
         $time = date('H:i', strtotime($this->time_start));
 

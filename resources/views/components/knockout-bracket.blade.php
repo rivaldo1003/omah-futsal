@@ -75,6 +75,8 @@
                                     $winner = $match['winner'] ?? null;
                                     $status = $match['status'] ?? 'upcoming';
                                     $isBye = !empty($match['is_bye']);
+                                    $homeIsLoser = !$isBye && $status === 'completed' && $winner === 'away';
+                                    $awayIsLoser = !$isBye && $status === 'completed' && $winner === 'home';
                                     $matchNumber = (int) ($match['bracket_index'] ?? $loop->index) + 1;
                                     $showScore = in_array($status, ['ongoing', 'completed'], true);
                                     $extras = $match['extras'] ?? [];
@@ -104,10 +106,23 @@
                                             {{ $statusLabels[$status] ?? ucfirst($status) }}
                                         </span>
                                     </div>
+                                    @if(!$isBye)
+                                        <div class="standings-bracket-schedule">
+                                            @if(filled($match['date'] ?? null) && filled($match['time'] ?? null) && filled($match['time_end'] ?? null))
+                                                <i class="bi bi-calendar-event" aria-hidden="true"></i>
+                                                {{ \Carbon\Carbon::parse($match['date'])->translatedFormat('d M Y') }}
+                                                · {{ substr((string) $match['time'], 0, 5) }}–{{ substr((string) $match['time_end'], 0, 5) }}
+                                                @if(filled($match['venue'] ?? null)) · {{ $match['venue'] }} @endif
+                                            @else
+                                                <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+                                                Jadwal belum ditentukan
+                                            @endif
+                                        </div>
+                                    @endif
 
                                     @if($home || $away)
                                         <div
-                                            class="standings-bracket-team {{ $winner === 'home' ? 'is-winner' : '' }} {{ $homeIsChampion ? 'is-champion' : '' }}">
+                                            class="standings-bracket-team {{ $winner === 'home' ? 'is-winner' : '' }} {{ $homeIsLoser ? 'is-loser' : '' }} {{ $homeIsChampion ? 'is-champion' : '' }}">
                                             <span class="standings-bracket-identity">
                                                 @if(!empty($home['is_bye']))
                                                     <span class="standings-bracket-logo" aria-hidden="true"><i
@@ -127,7 +142,7 @@
                                             <span class="standings-bracket-score">{{ $showScore ? ($home['score'] ?? '–') : '–' }}</span>
                                         </div>
                                         <div
-                                            class="standings-bracket-team {{ $winner === 'away' ? 'is-winner' : '' }} {{ $awayIsChampion ? 'is-champion' : '' }}">
+                                            class="standings-bracket-team {{ $winner === 'away' ? 'is-winner' : '' }} {{ $awayIsLoser ? 'is-loser' : '' }} {{ $awayIsChampion ? 'is-champion' : '' }}">
                                             <span class="standings-bracket-identity">
                                                 @if(!empty($away['is_bye']))
                                                     <span class="standings-bracket-logo" aria-hidden="true"><i

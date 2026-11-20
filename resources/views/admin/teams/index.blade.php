@@ -98,8 +98,24 @@
 
         .admin-teams-page .search-input {
             width: 100%;
-            padding: 9px 16px 9px 42px;
+            padding: 9px 48px 9px 42px;
             background: var(--teams-cloud);
+        }
+
+        .admin-teams-page .search-submit {
+            position: absolute;
+            top: 50%;
+            right: 6px;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border: 0;
+            border-radius: 50%;
+            background: var(--teams-ink);
+            color: var(--teams-white);
+            transform: translateY(-50%);
         }
 
         .admin-teams-page .filter-select {
@@ -602,11 +618,14 @@
             </div>
 
             <div class="header-actions">
-                <div class="search-box">
+                <form class="search-box" id="teamSearchForm" method="GET" action="{{ route('admin.teams.index') }}">
                     <i class="bi bi-search search-icon" aria-hidden="true"></i>
-                    <input type="search" id="searchInput" placeholder="Cari tim atau pelatih" class="form-control search-input"
+                    <input type="search" id="searchInput" name="search" placeholder="Cari tim atau pelatih" class="form-control search-input"
                         aria-label="Cari nama tim atau pelatih" value="{{ request('search') }}">
-                </div>
+                    <button type="submit" class="search-submit" aria-label="Cari tim">
+                        <i class="bi bi-arrow-return-left" aria-hidden="true"></i>
+                    </button>
+                </form>
 
                 <a href="{{ route('admin.teams.create') }}" class="btn-create">
                     <i class="bi bi-plus-lg" aria-hidden="true"></i> Tambah tim
@@ -632,7 +651,7 @@
 
         <div class="filters-row" role="group" aria-label="Filter dan urutan tim">
             <label class="visually-hidden" for="statusFilter">Filter status tim</label>
-        <select id="statusFilter" class="filter-select" aria-label="Filter status tim">
+        <select id="statusFilter" class="filter-select" aria-label="Filter status tim" form="teamSearchForm">
             <option value="">Semua status</option>
             <option value="active" {{ request('status') == 'active' ? 'selected' : '' }}>Aktif</option>
                 <option value="pending" {{ request('status') == 'pending' ? 'selected' : '' }}>Menunggu</option>
@@ -640,8 +659,8 @@
         </select>
 
             <label class="visually-hidden" for="sortFilter">Urutkan tim</label>
-        <select id="sortFilter" class="filter-select" aria-label="Urutkan tim">
-            <option value="name_asc" {{ request('sort') == 'name_asc' ? 'selected' : '' }}>Nama A-Z</option>
+        <select id="sortFilter" class="filter-select" aria-label="Urutkan tim" form="teamSearchForm">
+            <option value="name_asc" {{ request('sort', 'name_asc') == 'name_asc' ? 'selected' : '' }}>Nama A-Z</option>
             <option value="name_desc" {{ request('sort') == 'name_desc' ? 'selected' : '' }}>Nama Z-A</option>
             <option value="recent" {{ request('sort') == 'recent' ? 'selected' : '' }}>Terbaru</option>
             <option value="oldest" {{ request('sort') == 'oldest' ? 'selected' : '' }}>Terlama</option>
@@ -961,53 +980,14 @@
 
 @section('scripts')
     <script>
-        // Search dengan debounce
-        let searchTimeout;
-        document.getElementById('searchInput').addEventListener('keyup', function (e) {
-            clearTimeout(searchTimeout);
+        const teamSearchForm = document.getElementById('teamSearchForm');
 
-            searchTimeout = setTimeout(() => {
-                updateFilters();
-            }, 500);
+        document.getElementById('statusFilter').addEventListener('change', function () {
+            teamSearchForm.requestSubmit();
         });
 
-        // Filter change handlers
-        document.getElementById('statusFilter').addEventListener('change', updateFilters);
-        document.getElementById('sortFilter').addEventListener('change', updateFilters);
-
-        function updateFilters() {
-            const search = document.getElementById('searchInput').value;
-            const status = document.getElementById('statusFilter').value;
-            const sort = document.getElementById('sortFilter').value;
-
-            let url = '{{ route("admin.teams.index") }}?';
-
-            if (search) {
-                url += 'search=' + encodeURIComponent(search) + '&';
-            }
-
-            if (status) {
-                url += 'status=' + status + '&';
-            }
-
-            if (sort) {
-                url += 'sort=' + sort;
-            }
-
-            // Remove trailing & if exists
-            if (url.endsWith('&')) {
-                url = url.slice(0, -1);
-            }
-
-            window.location.href = url;
-        }
-
-        // Enter key to submit search
-        document.getElementById('searchInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                clearTimeout(searchTimeout);
-                updateFilters();
-            }
+        document.getElementById('sortFilter').addEventListener('change', function () {
+            teamSearchForm.requestSubmit();
         });
 
         // Toggle details function

@@ -59,7 +59,7 @@ class CourtBookingController extends Controller
         ]);
 
         $bookings = CourtBooking::query()
-            ->with(['court', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'discountAudits.admin', 'backdateAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
+            ->with(['court', 'tournament', 'tournaments', 'verifiedBy', 'cancelledBy', 'createdBy', 'rentalLines', 'rentalAdditions.lines', 'rentalAdditions.verifiedBy', 'payments', 'paymentAudits.admin', 'scheduleAudits.admin', 'discountAudits.admin', 'backdateAudits.admin', 'fundSettlements.recordedBy', 'fundSettlements.voidedBy'])
             ->when($filters['status'] ?? null, function ($query, $status) {
                 $query->where(function ($bookingStatus) use ($status) {
                     $bookingStatus->where('status', $status);
@@ -136,7 +136,10 @@ class CourtBookingController extends Controller
             'todayConfirmedCount',
             'todayConfirmedMinutes',
             'todayReceivedPayments',
-        ));
+        ))->with('tournaments', Tournament::query()
+            ->orderByDesc('start_date')
+            ->orderBy('name')
+            ->get(['id', 'name', 'start_date']));
     }
 
     public function revenueReport(Request $request)
@@ -2227,6 +2230,212 @@ class CourtBookingController extends Controller
         });
 
         return back()->with('success', 'Nama tim booking berhasil disimpan.');
+    }
+
+    public function createTournamentReservation(Request $request)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            'booking_id' => ['required', 'integer', 'exists:court_bookings,id'],
+            'date_from' => ['nullable', 'date_format:Y-m-d'],
+            'date_to' => ['nullable', 'date_format:Y-m-d'],
+        ]);
+
+        $seedBooking = CourtBooking::query()
+            ->with(['court', 'tournament', 'tournaments'])
+            ->findOrFail((int) $validated['booking_id']);
+        $this->ensureEligibleTournamentReservationBooking($seedBooking);
+
+        $dateFrom = $validated['date_from'] ?? $seedBooking->booking_date->toDateString();
+        $dateTo = $validated['date_to'] ?? $seedBooking->booking_date->toDateString();
+        if ($dateFrom > $dateTo) {
+            throw ValidationException::withMessages(['date_to' => 'Tanggal akhir harus sama dengan atau setelah tanggal mulai.']);
+        }
+        if ($seedBooking->booking_date->toDateString() < $dateFrom || $seedBooking->booking_date->toDateString() > $dateTo) {
+            throw ValidationException::withMessages(['date_from' => 'Rentang tanggal harus mencakup booking yang dipilih sebagai awal.']);
+        }
+
+        $bookings = CourtBooking::query()
+            ->with(['court', 'tournament', 'tournaments'])
+            ->where('court_id', $seedBooking->court_id)
+            ->where('source', 'walk_in')
+            ->where(function ($query) {
+                $query->whereIn('status', [
+                    CourtBooking::STATUS_PENDING_REVIEW,
+                    CourtBooking::STATUS_CONFIRMED,
+                ])->orWhere(function ($awaitingPayment) {
+                    $awaitingPayment->where('status', CourtBooking::STATUS_AWAITING_PAYMENT)
+                        ->where('expires_at', '>', now(CourtBooking::TIMEZONE));
+                });
+            })
+            ->whereDate('booking_date', '>=', $dateFrom)
+            ->whereDate('booking_date', '<=', $dateTo)
+            ->orderBy('booking_date')
+            ->orderBy('time_start')
+            ->orderBy('id')
+            ->get()
+            ->filter(fn (CourtBooking $candidate) => $this->sameWalkInOrganizer($seedBooking, $candidate))
+            ->values();
+
+        if (! $bookings->contains('id', $seedBooking->id)) {
+            throw ValidationException::withMessages(['booking_id' => 'Booking awal tidak termasuk dalam booking aktif milik penyelenggara pada rentang tersebut.']);
+        }
+
+        $tournaments = Tournament::query()
+            ->orderByDesc('start_date')
+            ->orderBy('name')
+            ->get(['id', 'name', 'start_date', 'end_date']);
+        $existingTournamentIds = $bookings->flatMap(function (CourtBooking $candidate): array {
+            return array_filter([
+                ...$candidate->tournaments->pluck('id')->map(fn ($id) => (int) $id)->all(),
+                $candidate->tournament_id ? (int) $candidate->tournament_id : null,
+            ]);
+        })->unique()->values()->all();
+        $selectedBookingIds = old('booking_ids', $bookings->pluck('id')->all());
+        $selectedTournamentIds = old('tournament_ids', $existingTournamentIds);
+
+        return view('admin.court-bookings.tournament-reservation', compact(
+            'seedBooking', 'bookings', 'tournaments', 'dateFrom', 'dateTo',
+            'selectedBookingIds', 'selectedTournamentIds',
+        ));
+    }
+
+    public function storeTournamentReservation(Request $request)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            'seed_booking_id' => ['required', 'integer', 'exists:court_bookings,id'],
+            'date_from' => ['required', 'date_format:Y-m-d'],
+            'date_to' => ['required', 'date_format:Y-m-d', 'after_or_equal:date_from'],
+            'booking_ids' => ['required', 'array', 'min:1'],
+            'booking_ids.*' => ['required', 'integer', 'distinct', 'exists:court_bookings,id'],
+            'tournament_ids' => ['nullable', 'array'],
+            'tournament_ids.*' => ['required', 'integer', 'distinct', 'exists:tournaments,id'],
+        ]);
+
+        $bookingIds = collect($validated['booking_ids'])->map(fn ($id) => (int) $id)->unique()->values();
+        if (! $bookingIds->contains((int) $validated['seed_booking_id'])) {
+            throw ValidationException::withMessages(['booking_ids' => 'Pilih juga booking awal yang membuka halaman ini.']);
+        }
+        $tournamentIds = collect($validated['tournament_ids'] ?? [])->map(fn ($id) => (int) $id)->unique()->values()->all();
+
+        DB::transaction(function () use ($validated, $bookingIds, $tournamentIds): void {
+            $bookings = CourtBooking::query()
+                ->whereIn('id', $bookingIds)
+                ->orderBy('id')
+                ->lockForUpdate()
+                ->get();
+            if ($bookings->count() !== $bookingIds->count()) {
+                throw ValidationException::withMessages(['booking_ids' => 'Sebagian booking sudah tidak tersedia. Muat ulang daftar sebelum menyimpan.']);
+            }
+
+            $seedBooking = $bookings->firstWhere('id', (int) $validated['seed_booking_id']);
+            if (! $seedBooking) {
+                throw ValidationException::withMessages(['booking_ids' => 'Booking awal tidak ditemukan dalam pilihan.']);
+            }
+            $this->ensureEligibleTournamentReservationBooking($seedBooking);
+            $seedDate = $seedBooking->booking_date->toDateString();
+            if ($seedDate < $validated['date_from'] || $seedDate > $validated['date_to']) {
+                throw ValidationException::withMessages(['date_from' => 'Rentang tanggal harus mencakup booking awal.']);
+            }
+
+            foreach ($bookings as $booking) {
+                $this->ensureEligibleTournamentReservationBooking($booking);
+                if ((int) $booking->court_id !== (int) $seedBooking->court_id
+                    || $booking->booking_date->toDateString() < $validated['date_from']
+                    || $booking->booking_date->toDateString() > $validated['date_to']
+                    || ! $this->sameWalkInOrganizer($seedBooking, $booking)) {
+                    throw ValidationException::withMessages([
+                        'booking_ids' => 'Booking yang dipilih harus berasal dari lapangan, penyelenggara, dan rentang tanggal yang sama.',
+                    ]);
+                }
+            }
+
+            foreach ($bookings as $booking) {
+                $booking->tournaments()->syncWithPivotValues($tournamentIds, ['linked_by' => auth()->id()]);
+                // The old single-tournament column is retained for compatibility;
+                // all new links are stored in the many-to-many relation.
+                $booking->update(['tournament_id' => null]);
+            }
+        });
+
+        $seedBooking = CourtBooking::query()->findOrFail((int) $validated['seed_booking_id']);
+        return redirect()->route('admin.court-bookings.index', ['date' => $seedBooking->booking_date->toDateString()])
+            ->with('success', 'Kaitan turnamen berhasil diperbarui pada '.$bookingIds->count().' booking harian. Pembayaran tetap tercatat per booking.');
+    }
+
+    private function ensureEligibleTournamentReservationBooking(CourtBooking $booking): void
+    {
+        $isAwaitingPaymentExpired = $booking->status === CourtBooking::STATUS_AWAITING_PAYMENT
+            && (! $booking->expires_at || $booking->expires_at->lessThanOrEqualTo(now(CourtBooking::TIMEZONE)));
+
+        if ($booking->source !== 'walk_in' || $isAwaitingPaymentExpired || ! in_array($booking->status, [
+            CourtBooking::STATUS_AWAITING_PAYMENT,
+            CourtBooking::STATUS_PENDING_REVIEW,
+            CourtBooking::STATUS_CONFIRMED,
+        ], true)) {
+            throw ValidationException::withMessages([
+                'booking' => 'Hanya booking walk-in yang masih aktif yang dapat dikaitkan ke turnamen.',
+            ]);
+        }
+    }
+
+    private function sameWalkInOrganizer(CourtBooking $first, CourtBooking $second): bool
+    {
+        $normalizePhone = static function (?string $phone): string {
+            $digits = preg_replace('/\D+/', '', (string) $phone);
+            if (str_starts_with($digits, '0')) {
+                return '62'.substr($digits, 1);
+            }
+            if (str_starts_with($digits, '8')) {
+                return '62'.$digits;
+            }
+
+            return $digits;
+        };
+        $firstPhone = $normalizePhone($first->customer_phone);
+        $secondPhone = $normalizePhone($second->customer_phone);
+        if ($firstPhone !== '' || $secondPhone !== '') {
+            return $firstPhone !== '' && $firstPhone === $secondPhone;
+        }
+
+        $firstName = mb_strtolower(trim((string) ($first->team_name ?: $first->customer_name)));
+        $secondName = mb_strtolower(trim((string) ($second->team_name ?: $second->customer_name)));
+
+        return $firstName !== '' && $firstName === $secondName;
+    }
+
+    public function updateTournamentLink(Request $request, CourtBooking $booking)
+    {
+        $this->ensureAdmin();
+        $validated = $request->validate([
+            '_tournament_link_booking_id' => ['required', 'integer', 'in:'.$booking->id],
+            'tournament_id' => ['nullable', 'integer', Rule::exists('tournaments', 'id')],
+        ]);
+
+        DB::transaction(function () use ($booking, $validated): void {
+            $lockedBooking = CourtBooking::query()->whereKey($booking->id)->lockForUpdate()->firstOrFail();
+            if ($lockedBooking->source !== 'walk_in' || ! in_array($lockedBooking->status, [
+                CourtBooking::STATUS_AWAITING_PAYMENT,
+                CourtBooking::STATUS_PENDING_REVIEW,
+                CourtBooking::STATUS_CONFIRMED,
+            ], true)) {
+                throw ValidationException::withMessages([
+                    'booking' => 'Hanya booking walk-in yang masih aktif yang dapat dikaitkan ke turnamen.',
+                ]);
+            }
+
+            $tournamentId = filled($validated['tournament_id'] ?? null)
+                ? (int) $validated['tournament_id']
+                : null;
+            $lockedBooking->tournaments()->syncWithPivotValues(
+                $tournamentId ? [$tournamentId] : [],
+                ['linked_by' => auth()->id()],
+            );
+            $lockedBooking->update(['tournament_id' => null]);
+        });
+
+        return back()->with('success', 'Kaitan booking dengan turnamen berhasil diperbarui.');
     }
 
     public function updateDiscount(Request $request, CourtBooking $booking, CourtBookingDiscountService $discounts)

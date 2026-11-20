@@ -526,6 +526,8 @@ class StandingController extends Controller
                         'is_bye' => $isBye,
                         'date' => $match->match_date,
                         'time' => $match->time_start,
+                        'time_end' => $match->time_end,
+                        'venue' => $match->venue,
                         'winner' => $winner,
                         // TAMBAHKAN INI: Informasi extras (penalty & extra time)
                         'extras' => $this->getMatchExtrasInfo($match)

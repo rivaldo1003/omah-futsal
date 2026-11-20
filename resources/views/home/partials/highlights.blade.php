@@ -50,7 +50,7 @@
                             {{ $match->homeTeam->name ?? 'Home' }} vs {{ $match->awayTeam->name ?? 'Away' }}
                         </div>
                         <div class="d-flex align-items-center justify-content-between text-secondary" style="font-size: 11px;">
-                            <span><i class="bi bi-calendar me-1"></i>{{ $match->match_date->format('d M Y') }}</span>
+                            <span><i class="bi bi-calendar me-1"></i>{{ $match->match_date?->format('d M Y') ?? 'Belum dijadwalkan' }}</span>
                             @if($match->youtube_uploaded_at)
                                 <span>{{ $match->youtube_uploaded_at->diffForHumans() }}</span>
                             @endif

@@ -22,7 +22,7 @@
                     <!-- Top Meta: Date, Stage, Group & Badge -->
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2 text-secondary small">
-                            <span class="app-badge app-badge-default">{{ date('d M Y', strtotime($match->match_date)) }}</span>
+                            <span class="app-badge app-badge-default">{{ $match->match_date?->format('d M Y') ?? 'Tanggal belum ditentukan' }}</span>
                             @if($match->time_start)
                                 <span>{{ date('H:i', strtotime($match->time_start)) }}</span>
                             @endif

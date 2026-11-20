@@ -69,7 +69,7 @@
                                         <tr>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>
-                                                {{ \Carbon\Carbon::parse($match->match_date)->format('M d, Y') }}
+                                                {{ $match->match_date?->format('M d, Y') ?? 'Belum dijadwalkan' }}
                                             </td>
                                             <td>{{ $match->time_start }}</td>
                                             <td>

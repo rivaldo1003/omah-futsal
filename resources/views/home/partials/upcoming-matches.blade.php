@@ -20,8 +20,10 @@
                 <div class="upcoming-row">
                     <div class="d-flex align-items-center justify-content-between mb-2">
                         <div class="d-flex align-items-center gap-2">
-                            <span class="app-badge app-badge-default">{{ date('d M', strtotime($match->match_date)) }}</span>
-                            <span class="text-secondary small">{{ date('H:i', strtotime($match->time_start)) }}</span>
+                            <span class="app-badge app-badge-default">{{ $match->match_date?->format('d M') ?? 'Tanggal belum ditentukan' }}</span>
+                            @if($match->time_start)
+                                <span class="text-secondary small">{{ date('H:i', strtotime($match->time_start)) }}</span>
+                            @endif
                             @if(($match->round_type ?? null) === 'friendly')
                                 <span class="app-badge app-badge-accent">Friendly</span>
                             @endif

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Court;
+use App\Models\CourtBooking;
+use App\Models\CourtTournamentRental;
 use App\Models\Game;
 use App\Models\KnockoutSlot;
 use App\Models\MatchEvent;
@@ -12,6 +15,7 @@ use App\Models\Tournament;
 use App\Support\BusinessTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -56,9 +60,11 @@ class GameController extends Controller
             ->values();
 
         // Initialize query
-        $query = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'tournament']);
+        $query = Game::publiclyVisible()
+            ->with(['homeTeam', 'awayTeam', 'tournament']);
 
         $selectedFriendly = false;
+        $showUnscheduledMatches = false;
 
         // Apply tournament filter - jika ada filter tournament
         if ($request->filled('tournament') && $request->tournament !== 'all') {
@@ -71,6 +77,7 @@ class GameController extends Controller
                 $selectedTournamentId = $request->tournament;
                 $selectedTournament = Tournament::find($selectedTournamentId);
                 $query->where('tournament_id', $selectedTournamentId);
+                $showUnscheduledMatches = true;
             }
         }
         // Jika tidak ada filter, default ke tournament aktif
@@ -87,6 +94,15 @@ class GameController extends Controller
         else {
             $selectedTournamentId = null;
             $selectedTournament = null;
+        }
+
+        // Unscheduled knockout fixtures are useful when a visitor filters to
+        // one tournament. Keep the general schedule, friendly, and "all"
+        // views limited to matches with a complete date/time range.
+        if (!$showUnscheduledMatches) {
+            $query->whereNotNull('match_date')
+                ->whereNotNull('time_start')
+                ->whereNotNull('time_end');
         }
 
         // Apply other filters
@@ -133,6 +149,10 @@ class GameController extends Controller
 
         // Group matches by date for display
         $groupedMatches = $matches->groupBy(function ($match) {
+            if (!$match->match_date || !$match->time_start || !$match->time_end) {
+                return 'unscheduled';
+            }
+
             return Carbon::parse($match->match_date)->format('Y-m-d');
         });
 
@@ -335,18 +355,42 @@ class GameController extends Controller
      */
     public function index(Request $request)
     {
+        return $this->renderAdminMatches($request);
+    }
+
+    /** Show a match list permanently scoped to one tournament. */
+    public function tournamentMatches(Request $request, Tournament $tournament)
+    {
+        return $this->renderAdminMatches($request, $tournament);
+    }
+
+    private function renderAdminMatches(Request $request, ?Tournament $scopedTournament = null)
+    {
         $perPage = 20;
         $search = $request->input('search');
-        $tournamentId = $request->input('tournament_id');
+        $tournamentId = $scopedTournament?->id ?? $request->input('tournament_id');
         $status = $request->input('status');
         $group = $request->input('group');
+        $round = $request->input('round');
+        $date = $request->input('date');
 
-        $query = Game::with(['homeTeam', 'awayTeam', 'tournament'])
-            ->orderBy('match_date', 'desc')
-            ->orderBy('time_start');
+        $query = Game::with(['homeTeam', 'awayTeam', 'tournament']);
+
+        if ($scopedTournament) {
+            $query->where('tournament_id', $scopedTournament->id);
+        } elseif ($tournamentId && $tournamentId !== 'all') {
+            $query->where('tournament_id', $tournamentId);
+        }
 
         if ($tournamentId && $tournamentId !== 'all') {
-            $query->where('tournament_id', $tournamentId);
+            // Keep fixtures without a complete schedule visible on the first
+            // page after the tournament filter loads from the server.
+            $query->orderByRaw('CASE WHEN match_date IS NULL OR time_start IS NULL OR time_end IS NULL THEN 0 ELSE 1 END')
+                ->orderBy('match_date', 'desc')
+                ->orderBy('time_start');
+        } else {
+            $query->orderBy('match_date', 'desc')
+                ->orderBy('time_start');
         }
 
         if ($status === 'cancelled') {
@@ -362,6 +406,14 @@ class GameController extends Controller
             $query->where('group_name', $group);
         }
 
+        if ($round && $round !== 'all') {
+            $query->where('round_type', $round);
+        }
+
+        if ($date) {
+            $query->whereDate('match_date', '>=', $date);
+        }
+
         if ($search) {
             $query->where(function ($q) use ($search) {
                 $q->whereHas('homeTeam', function ($q) use ($search) {
@@ -372,7 +424,7 @@ class GameController extends Controller
             });
         }
 
-        $matches = $query->paginate($perPage);
+        $matches = $query->paginate($perPage)->withQueryString();
         $visibleTournamentIds = $matches->getCollection()
             ->pluck('tournament_id')
             ->filter()
@@ -394,7 +446,8 @@ class GameController extends Controller
             'tournaments',
             'statuses',
             'groups',
-            'drawManagedTournamentIds'
+            'drawManagedTournamentIds',
+            'scopedTournament'
         ));
     }
 
@@ -412,8 +465,17 @@ class GameController extends Controller
             ->orderBy('name')
             ->get();
 
-        $selectedTournament = $tournaments->first();
-        $tournamentId = $request->input('tournament_id', $selectedTournament?->id);
+        $returnTournamentId = $request->integer('return_tournament_id') ?: null;
+        $selectedTournament = $returnTournamentId
+            ? Tournament::findOrFail($returnTournamentId)
+            : $tournaments->first();
+        $tournamentId = $returnTournamentId
+            ?? $request->input('tournament_id', $selectedTournament?->id);
+
+        if ($returnTournamentId && $request->filled('tournament_id')
+            && (int) $request->input('tournament_id') !== $returnTournamentId) {
+            abort(404);
+        }
 
         if ($tournamentId) {
             $teams = Team::whereHas('tournaments', function ($query) use ($tournamentId) {
@@ -421,6 +483,7 @@ class GameController extends Controller
             })->orderBy('name')->get();
 
             $tournament = Tournament::find($tournamentId);
+            $selectedTournament = $tournament;
             $tournamentType = $tournament->type;
             $groupOptions = [];
 
@@ -461,7 +524,9 @@ class GameController extends Controller
             'tournamentId',
             'tournamentType',
             'tournamentSettings',
-            'playedPairs'
+            'playedPairs',
+            'returnTournamentId',
+            'selectedTournament'
         ));
     }
 
@@ -482,6 +547,11 @@ class GameController extends Controller
      */
     public function store(Request $request)
     {
+        $returnTournamentId = $request->integer('return_tournament_id') ?: null;
+        if ($returnTournamentId && $returnTournamentId !== (int) $request->input('tournament_id')) {
+            abort(404);
+        }
+
         // Cari tournament terlebih dahulu
         $tournament = Tournament::find($request->tournament_id);
 
@@ -660,7 +730,7 @@ class GameController extends Controller
                 $this->updateMatchResults($match, $tournament);
             });
 
-            return redirect()->route('admin.matches.index')
+            return $this->redirectAfterMatchUpdate($returnTournamentId)
                 ->with('success', 'Match created successfully!');
 
         } catch (\Exception $e) {
@@ -713,10 +783,15 @@ class GameController extends Controller
     /**
      * Show form to edit match
      */
-    public function edit(Game $match)
+    public function edit(Request $request, Game $match)
     {
+        $returnTournamentId = $request->integer('return_tournament_id');
+        if ($returnTournamentId && $returnTournamentId !== (int) $match->tournament_id) {
+            abort(404);
+        }
+
         if ($match->is_cancelled) {
-            return redirect()->route('admin.matches.index')
+            return $this->redirectAfterMatchUpdate($returnTournamentId)
                 ->with('error', 'Fixture perebutan juara 3/4 sedang dinonaktifkan. Aktifkan kembali dari pengaturan turnamen sebelum mengubah pertandingan.');
         }
 
@@ -728,6 +803,9 @@ class GameController extends Controller
             && $match->round_type === 'third_place'
             && (bool) $match->tournament?->knockout_third_place;
         $isBracketManaged = $hasBracketSlots || $isManagedThirdPlace;
+        $courts = $isBracketManaged
+            ? Court::query()->where('is_active', true)->orderBy('sort_order')->orderBy('name')->get(['id', 'name'])
+            : collect();
         $tournaments = Tournament::whereIn('status', ['upcoming', 'ongoing'])->get();
         $teams = $isFriendly
             ? Team::orderBy('name')->get()
@@ -749,6 +827,38 @@ class GameController extends Controller
 
         $roundTypes = ['league', 'group', 'round_of_64', 'round_of_32', 'round_of_16', 'quarterfinal', 'semifinal', 'final', 'third_place'];
         $statusOptions = ['upcoming', 'ongoing', 'completed', 'postponed'];
+        $tournamentCourtBookings = collect();
+        $tournamentRentalSessions = collect();
+
+        if ($match->tournament_id) {
+            $tournamentId = (int) $match->tournament_id;
+            $tournamentCourtBookings = CourtBooking::query()
+                ->with('court:id,name')
+                ->where(function ($query) use ($tournamentId) {
+                    $query->whereHas('tournaments', fn ($tournaments) => $tournaments->whereKey($tournamentId))
+                        ->orWhere('tournament_id', $tournamentId);
+                })
+                ->where(function ($query) {
+                    $query->whereIn('status', [
+                        CourtBooking::STATUS_PENDING_REVIEW,
+                        CourtBooking::STATUS_CONFIRMED,
+                    ])->orWhere(function ($awaitingPayment) {
+                        $awaitingPayment->where('status', CourtBooking::STATUS_AWAITING_PAYMENT)
+                            ->where('expires_at', '>', now(CourtBooking::TIMEZONE));
+                    });
+                })
+                ->orderBy('booking_date')
+                ->orderBy('time_start')
+                ->get(['id', 'court_id', 'tournament_id', 'booking_date', 'time_start', 'time_end', 'status']);
+
+            $tournamentRentalSessions = CourtTournamentRental::query()
+                ->with('court:id,name')
+                ->where('tournament_id', $tournamentId)
+                ->where('status', '!=', CourtTournamentRental::STATUS_CANCELLED)
+                ->orderBy('rental_date')
+                ->orderBy('time_start')
+                ->get(['id', 'court_id', 'tournament_id', 'tournament_name_snapshot', 'rental_date', 'time_start', 'time_end', 'status']);
+        }
 
         return view('admin.matches.edit', compact(
             'match',
@@ -758,7 +868,11 @@ class GameController extends Controller
             'roundTypes',
             'statusOptions',
             'isFriendly',
-            'isBracketManaged'
+            'isBracketManaged',
+            'courts',
+            'tournamentCourtBookings',
+            'tournamentRentalSessions',
+            'returnTournamentId'
         ));
     }
 
@@ -768,6 +882,16 @@ class GameController extends Controller
     public function update(Request $request, Game $match)
     {
         $isFriendly = is_null($match->tournament_id) || $match->round_type === 'friendly';
+        $returnTournamentId = $request->integer('return_tournament_id');
+
+        if ($returnTournamentId && $returnTournamentId !== (int) $match->tournament_id) {
+            abort(404);
+        }
+
+        if ($returnTournamentId && !$isFriendly) {
+            // A scoped tournament list keeps the fixture attached to that tournament.
+            $request->merge(['tournament_id' => $match->tournament_id]);
+        }
 
         if ($match->is_cancelled) {
             return redirect()->back()->with('error', 'Fixture perebutan juara 3/4 sedang dinonaktifkan. Aktifkan kembali dari pengaturan turnamen sebelum mengubah pertandingan.');
@@ -810,7 +934,7 @@ class GameController extends Controller
                     }
                 });
 
-                return redirect()->route('admin.matches.index')
+                return $this->redirectAfterMatchUpdate($returnTournamentId)
                     ->with('success', 'Friendly match updated successfully!');
             } catch (\Exception $e) {
                 return redirect()->back()
@@ -833,7 +957,12 @@ class GameController extends Controller
                 'match_date' => ['required', 'date'],
                 'time_start' => ['required', 'date_format:H:i,H:i:s'],
                 'time_end' => ['required', 'date_format:H:i,H:i:s'],
-                'venue' => ['nullable', 'string', 'max:255'],
+                'venue' => [
+                    'required',
+                    'string',
+                    'max:255',
+                    Rule::exists('courts', 'name')->where('is_active', true),
+                ],
                 'notes' => ['nullable', 'string'],
             ]);
 
@@ -885,7 +1014,7 @@ class GameController extends Controller
                 $lockedMatch->update($schedule);
             });
 
-            return redirect()->route('admin.matches.index')
+            return $this->redirectAfterMatchUpdate($returnTournamentId)
                 ->with('success', 'Jadwal pertandingan bracket berhasil diperbarui. Peserta tetap mengikuti progres bracket.');
         }
 
@@ -1045,13 +1174,20 @@ class GameController extends Controller
                 $this->updateMatchResults($match, $tournament);
             });
 
-            return redirect()->route('admin.matches.index')
+            return $this->redirectAfterMatchUpdate($returnTournamentId)
                 ->with('success', 'Match updated successfully!');
         } catch (\Exception $e) {
             return redirect()->back()
                 ->with('error', 'Error updating match: ' . $e->getMessage())
                 ->withInput();
         }
+    }
+
+    private function redirectAfterMatchUpdate(?int $tournamentId)
+    {
+        return $tournamentId
+            ? redirect()->route('admin.tournaments.matches', $tournamentId)
+            : redirect()->route('admin.matches.index');
     }
 
     /**
@@ -1217,6 +1353,11 @@ class GameController extends Controller
      */
     public function generateMatches(Request $request, Tournament $tournament)
     {
+        $returnTournamentId = $request->integer('return_tournament_id') ?: null;
+        if ($returnTournamentId && $returnTournamentId !== (int) $tournament->id) {
+            abort(404);
+        }
+
         // Validasi hanya untuk turnamen yang belum memiliki match
         $existingMatches = Game::where('tournament_id', $tournament->id)->count();
         if ($existingMatches > 0) {
@@ -1251,7 +1392,11 @@ class GameController extends Controller
                 }
             });
 
-            return redirect()->route('admin.matches.index', ['tournament_id' => $tournament->id])
+            $destination = $returnTournamentId
+                ? redirect()->route('admin.tournaments.matches', $tournament)
+                : redirect()->route('admin.matches.index', ['tournament_id' => $tournament->id]);
+
+            return $destination
                 ->with('success', 'Matches generated successfully!');
 
         } catch (\Exception $e) {
@@ -1698,7 +1843,7 @@ class GameController extends Controller
                 'match_info' => [
                     'id' => $match->id,
                     'teams' => ($match->homeTeam->name ?? 'Home') . ' vs ' . ($match->awayTeam->name ?? 'Away'),
-                    'date' => $match->match_date->format('Y-m-d'),
+                    'date' => $match->match_date?->format('Y-m-d'),
                     'status' => $match->status,
                     'score' => $match->home_score !== null ? $match->home_score . ' - ' . $match->away_score : null,
                 ],

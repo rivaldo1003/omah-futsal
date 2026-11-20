@@ -9,6 +9,7 @@ use App\Models\CourtBookingBackdateAudit;
 use App\Models\CourtBookingPayment;
 use App\Models\CourtRentalItem;
 use App\Models\CourtRentalOrder;
+use App\Models\Tournament;
 use App\Services\CourtBookingAvailabilityService;
 use App\Services\CourtBookingDiscountService;
 use App\Services\CourtPricingService;
@@ -99,6 +100,7 @@ class CourtWalkInOrderController extends Controller
             'rangeWasRequested' => filled($filters['range'] ?? null),
             'rentalItems' => $rentalItems,
             'availableStock' => $availableStock,
+            'tournaments' => Tournament::query()->orderByDesc('start_date')->orderBy('name')->get(['id', 'name', 'start_date']),
             'requestKey' => $filters['manual_request_key'] ?? (string) Str::uuid(),
         ]);
     }
@@ -126,6 +128,7 @@ class CourtWalkInOrderController extends Controller
             'manual_request_key' => ['required', 'uuid'],
             'customer_name' => ['required', 'string', 'max:120'],
             'team_name' => ['required', 'string', 'max:120'],
+            'tournament_id' => ['nullable', 'integer', Rule::exists('tournaments', 'id')],
             'customer_phone' => ['required', 'string', 'min:8', 'max:30', 'regex:/^[0-9+().\s-]+$/'],
             'customer_email' => ['nullable', 'email', 'max:255'],
             'payment_method' => ['required', Rule::in(['none', 'cash', 'bank_transfer', 'qris'])],
@@ -152,6 +155,7 @@ class CourtWalkInOrderController extends Controller
             'range' => $validated['range'],
             'customer_name' => trim($validated['customer_name']),
             'team_name' => trim($validated['team_name']),
+            'tournament_id' => $validated['tournament_id'] ?? null,
             'customer_phone' => trim($validated['customer_phone']),
             'customer_email' => $validated['customer_email'] ?? null,
             'payment_method' => $validated['payment_method'],
@@ -242,6 +246,7 @@ class CourtWalkInOrderController extends Controller
                     'idempotency_key' => $validated['manual_request_key'],
                     'request_fingerprint' => $fingerprint,
                     'court_id' => $court->id,
+                    'tournament_id' => $validated['tournament_id'] ?? null,
                     'booking_date' => $validated['booking_date'],
                     'time_start' => $availableRange['start'].':00',
                     'time_end' => $availableRange['end'].':00',

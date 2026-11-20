@@ -851,7 +851,7 @@
                         <div class="match-info-item">
                             <div class="match-info-content">
                                 <h6>Date</h6>
-                                <p>{{ $game->match_date->format('l, d F Y') }}</p>
+                                <p>{{ $game->match_date?->translatedFormat('l, d F Y') ?? 'Jadwal belum ditentukan' }}</p>
                             </div>
                         </div>
                     </div>
@@ -859,7 +859,7 @@
                         <div class="match-info-item">
                             <div class="match-info-content">
                                 <h6>Time</h6>
-                                <p>{{ date('H:i', strtotime($game->time_start)) }} – {{ date('H:i', strtotime($game->time_end)) }}</p>
+                                <p>{{ $game->time_start && $game->time_end ? date('H:i', strtotime($game->time_start)).' – '.date('H:i', strtotime($game->time_end)) : 'Jadwal belum ditentukan' }}</p>
                             </div>
                         </div>
                     </div>

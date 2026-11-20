@@ -3,8 +3,8 @@
     @if(isset($liveTournaments) && $liveTournaments->count() > 1)
         <header class="v3-lt-header">
             <div>
-                <h2 class="v3-title">Turnamen berjalan</h2>
-                <p class="v3-lt-desc">Jadwal dan status kompetisi yang sedang aktif.</p>
+                <h2 class="v3-title">Turnamen aktif dan mendatang</h2>
+                <p class="v3-lt-desc">Pilih turnamen untuk melihat klasemen, bagan, jadwal, dan statistiknya di halaman ini.</p>
             </div>
             <div class="v3-lt-stats">
                 <div class="v3-stat-card">
@@ -22,10 +22,10 @@
         <div class="v3-lt-grid">
             @foreach($liveTournaments as $lt)
                 @php
-                    $isActive = isset($activeTournament) && $activeTournament && $activeTournament->id === $lt->id;
+                    $isSelected = isset($activeTournament) && $activeTournament && $activeTournament->id === $lt->id;
                     $logoUrl = ($lt->logo && Storage::disk('public')->exists($lt->logo)) ? Storage::url($lt->logo) : null;
                 @endphp
-                <article class="v3-lt-card {{ $isActive ? 'is-active' : '' }}">
+                <article class="v3-lt-card {{ $isSelected ? 'is-active' : '' }}">
                     <div class="v3-lt-card-top">
                         <div class="v3-lt-logo">
                             @if($logoUrl)
@@ -40,8 +40,11 @@
                             @else
                                 <span class="v3-lt-status v3-lt-status--upcoming">Akan datang</span>
                             @endif
-                            @if($isActive)
-                                <span class="v3-lt-featured"><i class="bi bi-star-fill" aria-hidden="true"></i> Pilihan utama</span>
+                            @if($lt->is_featured)
+                                <span class="v3-lt-featured"><i class="bi bi-star-fill" aria-hidden="true"></i> Unggulan</span>
+                            @endif
+                            @if($isSelected)
+                                <span class="v3-lt-selected">Sedang dilihat</span>
                             @endif
                         </div>
                     </div>
@@ -63,6 +66,12 @@
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
                         {{ $lt->formatted_dates }}
                     </div>
+
+                    <a href="{{ route('home', ['tournament_id' => $lt->id]) }}#home-tournament"
+                        class="v3-lt-select" @if($isSelected) aria-current="page" @endif>
+                        {{ $isSelected ? 'Turnamen ini sedang ditampilkan' : 'Lihat turnamen ini' }}
+                        @unless($isSelected)<i class="bi bi-arrow-up-right" aria-hidden="true"></i>@endunless
+                    </a>
                 </article>
             @endforeach
         </div>
@@ -258,6 +267,36 @@
             font-size: 12px;
             font-weight: 600;
             color: var(--v3-neon-green);
+        }
+
+        .v3-live-tournaments .v3-lt-selected {
+            color: var(--v3-text-main);
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .v3-live-tournaments .v3-lt-select {
+            display: inline-flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-top: auto;
+            padding-top: 12px;
+            border-top: 1px solid var(--v3-border);
+            color: var(--v3-text-main);
+            font-size: 14px;
+            font-weight: 650;
+            text-decoration: none;
+        }
+
+        .v3-live-tournaments .v3-lt-select:hover {
+            color: var(--v3-neon-green);
+        }
+
+        .v3-live-tournaments .v3-lt-select:focus-visible {
+            outline: 2px solid var(--v3-neon-green);
+            outline-offset: 3px;
+            border-radius: 2px;
         }
 
         .v3-live-tournaments .v3-lt-name {

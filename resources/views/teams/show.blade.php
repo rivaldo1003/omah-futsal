@@ -452,7 +452,7 @@
                                     @foreach($matches as $match)
                                         <tr>
                                             <td>
-                                                <small class="text-muted d-block">{{ $match->match_date->format('d/m/Y') }}</small>
+                                                <small class="text-muted d-block">{{ $match->match_date?->format('d/m/Y') ?? 'Belum dijadwalkan' }}</small>
                                                 <strong>{{ $match->match_time }}</strong>
                                             </td>
                                             <td>

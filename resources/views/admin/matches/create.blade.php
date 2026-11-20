@@ -309,7 +309,7 @@
             <h1>Buat Pertandingan Baru</h1>
             <p class="page-subtitle">Jadwalkan pertandingan baru untuk turnamen Anda</p>
         </div>
-        <a href="{{ route('admin.matches.index') }}" class="btn-back">
+        <a href="{{ $returnTournamentId ? route('admin.tournaments.matches', $returnTournamentId) : route('admin.matches.index') }}" class="btn-back">
             <i class="bi bi-arrow-left"></i> Kembali
         </a>
     </div>
@@ -336,33 +336,35 @@
             <form method="GET" action="{{ route('admin.matches.create') }}" class="tournament-picker">
                 <div class="form-section-title">Pilih Turnamen <span class="required">*</span></div>
 
-                <select class="form-select @error('tournament_id') is-invalid @enderror"
-                    id="tournament_id" name="tournament_id" required
-                    onchange="this.form.submit()">
-                    <option value="">Pilih turnamen</option>
-                    @foreach($tournaments as $tournament)
-                        <option value="{{ $tournament->id }}"
-                            {{ $tournamentId == $tournament->id ? 'selected' : '' }}>
-                            {{ $tournament->name }}
-                            ({{ ucfirst($tournament->type) }} |
-                            {{ ucfirst($tournament->status) }} |
-                            {{ $tournament->start_date->format('d M Y') }} - {{ $tournament->end_date->format('d M Y') }})
-                        </option>
-                    @endforeach
-                </select>
+                @if($returnTournamentId && $selectedTournament)
+                    <div class="form-control bg-light d-flex align-items-center" aria-readonly="true">
+                        <i class="bi bi-lock me-2" aria-hidden="true"></i>{{ $selectedTournament->name }}
+                        <span class="small text-muted ms-2">Turnamen dikunci</span>
+                    </div>
+                    <input type="hidden" name="tournament_id" value="{{ $selectedTournament->id }}">
+                    <input type="hidden" name="return_tournament_id" value="{{ $returnTournamentId }}">
+                @else
+                    <select class="form-select @error('tournament_id') is-invalid @enderror"
+                        id="tournament_id" name="tournament_id" required
+                        onchange="this.form.submit()">
+                        <option value="">Pilih turnamen</option>
+                        @foreach($tournaments as $tournament)
+                            <option value="{{ $tournament->id }}"
+                                {{ $tournamentId == $tournament->id ? 'selected' : '' }}>
+                                {{ $tournament->name }}
+                                ({{ ucfirst($tournament->type) }} |
+                                {{ ucfirst($tournament->status) }} |
+                                {{ $tournament->start_date->format('d M Y') }} - {{ $tournament->end_date->format('d M Y') }})
+                            </option>
+                        @endforeach
+                    </select>
+                @endif
                 @error('tournament_id')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
 
                 @if($tournamentId)
-                    @php
-                        $selectedTournament = \App\Models\Tournament::find($tournamentId);
-                        // 'settings' sudah di-cast ke array oleh model Tournament
-                        $tournamentSettings = is_array($selectedTournament->settings)
-                            ? $selectedTournament->settings
-                            : (json_decode($selectedTournament->settings, true) ?? []);
-                        $tournamentType = $selectedTournament->type;
-                    @endphp
+                    @php($selectedTournament = $selectedTournament ?? \App\Models\Tournament::find($tournamentId))
                     <div class="tournament-summary mt-3 mb-0">
                         <i class="bi bi-info-circle me-1"></i>
                         <strong>{{ $selectedTournament->name }}</strong> dipilih.
@@ -388,9 +390,12 @@
 
             @if($tournamentId)
                 <!-- Form buat pertandingan (hanya tampil jika turnamen dipilih) -->
-                <form action="{{ route('admin.matches.store') }}" method="POST" id="matchForm">
+                <form action="{{ route('admin.matches.store', $returnTournamentId ? ['return_tournament_id' => $returnTournamentId] : []) }}" method="POST" id="matchForm">
                     @csrf
                     <input type="hidden" name="tournament_id" value="{{ $tournamentId }}">
+                    @if($returnTournamentId)
+                        <input type="hidden" name="return_tournament_id" value="{{ $returnTournamentId }}">
+                    @endif
 
                     @if($teams->count() > 0)
                         <div class="row g-4">

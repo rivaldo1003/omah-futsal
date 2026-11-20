@@ -18,11 +18,33 @@ class TeamController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $teams = Team::with(['players', 'tournaments'])
-            ->orderBy('name')
-            ->paginate(15);
+        $search = trim((string) $request->query('search', ''));
+        $status = $request->query('status');
+        $sort = $request->query('sort', 'name_asc');
+
+        $teamsQuery = Team::with(['players', 'tournaments']);
+
+        if ($search !== '') {
+            $teamsQuery->where(function ($query) use ($search) {
+                $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('coach_name', 'like', "%{$search}%");
+            });
+        }
+
+        if (in_array($status, ['active', 'pending', 'inactive'], true)) {
+            $teamsQuery->where('status', $status);
+        }
+
+        match ($sort) {
+            'name_desc' => $teamsQuery->orderByDesc('name')->orderByDesc('id'),
+            'recent' => $teamsQuery->orderByDesc('created_at')->orderByDesc('id'),
+            'oldest' => $teamsQuery->orderBy('created_at')->orderBy('id'),
+            default => $teamsQuery->orderBy('name')->orderBy('id'),
+        };
+
+        $teams = $teamsQuery->paginate(15)->withQueryString();
 
         return view('admin.teams.index', compact('teams'));
     }

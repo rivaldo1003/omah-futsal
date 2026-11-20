@@ -41,7 +41,11 @@ class ScheduleController extends Controller
             ->values();
 
         // Initialize query
-        $query = Game::publiclyVisible()->with(['homeTeam', 'awayTeam', 'tournament']);
+        $query = Game::publiclyVisible()
+            ->whereNotNull('match_date')
+            ->whereNotNull('time_start')
+            ->whereNotNull('time_end')
+            ->with(['homeTeam', 'awayTeam', 'tournament']);
 
         // Apply tournament filter
         $selectedTournament = null;

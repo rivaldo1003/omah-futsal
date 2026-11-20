@@ -448,6 +448,16 @@
         color: var(--warning);
     }
 
+    .standings-bracket-schedule {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin: -2px 0 var(--space-2);
+        color: var(--text-secondary);
+        font-size: 11px;
+        line-height: 1.4;
+    }
+
     .standings-bracket-team {
         display: flex;
         align-items: center;
@@ -496,7 +506,20 @@
     }
 
     .standings-bracket-team.is-winner {
+        padding: 1px 5px;
+        border-left: 2px solid var(--success);
+        border-radius: 3px;
+        background: var(--success-subtle);
+        color: var(--success);
         font-weight: 700;
+    }
+
+    .standings-bracket-team.is-loser {
+        padding: 1px 5px;
+        border-left: 2px solid var(--danger);
+        border-radius: 3px;
+        background: var(--danger-subtle);
+        color: var(--danger);
     }
 
     .standings-bracket-team.is-champion {

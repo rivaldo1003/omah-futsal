@@ -53,8 +53,10 @@
 
                         <div class="highlight-match-meta">
                             <div class="highlight-match-meta-row">
-                                <span><i class="bi bi-calendar me-1"></i>{{ $highlight->match_date->format('d M Y') }}</span>
-                                <span><i class="bi bi-clock me-1"></i>{{ $highlight->time_start }}</span>
+                                <span><i class="bi bi-calendar me-1"></i>{{ $highlight->match_date?->format('d M Y') ?? 'Jadwal belum ditentukan' }}</span>
+                                @if($highlight->time_start)
+                                    <span><i class="bi bi-clock me-1"></i>{{ substr($highlight->time_start, 0, 5) }}</span>
+                                @endif
                             </div>
                             <span><i class="bi bi-geo-alt me-1"></i>{{ $highlight->venue ?? 'Main Field' }}</span>
                         </div>
@@ -131,7 +133,13 @@
                                         <ul class="list-unstyled mb-0" style="font-size:0.82rem;">
                                             <li class="mb-2">
                                                 <span class="modal-detail-label">Date &amp; Time</span>
-                                                <span class="modal-detail-value">{{ $highlight->match_date->format('d M Y') }} · {{ $highlight->time_start }}</span>
+                                                <span class="modal-detail-value">
+                                                    @if($highlight->match_date && $highlight->time_start && $highlight->time_end)
+                                                        {{ $highlight->match_date->format('d M Y') }} · {{ substr($highlight->time_start, 0, 5) }}–{{ substr($highlight->time_end, 0, 5) }}
+                                                    @else
+                                                        Jadwal belum ditentukan
+                                                    @endif
+                                                </span>
                                             </li>
                                             <li class="mb-2">
                                                 <span class="modal-detail-label">Venue</span>

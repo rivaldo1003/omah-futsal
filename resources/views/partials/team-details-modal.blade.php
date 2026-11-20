@@ -191,7 +191,7 @@
                     <div class="list-group-item">
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
-                                <small class="text-muted">{{ $match->match_date->format('d M Y') }}</small>
+                                <small class="text-muted">{{ $match->match_date?->format('d M Y') ?? 'Belum dijadwalkan' }}</small>
                                 <div class="mt-1">
                                     {{ $match->homeTeam->name }} {{ $match->home_score }} - 
                                     {{ $match->away_score }} {{ $match->awayTeam->name }}
