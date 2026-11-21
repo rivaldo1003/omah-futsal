@@ -2664,14 +2664,16 @@ class CourtBookingController extends Controller
                 ]);
             }
 
-            if ($availability->matchConflict(
+            $tournamentScheduleConflict = $availability->scheduleCorrectionConflict(
+                $lockedBooking,
                 $court,
                 $validated['booking_date'],
                 $validated['time_start'],
                 $validated['time_end'],
-            )) {
+            );
+            if ($tournamentScheduleConflict !== null) {
                 throw ValidationException::withMessages([
-                    'booking_date' => 'Jadwal berbenturan dengan pertandingan atau sesi sewa turnamen.',
+                    'booking_date' => $tournamentScheduleConflict,
                 ]);
             }
 

@@ -66,6 +66,105 @@ class CourtBookingAvailabilityService
             || $this->tournamentRentalConflict($court, $date, $start, $end, null, $ignoreTournamentId);
     }
 
+    public function scheduleCorrectionConflict(
+        CourtBooking $booking,
+        Court $court,
+        string $date,
+        string $start,
+        string $end,
+    ): ?string {
+        $bookingStart = Carbon::parse($date.' '.$start, CourtBooking::TIMEZONE);
+        $bookingEnd = Carbon::parse($date.' '.$end, CourtBooking::TIMEZONE);
+        if ($bookingEnd->lessThanOrEqualTo($bookingStart)) {
+            $bookingEnd->addDay();
+        }
+
+        $linkedTournamentIds = $booking->tournaments()
+            ->pluck('tournaments.id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        if ($booking->tournament_id !== null) {
+            $linkedTournamentIds[] = (int) $booking->tournament_id;
+        }
+        $linkedTournamentIds = array_values(array_unique($linkedTournamentIds));
+
+        $games = $this->matchingGameQuery($court, $date, $start, $end)
+            ->with('tournament:id,name')
+            ->get(['id', 'tournament_id', 'match_date', 'time_start', 'time_end']);
+
+        foreach ($games as $game) {
+            $matchStart = Carbon::parse(
+                $game->match_date->toDateString().' '.substr((string) $game->time_start, 0, 8),
+                CourtBooking::TIMEZONE,
+            );
+            $matchEnd = Carbon::parse(
+                $game->match_date->toDateString().' '.substr((string) $game->time_end, 0, 8),
+                CourtBooking::TIMEZONE,
+            );
+            if ($matchEnd->lessThanOrEqualTo($matchStart)) {
+                $matchEnd->addDay();
+            }
+
+            $sameTournament = $game->tournament_id !== null
+                && in_array((int) $game->tournament_id, $linkedTournamentIds, true);
+            $bookingCoversMatch = $bookingStart->lessThanOrEqualTo($matchStart)
+                && $bookingEnd->greaterThanOrEqualTo($matchEnd);
+
+            if ($sameTournament && $bookingCoversMatch) {
+                continue;
+            }
+
+            $tournamentName = $game->tournament?->name;
+            $matchLabel = $tournamentName ? ' pertandingan '.$tournamentName : ' pertandingan';
+            $matchTime = $matchStart->format('d/m/Y').' pukul '.$matchStart->format('H:i').'-'.$matchEnd->format('H:i');
+
+            if ($sameTournament) {
+                return 'Rentang booking koreksi harus mencakup seluruh pertandingan'.$matchLabel.' pada '.$matchTime.'.';
+            }
+
+            return 'Jadwal berbenturan dengan'.$matchLabel.' pada '.$matchTime.'. Jika booking ini memang untuk turnamen tersebut, kaitkan booking ke turnamennya melalui menu Kaitkan reservasi turnamen terlebih dahulu.';
+        }
+
+        $rentals = $this->tournamentRentalQuery($court, $date, $start, $end)
+            ->with('tournament:id,name')
+            ->get(['id', 'tournament_id', 'tournament_name_snapshot', 'rental_date', 'time_start', 'time_end']);
+
+        foreach ($rentals as $rental) {
+            $rentalStart = Carbon::parse(
+                $rental->rental_date->toDateString().' '.substr((string) $rental->time_start, 0, 8),
+                CourtBooking::TIMEZONE,
+            );
+            $rentalEnd = Carbon::parse(
+                $rental->rental_date->toDateString().' '.substr((string) $rental->time_end, 0, 8),
+                CourtBooking::TIMEZONE,
+            );
+            if ($rentalEnd->lessThanOrEqualTo($rentalStart)) {
+                $rentalEnd->addDay();
+            }
+
+            $sameTournament = $rental->tournament_id !== null
+                && in_array((int) $rental->tournament_id, $linkedTournamentIds, true);
+            $bookingCoversRental = $bookingStart->lessThanOrEqualTo($rentalStart)
+                && $bookingEnd->greaterThanOrEqualTo($rentalEnd);
+
+            if ($sameTournament && $bookingCoversRental) {
+                continue;
+            }
+
+            $rentalName = $rental->tournament?->name ?: $rental->tournament_name_snapshot;
+            $rentalLabel = filled($rentalName) ? ' sesi sewa turnamen '.$rentalName : ' sesi sewa turnamen';
+            $rentalTime = $rentalStart->format('d/m/Y').' pukul '.$rentalStart->format('H:i').'-'.$rentalEnd->format('H:i');
+
+            if ($sameTournament) {
+                return 'Rentang booking koreksi harus mencakup seluruh'.$rentalLabel.' pada '.$rentalTime.'.';
+            }
+
+            return 'Jadwal berbenturan dengan'.$rentalLabel.' pada '.$rentalTime.'.';
+        }
+
+        return null;
+    }
+
     public function matchForSlot(Court $court, string $date, string $start, string $end): ?Game
     {
         return $this->matchingGameQuery($court, $date, $start, $end)
