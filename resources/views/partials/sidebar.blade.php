@@ -403,12 +403,6 @@
                 <i class="bi bi-calendar2-event"></i> Pertandingan
             </a>
 
-            {{-- STANDINGS --}}
-            <a class="nav-link {{ request()->routeIs('admin.standings.*') ? 'active' : '' }}"
-                href="{{ route('admin.standings.index') }}">
-                <i class="bi bi-bar-chart-line"></i> Klasemen
-            </a>
-
             <div class="nav-divider">Tim & pemain</div>
 
             {{-- TEAMS --}}
