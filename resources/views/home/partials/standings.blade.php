@@ -42,7 +42,12 @@
                                     </span>
                                     <span class="v3-hud-tag">{{ count($groupStandings) }} tim</span>
                                 </div>
-                                <div class="table-responsive v3-table-wrap">
+                                <p class="v3-table-scroll-hint">
+                                    <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+                                    Geser tabel ke samping untuk melihat semua statistik.
+                                </p>
+                                <div class="table-responsive v3-table-wrap" tabindex="0" role="region"
+                                    aria-label="Klasemen grup {{ $group }}; geser ke samping untuk melihat semua kolom">
                                     <table class="standings-table v3-table">
                                         <thead>
                                             <tr>
@@ -392,7 +397,19 @@
         .v3-home-standings .v3-table-wrap {
             border: 1px solid var(--v3-border) !important;
             border-radius: var(--v3-radius-sm);
-            overflow: hidden;
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
+        }
+
+        .v3-home-standings .v3-table-scroll-hint {
+            display: none;
+            margin: 0 0 8px;
+            color: var(--v3-text-muted);
+            font-size: 11px;
+            line-height: 1.4;
         }
 
         .v3-home-standings .v3-table {
@@ -664,6 +681,16 @@
 
         /* Responsive */
         @media (max-width: 576px) {
+            .v3-home-standings .v3-table-scroll-hint {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .v3-home-standings .v3-table {
+                min-width: 560px;
+            }
+
             .v3-home-standings .v3-card-header {
                 flex-direction: column;
                 align-items: flex-start;

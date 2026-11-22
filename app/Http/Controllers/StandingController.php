@@ -156,9 +156,28 @@ class StandingController extends Controller
                 $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
             }
 
-            if ($tournamentType === 'group_knockout'
-                && app(\App\Services\GroupKnockoutBracketService::class)->sync($selectedTournament)) {
-                $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
+            if ($tournamentType === 'group_knockout') {
+                $bracketSynced = app(\App\Services\GroupKnockoutBracketService::class)
+                    ->sync($selectedTournament);
+                $hasRecordedKnockoutMatches = Game::publiclyVisible()
+                    ->where('tournament_id', $selectedTournament->id)
+                    ->whereIn('round_type', [
+                        'round_of_64',
+                        'round_of_32',
+                        'round_of_16',
+                        'quarterfinal',
+                        'semifinal',
+                        'third_place',
+                        'final',
+                    ])
+                    ->exists();
+
+                // Older tournaments may have real knockout results entered before
+                // bracket slots were stored. Render those recorded matches directly
+                // instead of hiding the bracket because sync() safely skipped them.
+                if ($bracketSynced || $hasRecordedKnockoutMatches) {
+                    $knockoutBracket = $this->getKnockoutBracketData($selectedTournament->id);
+                }
             }
 
             // Hitung statistik tournament

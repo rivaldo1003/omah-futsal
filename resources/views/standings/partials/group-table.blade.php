@@ -5,32 +5,36 @@
         <div class="v3-sg-header">
             <div class="v3-sg-title-wrap">
                 <h3 class="standings-group-title v3-sg-title">
-                    <span class="standings-group-badge v3-sg-badge">{{ $selectedTournament->type === 'league' ? 'L' : 'G' }}</span>
-                    {{ $selectedTournament->type === 'league' ? 'League table' : 'Group ' . $group }}
+                    <span class="standings-group-badge v3-sg-badge">{{ $selectedTournament->type === 'league' ? 'L' : substr($group, 0, 1) }}</span>
+                    {{ $selectedTournament->type === 'league' ? 'Klasemen utama' : 'Grup ' . $group }}
                 </h3>
             </div>
             <span class="v3-sg-meta">
-                <span class="v3-sc-lbl">Teams</span>
-                <span class="v3-sc-val">{{ count($groupStandings) }}</span>
+                <span class="v3-sc-val">{{ count($groupStandings) }} tim</span>
             </span>
         </div>
 
-        <div class="table-responsive">
+        <p class="v3-sg-scroll-hint">
+            <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+            Geser tabel ke samping untuk melihat semua statistik.
+        </p>
+        <div class="table-responsive v3-sg-table-wrap" tabindex="0" role="region"
+            aria-label="{{ $selectedTournament->type === 'league' ? 'Klasemen utama' : 'Klasemen grup ' . $group }}; geser ke samping untuk melihat semua kolom">
             <table class="table standings-table v3-sg-table">
                 <caption class="visually-hidden">
-                    {{ $selectedTournament->type === 'league' ? 'League standings' : 'Group ' . $group . ' standings' }}
+                    {{ $selectedTournament->type === 'league' ? 'Klasemen utama' : 'Klasemen grup ' . $group }}
                 </caption>
                 <thead>
                     <tr>
-                        <th scope="col" title="Position">#</th>
-                        <th scope="col">Team</th>
-                        <th scope="col" title="Played">P</th>
-                        <th scope="col" title="Won">W</th>
-                        <th scope="col" title="Drawn">D</th>
-                        <th scope="col" title="Lost">L</th>
-                        <th scope="col" title="Goal difference">GD</th>
-                        <th scope="col" title="Points">Pts</th>
-                        <th scope="col" title="Results in the last five matches">Form</th>
+                        <th scope="col" title="Posisi">#</th>
+                        <th scope="col">Tim</th>
+                        <th scope="col" title="Dimainkan">P</th>
+                        <th scope="col" title="Menang">W</th>
+                        <th scope="col" title="Seri">D</th>
+                        <th scope="col" title="Kalah">L</th>
+                        <th scope="col" title="Selisih gol">GD</th>
+                        <th scope="col" title="Poin">PTS</th>
+                        <th scope="col" title="Hasil lima pertandingan terakhir">Form</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -112,7 +116,7 @@
                                     <div>
                                         <div class="standings-team-name v3-sg-name">{{ Str::limit($teamName, 20) }}</div>
                                         @if(($team->played ?? 0) > 0)
-                                            <div class="standings-team-meta">{{ $team->played }} played</div>
+                                            <div class="standings-team-meta">{{ $team->played }} laga</div>
                                         @endif
                                     </div>
                                 </div>
@@ -140,13 +144,13 @@
                                     @if(!empty($recentForm) && is_array($recentForm))
                                         @foreach(array_slice($recentForm, 0, 5) as $result)
                                             @if($result == 'W')
-                                            <span class="standings-form-dot standings-dot-win" role="img" aria-label="Win" title="Win"></span>
+                                            <span class="standings-form-dot standings-dot-win" role="img" aria-label="Menang" title="Menang"></span>
                                             @elseif($result == 'D')
-                                            <span class="standings-form-dot standings-dot-draw" role="img" aria-label="Draw" title="Draw"></span>
+                                            <span class="standings-form-dot standings-dot-draw" role="img" aria-label="Seri" title="Seri"></span>
                                             @elseif($result == 'L')
-                                            <span class="standings-form-dot standings-dot-loss" role="img" aria-label="Loss" title="Loss"></span>
+                                            <span class="standings-form-dot standings-dot-loss" role="img" aria-label="Kalah" title="Kalah"></span>
                                             @else
-                                            <span class="standings-form-dot standings-dot-empty" role="img" aria-label="Result unavailable" title="Result unavailable"></span>
+                                            <span class="standings-form-dot standings-dot-empty" role="img" aria-label="Hasil belum tersedia" title="Hasil belum tersedia"></span>
                                             @endif
                                         @endforeach
                                     @else
@@ -222,24 +226,22 @@
 
         .v3-standings-group .v3-sg-badge {
             display: inline-flex;
-            flex: 0 0 28px;
+            flex: 0 0 20px;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 20px;
+            height: 20px;
             color: #ffffff;
-            background: var(--table-ink);
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: 600;
+            background: #07824e;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 800;
         }
 
         .v3-standings-group .v3-sg-meta {
             display: flex;
             flex: 0 0 auto;
-            flex-direction: column;
             align-items: flex-end;
-            gap: 1px;
             text-align: right;
         }
 
@@ -250,15 +252,28 @@
         }
 
         .v3-standings-group .v3-sc-val {
-            color: var(--table-ink);
-            font-size: 16px;
+            color: var(--table-muted);
+            font-size: 12px;
             font-weight: 600;
             line-height: 1.2;
         }
 
-        .v3-standings-group .table-responsive {
+        .v3-standings-group .v3-sg-table-wrap {
+            max-width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            overscroll-behavior-x: contain;
             scrollbar-color: #cacacb transparent;
             scrollbar-width: thin;
+        }
+
+        .v3-standings-group .v3-sg-scroll-hint {
+            display: none;
+            margin: 0 12px 8px;
+            color: var(--table-muted);
+            font-size: 11px;
+            line-height: 1.4;
         }
 
         .v3-standings-group .v3-sg-table {
@@ -285,28 +300,29 @@
         }
 
         .v3-standings-group .v3-sg-table thead th {
-            padding: 12px 10px;
+            padding: 10px 8px;
             color: var(--table-muted);
             background: var(--table-cloud);
             border-bottom: 1px solid var(--table-border);
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.035em;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 0.06em;
             text-align: center;
             white-space: nowrap;
+            text-transform: uppercase;
         }
 
         .v3-standings-group .v3-sg-table thead th:first-child {
-            width: 52px;
+            width: 40px;
         }
 
         .v3-standings-group .v3-sg-table thead th:nth-child(2) {
-            min-width: 190px;
+            min-width: 180px;
             text-align: left;
         }
 
         .v3-standings-group .v3-sg-table tbody td {
-            padding: 12px 10px;
+            padding: 10px 8px;
             color: var(--table-charcoal);
             border-bottom: 1px solid var(--table-border);
             text-align: center;
@@ -338,40 +354,41 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            width: 28px;
-            height: 28px;
+            width: 24px;
+            height: 24px;
             color: var(--table-charcoal);
-            background: var(--table-cloud);
+            background: #f5f5f5;
             border: 1px solid var(--table-border);
-            border-radius: 50%;
-            font-size: 12px;
-            font-weight: 600;
+            border-radius: 4px;
+            font-size: 11px;
+            font-style: italic;
+            font-weight: 800;
         }
 
         .v3-standings-group .v3-sg-pos.is-top {
-            color: var(--table-success);
+            color: #07824e;
             background: var(--table-success-soft);
-            border-color: transparent;
+            border-color: #c8e7d7;
         }
 
         .v3-standings-group .standings-team-info {
             display: flex;
             align-items: center;
-            gap: 12px;
-            min-width: 190px;
+            gap: 8px;
+            min-width: 180px;
         }
 
         .v3-standings-group .standings-team-logo {
             display: flex;
-            flex: 0 0 36px;
+            flex: 0 0 30px;
             align-items: center;
             justify-content: center;
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             overflow: hidden;
             background: var(--table-cloud);
             border: 1px solid var(--table-border);
-            border-radius: 50%;
+            border-radius: 4px;
         }
 
         .v3-standings-group .standings-team-logo img {
@@ -381,9 +398,9 @@
         }
 
         .v3-standings-group .standings-team-abbr {
-            color: var(--table-muted);
+            color: #07824e;
             font-size: 10px;
-            font-weight: 600;
+            font-weight: 800;
         }
 
         .v3-standings-group .v3-sg-name {
@@ -393,6 +410,8 @@
             font-weight: 600;
             line-height: 1.3;
             text-overflow: ellipsis;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         .v3-standings-group .standings-team-meta {
@@ -447,12 +466,14 @@
         .v3-standings-group .v3-sg-pts {
             display: inline-block;
             min-width: 36px;
-            padding: 4px 9px;
-            color: #ffffff;
-            background: var(--table-ink);
-            border-radius: 9999px;
-            font-size: 12px;
-            font-weight: 600;
+            padding: 2px 9px;
+            color: #07824e;
+            background: var(--table-success-soft);
+            border: 1px solid #c8e7d7;
+            border-radius: 4px;
+            font-size: 13px;
+            font-style: italic;
+            font-weight: 800;
             text-align: center;
         }
 
@@ -477,9 +498,20 @@
         .v3-standings-group .standings-dot-empty { background: #cacacb; }
 
         @media (max-width: 576px) {
+            .v3-standings-group .v3-sg-scroll-hint {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+            }
+
+            .v3-standings-group .v3-sg-table-wrap:focus-visible {
+                outline: 2px solid #07824e;
+                outline-offset: 2px;
+            }
+
             .v3-standings-group .v3-sg-header {
                 min-height: 62px;
-                padding: 14px 16px;
+                padding: 12px 14px;
             }
 
             .v3-standings-group .v3-sg-title {
