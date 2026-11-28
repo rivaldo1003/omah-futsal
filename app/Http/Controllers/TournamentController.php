@@ -11,6 +11,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
 // / tes aja masuk
@@ -815,7 +816,198 @@ class TournamentController extends Controller
         // Hitung pertandingan yang selesai
         $completedMatches = $tournament->matches->where('status', 'completed')->count();
 
-        return view('admin.tournaments.show', compact('tournament', 'settings', 'completedMatches'));
+        $qualifierGroups = collect();
+        $qualifierOverrides = $settings[\App\Services\GroupKnockoutBracketService::QUALIFIER_OVERRIDES_KEY] ?? [];
+        $qualifierHistory = array_reverse($settings[\App\Services\GroupKnockoutBracketService::QUALIFIER_HISTORY_KEY] ?? []);
+        $qualifierStageReady = false;
+        $qualifierReadyGroups = [];
+        $qualifierLocked = false;
+        $qualifierHistoryTeamNames = collect();
+
+        if ($tournament->type === 'group_knockout') {
+            $qualifierGroups = app(\App\Services\TournamentStandingsService::class)->grouped($tournament);
+            $qualifierService = app(\App\Services\GroupKnockoutBracketService::class);
+            $qualifierStageReady = $qualifierService->hasCompletedGroupStage($tournament);
+            foreach ($qualifierGroups->keys() as $groupName) {
+                $groupKey = strtoupper(trim((string) $groupName));
+                $qualifierReadyGroups[$groupKey] = $qualifierService->hasCompletedGroup($tournament, $groupKey);
+            }
+            $qualifierLocked = app(\App\Services\KnockoutDrawService::class)
+                ->hasStartedKnockoutMatches($tournament);
+            $historyTeamIds = collect($qualifierHistory)
+                ->flatMap(fn ($entry) => array_merge(
+                    $entry['previous_team_ids'] ?? [],
+                    $entry['selected_team_ids'] ?? []
+                ))
+                ->map(fn ($id) => (int) $id)
+                ->unique()
+                ->values();
+            $qualifierHistoryTeamNames = $historyTeamIds->isEmpty()
+                ? collect()
+                : Team::query()->whereIn('id', $historyTeamIds)->pluck('name', 'id');
+        }
+
+        return view('admin.tournaments.show', compact(
+            'tournament',
+            'settings',
+            'completedMatches',
+            'qualifierGroups',
+            'qualifierOverrides',
+            'qualifierHistory',
+            'qualifierStageReady',
+            'qualifierReadyGroups',
+            'qualifierLocked',
+            'qualifierHistoryTeamNames'
+        ));
+    }
+
+    public function updateGroupQualifiers(Request $request, Tournament $tournament)
+    {
+        abort_unless(auth()->user()?->role === 'admin', 403, 'Hanya admin yang dapat menetapkan tim lolos.');
+        abort_unless($tournament->type === 'group_knockout', 404);
+
+        $qualifiersUrl = route('admin.tournaments.show', $tournament).'#qualifiers';
+        $validator = Validator::make($request->all(), [
+            'group' => 'required|string|max:2',
+            'mode' => 'required|in:manual,automatic',
+            'qualified_team_ids' => 'nullable|array',
+            'qualified_team_ids.*' => 'required|integer|distinct',
+            'reason' => 'required|string|min:5|max:500',
+        ], [
+            'reason.required' => 'Tuliskan alasan keputusan panitia agar perubahan bisa ditelusuri.',
+            'reason.min' => 'Alasan minimal 5 karakter.',
+            'reason.max' => 'Alasan maksimal 500 karakter.',
+        ]);
+        if ($validator->fails()) {
+            return redirect()->to($qualifiersUrl)->withErrors($validator)->withInput();
+        }
+        $validated = $validator->validated();
+
+        $groupName = strtoupper(trim($validated['group']));
+        $groupStandings = app(\App\Services\TournamentStandingsService::class)->grouped($tournament);
+        $canonicalGroupName = $groupStandings->keys()->first(
+            fn ($name) => strtoupper(trim((string) $name)) === $groupName
+        );
+        if ($canonicalGroupName === null) {
+            return redirect()->to($qualifiersUrl)
+                ->withErrors(['group' => 'Grup tersebut tidak terdaftar pada turnamen ini.'])
+                ->withInput();
+        }
+
+        $bracketService = app(\App\Services\GroupKnockoutBracketService::class);
+        if (!$bracketService->hasCompletedGroup($tournament, $groupName)) {
+            return redirect()->to($qualifiersUrl)
+                ->withErrors(['qualifiers' => "Penetapan tim Grup {$groupName} tersedia setelah semua pertandingan di grup tersebut selesai."])
+                ->withInput();
+        }
+
+        $quota = max(1, (int) ($tournament->qualify_per_group ?? 2));
+        $standingRows = $groupStandings->get($canonicalGroupName, collect());
+        $automaticIds = $standingRows->take($quota)->pluck('team_id')->map(fn ($id) => (int) $id)->values()->all();
+        $registeredIds = $standingRows->pluck('team_id')
+            ->map(fn ($id) => (int) $id)
+            ->all();
+        $selectedIds = collect($validated['qualified_team_ids'] ?? [])->map(fn ($id) => (int) $id)->values()->all();
+
+        if ($validated['mode'] === 'manual'
+            && (count($selectedIds) !== $quota
+                || count(array_unique($selectedIds)) !== $quota
+                || count(array_intersect($selectedIds, $registeredIds)) !== $quota)) {
+            return redirect()->to($qualifiersUrl)
+                ->withErrors(['qualified_team_ids' => "Pilih tepat {$quota} tim yang terdaftar di Grup {$groupName}."])
+                ->withInput();
+        }
+
+        $nextIds = $validated['mode'] === 'manual' ? $selectedIds : $automaticIds;
+        $nextNames = Team::query()->whereIn('id', $nextIds)->pluck('name', 'id')->all();
+
+        try {
+            $bracketUpdated = DB::transaction(function () use (
+                $tournament,
+                $validated,
+                $groupName,
+                $automaticIds,
+                $nextIds,
+                $nextNames,
+                $bracketService
+            ): bool {
+                $lockedTournament = Tournament::query()->whereKey($tournament->id)->lockForUpdate()->firstOrFail();
+                if (!$bracketService->hasCompletedGroup($lockedTournament, $groupName)) {
+                    throw new \RuntimeException("Penetapan tim Grup {$groupName} memerlukan semua pertandingan di grup tersebut berstatus selesai.");
+                }
+                if (app(\App\Services\KnockoutDrawService::class)->hasStartedKnockoutMatches($lockedTournament)) {
+                    throw new \RuntimeException('Penetapan tim lolos terkunci karena pertandingan knockout sudah dimulai atau memiliki hasil.');
+                }
+
+                $lockedSettings = $lockedTournament->settings ?? [];
+                $lockedOverrides = $lockedSettings[\App\Services\GroupKnockoutBracketService::QUALIFIER_OVERRIDES_KEY] ?? [];
+                $lockedHistory = $lockedSettings[\App\Services\GroupKnockoutBracketService::QUALIFIER_HISTORY_KEY] ?? [];
+                $previousIds = $lockedOverrides[$groupName] ?? $automaticIds;
+                $previousNames = Team::query()->whereIn('id', $previousIds)->pluck('name', 'id')->all();
+
+                if ($validated['mode'] === 'manual') {
+                    $lockedOverrides[$groupName] = $nextIds;
+                } else {
+                    unset($lockedOverrides[$groupName]);
+                }
+
+                if ($lockedOverrides === []) {
+                    unset($lockedSettings[\App\Services\GroupKnockoutBracketService::QUALIFIER_OVERRIDES_KEY]);
+                } else {
+                    $lockedSettings[\App\Services\GroupKnockoutBracketService::QUALIFIER_OVERRIDES_KEY] = $lockedOverrides;
+                }
+
+                $lockedHistory[] = [
+                    'group' => $groupName,
+                    'mode' => $validated['mode'],
+                    'previous_team_ids' => array_values(array_map('intval', $previousIds)),
+                    'previous_team_names' => $previousNames,
+                    'selected_team_ids' => array_values(array_map('intval', $nextIds)),
+                    'selected_team_names' => $nextNames,
+                    'reason' => trim($validated['reason']),
+                    'admin_id' => auth()->id(),
+                    'admin_name' => auth()->user()?->name ?? 'Admin',
+                    'recorded_at' => now()->toIso8601String(),
+                ];
+                $lockedSettings[\App\Services\GroupKnockoutBracketService::QUALIFIER_HISTORY_KEY] = array_slice($lockedHistory, -200);
+                $lockedTournament->settings = $lockedSettings;
+                $lockedTournament->save();
+
+                if (!$bracketService->hasCompletedGroupStage($lockedTournament)) {
+                    return false;
+                }
+
+                if (!$bracketService->sync($lockedTournament, true)) {
+                    throw new \RuntimeException('Bagan knockout belum dapat diperbarui. Periksa jumlah tim yang lolos dan pilihan di setiap grup.');
+                }
+
+                return true;
+            });
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            return redirect()->to($qualifiersUrl)->withErrors($exception->errors())->withInput();
+        } catch (\Illuminate\Database\QueryException $exception) {
+            report($exception);
+
+            return redirect()->to($qualifiersUrl)
+                ->withErrors(['qualifiers' => 'Pilihan tim gagal disimpan. Coba simpan kembali.'])
+                ->withInput();
+        } catch (\RuntimeException $exception) {
+            return redirect()->to($qualifiersUrl)
+                ->withErrors(['qualifiers' => $exception->getMessage()])
+                ->withInput();
+        }
+
+        $message = $validated['mode'] === 'manual'
+            ? "Pilihan tim lolos Grup {$groupName} tersimpan."
+            : "Grup {$groupName} kembali mengikuti klasemen otomatis.";
+        $message .= $bracketUpdated
+            ? ' Bagan knockout sudah sesuai dengan pilihan terbaru.'
+            : ' Bagan knockout akan diperbarui setelah semua pertandingan grup selesai.';
+
+        return redirect()->to($qualifiersUrl)->with([
+            'success' => $message,
+            'qualifier_bracket_updated' => $bracketUpdated,
+        ]);
     }
 
     // Edit tournament

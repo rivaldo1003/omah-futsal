@@ -152,6 +152,26 @@
         .admin-tournament-show .tab-badge { min-width: 20px; justify-content: center; padding: 1px 6px; font-size: 11px; }
         .admin-tournament-show .tab-content { padding: 24px; }
         .admin-tournament-show .tab-content h6 { color: var(--show-ink); font-size: 15px; font-weight: 600; }
+        .admin-tournament-show .qualifier-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+        .admin-tournament-show .qualifier-card { min-width: 0; border: 1px solid var(--show-rule); border-radius: 8px; background: #fff; }
+        .admin-tournament-show .qualifier-card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 16px; border-bottom: 1px solid var(--show-rule); }
+        .admin-tournament-show .qualifier-card-header h3 { margin: 0; font-size: 16px; font-weight: 600; }
+        .admin-tournament-show .qualifier-card-body { padding: 16px; }
+        .admin-tournament-show .qualifier-state { display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+        .admin-tournament-show .qualifier-state.is-manual { background: #fff4df; color: #795000; }
+        .admin-tournament-show .qualifier-state.is-auto { background: #edf5ef; color: #17623b; }
+        .admin-tournament-show .qualifier-option { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--show-rule); cursor: pointer; }
+        .admin-tournament-show .qualifier-option:last-child { border-bottom: 0; }
+        .admin-tournament-show .qualifier-option input { margin-top: 4px; accent-color: var(--show-ink); }
+        .admin-tournament-show .qualifier-option-name { color: var(--show-ink); font-size: 14px; font-weight: 600; }
+        .admin-tournament-show .qualifier-option-meta { display: block; margin-top: 2px; color: var(--show-muted); font-size: 12px; }
+        .admin-tournament-show .qualifier-history-item { padding: 12px 0; border-bottom: 1px solid var(--show-rule); }
+        .admin-tournament-show .qualifier-history-item:last-child { border-bottom: 0; }
+        .admin-tournament-show .qualifier-history-item p { margin: 4px 0 0; color: var(--show-muted); font-size: 13px; }
+        @media (max-width: 767.98px) {
+            .admin-tournament-show .qualifier-grid { grid-template-columns: 1fr; }
+            .admin-tournament-show .tab-content { padding: 16px; }
+        }
         .admin-tournament-show .btn-group .btn {
             border-color: var(--show-rule);
             border-radius: 999px;
@@ -290,7 +310,7 @@
         </div>
     </div>
 
-    @if(session('success'))
+    @if(session('success') && !session()->has('qualifier_bracket_updated'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             <i class="bi bi-check-circle me-2"></i>
             {{ session('success') }}
@@ -369,6 +389,12 @@
                 <span>Pertandingan</span>
                 <span class="tab-badge">{{ $tournament->matches_count }}</span>
             </button>
+            @if($tournament->type === 'group_knockout')
+                <button class="tab-btn" data-tab="qualifiers">
+                    <i class="bi bi-check2-circle" aria-hidden="true"></i>
+                    <span>Tim lolos</span>
+                </button>
+            @endif
             @if($tournament->type === 'knockout')
                 <button class="tab-btn" data-tab="bracket">
                     <i class="bi bi-diagram-3"></i>
@@ -510,6 +536,145 @@
                     </div>
                 @endif
             </div>
+
+            @if($tournament->type === 'group_knockout')
+                <div id="qualifiers-tab" class="tab-pane" style="display: none;">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-3">
+                        <div>
+                            <h2 id="qualifiers" class="h5 mb-1" tabindex="-1">Penetapan tim lolos</h2>
+                            <p class="text-muted mb-0">Klasemen tetap dihitung otomatis. Panitia dapat menetapkan tim yang maju ke knockout per grup dan mencatat alasannya.</p>
+                        </div>
+                        <span class="badge rounded-pill text-bg-light border">{{ $tournament->qualify_per_group }} tim per grup</span>
+                    </div>
+
+                    @if(session('success'))
+                        <div class="alert alert-success" role="status">
+                            {{ session('success') }}
+                            @if(session('qualifier_bracket_updated'))
+                                <a class="alert-link d-inline-block ms-sm-2"
+                                    href="{{ route('standings', ['tournament_id' => $tournament->id]) }}#group-knockout-bracket-title">Lihat bagan knockout</a>
+                            @endif
+                        </div>
+                    @endif
+                    @if($errors->any())
+                        <div class="alert alert-danger" role="alert">
+                            <ul class="mb-0 ps-3">
+                                @foreach($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
+
+                    @if(!$qualifierStageReady)
+                        <div class="alert alert-info" role="status">
+                            Penetapan dibuka per grup setelah semua pertandingan di grup tersebut selesai. Bagan knockout diperbarui setelah seluruh grup selesai.
+                        </div>
+                    @endif
+                    @if($qualifierLocked)
+                        <div class="alert alert-warning" role="status">
+                            Penetapan dikunci karena pertandingan knockout sudah dimulai atau memiliki hasil. Klasemen dan riwayat pertandingan tetap dipertahankan.
+                        </div>
+                    @endif
+
+                    <div class="qualifier-grid">
+                        @foreach($qualifierGroups as $groupName => $groupStandings)
+                            @php
+                                $groupKey = strtoupper(trim((string) $groupName));
+                                $groupReady = (bool) ($qualifierReadyGroups[$groupKey] ?? false);
+                                $quota = max(1, (int) ($tournament->qualify_per_group ?? 2));
+                                $isManual = array_key_exists($groupKey, $qualifierOverrides);
+                                $automaticIds = $groupStandings->take($quota)->pluck('team_id')->map(fn ($id) => (int) $id)->all();
+                                $oldSelection = old('qualified_team_ids', []);
+                                $selectedIds = old('group') === $groupKey
+                                    ? (is_array($oldSelection) ? array_map('intval', $oldSelection) : [])
+                                    : ($qualifierOverrides[$groupKey] ?? $automaticIds);
+                            @endphp
+                            <section class="qualifier-card" aria-labelledby="qualifier-group-{{ $groupKey }}">
+                                <header class="qualifier-card-header">
+                                    <div>
+                                        <h3 id="qualifier-group-{{ $groupKey }}">Grup {{ $groupKey }}</h3>
+                                        <span class="text-muted small">Pilih {{ $quota }} tim untuk masuk ke knockout.</span>
+                                    </div>
+                                    <span class="qualifier-state {{ $isManual ? 'is-manual' : 'is-auto' }}">
+                                        <i class="bi {{ $isManual ? 'bi-person-check' : 'bi-bar-chart-line' }}" aria-hidden="true"></i>
+                                        {{ $isManual ? 'Pilihan panitia' : 'Klasemen otomatis' }}
+                                    </span>
+                                </header>
+                                <div class="qualifier-card-body">
+                                    @if(!$groupReady)
+                                        <div class="alert alert-light border py-2 small" role="status">
+                                            Selesaikan semua pertandingan Grup {{ $groupKey }} untuk membuka penetapan.
+                                        </div>
+                                    @endif
+                                    <form action="{{ route('admin.tournaments.qualifiers.update', $tournament) }}" method="POST" data-qualifier-form data-quota="{{ $quota }}">
+                                        @csrf
+                                        @method('PUT')
+                                        <input type="hidden" name="group" value="{{ $groupKey }}">
+
+                                        @foreach($groupStandings as $index => $standing)
+                                            @php $teamId = (int) $standing->team_id; @endphp
+                                            <label class="qualifier-option">
+                                                <input type="{{ $quota === 1 ? 'radio' : 'checkbox' }}" name="qualified_team_ids[]" value="{{ $teamId }}"
+                                                    {{ in_array($teamId, $selectedIds, true) ? 'checked' : '' }}
+                                                    {{ (!$groupReady || $qualifierLocked) ? 'disabled' : '' }}>
+                                                <span>
+                                                    <span class="qualifier-option-name">{{ $standing->team_name }}</span>
+                                                    <span class="qualifier-option-meta">Posisi {{ $index + 1 }} · {{ $standing->points }} poin · GD {{ $standing->goal_difference > 0 ? '+' : '' }}{{ $standing->goal_difference }}</span>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                        @if($quota > 1)
+                                            <p class="form-text mb-0" role="status" data-selection-help>Pilih tepat {{ $quota }} tim.</p>
+                                        @endif
+
+                                        <div class="mt-3">
+                                            <label class="form-label" for="qualifier-reason-{{ $groupKey }}">Alasan keputusan panitia</label>
+                                            <textarea class="form-control" id="qualifier-reason-{{ $groupKey }}" name="reason" rows="2" minlength="5" maxlength="500" required
+                                                placeholder="Contoh: keputusan panitia setelah pemeriksaan administrasi"
+                                                {{ (!$groupReady || $qualifierLocked) ? 'disabled' : '' }}>{{ old('group') === $groupKey ? old('reason') : '' }}</textarea>
+                                            <div class="form-text">Wajib diisi untuk perubahan manual maupun saat mengembalikan grup ke klasemen otomatis.</div>
+                                        </div>
+
+                                        <div class="d-flex flex-wrap gap-2 mt-3">
+                                            <button type="submit" name="mode" value="manual" class="btn btn-primary btn-sm" {{ (!$groupReady || $qualifierLocked) ? 'disabled' : '' }}>
+                                                <i class="bi bi-check2 me-1" aria-hidden="true"></i>Simpan pilihan panitia
+                                            </button>
+                                            @if($isManual)
+                                                <button type="submit" name="mode" value="automatic" class="btn btn-outline-secondary btn-sm" {{ (!$groupReady || $qualifierLocked) ? 'disabled' : '' }}>
+                                                    Kembali ke klasemen otomatis
+                                                </button>
+                                            @endif
+                                        </div>
+                                    </form>
+                                </div>
+                            </section>
+                        @endforeach
+                    </div>
+
+                    <p class="small text-muted mt-3 mb-0">Perubahan hanya mengatur peserta knockout dan tidak mengubah klasemen. Pilihan dari tiap grup disimpan saat itu juga; bracket baru dibuat atau disesuaikan setelah seluruh pertandingan grup selesai. Setelah pertandingan knockout pertama dimulai, penetapan dikunci agar hasil dan riwayat tetap aman.</p>
+
+                    @if(count($qualifierHistory) > 0)
+                        <details class="mt-4">
+                            <summary class="fw-semibold">Riwayat penetapan tim lolos ({{ count($qualifierHistory) }})</summary>
+                            <div class="mt-2">
+                                @foreach(array_slice($qualifierHistory, 0, 20) as $entry)
+                                    @php
+                                        $previousNames = collect($entry['previous_team_ids'] ?? [])->map(fn ($id) => $entry['previous_team_names'][$id] ?? $qualifierHistoryTeamNames->get((int) $id, 'Tim dihapus'))->implode(', ');
+                                        $selectedNames = collect($entry['selected_team_ids'] ?? [])->map(fn ($id) => $entry['selected_team_names'][$id] ?? $qualifierHistoryTeamNames->get((int) $id, 'Tim dihapus'))->implode(', ');
+                                    @endphp
+                                    <div class="qualifier-history-item">
+                                        <strong>Grup {{ $entry['group'] ?? '?' }}</strong>
+                                        <span class="text-muted">· {{ ($entry['mode'] ?? '') === 'manual' ? 'Pilihan panitia' : 'Kembali otomatis' }}</span>
+                                        <p>Sebelumnya: {{ $previousNames ?: 'Belum ada pilihan' }}. Dipilih: {{ $selectedNames ?: 'Mengikuti klasemen' }}.</p>
+                                        <p>Alasan: {{ $entry['reason'] ?? 'Tidak dicatat' }} · {{ $entry['admin_name'] ?? 'Admin' }} · {{ isset($entry['recorded_at']) ? \Carbon\Carbon::parse($entry['recorded_at'])->timezone(config('app.timezone'))->format('d M Y, H:i') : 'Waktu tidak tersedia' }}</p>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </details>
+                    @endif
+                </div>
+            @endif
 
             <!-- Tab pertandingan -->
             <div id="matches-tab" class="tab-pane" style="display: none;">
@@ -709,6 +874,37 @@
                     if (activePane) {
                         activePane.style.display = 'block';
                         activePane.classList.add('active');
+                    }
+                });
+            });
+
+            if (window.location.hash === '#qualifiers') {
+                document.querySelector('[data-tab="qualifiers"]')?.click();
+                document.getElementById('qualifiers')?.focus();
+            }
+
+            document.querySelectorAll('[data-qualifier-form]').forEach(form => {
+                const quota = Number(form.dataset.quota || 0);
+                const help = form.querySelector('[data-selection-help]');
+                if (!help) return;
+
+                const checkboxes = Array.from(form.querySelectorAll('input[name="qualified_team_ids[]"]'));
+                const updateSelectionHelp = () => {
+                    const selected = checkboxes.filter(input => input.checked).length;
+                    const valid = selected === quota;
+                    help.textContent = valid
+                        ? `Tepat ${quota} tim dipilih.`
+                        : `Pilih tepat ${quota} tim. Saat ini ${selected} tim dipilih.`;
+                    help.classList.toggle('text-danger', !valid);
+                };
+
+                checkboxes.forEach(input => input.addEventListener('change', updateSelectionHelp));
+                updateSelectionHelp();
+                form.addEventListener('submit', event => {
+                    if (event.submitter?.value === 'manual' && checkboxes.filter(input => input.checked).length !== quota) {
+                        event.preventDefault();
+                        updateSelectionHelp();
+                        checkboxes.find(input => !input.disabled)?.focus();
                     }
                 });
             });

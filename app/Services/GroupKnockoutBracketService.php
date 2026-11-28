@@ -14,6 +14,73 @@ class GroupKnockoutBracketService
     public const READY_KEY = 'group_knockout_bracket_ready';
     public const QUALIFIERS_KEY = 'group_knockout_qualifier_ids';
     public const SNAPSHOT_KEY = 'group_knockout_bracket_snapshot';
+    public const QUALIFIER_OVERRIDES_KEY = 'group_knockout_qualifier_overrides';
+    public const QUALIFIER_HISTORY_KEY = 'group_knockout_qualifier_history';
+
+    public function hasCompletedGroupStage(Tournament $tournament): bool
+    {
+        return $tournament->type === 'group_knockout'
+            && $this->completedGroupStage($tournament, false) !== null;
+    }
+
+    public function hasCompletedGroup(Tournament $tournament, string $groupName): bool
+    {
+        if ($tournament->type !== 'group_knockout') {
+            return false;
+        }
+
+        $groupName = strtoupper(trim($groupName));
+        $teamIds = $tournament->teams()
+            ->withPivot('group_name')
+            ->get(['teams.id'])
+            ->filter(fn ($team) => strtoupper(trim((string) $team->pivot->group_name)) === $groupName)
+            ->pluck('id')
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        if (count($teamIds) < 2) {
+            return false;
+        }
+
+        $expectedFixtures = [];
+        for ($i = 0; $i < count($teamIds) - 1; $i++) {
+            for ($j = $i + 1; $j < count($teamIds); $j++) {
+                $expectedFixtures[$this->pairKey($teamIds[$i], $teamIds[$j])] = true;
+            }
+        }
+
+        $matches = Game::query()
+            ->where('tournament_id', $tournament->id)
+            ->where('round_type', 'group')
+            ->whereRaw('UPPER(TRIM(group_name)) = ?', [$groupName])
+            ->get();
+
+        if (count($expectedFixtures) === 0 || $matches->count() !== count($expectedFixtures)) {
+            return false;
+        }
+
+        $seenFixtures = [];
+        foreach ($matches as $match) {
+            $homeId = (int) $match->team_home_id;
+            $awayId = (int) $match->team_away_id;
+            $fixtureKey = $this->pairKey($homeId, $awayId);
+
+            if ($match->is_cancelled
+                || $match->status !== 'completed'
+                || $match->home_score === null
+                || $match->away_score === null
+                || $homeId === $awayId
+                || !isset($expectedFixtures[$fixtureKey])
+                || isset($seenFixtures[$fixtureKey])) {
+                return false;
+            }
+
+            $seenFixtures[$fixtureKey] = true;
+        }
+
+        return count($seenFixtures) === count($expectedFixtures);
+    }
 
     public function sync(Tournament $tournament, bool $strict = false): bool
     {
@@ -31,6 +98,15 @@ class GroupKnockoutBracketService
             $stage = $this->completedGroupStage($lockedTournament);
 
             if (!$stage) {
+                if (!empty($lockedTournament->settings[self::QUALIFIER_OVERRIDES_KEY])
+                    && $this->hasCompletedGroupStage($lockedTournament)) {
+                    if ($strict) {
+                        throw new \RuntimeException('Bagan knockout belum dapat diperbarui. Periksa jumlah tim yang lolos dan pilihan di setiap grup.');
+                    }
+
+                    return $hasBracket;
+                }
+
                 if (!$hasBracket) {
                     $this->removeSafeLegacyPlaceholders($lockedTournament, $draw);
                     return false;
@@ -92,8 +168,21 @@ class GroupKnockoutBracketService
                 StandingService::recalculateAllStandings($lockedTournament->id);
             }
 
-            $this->purgeGeneratedBracket($lockedTournament, $draw);
-            $this->createSeededSlots($lockedTournament, $qualifiers);
+            if ($hasBracket) {
+                if (!($settings[self::READY_KEY] ?? false)) {
+                    if ($strict) {
+                        throw new \RuntimeException('Bracket yang sudah ada tidak dikenali sebagai bracket otomatis fase grup. Jadwal tidak diubah.');
+                    }
+
+                    return false;
+                }
+
+                if (!$this->replaceGeneratedBracketSlots($lockedTournament, $qualifiers)) {
+                    throw new \RuntimeException('Struktur bracket tersimpan tidak cocok dengan jumlah tim lolos. Jadwal tidak diubah; hubungi admin sistem untuk pemeriksaan.');
+                }
+            } else {
+                $this->createSeededSlots($lockedTournament, $qualifiers);
+            }
 
             $settings = $lockedTournament->settings ?? [];
             $size = count(KnockoutSlot::where('tournament_id', $lockedTournament->id)
@@ -105,7 +194,7 @@ class GroupKnockoutBracketService
             $settings['draw_status'] = KnockoutDrawService::DRAW_COMPLETED;
             $settings['draw_bracket_size'] = $size;
             $settings['draw_bracket_capacity'] = $size;
-            $settings['draw_created_at'] = now()->toIso8601String();
+            $settings['draw_created_at'] ??= now()->toIso8601String();
             $settings['draw_completed_at'] = now()->toIso8601String();
             $lockedTournament->settings = $settings;
             $lockedTournament->save();
@@ -117,7 +206,7 @@ class GroupKnockoutBracketService
     }
 
     /** Return qualifiers and a stable fingerprint only when the entire round robin is complete. */
-    private function completedGroupStage(Tournament $tournament): ?array
+    private function completedGroupStage(Tournament $tournament, bool $applyOverrides = true): ?array
     {
         $teams = $tournament->teams()
             ->withPivot('group_name')
@@ -272,6 +361,9 @@ class GroupKnockoutBracketService
         }
 
         $qualifiers = [];
+        $overrides = $applyOverrides
+            ? ($tournament->settings[self::QUALIFIER_OVERRIDES_KEY] ?? [])
+            : [];
         foreach ($stats as $groupName => $groupStats) {
             $rows = array_values($groupStats);
             usort($rows, function (array $a, array $b) use ($groupMatches, $tournament) {
@@ -301,7 +393,22 @@ class GroupKnockoutBracketService
                 return $nameCompare !== 0 ? $nameCompare : ($a['team_id'] <=> $b['team_id']);
             });
 
-            foreach (array_slice($rows, 0, $qualifyPerGroup) as $position => $standing) {
+            $selectedTeamIds = $overrides[$groupName] ?? null;
+            if ($selectedTeamIds !== null) {
+                $selectedTeamIds = array_values(array_unique(array_map('intval', (array) $selectedTeamIds)));
+                $groupTeamIds = array_column($rows, 'team_id');
+                if (count($selectedTeamIds) !== $qualifyPerGroup
+                    || count(array_intersect($selectedTeamIds, $groupTeamIds)) !== $qualifyPerGroup) {
+                    return null;
+                }
+
+                $selectedSet = array_fill_keys($selectedTeamIds, true);
+                $selectedRows = array_values(array_filter($rows, fn (array $row) => isset($selectedSet[$row['team_id']])));
+            } else {
+                $selectedRows = array_slice($rows, 0, $qualifyPerGroup);
+            }
+
+            foreach ($selectedRows as $position => $standing) {
                 $qualifiers[] = $standing + [
                     'group_position' => $position + 1,
                     'group_name' => (string) $groupName,
@@ -383,54 +490,12 @@ class GroupKnockoutBracketService
 
     private function createSeededSlots(Tournament $tournament, array $qualifiers): void
     {
-        $teamCount = count($qualifiers);
-        $size = 2;
-        while ($size < $teamCount) {
-            $size *= 2;
-        }
-        if ($size > 64) {
-            throw new \RuntimeException('Bracket group + knockout mendukung maksimal 64 slot.');
-        }
-
-        $matchCount = intdiv($size, 2);
-        $byeCount = $size - $teamCount;
-        $byeMatchIndexes = [];
-        for ($i = 0; $i < $byeCount; $i++) {
-            $byeMatchIndexes[] = (int) floor(($i * $matchCount) / max(1, $byeCount));
-        }
-
-        $nextTeamIndex = 0;
-        $openMatches = [];
-        for ($matchIndex = 0; $matchIndex < $matchCount; $matchIndex++) {
-            if (in_array($matchIndex, $byeMatchIndexes, true)) {
-                $this->createFirstRoundSlot($tournament, $matchIndex, 'home', $qualifiers[$nextTeamIndex++]['team_id'], false);
-                $this->createFirstRoundSlot($tournament, $matchIndex, 'away', null, true);
-            } else {
-                $openMatches[] = $matchIndex;
+        $plan = $this->seededFirstRoundPlan($qualifiers);
+        $size = $plan['size'];
+        foreach ($plan['slots'] as $matchIndex => $sides) {
+            foreach ($sides as $side => $slot) {
+                $this->createFirstRoundSlot($tournament, $matchIndex, $side, $slot['team_id'], $slot['bye']);
             }
-        }
-
-        $remaining = array_slice($qualifiers, $nextTeamIndex);
-        foreach ($openMatches as $matchIndex) {
-            if (count($remaining) < 2) {
-                throw new \RuntimeException('Peserta lolos tidak dapat dipasangkan dengan benar pada bracket.');
-            }
-
-            $home = array_shift($remaining);
-            $awayIndex = count($remaining) - 1;
-            foreach ($remaining as $index => $candidate) {
-                if ($candidate['group_name'] !== $home['group_name']) {
-                    $awayIndex = $index;
-                }
-            }
-            $away = array_splice($remaining, $awayIndex, 1)[0];
-
-            $this->createFirstRoundSlot($tournament, $matchIndex, 'home', $home['team_id'], false);
-            $this->createFirstRoundSlot($tournament, $matchIndex, 'away', $away['team_id'], false);
-        }
-
-        if ($remaining !== []) {
-            throw new \RuntimeException('Sebagian peserta lolos tidak mendapat slot bracket.');
         }
 
         $rounds = (int) round(log($size, 2));
@@ -451,6 +516,118 @@ class GroupKnockoutBracketService
                 }
             }
         }
+    }
+
+    /** Keep fixture rows and their scheduled dates while replacing qualifier participants. */
+    private function replaceGeneratedBracketSlots(Tournament $tournament, array $qualifiers): bool
+    {
+        $plan = $this->seededFirstRoundPlan($qualifiers);
+        $firstRound = KnockoutSlot::query()
+            ->where('tournament_id', $tournament->id)
+            ->where('round_number', 1)
+            ->get()
+            ->keyBy(fn (KnockoutSlot $slot) => $slot->match_index.'-'.$slot->side);
+
+        if ($firstRound->count() !== $plan['size']) {
+            return false;
+        }
+
+        foreach ($plan['slots'] as $matchIndex => $sides) {
+            foreach ($sides as $side => $slot) {
+                if (!$firstRound->has($matchIndex.'-'.$side)) {
+                    return false;
+                }
+            }
+        }
+
+        foreach ($plan['slots'] as $matchIndex => $sides) {
+            foreach ($sides as $side => $slot) {
+                $record = $firstRound->get($matchIndex.'-'.$side);
+                $record->update([
+                    'slot_number' => ($matchIndex * 2) + ($side === 'home' ? 1 : 2),
+                    'team_id' => $slot['team_id'],
+                    'source' => $slot['bye'] ? KnockoutSlot::SOURCE_BYE : KnockoutSlot::SOURCE_DRAW,
+                    'source_match_id' => null,
+                    'status' => $slot['team_id'] ? KnockoutSlot::STATUS_FILLED : KnockoutSlot::STATUS_EMPTY,
+                    'result' => $slot['bye'] ? KnockoutSlot::RESULT_BYE : KnockoutSlot::RESULT_PENDING,
+                ]);
+            }
+        }
+
+        KnockoutSlot::query()
+            ->where('tournament_id', $tournament->id)
+            ->where('round_number', '>', 1)
+            ->update([
+                'team_id' => null,
+                'source' => KnockoutSlot::SOURCE_WINNER,
+                'source_match_id' => null,
+                'status' => KnockoutSlot::STATUS_EMPTY,
+                'result' => KnockoutSlot::RESULT_PENDING,
+            ]);
+
+        return true;
+    }
+
+    /** @return array{size:int, slots:array<int, array<string, array{team_id:?int, bye:bool}>>} */
+    private function seededFirstRoundPlan(array $qualifiers): array
+    {
+        $teamCount = count($qualifiers);
+        $size = 2;
+        while ($size < $teamCount) {
+            $size *= 2;
+        }
+        if ($size > 64) {
+            throw new \RuntimeException('Bracket group + knockout mendukung maksimal 64 slot.');
+        }
+
+        $matchCount = intdiv($size, 2);
+        $byeCount = $size - $teamCount;
+        $byeMatchIndexes = [];
+        for ($i = 0; $i < $byeCount; $i++) {
+            $byeMatchIndexes[] = (int) floor(($i * $matchCount) / max(1, $byeCount));
+        }
+
+        $slots = [];
+        $nextTeamIndex = 0;
+        $openMatches = [];
+        for ($matchIndex = 0; $matchIndex < $matchCount; $matchIndex++) {
+            if (in_array($matchIndex, $byeMatchIndexes, true)) {
+                $slots[$matchIndex] = [
+                    'home' => ['team_id' => (int) $qualifiers[$nextTeamIndex++]['team_id'], 'bye' => false],
+                    'away' => ['team_id' => null, 'bye' => true],
+                ];
+            } else {
+                $openMatches[] = $matchIndex;
+            }
+        }
+
+        $remaining = array_slice($qualifiers, $nextTeamIndex);
+        foreach ($openMatches as $matchIndex) {
+            if (count($remaining) < 2) {
+                throw new \RuntimeException('Peserta lolos tidak dapat dipasangkan dengan benar pada bracket.');
+            }
+
+            $home = array_shift($remaining);
+            $awayIndex = count($remaining) - 1;
+            foreach ($remaining as $index => $candidate) {
+                if ($candidate['group_name'] !== $home['group_name']) {
+                    $awayIndex = $index;
+                }
+            }
+            $away = array_splice($remaining, $awayIndex, 1)[0];
+            $slots[$matchIndex] = [
+                'home' => ['team_id' => (int) $home['team_id'], 'bye' => false],
+                'away' => ['team_id' => (int) $away['team_id'], 'bye' => false],
+            ];
+        }
+
+        if ($remaining !== []) {
+            throw new \RuntimeException('Sebagian peserta lolos tidak mendapat slot bracket.');
+        }
+
+        ksort($slots);
+
+        return ['size' => $size, 'slots' => $slots];
     }
 
     private function createFirstRoundSlot(Tournament $tournament, int $matchIndex, string $side, ?int $teamId, bool $bye): void
