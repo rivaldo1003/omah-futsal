@@ -74,8 +74,21 @@
                             // ── Recent form dots ──
                             $recentForm = isset($team->recent_form) ? $team->recent_form : [];
 
-                            // Highlight the league leader, or the top two group positions.
-                            $isTop = $selectedTournament->type === 'league' ? $index === 0 : $index < 2;
+                            // Highlight qualifying positions using the tournament's configured quota.
+                            $qualifyingPlaces = $selectedTournament->type === 'group_knockout'
+                                ? max(1, (int) ($selectedTournament->qualify_per_group ?? 2))
+                                : 2;
+                            $groupKey = strtoupper(trim((string) $group));
+                            $manualQualifierIds = $selectedTournament->settings['group_knockout_qualifier_overrides'][$groupKey] ?? null;
+                            $teamId = (int) ($team->team_id ?? ($team->team->id ?? 0));
+                            $manualQualifier = $selectedTournament->type === 'group_knockout'
+                                && is_array($manualQualifierIds)
+                                && in_array($teamId, array_map('intval', $manualQualifierIds), true);
+                            $isTop = $selectedTournament->type === 'league'
+                                ? $index === 0
+                                : ($selectedTournament->type === 'group_knockout' && is_array($manualQualifierIds)
+                                    ? $manualQualifier
+                                    : $index < $qualifyingPlaces);
                         @endphp
 
                         <tr class="{{ $isTop ? 'v3-sg-row--top' : '' }}">
@@ -115,6 +128,9 @@
 
                                     <div>
                                         <div class="standings-team-name v3-sg-name">{{ Str::limit($teamName, 20) }}</div>
+                                        @if($manualQualifier)
+                                            <span class="badge rounded-pill text-bg-warning">Pilihan panitia</span>
+                                        @endif
                                         @if(($team->played ?? 0) > 0)
                                             <div class="standings-team-meta">{{ $team->played }} laga</div>
                                         @endif

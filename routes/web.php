@@ -219,6 +219,8 @@ Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () 
     Route::post('tournaments/{tournament}/feature', [TournamentController::class, 'toggleFeatured'])->name('tournaments.feature');
     Route::post('tournaments/{tournament}/draw', [TournamentController::class, 'drawKnockout'])->name('tournaments.draw');
     Route::post('tournaments/{tournament}/activate', [TournamentController::class, 'activate'])->name('tournaments.activate');
+    Route::put('tournaments/{tournament}/qualifiers', [TournamentController::class, 'updateGroupQualifiers'])
+        ->name('tournaments.qualifiers.update');
 
     // ========== KNOCKOUT DRAW (Bracket + Undi Slot) ==========
     // Bracket = struktur; Draw = posisi tim; Result = pemenang maju.
