@@ -6,6 +6,7 @@ use App\Models\Game;
 use App\Models\Standing;
 use App\Models\Team;
 use App\Models\Tournament;
+use App\Services\GroupKnockoutBracketService;
 use App\Support\BusinessTime;
 use Carbon\CarbonImmutable;
 use Illuminate\Http\Request;
@@ -823,10 +824,11 @@ class TournamentController extends Controller
         $qualifierReadyGroups = [];
         $qualifierLocked = false;
         $qualifierHistoryTeamNames = collect();
+        $bracketEditor = null;
 
         if ($tournament->type === 'group_knockout') {
             $qualifierGroups = app(\App\Services\TournamentStandingsService::class)->grouped($tournament);
-            $qualifierService = app(\App\Services\GroupKnockoutBracketService::class);
+            $qualifierService = app(GroupKnockoutBracketService::class);
             $qualifierStageReady = $qualifierService->hasCompletedGroupStage($tournament);
             foreach ($qualifierGroups->keys() as $groupName) {
                 $groupKey = strtoupper(trim((string) $groupName));
@@ -834,6 +836,9 @@ class TournamentController extends Controller
             }
             $qualifierLocked = app(\App\Services\KnockoutDrawService::class)
                 ->hasStartedKnockoutMatches($tournament);
+            if (auth()->user()?->role === 'admin') {
+                $bracketEditor = $qualifierService->firstRoundEditor($tournament);
+            }
             $historyTeamIds = collect($qualifierHistory)
                 ->flatMap(fn ($entry) => array_merge(
                     $entry['previous_team_ids'] ?? [],
@@ -857,8 +862,58 @@ class TournamentController extends Controller
             'qualifierStageReady',
             'qualifierReadyGroups',
             'qualifierLocked',
-            'qualifierHistoryTeamNames'
+            'qualifierHistoryTeamNames',
+            'bracketEditor'
         ));
+    }
+
+    public function updateGroupBracketOrder(
+        Request $request,
+        Tournament $tournament,
+        GroupKnockoutBracketService $brackets
+    ) {
+        abort_unless(auth()->user()?->role === 'admin', 403);
+        abort_unless($tournament->type === 'group_knockout', 404);
+
+        $editorUrl = route('admin.tournaments.show', $tournament).'#bracket-order';
+        $validator = Validator::make($request->all(), [
+            'mode' => 'required|in:manual,automatic',
+            'slots' => 'exclude_unless:mode,manual|required|array|list|max:64',
+            'slots.*' => 'required|string|distinct|max:5',
+        ], [
+            'slots.required' => 'Lengkapi semua posisi tim lolos agar bagan bisa disimpan.',
+            'slots.*.distinct' => 'Setiap asal tim lolos hanya boleh dipakai sekali.',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect()->to($editorUrl)->withErrors($validator, 'bracketOrder')->withInput();
+        }
+
+        $validated = $validator->validated();
+        $manual = $validated['mode'] === 'manual';
+
+        try {
+            $updated = $brackets->saveFirstRoundOrder($tournament, $manual ? $validated['slots'] : null);
+        } catch (\Illuminate\Validation\ValidationException $exception) {
+            return redirect()->to($editorUrl)->withErrors($exception->errors(), 'bracketOrder')->withInput();
+        } catch (\Illuminate\Database\QueryException $exception) {
+            report($exception);
+
+            return redirect()->to($editorUrl)
+                ->withErrors(['slots' => 'Bagan gagal disimpan. Coba simpan kembali.'], 'bracketOrder')
+                ->withInput();
+        } catch (\RuntimeException $exception) {
+            return redirect()->to($editorUrl)
+                ->withErrors(['slots' => $exception->getMessage()], 'bracketOrder')
+                ->withInput();
+        }
+
+        $message = $manual ? 'Susunan panitia tersimpan.' : 'Bagan kembali mengikuti susunan otomatis.';
+        $message .= $updated
+            ? ' Bagan knockout sudah diperbarui.'
+            : ' Bagan akan dibuat setelah semua pertandingan grup selesai.';
+
+        return redirect()->to($editorUrl)->with('bracket_order_success', $message);
     }
 
     public function updateGroupQualifiers(Request $request, Tournament $tournament)

@@ -395,6 +395,12 @@
                     <span>Tim lolos</span>
                 </button>
             @endif
+            @if($bracketEditor)
+                <button class="tab-btn" data-tab="bracket-order">
+                    <i class="bi bi-diagram-3" aria-hidden="true"></i>
+                    <span>Susun bagan</span>
+                </button>
+            @endif
             @if($tournament->type === 'knockout')
                 <button class="tab-btn" data-tab="bracket">
                     <i class="bi bi-diagram-3"></i>
@@ -676,6 +682,12 @@
                 </div>
             @endif
 
+            @if($bracketEditor)
+                <div id="bracket-order-tab" class="tab-pane" style="display: none;">
+                    @include('admin.tournaments.partials.bracket-order')
+                </div>
+            @endif
+
             <!-- Tab pertandingan -->
             <div id="matches-tab" class="tab-pane" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
@@ -878,10 +890,20 @@
                 });
             });
 
-            if (window.location.hash === '#qualifiers') {
-                document.querySelector('[data-tab="qualifiers"]')?.click();
-                document.getElementById('qualifiers')?.focus();
+            const activeHash = window.location.hash.slice(1);
+            if (['qualifiers', 'bracket-order'].includes(activeHash)) {
+                document.querySelector(`[data-tab="${activeHash}"]`)?.click();
+                document.getElementById(activeHash)?.focus();
             }
+
+            document.querySelector('[data-bracket-sequential]')?.addEventListener('click', event => {
+                const selects = event.currentTarget.form.querySelectorAll('select[name="slots[]"]');
+                const sources = Array.from(selects[0].options, option => option.value);
+                selects.forEach((select, index) => {
+                    select.value = sources[index];
+                });
+                selects[0].focus();
+            });
 
             document.querySelectorAll('[data-qualifier-form]').forEach(form => {
                 const quota = Number(form.dataset.quota || 0);

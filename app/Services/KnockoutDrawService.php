@@ -692,7 +692,7 @@ class KnockoutDrawService
                 'group_name' => null,
             ]);
         } else {
-            $this->syncMatchParticipants($match, $homeTeamId, $awayTeamId);
+            $this->syncMatchParticipants($match, $homeTeamId, $awayTeamId, $tournament->type === 'group_knockout');
         }
 
         // Tautkan kedua slot leaf ke pertandingan ini
@@ -785,7 +785,7 @@ class KnockoutDrawService
         // diketahui, meski pemenang dari pertandingan pasangannya belum ada.
         if (!$home->team_id || !$away->team_id) {
             if ($match) {
-                $this->syncMatchParticipants($match, $home->team_id, $away->team_id);
+                $this->syncMatchParticipants($match, $home->team_id, $away->team_id, $tournament->type === 'group_knockout');
                 $this->linkMatchSlots($home, $away, $match);
             }
 
@@ -806,7 +806,7 @@ class KnockoutDrawService
                 'group_name' => null,
             ]);
         } else {
-            $this->syncMatchParticipants($match, $home->team_id, $away->team_id);
+            $this->syncMatchParticipants($match, $home->team_id, $away->team_id, $tournament->type === 'group_knockout');
         }
 
         $this->linkMatchSlots($home, $away, $match);
@@ -1284,7 +1284,12 @@ class KnockoutDrawService
         $this->syncMatchParticipants($thirdPlaceMatch, $homeTeamId, $awayTeamId);
     }
 
-    private function syncMatchParticipants(Game $match, ?int $homeTeamId, ?int $awayTeamId): void
+    private function syncMatchParticipants(
+        Game $match,
+        ?int $homeTeamId,
+        ?int $awayTeamId,
+        bool $groupKnockout = false
+    ): void
     {
         $participantsChanged = (int) $match->team_home_id !== (int) $homeTeamId
             || (int) $match->team_away_id !== (int) $awayTeamId;
@@ -1300,6 +1305,12 @@ class KnockoutDrawService
             if ($hasRecordedResult) {
                 throw new \RuntimeException('Peserta fixture tidak dapat diganti karena pertandingan sudah dimulai atau memiliki hasil/event.');
             }
+
+            if ($groupKnockout && DB::table('match_player')->where('match_id', $match->id)->exists()) {
+                throw \Illuminate\Validation\ValidationException::withMessages([
+                    'participants' => 'Peserta pertandingan tidak dapat diganti karena susunan pemain sudah dicatat.',
+                ]);
+            }
         }
 
         $attributes = [
@@ -1307,7 +1318,7 @@ class KnockoutDrawService
             'team_away_id' => $awayTeamId,
         ];
 
-        if ($participantsChanged && $match->status !== 'upcoming') {
+        if ($participantsChanged && $match->status !== 'upcoming' && !$groupKnockout) {
             $attributes['status'] = 'upcoming';
         }
 
@@ -1418,7 +1429,7 @@ class KnockoutDrawService
                         ]);
                         $created++;
                     } else {
-                        $this->syncMatchParticipants($match, $home->team_id, $away->team_id);
+                        $this->syncMatchParticipants($match, $home->team_id, $away->team_id, $tournament->type === 'group_knockout');
                     }
 
                     foreach ([$home, $away] as $slot) {
@@ -1545,7 +1556,7 @@ class KnockoutDrawService
         });
     }
 
-    public function hasStartedKnockoutMatches(Tournament $tournament): bool
+    public function hasStartedKnockoutMatches(Tournament $tournament, bool $lockMatches = false): bool
     {
         $matches = Game::where('tournament_id', $tournament->id)
             ->whereNull('group_name')
@@ -1553,6 +1564,7 @@ class KnockoutDrawService
                 'round_of_64', 'round_of_32', 'round_of_16', 'quarterfinal',
                 'semifinal', 'final', 'third_place', 'knockout',
             ])
+            ->when($lockMatches, fn ($query) => $query->lockForUpdate())
             ->get();
 
         return $matches->contains(fn (Game $match) => in_array($match->status, ['ongoing', 'completed'], true)

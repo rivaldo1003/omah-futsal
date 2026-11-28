@@ -7,6 +7,7 @@ use App\Models\KnockoutSlot;
 use App\Models\Tournament;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 /** Builds and protects the knockout phase of a group + knockout tournament. */
 class GroupKnockoutBracketService
@@ -16,6 +17,134 @@ class GroupKnockoutBracketService
     public const SNAPSHOT_KEY = 'group_knockout_bracket_snapshot';
     public const QUALIFIER_OVERRIDES_KEY = 'group_knockout_qualifier_overrides';
     public const QUALIFIER_HISTORY_KEY = 'group_knockout_qualifier_history';
+    public const FIRST_ROUND_ORDER_KEY = 'group_knockout_first_round_order';
+
+    public function firstRoundEditor(Tournament $tournament): ?array
+    {
+        $sources = $this->configuredQualifierSources($tournament);
+        if ($sources === []) {
+            return null;
+        }
+
+        $stage = $this->completedGroupStage($tournament);
+        $qualifiers = $stage[0] ?? $sources;
+        $plan = $this->firstRoundPlan($tournament, $qualifiers);
+        $fixtures = KnockoutSlot::query()
+            ->where('tournament_id', $tournament->id)
+            ->where('round_number', 1)
+            ->whereNotNull('match_id')
+            ->with('match:id,match_date,time_start,time_end,venue')
+            ->get()
+            ->keyBy('match_index')
+            ->map->match;
+
+        return [
+            'sources' => array_column($qualifiers, null, 'source'),
+            'matches' => $plan['slots'],
+            'manual' => $plan['manual'],
+            'fixtures' => $fixtures,
+            'configured' => ($tournament->settings[self::READY_KEY] ?? false) && $fixtures->isNotEmpty(),
+        ];
+    }
+
+    public function saveFirstRoundOrder(Tournament $tournament, ?array $order): bool
+    {
+        return DB::transaction(function () use ($tournament, $order): bool {
+            $locked = Tournament::query()->whereKey($tournament->id)->lockForUpdate()->firstOrFail();
+            $sources = $this->configuredQualifierSources($locked);
+            if ($sources === []) {
+                throw new \RuntimeException('Lengkapi pengaturan grup dan jumlah tim yang lolos sebelum menyusun bagan.');
+            }
+
+            $draw = app(KnockoutDrawService::class);
+            if ($locked->status === 'completed' || $draw->hasStartedKnockoutMatches($locked, lockMatches: true)) {
+                throw new \RuntimeException('Susunan bagan terkunci karena laga knockout sudah dimulai, memiliki hasil, atau turnamen sudah selesai.');
+            }
+
+            if ($order !== null && !$this->usesAllSourcesOnce($order, $sources)) {
+                throw new \RuntimeException('Isi setiap posisi dengan asal tim lolos yang berbeda. Setiap asal tim harus dipakai tepat sekali.');
+            }
+
+            $hasBracket = $draw->hasBracket($locked);
+            $settings = $locked->settings ?? [];
+            $groupStageReady = $this->hasCompletedGroupStage($locked);
+            if ($hasBracket && !($settings[self::READY_KEY] ?? false)) {
+                throw new \RuntimeException('Susunan hanya bisa diubah pada bagan otomatis dari fase grup.');
+            }
+
+            if (!$hasBracket && $locked->matches()->whereNull('group_name')
+                ->whereNotIn('round_type', ['group', 'league', 'friendly'])->exists()) {
+                throw new \RuntimeException('Ada pertandingan knockout lama yang belum terhubung dengan bagan. Periksa jadwal yang sudah ada sebelum menyusun bagan.');
+            }
+
+            if ($hasBracket && !$groupStageReady) {
+                throw new \RuntimeException('Selesaikan semua pertandingan grup sebelum mengubah bagan yang sudah terbentuk.');
+            }
+
+            if ($order === null) {
+                unset($settings[self::FIRST_ROUND_ORDER_KEY]);
+            } else {
+                $settings[self::FIRST_ROUND_ORDER_KEY] = $order;
+            }
+
+            $locked->settings = $settings;
+            $locked->save();
+
+            if (!$groupStageReady) {
+                return false;
+            }
+
+            if (!$this->sync($locked, true)) {
+                throw new \RuntimeException('Bagan belum dapat diperbarui. Periksa jumlah tim lolos dan hasil pertandingan grup.');
+            }
+
+            return true;
+        }, 3);
+    }
+
+    private function configuredQualifierSources(Tournament $tournament): array
+    {
+        $groups = $tournament->groups;
+        $quota = (int) ($tournament->qualify_per_group ?? 2);
+        $teamCount = count($groups) * $quota;
+        if ($tournament->type !== 'group_knockout'
+            || count($groups) > 8
+            || $quota < 1
+            || $quota > (int) ($tournament->teams_per_group ?? 4)
+            || $teamCount < 2
+            || $teamCount > 64) {
+            return [];
+        }
+
+        $sources = [];
+        for ($position = 1; $position <= $quota; $position++) {
+            foreach ($groups as $group) {
+                $sources[] = [
+                    'source' => $group.':'.$position,
+                    'group_name' => $group,
+                    'group_position' => $position,
+                    'team_id' => null,
+                ];
+            }
+        }
+
+        return $sources;
+    }
+
+    private function usesAllSourcesOnce(array $order, array $qualifiers): bool
+    {
+        if (!array_is_list($order)
+            || count($order) !== count($qualifiers)
+            || array_filter($order, 'is_string') !== $order) {
+            return false;
+        }
+
+        $expected = array_column($qualifiers, 'source');
+        sort($expected, SORT_STRING);
+        sort($order, SORT_STRING);
+
+        return $order === $expected;
+    }
 
     public function hasCompletedGroupStage(Tournament $tournament): bool
     {
@@ -88,7 +217,7 @@ class GroupKnockoutBracketService
             return false;
         }
 
-        return DB::transaction(function () use ($tournament, $strict) {
+        $synchronize = function () use ($tournament, $strict): bool {
             $lockedTournament = Tournament::query()
                 ->whereKey($tournament->id)
                 ->lockForUpdate()
@@ -126,6 +255,10 @@ class GroupKnockoutBracketService
 
             [$qualifiers, $fingerprint] = $stage;
             $settings = $lockedTournament->settings ?? [];
+            $plan = $this->firstRoundPlan($lockedTournament, $qualifiers);
+            if ($plan['manual']) {
+                $fingerprint = hash('sha256', $fingerprint.'|'.implode('|', $settings[self::FIRST_ROUND_ORDER_KEY]));
+            }
             $sameSnapshot = ($settings[self::SNAPSHOT_KEY] ?? null) === $fingerprint;
 
             if ($hasBracket && $sameSnapshot && $draw->isDrawComplete($lockedTournament)) {
@@ -177,11 +310,11 @@ class GroupKnockoutBracketService
                     return false;
                 }
 
-                if (!$this->replaceGeneratedBracketSlots($lockedTournament, $qualifiers)) {
+                if (!$this->replaceGeneratedBracketSlots($lockedTournament, $plan)) {
                     throw new \RuntimeException('Struktur bracket tersimpan tidak cocok dengan jumlah tim lolos. Jadwal tidak diubah; hubungi admin sistem untuk pemeriksaan.');
                 }
             } else {
-                $this->createSeededSlots($lockedTournament, $qualifiers);
+                $this->createSeededSlots($lockedTournament, $plan);
             }
 
             $settings = $lockedTournament->settings ?? [];
@@ -202,7 +335,17 @@ class GroupKnockoutBracketService
             $draw->generateAllMatches($lockedTournament);
 
             return true;
-        });
+        };
+
+        try {
+            return DB::transaction($synchronize);
+        } catch (ValidationException $exception) {
+            if ($strict) {
+                throw $exception;
+            }
+
+            return app(KnockoutDrawService::class)->hasBracket($tournament);
+        }
     }
 
     /** Return qualifiers and a stable fingerprint only when the entire round robin is complete. */
@@ -410,6 +553,7 @@ class GroupKnockoutBracketService
 
             foreach ($selectedRows as $position => $standing) {
                 $qualifiers[] = $standing + [
+                    'source' => $groupName.':'.($position + 1),
                     'group_position' => $position + 1,
                     'group_name' => (string) $groupName,
                 ];
@@ -488,13 +632,12 @@ class GroupKnockoutBracketService
         return $points[$teamBId] <=> $points[$teamAId];
     }
 
-    private function createSeededSlots(Tournament $tournament, array $qualifiers): void
+    private function createSeededSlots(Tournament $tournament, array $plan): void
     {
-        $plan = $this->seededFirstRoundPlan($qualifiers);
         $size = $plan['size'];
         foreach ($plan['slots'] as $matchIndex => $sides) {
             foreach ($sides as $side => $slot) {
-                $this->createFirstRoundSlot($tournament, $matchIndex, $side, $slot['team_id'], $slot['bye']);
+                $this->createFirstRoundSlot($tournament, $matchIndex, $side, $slot['team_id'] ?? null, $slot === null);
             }
         }
 
@@ -519,9 +662,8 @@ class GroupKnockoutBracketService
     }
 
     /** Keep fixture rows and their scheduled dates while replacing qualifier participants. */
-    private function replaceGeneratedBracketSlots(Tournament $tournament, array $qualifiers): bool
+    private function replaceGeneratedBracketSlots(Tournament $tournament, array $plan): bool
     {
-        $plan = $this->seededFirstRoundPlan($qualifiers);
         $firstRound = KnockoutSlot::query()
             ->where('tournament_id', $tournament->id)
             ->where('round_number', 1)
@@ -545,11 +687,11 @@ class GroupKnockoutBracketService
                 $record = $firstRound->get($matchIndex.'-'.$side);
                 $record->update([
                     'slot_number' => ($matchIndex * 2) + ($side === 'home' ? 1 : 2),
-                    'team_id' => $slot['team_id'],
-                    'source' => $slot['bye'] ? KnockoutSlot::SOURCE_BYE : KnockoutSlot::SOURCE_DRAW,
+                    'team_id' => $slot['team_id'] ?? null,
+                    'source' => $slot === null ? KnockoutSlot::SOURCE_BYE : KnockoutSlot::SOURCE_DRAW,
                     'source_match_id' => null,
-                    'status' => $slot['team_id'] ? KnockoutSlot::STATUS_FILLED : KnockoutSlot::STATUS_EMPTY,
-                    'result' => $slot['bye'] ? KnockoutSlot::RESULT_BYE : KnockoutSlot::RESULT_PENDING,
+                    'status' => $slot === null ? KnockoutSlot::STATUS_EMPTY : KnockoutSlot::STATUS_FILLED,
+                    'result' => $slot === null ? KnockoutSlot::RESULT_BYE : KnockoutSlot::RESULT_PENDING,
                 ]);
             }
         }
@@ -568,7 +710,29 @@ class GroupKnockoutBracketService
         return true;
     }
 
-    /** @return array{size:int, slots:array<int, array<string, array{team_id:?int, bye:bool}>>} */
+    private function firstRoundPlan(Tournament $tournament, array $qualifiers): array
+    {
+        $plan = $this->seededFirstRoundPlan($qualifiers);
+        $order = $tournament->settings[self::FIRST_ROUND_ORDER_KEY] ?? null;
+        $plan['manual'] = is_array($order) && $this->usesAllSourcesOnce($order, $qualifiers);
+        if (!$plan['manual']) {
+            return $plan;
+        }
+
+        $bySource = array_column($qualifiers, null, 'source');
+        $position = 0;
+        foreach ($plan['slots'] as $matchIndex => $sides) {
+            foreach ($sides as $side => $qualifier) {
+                if ($qualifier !== null) {
+                    $plan['slots'][$matchIndex][$side] = $bySource[$order[$position++]];
+                }
+            }
+        }
+
+        return $plan;
+    }
+
+    /** A null side is a BYE. Its position stays fixed when qualifiers are rearranged. */
     private function seededFirstRoundPlan(array $qualifiers): array
     {
         $teamCount = count($qualifiers);
@@ -593,8 +757,8 @@ class GroupKnockoutBracketService
         for ($matchIndex = 0; $matchIndex < $matchCount; $matchIndex++) {
             if (in_array($matchIndex, $byeMatchIndexes, true)) {
                 $slots[$matchIndex] = [
-                    'home' => ['team_id' => (int) $qualifiers[$nextTeamIndex++]['team_id'], 'bye' => false],
-                    'away' => ['team_id' => null, 'bye' => true],
+                    'home' => $qualifiers[$nextTeamIndex++],
+                    'away' => null,
                 ];
             } else {
                 $openMatches[] = $matchIndex;
@@ -616,8 +780,8 @@ class GroupKnockoutBracketService
             }
             $away = array_splice($remaining, $awayIndex, 1)[0];
             $slots[$matchIndex] = [
-                'home' => ['team_id' => (int) $home['team_id'], 'bye' => false],
-                'away' => ['team_id' => (int) $away['team_id'], 'bye' => false],
+                'home' => $home,
+                'away' => $away,
             ];
         }
 
